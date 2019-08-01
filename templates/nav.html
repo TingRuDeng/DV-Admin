@@ -1,0 +1,68 @@
+{% load mytags %}
+{% if request.session.role_id == 2 %}
+
+<nav class="navbar-default navbar-static-side" role="navigation">
+    <div class="sidebar-collapse">
+        <ul class="nav" id="side-menu">
+            {% include 'nav_li_profile.html' %}
+                <li id="index">
+                   <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> <span class="nav-label">数据汇总</span><span class="label label-info pull-right"></span></a>
+                </li>
+{#                {% for m in session_menu_obj %}#}
+{#                    <li id="{{ m.menu.code }}">#}
+{#                        <a><i class="fa {{ m.menu.icon }}"></i> <span class="nav-label">{{ m.menu.name }}</span><span class="fa arrow"></span></a>#}
+{#                        <ul class="nav nav-second-level">#}
+{#                            {% for lower_menu in m.menu.lower_menu.all %}#}
+{#                                <li class="{{ lower_menu.code }}" name="{{ lower_menu }}">#}
+{#                                    <a href="{% url lower_menu.url %}">{{ lower_menu.name }}</a>#}
+{#                                </li>#}
+{#                            {% endfor %}#}
+{#                        </ul>#}
+{#                    </li>#}
+{#                {% endfor %}#}
+
+                {% for m in session_menu_obj %}
+                    <li id="{{ m.menu.code }}">
+                        <a><i class="fa {{ m.menu.icon }}"></i> <span class="nav-label">{{ m.menu.name }}</span><span class="fa arrow"></span></a>
+                        <ul class="nav nav-second-level">
+                            {% for c_menu in c_session_menu_obj %}
+                                {% ifequal c_menu.menu.parent.id m.menu.id %}
+                                    <li class="{{ c_menu.menu.code }}" name="{{ c_menu.menu.name }}">
+                                        <a href="{% url c_menu.menu.url %}">{{ c_menu.menu.name }}</a>
+                                    </li>
+                                {% endifequal %}
+                            {% endfor %}
+                        </ul>
+                    </li>
+                {% endfor %}
+        </ul>
+    </div>
+</nav>
+{% endif %}
+
+{% if request.session.role_id != 2 %}
+<nav class="navbar-default navbar-static-side" role="navigation">
+    <div class="sidebar-collapse">
+        <ul class="nav" id="side-menu">
+            {% include 'nav_li_profile.html' %}
+            <li id="index" class="index">
+               <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> <span class="nav-label">数据汇总</span><span class="label label-info pull-right"></span></a>
+            </li>
+            {% for m in session_menu_obj %}
+                <li id="{{ m.menu.code }}">
+                    <a><i class="fa {{ m.menu.icon }}"></i> <span class="nav-label">{{ m.menu.name }}</span><span class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level">
+                        {% for c_menu in c_session_menu_obj %}
+                            {% ifequal c_menu.menu.parent.id m.menu.id %}
+                                <li class="{{ c_menu.menu.code }}" name="{{ c_menu.menu.name }}">
+                                    <a href="{% url c_menu.menu.url %}">{{ c_menu.menu.name }}</a>
+                                </li>
+                            {% endifequal %}
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</nav>
+{% endif %}

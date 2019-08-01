@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block content %}
+{% include 'nav_cat_bar.html' %}
+<style>
+    .file-box{ position:relative;width:340px}
+    .txt{ height:22px; border:1px solid #cdcdcd; width:180px;}
+    .file{ position:absolute; top:0; right:80px; height:24px; filter:alpha(opacity:0);opacity: 0;width:260px }
+</style>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-10">
+            <div class="ibox float-e-margins">
+                <div id="ibox-content" class="ibox-title">
+                    <h5> 填写用户基本信息 </h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-user">
+                        </ul>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="ibox-content">
+                    <div class="panel blank-panel">
+                        <div class="panel-options">
+                            <ul class="nav nav-tabs">
+                                <li><a href="{% url 'user_add' %}" class="text-center"><i class="fa fa-laptop"></i> 单台添加 </a></li>
+                                <li class="active"><a href="{% url 'user_add_batch' %}" class="text-center"><i class="fa fa-bar-chart-o"></i> 老数据迁移导入 </a></li>
+                            </ul>
+                        </div>
+                        <div class="panel-body">
+                            <div id="tab-2" class="ibox float-e-margins tab-pane active">
+                                {% if emg %}
+                                    <div class="alert alert-warning text-center">{{ emg }}</div>
+                                {% endif %}
+                                {% if smg %}
+                                    <div class="alert alert-success text-center">{{ smg }}</div>
+                                {% endif %}
+                                <p>请下载Excel文件, 按照格式填写资产信息, 上传导入. <a href="/static/files/excels/EmpBasicInfo.xlsx">点击下载模板</a></p>
+                                <form action="{% url 'user_upload' %}" method="POST" enctype="multipart/form-data">
+                                    <div class="file-box">
+                                        <input id='textfield' />
+                                        <input type="button" class="btn btn-info btn-sm" name="file_name" value="点击选择文件">
+                                        <input type="file" name="file_name" class="file" id="fileField" size="28" onchange="document.getElementById('textfield').value=this.value" />
+                                        <button class="btn btn-primary btn-sm" type="submit" onclick="HideProgress()">上传文件</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    <div class="progress hide" id="user_progress">
+                        <div id="load_progress" class="progress-bar  progress-bar-striped active" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+                            <span class="sr-only">45% Complete</span>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block self_footer_js %}
+<script>
+    function HideProgress() {
+        $('#user_progress').removeClass('hide');
+        load_time(1,'');
+    }
+
+    function load_time(i,w) {
+        if (i<100){
+            w = String(i) + "%";
+            $('#load_progress').css('width', w)
+        }
+        i+=10;
+        setTimeout(function () {
+            load_time(i,w);
+        },50)
+    }
+
+
+</script>
+{% endblock %}

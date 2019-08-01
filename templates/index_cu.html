@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load mytags %}
+{% block content %}
+{% include 'nav_cat_bar.html' %}
+
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-3">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <span class="label label-success pull-right">Users</span>
+                    <h5>当前ETH余额</h5>
+                </div>
+                <div class="ibox-content">
+                    <h1 class="no-margins">{{amount}}</h1>
+                    <small>All user</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <span class="label label-info pull-right">Hosts</span>
+                    <h5>资产</h5>
+                </div>
+                <div class="ibox-content">
+                    <h1 class="no-margins"><a href="">{{ hosts.count }}</a></h1>
+                    <small>All host</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-3">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <span class="label label-primary pull-right">Online</span>
+                    <h5>投注数</h5>
+                </div>
+                <div class="ibox-content">
+                    <h1 class="no-margins"><a href="{% url 'match_mybid' %}"> <span id="online_users">{{ bid_count }}</span></a></h1>
+                    <div class="stat-percent font-bold text-navy">{{ percent_online_user }} <i class="fa fa-level-up"></i></div>
+{#                    <small>login user</small>#}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-3">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <span class="label label-danger pull-right">Connected</span>
+                    <h5>任务数</h5>
+                </div>
+                <div class="ibox-content">
+                        <h1 class="no-margins"><a href="{% url 'log_list' 'online' %}"> <span id="online_hosts">{{ online_host | length }}</span></a></h1>
+{#                    <small>Connected host</small>#}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+{#        <div class="col-sm-1"></div>#}
+        <div class="col-sm-12" id="top10" style="height: 346px;">
+            {% for res in bid_result %}
+            <div class="col-sm-3 white-bg" id="top1">
+                <div class="statistic-box">
+                <h4>
+                    {{ res.match.time|date:"Y-m-d H:i:s" }} 赛事预测
+                </h4>
+                <p>
+                    以下为本场投注的百分比
+                </p>
+                <div class="row text-center">
+                    <div class="col-sm-4">
+{#                        <div id="activeUser"  style="width: 140px; height: 140px;">#}
+{#                        </div>#}
+                        <h5>{{ res.match.home_team.name }}</h5>
+                    </div>
+                    <div class="col-sm-2">VS</div>
+                    <div class="col-sm-4">
+{#                        <div id="activeAsset" style="width: 140px; height: 140px;"></div>#}
+                        <h5>{{ res.match.visit_team.name }}</h5>
+                    </div>
+                </div>
+                {% for k, y in res.bid_status  %}
+                    <td class="text-center" style="min-width: 140px">
+                        <div class="progress">
+                            <div class="progress-bar {{ progress_color|random }} progress-bar-striped active"
+                                 role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"
+                                 style="width: {% widthratio y res.max_bid 100 %}%">
+                                <p>{{ k }}: {{ y }}%</p>
+                            </div>
+                        </div>
+                    </td>
+                {% endfor %}
+                <div class="m-t">
+                    <small></small>
+                </div>
+            </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="row" style="margin-top: 30px; margin-left: 0px">
+        <div class="col-sm-3 border-bottom white-bg dashboard-header">
+            <h2>资产TOP10</h2>
+            <div class="hr-line-dashed"></div>
+            <ul class="list-group clear-list m-t">
+                {% for name, u_amount in user_top_five %}
+                    <li class="list-group-item fist-item">
+                        <span class="pull-right">
+                            {{ u_amount }} ETH
+                        </span>
+                        <a href=""><span class="label {{ color|random }}">{{ forloop.counter }}</span> {{ name }}</a>
+                    </li>
+{#                    <div class="hr-line-dashed"></div>#}
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-sm-3 border-bottom white-bg dashboard-header" style="margin-left: 25px; max-width: 400px">
+            <h2>狐狸赌王top10</h2>
+            <div class="hr-line-dashed"></div>
+            <ul class="list-group clear-list m-t">
+                {% for winners in top_10_winner %}
+                    <li class="list-group-item fist-item">
+                        <span class="pull-right">
+                            {{ winners.win_rate }}% ({{ winners.bid_num }}投{{ winners.win_num }}中)
+                        </span>
+                        <a href=""><span class="label {{ color|random }}">{{ forloop.counter }}</span> {{ winners.username }}</a>
+                    </li>
+{#                    <div class="hr-line-dashed"></div>#}
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="col-sm-3 border-bottom white-bg dashboard-header" style="margin-left: 25px; max-width: 400px">
+            <h2>投注明灯top10</h2>
+            <div class="hr-line-dashed"></div>
+            <ul class="list-group clear-list m-t">
+                {% for losers in top_10_loser %}
+                    <li class="list-group-item fist-item">
+                        <span class="pull-right">
+                            {{ losers.win_rate }}% ({{ losers.bid_num }}投{{ losers.win_num }}中)
+                        </span>
+                        <a href=""><span class="label {{ color|random }}">{{ forloop.counter }}</span> {{ losers.username }}</a>
+                    </li>
+{#                    <div class="hr-line-dashed"></div>#}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,5 @@
+*.pyc
+jlog/migrations
+jperm/migrations
+jumpserver/migrations
+juser/migrations

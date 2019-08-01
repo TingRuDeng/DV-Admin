@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load mytags %}
+
+
+{% block content %}
+    {% include 'nav_cat_bar.html' %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-sm-10">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>{{ user.name }} 的账号注销确认单</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                <i class="fa fa-wrench"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <form method="post" id="activeForm" class="form-horizontal" action="{% url 'user_departure' %}?id={{ user.id }}">
+                            {% if error %}
+                                <div class="alert alert-warning text-center">{{ error }}</div>
+                            {% endif %}
+                            {% if msg %}
+                                <div class="alert alert-success text-center">{{ msg }}</div>
+                            {% endif %}
+                            <div class="form-group">
+                                <label for="username" class="col-sm-2 control-label">员工账号<span class="red-fonts">*</span></label>
+                                <div class="col-sm-8">
+                                    <input id="username" name="username" placeholder="Username" type="text" class="form-control" value="{{ user.username }}" readonly>
+                                </div>
+                            </div>
+{#                            <div class="hr-line-dashed"></div>#}
+{#                            <div class="form-group ">#}
+{#                                <label for="" class="col-sm-2 control-label">员工名下资产数<span class="red-fonts">*</span></label>#}
+{#                                <div style="padding-top: 7px" class="col-sm-8">#}
+{#                                    <input type="text" class="form-control" value="{{ asset_count }}" readonly>#}
+{#                                    <a href="{% url 'asset_select_list' %}?owner_id={{ user.id }}"><span>{{ asset_count }}</span></a>#}
+{#                                </div>#}
+{#                            </div>#}
+                            <div class="hr-line-dashed"></div>
+
+                            <div class="{% if parent_list %}{% else %} hide {% endif %}">
+                                <div class="form-group">
+                                    <label for="" class="col-sm-2 control-label">直属下属：<span class="red-fonts">*</span></label>
+                                    <div style="padding-top: 7px" class="col-sm-8">
+                                        <a href="#"><span>{% for i in parent_list %} {{ i.name }}、 {% endfor %}</span></a>
+                                    </div>
+                                </div>
+                                <div class="hr-line-dashed"></div>
+                            </div>
+
+                            <div class="{% if dep_list %}{% else %} hide {% endif %}">
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-2 control-label">负责部门：<span class="red-fonts">*</span></label>
+                                    <div style="padding-top: 7px" class="col-sm-8">
+                                        <a href="#"><span>{% for i in dep_list %} {{ i.name }}、 {% endfor %}</span></a>
+                                    </div>
+                                </div>
+                                <div class="hr-line-dashed"></div>
+                            </div>
+{#                            <div class="form-group ">#}
+{#                                <label for="entry_time" class="col-sm-2 control-label">离职时间<span class="red-fonts">*</span></label>#}
+{#                                <div class="col-sm-8">#}
+{#                                    <input id="entry_time" name="departure_time" type="date">#}
+{#                                </div>#}
+{#                            </div>#}
+
+                            <div class="hr-line-dashed"></div>
+                            <div class="form-group">
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <button class="btn btn-white" ><a href="{% url 'user_list' %}">取消</a></button>
+                                    <button id="submit_button" class="btn btn-primary" type="submit">离职确认</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block self_footer_js %}
+<script>
+$('#activeForm').validator({
+    timely: 2,
+    theme: "yellow_right_effect",
+    fields: {
+        "code": {
+            rule: "required",
+            tip: "工号",
+            ok: "",
+            msg: {required: "必须填写"}
+        },
+{#        "entry_time": {#}
+{#            rule: "required",#}
+{#            tip: "职位",#}
+{#            ok: "",#}
+{#            msg: {required: "必须填写"}#}
+{#        }#}
+    },
+    valid: function(form) {
+        form.submit();
+    }
+});
+
+$("document").ready(function(){
+    $("input.role").click(function(){
+        if($("input.role[value=GA]").is( ":checked" )){
+            $("#admin_groups").css("display", 'block');
+        }
+        else {
+            $("#admin_groups").css("display", 'none');
+        }
+    })
+})
+</script>
+{% endblock %}

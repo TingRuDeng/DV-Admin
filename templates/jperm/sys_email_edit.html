@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% block self_head_css_js %}
+    <link href="/static/css/plugins/datepicker/datepicker3.css" rel="stylesheet">
+    <link href="/static/css/plugins/chosen/chosen.css" rel="stylesheet">
+    <script src="/static/js/plugins/chosen/chosen.jquery.js"></script>
+{% endblock %}
+{% load mytags %}
+{% load bootstrap %}
+{% block content %}
+{% include 'nav_cat_bar.html' %}
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-10">
+            <div class="ibox float-e-margins">
+                <div id="ibox-content" class="ibox-title">
+                    <h5> 填写模板基本信息 </h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="ibox-content">
+                    <div class="panel blank-panel">
+                        <div class="panel-body">
+                            <div class="tab-content">
+                                <div id="tab-1" class="ibox float-e-margins tab-pane active">
+                                    {% if error %}
+                                        <div class="alert alert-warning text-center">{{ error }}</div>
+                                    {% endif %}
+                                    {% if msg %}
+                                        <div class="alert alert-success text-center">{{ msg }}</div>
+                                    {% endif %}
+
+                                    <form id="emailForm" method="post" class="form-horizontal">
+
+                                        <h5 ><span class="red-fonts">*以下为必填项*</span></h5>
+                                        <div class="hr-line-dashed"></div>
+                                        {{ ef.name|bootstrap_horizontal }}
+{##}
+{#                                        <div class="hr-line-dashed"></div>#}
+                                        {{ ef.subject|bootstrap_horizontal }}
+
+{#                                        <div class="hr-line-dashed"></div>#}
+                                        {{ ef.template_path|bootstrap_horizontal }}
+
+{#                                        <div class="hr-line-dashed"></div>#}
+{#                                        {{ ef.to_email|bootstrap_horizontal }}#}
+                                        <div class="form-group">
+                                            <label for="to_email_list" class="col-sm-2 control-label">默认收件人</label>
+                                            <div class="col-sm-8">
+                                                <select name="to_email_list" id="to_email_list"  class="chosen-select form-control m-b" multiple>
+                                                    {% for emails in to_emails %}
+                                                        <option value="{{ emails.id }}" {% if emails.id in email_selected %}selected{% endif %}>{{ emails.name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <span class="red-fonts"> * 默认收件人未确定时可为空 </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="hr-line-dashed"></div>
+                                        <h5 ><span class="red-fonts">*下面邮件服务器信息可不填，默认使用info@huli.com*</span></h5>
+                                        <div class="hr-line-dashed"></div>
+                                        {{ ef.email_host|bootstrap_horizontal }}
+
+{#                                        <div class="hr-line-dashed"></div>#}
+                                        {{ ef.email_port|bootstrap_horizontal }}
+
+{#                                        <div class="hr-line-dashed"></div>#}
+                                        {{ ef.email_host_user|bootstrap_horizontal }}
+
+{#                                        <div class="hr-line-dashed"></div>#}
+                                        {{ ef.email_host_password|bootstrap_horizontal }}
+
+                                        <div class="hr-line-dashed"></div>
+
+                                        <div class="form-group">
+                                            <div class="col-sm-4 col-sm-offset-2">
+                                                <button class="btn btn-white" type="reset"> 重置 </button>
+                                                <button class="btn btn-primary" type="submit"> 提交 </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block self_footer_js %}
+<script>
+{#    $('document').ready(function(){#}
+{#        var check_default = "{{ default_setting.name }}";#}
+{#        console.log(check_default);#}
+{#        if (check_default != 'default'){#}
+{#            $('#id_use_default_auth').attr('disabled', true);#}
+{#            $('#id_use_default_auth').attr('checked', false);#}
+{#            $('#admin_account').css('display', 'block');#}
+{#        } else {#}
+{#            $('#id_use_default_auth').click(function(){#}
+{#                if ($(this).is(':checked')){#}
+{#                    $('#admin_account').css('display', 'none');#}
+{#                }#}
+{#                else {#}
+{#                    $('#admin_account').css('display', 'block');#}
+{#                }#}
+{#            })#}
+{#        }#}
+{##}
+{#    });#}
+{##}
+{#    var required_fields = ["id_hostname", "id_port"];#}
+{#    required_fields.forEach(function(field) {#}
+{#        $('label[for="' + field + '"]').parent().addClass("required");#}
+{#    });#}
+{##}
+{##}
+{#    $('#emailForm').validator({#}
+{#        valid: function(form) {#}
+{#            form.submit();#}
+{#        }#}
+{#    });#}
+{##}
+{#$(function(){#}
+{##}
+{#    $('#id_asset_type').chosen();#}
+{##}
+{#{);#}
+{##}
+var config = {
+                '.chosen-select'           : {search_contains:true},
+                '.chosen-select-deselect'  : {allow_single_deselect:true},
+                '.chosen-select-no-single' : {disable_search_threshold:10},
+                '.chosen-select-no-results': {no_results_text:'Oops, nothing found!'},
+                '.chosen-select-width'     : {width:"95%"}
+            };
+
+for (var selector in config) {
+    $(selector).chosen(config[selector]);
+}
+
+</script>
+
+{% endblock %}
