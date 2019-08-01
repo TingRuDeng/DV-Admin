@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import unicode_literals
 
 from django.http import JsonResponse
 from django.db.models import Q
 from django.conf import settings
 from django.forms import model_to_dict
+
 from jperm.perm_api import *
 from jperm.forms import *
-from jumpserver.api import my_render, get_object
+from webserver.api import my_render, get_object
 # from juser.urls import user_induction_list
 
 
 # 设置PERM APP Log
-from jumpserver.api import logger
-# logger = set_log(LOG_LEVEL, filename='jumpserver_perm.log')
+from webserver.api import logger
 
 
 # @require_role('super')
@@ -285,17 +285,16 @@ def perm_role_add(request):
             all_list.append(m_id)
             all_list.append(int(menu_id))
         all_list = list(set(all_list))
-        print("role_id_list=", all_list)
         try:
             if get_object(role, name=name):
-                raise ServerError('系统中已存在同名角色')
+                raise ServerError(u'系统中已存在同名角色')
 
             role_obj = role.objects.create(name=name, comment=comment)
             ManagerLog.objects.create(user_id=request.user.id, type='新增角色', msg=model_to_dict(role_obj))
             role_add_permission(role_obj, all_list)
 
             return HttpResponseRedirect(reverse('role_list'))
-        except ServerError as e:
+        except ServerError, e:
             error = e
     return my_render('jperm/perm_role_add.html', locals(), request)
 
@@ -312,23 +311,23 @@ def perm_role_delete(request):
             role_id = request.GET.get("id")
             role_obj = get_object(role, id=role_id)
             if not role_obj:
-                logger.warning("Delete Role: role_id %s not exist" % role_id)
-                raise ServerError("role_id %s 在数据库中不存在" % role_id)
+                logger.warning(u"Delete Role: role_id %s not exist" % role_id)
+                raise ServerError(u"role_id %s 在数据库中不存在" % role_id)
             if role_obj.code != "SU" and role_obj.code != "CU":
                 user_list_id = [i.id for i in User.objects.filter(role_id=role_id)]
                 for user_id in user_list_id:
                     if user_id:
                         user_obj = User.objects.filter(id=user_id)
                         ManagerLog.objects.create(user_id=request.user.id,
-                                                  type='角色重置前',
+                                                  type=u'角色重置前',
                                                   msg=model_to_dict(user_obj[0]))
                         user_obj.update(role_id=1)
                         ManagerLog.objects.create(user_id=request.user.id,
-                                                  type='角色重置后',
+                                                  type=u'角色重置后',
                                                   msg=model_to_dict(user_obj[0]))
                 ManagerLog.objects.create(user_id=request.user.id, type='角色删除', msg=model_to_dict(role_obj))
                 role_obj.delete()
-        except ServerError as e:
+        except ServerError, e:
             return HttpResponse(e)
     return HttpResponseRedirect(reverse("role_list"))
 
@@ -407,7 +406,7 @@ def perm_role_edit(request):
             
             if role_get:
                 if int(role_get.id) != int(role_id):
-                    raise ServerError('系统中已存在同名角色')
+                    raise ServerError(u'系统中已存在同名角色')
 
             ManagerLog.objects.create(user_id=request.user.id, type='角色信息变更前', msg=model_to_dict(role_obj))
             role_obj.name = name
@@ -421,7 +420,7 @@ def perm_role_edit(request):
                                       msg=[i.menu.name for i in menu_permission.objects.filter(role_id=role_id)])
 
             return HttpResponseRedirect(reverse('role_list'))
-        except ServerError as e:
+        except ServerError, e:
             error = e
     return my_render('jperm/perm_role_edit.html', locals(), request)
 
@@ -667,8 +666,8 @@ def sys_email_edit(request):
                 #         email_obj.to_email.remove(emails)
                 # ef_save.save()
                 return HttpResponseRedirect(reverse('sys_email_list'))
-        except Exception as e:
-            print(("error=%s" % e))
+        except Exception, e:
+            print "error=%s" % e
     return my_render('jperm/sys_email_edit.html', locals(), request)
 
 
@@ -686,7 +685,7 @@ def sys_email_del(request):
         return HttpResponse('错误请求')
 
     email_obj = get_object(Email_template, id=email_id)
-    logger.debug("删除邮件模板 %s " % email_obj.name)
+    logger.debug(u"删除邮件模板 %s " % email_obj.name)
     email_obj.delete()
     return HttpResponse('删除成功')
 
@@ -711,24 +710,24 @@ def sys_email_detail(request):
                     content += block
                     block = file.read(1024)
             else:
-                error = "该邮件模板内容为空"
-        except Exception as e:
-            logger.error("邮件模板读取出错：%s" % e)
-            error = "邮件模板读取出错"
+                error = u"该邮件模板内容为空"
+        except Exception, e:
+            logger.error(u"邮件模板读取出错：%s" % e)
+            error = u"邮件模板读取出错"
         finally:
             if file:
                 file.close()
     elif email_obj.count() > 1:
-        error = "邮件模板不唯一"
+        error = u"邮件模板不唯一"
     else:
-        error = "未找到邮件模板"
+        error = u"未找到邮件模板"
     return my_render('jperm/sys_email_detail.html', locals(), request)
 
 @require_role('admin', 'role_admin')
 def sys_email_save(request):
     email_id = request.GET.get('id', None)
     if not email_id:
-        msg = '未找到该邮件模板'
+        msg = u'未找到该邮件模板'
         return HttpResponse(msg)
     email_obj = Email_template.objects.filter(id=email_id)
     if email_obj.count() == 1:
@@ -740,19 +739,19 @@ def sys_email_save(request):
                 template_path = "%s%s%s" % (settings.BASE_DIR, "/templates/", email_obj.template_path)
                 file = open(template_path, 'wb+')
                 file.write(content)
-                msg = "保存成功"
+                msg = u"保存成功"
             else:
-                msg = "未传入模板邮件内容"
-        except Exception as e:
-            logger.error("邮件模板保存出错：%s" % e)
-            msg = "邮件模板保存出错"
+                msg = u"未传入模板邮件内容"
+        except Exception, e:
+            logger.error(u"邮件模板保存出错：%s" % e)
+            msg = u"邮件模板保存出错"
         finally:
             if file:
                 file.close()
     elif email_obj.count() > 1:
-        msg = "邮件模板不唯一"
+        msg = u"邮件模板不唯一"
     else:
-        msg = "未找到邮件模板"
+        msg = u"未找到邮件模板"
     return HttpResponse(msg)
 
 
@@ -783,17 +782,17 @@ def sys_email_send(request):
                 try:
                     user_guide = user_obj.guide
                     cc_email_dict[user_guide.username] = user_guide.id
-                except Exception as e:
+                except Exception, e:
                     pass
                 try:
                     user_parent = user_obj.parent
                     cc_email_dict[user_parent.username] = user_parent.id
-                except Exception as e:
+                except Exception, e:
                     pass
                 try:
                     user_group_admin = user_obj.group.dep_admin
                     cc_email_dict[user_group_admin.username] = user_group_admin.id
-                except Exception as e:
+                except Exception, e:
                     pass
 
             for k in cc_email_dict:
@@ -846,7 +845,7 @@ def sys_email_send(request):
                        'sendemail': sendemail}
         try:
             send_emails(mail_obj, to_email, cc_email, email_value)
-        except Exception as e:
+        except Exception, e:
             error = '邮件服务器返回异常：%s' % e
             return my_render('jperm/sys_email_send.html', locals(), request)
         msg = '邮件发送成功'
@@ -945,7 +944,7 @@ def get_menu_dict(request):
     menu_obj = menu.objects.filter(parent__isnull=True)
     c_menu_obj = menu.objects.filter(parent__isnull=False)
 
-    print(("role_id=", role_id))
+    print "role_id=", role_id
     if role_id:
         my_obj = menu_permission.objects.select_related(
             'menu__url'
@@ -998,7 +997,7 @@ def passwd_update(request):
         user_id = request.GET.get('id', '')
         user_obj = get_object(User, id=user_id)
         if user_obj is None:
-            error = '用户不存在！'
+            error = u'用户不存在！'
             return my_render('jperm/passwd_update.html', locals(), request)
 
         if request.method == 'POST':
@@ -1006,18 +1005,18 @@ def passwd_update(request):
             second_passwd = request.POST.get('second_passwd', '')
 
             if (not first_passwd) or (not second_passwd):
-                error = '密码不能为空！'
+                error = u'密码不能为空！'
                 return my_render('jperm/passwd_update.html', locals(), request)
 
             if first_passwd == second_passwd:
                 user_obj.set_password(first_passwd)
                 user_obj.save()
-                msg = '密码重置成功'
+                msg = u'密码重置成功'
             else:
-                error = '两次输入不一致，请重新输入！'
+                error = u'两次输入不一致，请重新输入！'
         return my_render('jperm/passwd_update.html', locals(), request)
-    except Exception as e:
-        error = '密码重置异常：%s' % e
+    except Exception, e:
+        error = u'密码重置异常：%s' % e
         logger.error(error)
         return my_render('jperm/passwd_update.html', locals(), request)
 
@@ -1033,17 +1032,17 @@ def passwd_update_self(request):
             second_passwd = request.POST.get('second_passwd', '')
 
             if (not first_passwd) or (not second_passwd):
-                error = '密码不能为空！'
+                error = u'密码不能为空！'
                 return my_render('jperm/passwd_update.html', locals(), request)
 
             if first_passwd == second_passwd:
                 user_obj.set_password(first_passwd)
                 user_obj.save()
-                msg = '密码重置成功'
+                msg = u'密码重置成功'
             else:
-                error = '两次输入不一致，请重新输入！'
+                error = u'两次输入不一致，请重新输入！'
         return my_render('jperm/passwd_update.html', locals(), request)
-    except Exception as e:
-        error = '个人密码重置异常：%s' % e
+    except Exception, e:
+        error = u'个人密码重置异常：%s' % e
         logger.error(error)
         return my_render('jperm/passwd_update.html', locals(), request)

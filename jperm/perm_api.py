@@ -1,11 +1,11 @@
 # coding: utf-8
 
 from django.db.models.query import QuerySet
-from jumpserver.api import *
+from webserver.api import *
 # import uuid
 # import re
 
-# from jumpserver.models import Setting
+# from webserver.models import Setting
 from jperm.models import PermRole, menu, menu_permission
 
 
@@ -78,7 +78,7 @@ def user_update_role(role_id, user_list_old, user_list_new):
 
 def user_have_perm(user, asset):
     user_perm_all = get_group_user_perm(user)
-    user_assets = list(user_perm_all.get('asset').keys())
+    user_assets = user_perm_all.get('asset').keys()
     if asset in user_assets:
         return user_perm_all.get('asset').get(asset).get('role')
     else:
@@ -99,7 +99,7 @@ def gen_resource(ob, perm=None):
             perm = get_group_user_perm(user)
 
         if role:
-            roles = list(perm.get('role', {}).keys())  # 获取用户所有授权角色
+            roles = perm.get('role', {}).keys()  # 获取用户所有授权角色
             if role not in roles:
                 return {}
 
@@ -122,7 +122,7 @@ def gen_resource(ob, perm=None):
 
                 res.append(info)
         else:
-            for asset, asset_info in list(perm.get('asset').items()):
+            for asset, asset_info in perm.get('asset').items():
                 if asset not in asset_r:
                     continue
                 asset_info = get_asset_info(asset)
@@ -147,7 +147,7 @@ def gen_resource(ob, perm=None):
         if not perm:
             perm = get_group_user_perm(ob)
 
-        for asset, asset_info in list(perm.get('asset').items()):
+        for asset, asset_info in perm.get('asset').items():
             asset_info = get_asset_info(asset)
             info = {'hostname': asset.hostname, 'ip': asset.ip, 'port': asset_info.get('port', 22)}
             try:
@@ -223,7 +223,7 @@ def get_role_info(role_id, type="all"):
     elif type == "asset_group":
         return set(asset_groups_obj)
     else:
-        return "不支持的查询"
+        return u"不支持的查询"
 
 
 def get_role_push_host(role):
@@ -244,5 +244,5 @@ def get_role_push_host(role):
 
 
 if __name__ == "__main__":
-    print(get_role_info(1))
+    print get_role_info(1)
 

@@ -7,8 +7,8 @@ import xlrd
 # from xlrd import xldate_as_tuple
 from datetime import datetime
 from juser.models import role
-from jumpserver.api import *
-from jumpserver.settings import BASE_DIR, EMAIL_HOST_USER as MAIL_FROM
+from webserver.api import *
+from webserver.settings import BASE_DIR, EMAIL_HOST_USER as MAIL_FROM
 from jlog.models import ManagerLog
 from django.forms.models import model_to_dict
 
@@ -52,8 +52,8 @@ def db_add_group(**kwargs):
                 group.dep_admin = dep_admin_obj
             group.save()
             ManagerLog.objects.create(user_id=user_id, type='部门添加', msg=model_to_dict(group))
-    except Exception as e:
-        logger.error("部门 %s 添加失败!" %e)
+    except Exception,e:
+        logger.error(u"部门 %s 添加失败!" %e)
         # for user_id in users:
         #     group_add_user(group.id, user_id)
 
@@ -136,12 +136,12 @@ def excel_user_to_db(excel_file, user_id, request):
                 # position_name = position_name.encode("utf-8")
 
                 if '' in [username, name, guide, job, position_name, emp_way, entry_time, group]:
-                    e_list.append('带*的内容不能为空，请重新编辑后再导入！')
+                    e_list.append(u'带*的内容不能为空，请重新编辑后再导入！')
                     error_dict[username] = e_list
                     continue
 
                 if get_object(User, username=username):
-                    e_list.append('账号: %s 在系统中已存在，请修改后重新导入！' %username)
+                    e_list.append(u'账号: %s 在系统中已存在，请修改后重新导入！' %username)
                     error_dict[username] = e_list
                     continue
 
@@ -150,7 +150,7 @@ def excel_user_to_db(excel_file, user_id, request):
                     if guide_obj:
                         pass
                     else:
-                        e_list.append('领带人: %s 不存在，请检查系统中是否存在该员工！' %guide)
+                        e_list.append(u'领带人: %s 不存在，请检查系统中是否存在该员工！' %guide)
                         error_dict[username] = e_list
                         continue
 
@@ -159,7 +159,7 @@ def excel_user_to_db(excel_file, user_id, request):
                     if position_obj:
                         pass
                     else:
-                        e_list.append('归属地: %s 不存在，请在系统中新增该归属地再重新导入！' %position_name)
+                        e_list.append(u'归属地: %s 不存在，请在系统中新增该归属地再重新导入！' %position_name)
                         error_dict[username] = e_list
                         continue
 
@@ -168,15 +168,15 @@ def excel_user_to_db(excel_file, user_id, request):
                     if emp_obj:
                         pass
                     else:
-                        e_list.append('用工方式: %s 填写错误，请修改后再重新导入！' %emp_way)
+                        e_list.append(u'用工方式: %s 填写错误，请修改后再重新导入！' %emp_way)
                         error_dict[username] = e_list
                         continue
 
                 if entry_time:
                     try:
                         entry_time = xlrd.xldate.xldate_as_datetime(entry_time, 0)
-                    except Exception as e:
-                        e_list.append('入职日期格式错误: %s' %e)
+                    except Exception,e:
+                        e_list.append(u'入职日期格式错误: %s' %e)
                         error_dict[username] = e_list
                         continue
 
@@ -185,7 +185,7 @@ def excel_user_to_db(excel_file, user_id, request):
                     if group_obj:
                         pass
                     else:
-                        e_list.append('直属部门: %s 不存在，请检查系统中是否存在该部门！' %group)
+                        e_list.append(u'直属部门: %s 不存在，请检查系统中是否存在该部门！' %group)
                         error_dict[username] = e_list
                         continue
 
@@ -194,7 +194,7 @@ def excel_user_to_db(excel_file, user_id, request):
                     if parent_obj:
                         pass
                     else:
-                        e_list.append('直属领导: %s 不存在，请检查系统中是否存在该员工！' %parent_name)
+                        e_list.append(u'直属领导: %s 不存在，请检查系统中是否存在该员工！' %parent_name)
                         error_dict[username] = e_list
                         continue
 
@@ -217,8 +217,8 @@ def excel_user_to_db(excel_file, user_id, request):
             return error_dict,dic_len
         else:
             return True, row_num
-    except Exception as e:
-        logger.error('解析文件失败：%s' %e)
+    except Exception, e:
+        logger.error(u'解析文件失败：%s' %e)
         dic_len = len(error_dict)
         return error_dict,dic_len
 
@@ -244,18 +244,18 @@ def excel_birthday_to_db(excel_file, request):
                 name = name.strip()
 
                 if '' in [name, code, birthday, entry_time]:
-                    e_list.append('带*的内容不能为空，请重新编辑后再导入！')
+                    e_list.append(u'带*的内容不能为空，请重新编辑后再导入！')
                     error_dict[code] = e_list
                     continue
 
                 if not user_obj:
-                    e_list.append('工号对应员工在系统中不存在！')
+                    e_list.append(u'工号对应员工在系统中不存在！')
                     error_dict[code] = e_list
                     continue
 
                 if user_obj.name != name:
-                    logger.warning('工号%s对应姓名异常, 系统：%s，表格：%s' % (code, user_obj.name, name))
-                    e_list.append('工号对应姓名异常！')
+                    logger.warning(u'工号%s对应姓名异常, 系统：%s，表格：%s' % (code, user_obj.name, name))
+                    e_list.append(u'工号对应姓名异常！')
                     error_dict[code] = e_list
                     continue
                 # name = name.encode("utf-8")
@@ -264,16 +264,16 @@ def excel_birthday_to_db(excel_file, request):
                 if entry_time:
                     try:
                         entry_time = xlrd.xldate.xldate_as_datetime(entry_time, 0)
-                    except Exception as e:
-                        e_list.append('入职日期格式错误: %s' %e)
+                    except Exception,e:
+                        e_list.append(u'入职日期格式错误: %s' %e)
                         error_dict[code] = e_list
                         continue
 
                 if birthday:
                     try:
                         birthday = xlrd.xldate.xldate_as_datetime(birthday, 0)
-                    except Exception as e:
-                        birthday = time.strptime(birthday, "%Y年%m月%d日")
+                    except Exception, e:
+                        birthday = time.strptime(birthday, u"%Y年%m月%d日")
                         birthday = time.strftime("%Y-%m-%d", birthday)
                         birthday = datetime.datetime.strptime(birthday, '%Y-%m-%d')
                         # e_list.append(u'出生日期格式错误: %s' % e)
@@ -293,8 +293,8 @@ def excel_birthday_to_db(excel_file, request):
             return error_dict, dic_len
         else:
             return True, row_num
-    except Exception as e:
-        logger.error('解析文件失败：%s' %e)
+    except Exception, e:
+        logger.error(u'解析文件失败：%s' %e)
         dic_len = len(error_dict)
         return error_dict, dic_len
 
@@ -322,18 +322,18 @@ def excel_workday_to_db(excel_file, request):
                 name = name.strip()
 
                 if '' in [name, code, work_time]:
-                    e_list.append('带*的内容不能为空，请重新编辑后再导入！')
+                    e_list.append(u'带*的内容不能为空，请重新编辑后再导入！')
                     error_dict[code] = e_list
                     continue
 
                 if not user_obj:
-                    e_list.append('工号对应员工在系统中不存在！')
+                    e_list.append(u'工号对应员工在系统中不存在！')
                     error_dict[code] = e_list
                     continue
 
                 if user_obj.name != name:
-                    logger.warning('工号%s对应姓名异常, 系统：%s，表格：%s' % (code, user_obj.name, name))
-                    e_list.append('工号对应姓名异常！')
+                    logger.warning(u'工号%s对应姓名异常, 系统：%s，表格：%s' % (code, user_obj.name, name))
+                    e_list.append(u'工号对应姓名异常！')
                     error_dict[code] = e_list
                     continue
                 # name = name.encode("utf-8")
@@ -348,8 +348,8 @@ def excel_workday_to_db(excel_file, request):
 
                 try:
                     work_time = xlrd.xldate.xldate_as_datetime(work_time, 0)
-                except Exception as e:
-                    work_time = time.strptime(work_time, "%Y年%m月%d日")
+                except Exception, e:
+                    work_time = time.strptime(work_time, u"%Y年%m月%d日")
                     work_time = time.strftime("%Y-%m-%d", work_time)
                     work_time = datetime.datetime.strptime(work_time, '%Y-%m-%d')
 
@@ -363,8 +363,8 @@ def excel_workday_to_db(excel_file, request):
             return error_dict, s_num
         else:
             return True, s_num
-    except Exception as e:
-        logger.error('解析文件失败：%s' %e)
+    except Exception, e:
+        logger.error(u'解析文件失败：%s' %e)
         logger.error(rows)
         return error_dict, s_num
 
@@ -466,14 +466,14 @@ def gen_ssh_key(username, password='',
         with open(private_key_file+'.pub') as pub_f:
             with open(authorized_key_file, 'w') as auth_f:
                 auth_f.write(pub_f.read())
-        os.chmod(authorized_key_file, 0o600)
+        os.chmod(authorized_key_file, 0600)
         chown(authorized_key_file, username)
 
 
 def server_add_user(username, ssh_key_pwd=''):
     """
-    add a system user in jumpserver
-    在jumpserver服务器上添加一个用户
+    add a system user in webserver
+    在webserver服务器上添加一个用户
     """
     bash("useradd -s '%s' '%s'" % (os.path.join(BASE_DIR, 'init.sh'), username))
     gen_ssh_key(username, ssh_key_pwd)
@@ -485,7 +485,7 @@ def server_add_user(username, ssh_key_pwd=''):
 #     发送用户添加邮件
 #     """
 #     user_role = {'SU': u'超级管理员', 'GA': u'组管理员', 'CU': u'普通用户'}
-#     mail_title = u'恭喜你的跳板机用户 %s 添加成功 Jumpserver' % user.name
+#     mail_title = u'恭喜你的跳板机用户 %s 添加成功 webserver' % user.name
 #     mail_msg = u"""
 #     Hi, %s
 #         您的用户名： %s
@@ -501,7 +501,7 @@ def server_add_user(username, ssh_key_pwd=''):
 
 def server_del_user(username):
     """
-    delete a user from jumpserver linux system
+    delete a user from webserver linux system
     删除系统上的某用户
     """
     bash('userdel -r -f %s' % username)
@@ -512,9 +512,9 @@ def server_del_user(username):
 
 def get_display_msg(user, password='', ssh_key_pwd='', send_mail_need=False):
     if send_mail_need:
-        msg = '添加用户 %s 成功！ 用户密码已发送到 %s 邮箱！' % (user.name, user.email)
+        msg = u'添加用户 %s 成功！ 用户密码已发送到 %s 邮箱！' % (user.name, user.email)
     else:
-        msg = """
+        msg = u"""
         跳板机地址： %s <br />
         用户名：%s <br />
         密码：%s <br />

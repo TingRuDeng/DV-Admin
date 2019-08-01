@@ -23,9 +23,9 @@
                     </div>
                     <div class="ibox-content">
                         <form id="user_form">
-                            <div class="col-sm-1" style="padding-left: 0">
-                                <a href="{% url 'portrait_batch' %}" class="btn btn-sm btn-primary "> 批量上传 </a>
-                            </div>
+{#                            <div class="col-sm-1" style="padding-left: 0">#}
+{#                                <a href="{% url 'portrait_batch' %}" class="btn btn-sm btn-primary "> 批量上传 </a>#}
+{#                            </div>#}
                             <div class="">
                                 <div class="col-sm-8" style="padding-left: 0px">
                                     <label>
@@ -37,20 +37,6 @@
                                                     <option value="{{ groups.id }}" selected> {{ groups.name }}</option>
                                                 {% else %}
                                                     <option value="{{ groups.id }}"> {{ groups.name }}</option>
-                                                {% endifequal %}
-                                            {% endfor %}
-                                        </select>
-                                    </label>
-                                    <label>
-                                        <select name="user_position" class="form-control m-b input-sm"
-                                                onchange="change_info()">
-                                            <option value="">归属</option>
-                                            {% for position in position_obj %}
-                                                {% ifequal position.id|int2str user_position %}
-                                                    <option value="{{ position.id }}"
-                                                            selected> {{ position.name }}</option>
-                                                {% else %}
-                                                    <option value="{{ position.id }}"> {{ position.name }}</option>
                                                 {% endifequal %}
                                             {% endfor %}
                                         </select>
@@ -117,7 +103,6 @@
                                     <th class="text-center"> 员工工号</th>
                                     <th class="text-center"> 员工姓名</th>
                                     <th class="text-center">直属部门</th>
-                                    <th class="text-center">归属</th>
                                     <th class="text-center">职位</th>
                                     <th class="text-center">性别</th>
                                     <th class="text-center">头像</th>
@@ -134,7 +119,6 @@
                                         <td class="text-center"> {{ user.code }} </td>
                                         <td class="text-center"> {{ user.name }} </td>
                                         <td class="text-center"> {{ user.group.name }} </td>
-                                        <td class="text-center"> {{ user.position.name }} </td>
                                         <td class="text-center"> {{ user.job }} </td>
                                         <td class="text-center"> {{ user.sex }} </td>
                                         <td class="text-center">{% ifequal user.portrait_address|bool_with_status "否" %}
