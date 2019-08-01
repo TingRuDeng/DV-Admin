@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% block self_head_css_js %}
+    <link href="/static/css/plugins/datepicker/datepicker3.css" rel="stylesheet">
+    <link href="/static/css/plugins/chosen/chosen.css" rel="stylesheet">
+    <script src="/static/js/plugins/chosen/chosen.jquery.js"></script>
+{% endblock %}
+{% load mytags %}
+{% block content %}
+    {% include 'nav_cat_bar.html' %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-sm-10">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>填写基本信息</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                <i class="fa fa-wrench"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <form id="groupForm" method="post" class="form-horizontal">
+                            {% if error %}
+                                <div class="alert alert-warning text-center">{{ error }}</div>
+                            {% endif %}
+                            {% if msg %}
+                                <div class="alert alert-success text-center">{{ msg }}</div>
+                            {% endif %}
+                            <div class="form-group">
+                                <label for="group_name" class="col-sm-2 control-label">部门<span class="red-fonts">*</span></label>
+                                <div class="col-sm-8">
+                                    <input name="group_id" type="text" class="form-control" value="{{ user_group.id }}" style="display: none">
+                                    <input id="group_name" name="group_name" placeholder="Group name" type="text" class="form-control" value="{{ user_group.name }}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="parent_id" class="col-sm-2 control-label">上级部门</label>
+                                <div class="col-sm-8">
+                                    <select id="parent_id" name="parent_id" class=" form-control m-b chosen-select">
+                                        <option value="{{ user_group.parent.id }}">{{ user_group.parent.name }}</option>
+                                        {% for group in group_all %}
+                                            <option value="{{ group.id }}">{{ group.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="dep_admin" class="col-sm-2 control-label">部门负责人<span class="red-fonts">*</span></label>
+                                <div class="col-sm-8">
+                                    <select id="dep_admin" name="dep_admin" class=" form-control m-b chosen-select">
+{#
+                                        <option value="{{ user_group.dep_admin.id }}"  selected>{{ user_group.dep_admin.name }}</option>
+                                        {% for admin_user in users_all %}
+                                            <option value="{{ admin_user.id }}"> {{admin_user.name}}</option>
+                                        {% endfor %}
+
+
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="hr-line-dashed"></div>
+                            <div class="form-group">
+                                <label for="users" class="col-sm-2 control-label">员工</label>
+                                <div class="col-sm-8">
+                                    <select name="users_add_list" id="users_add_list" data-placeholder="请选择部门员工" class="chosen-select form-control m-b" multiple>
+                                        {% for user in users_remain %}
+                                            <option value="{{ user.id }}" {% if user.id in users_selected %}selected{% endif %}>{{ user.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+{#                                <div class="col-sm-1">#}
+{#                                    <div class="btn-group" style="margin-top: 50px;">#}
+{#                                        <button type="button" class="btn btn-white" onclick="move('users', 'users_selected')"><i class="fa fa-chevron-right"></i></button>#}
+{#                                        <button type="button" class="btn btn-white" onclick="move('users_selected', 'users')"><i class="fa fa-chevron-left"></i> </button>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                                <div class="col-sm-3">#}
+{#                                    <div>#}
+{#                                        <select id="users_selected" name="users_selected" class="form-control m-b" size="12"  multiple>#}
+{#                                        {% for user in users_selected %}#}
+{#                                            <option value="{{ user.id }}">{{ user.name }}</option>#}
+{#                                        {% endfor %}#}
+{#                                        </select>#}
+{#                                    </div>#}
+{#                                </div>#}
+                            </div>
+                            <div class="hr-line-dashed"></div>
+                            <div class="form-group">
+                                <label for="comment" class="col-sm-2 control-label">备注</label>
+                                <div class="col-sm-8">
+                                    <input id="comment" name="comment" placeholder="Comment" type="text" class="form-control" value="{{ user_group.comment }}">
+                                </div>
+                            </div>
+
+                            <div class="hr-line-dashed"></div>
+                            <div class="form-group">
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <button class="btn btn-white" ><a href="{% url 'user_group_list' %}">取消</a></button>
+                                    <button id="submit_button" class="btn btn-primary" type="submit">确认保存</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block self_footer_js %}
+<script>
+$('#groupForm').validator({
+    timely: 2,
+    theme: "yellow_right_effect",
+    fields: {
+        "group_name": {
+            rule: "required",
+            tip: "输入组名",
+            ok: "",
+            msg: {required: "必须填写!"}
+        },
+        "group_type": {
+            rule: "checked",
+            tip: "选择组类型",
+            ok: "",
+            msg: {required: "至少选择一个组!"}
+        }
+    },
+    valid: function(form) {
+        form.submit();
+    }
+});
+
+
+$(document).ready(function(){
+    $("#submit_button").click(function(){
+        $('#users_selected option').each(function(){
+            $(this).prop('selected', true)
+        })
+    })
+});
+
+var config = {
+                '.chosen-select'           : {},
+                '.chosen-select-deselect'  : {allow_single_deselect:true},
+                '.chosen-select-no-single' : {disable_search_threshold:10},
+                '.chosen-select-no-results': {no_results_text:'Oops, nothing found!'},
+                '.chosen-select-width'     : {width:"95%"}
+            };
+
+for (var selector in config) {
+    $(selector).chosen(config[selector]);
+}
+
+
+$(function() {
+
+    $('.group_with_user').chosen();
+
+});
+
+</script>
+{% endblock %}
