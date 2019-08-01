@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block self_head_css_js %}
+    <link href="/static/js/jquery-easyui-1/themes/default/easyui.css" rel="stylesheet">
+    <link href="/static/js/jquery-easyui-1/themes/icon.css" rel="stylesheet">
+    <script src="/static/js/jquery-easyui-1/jquery.easyui.min.js"></script>
+{% endblock %}
+{% load mytags %}
+{% block content %}
+    {% include 'nav_cat_bar.html' %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-sm-10">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>填写角色信息</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                <i class="fa fa-wrench"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <form method="post" id="roleForm" class="form-horizontal" action="">
+                            {% if error %}
+                                <div class="alert alert-warning text-center">{{ error }}</div>
+                            {% endif %}
+                            {% if msg %}
+                                <div class="alert alert-success text-center">{{ msg }}</div>
+                            {% endif %}
+                            <div class="form-group">
+                                <label for="role_name" class="col-sm-2 control-label">角色名称<span class="red-fonts">*</span></label>
+                                <div class="col-sm-8">
+                                    <input id="role_name" name="role_name" placeholder="Role Name" type="text" class="form-control">
+                                </div>
+                            </div>
+                            <div class="hr-line-dashed"></div>
+
+{#                            <div class="form-group">#}
+{#                                <label for="menu" class="col-sm-2 control-label">关联菜单权限<span class="red-fonts">*</span></label>#}
+{#                                <div class="col-sm-8">#}
+{#                                    <select id="menu" name="menu" class=" form-control m-b" multiple size="12">#}
+{#                                        <option value="" selected></option>#}
+{#                                        {% for menu in menu_obj %}#}
+{#                                            {% if forloop.first %}#}
+{#                                                <option value="{{ menu.id }}" selected>{{ menu.name }}</option>#}
+{#                                            {% else %}#}
+{#                                                <option value="{{ menu.id }}">{{ menu.name }}</option>#}
+{#                                            {% endif %}#}
+{#                                        {% endfor %}#}
+{#                                    </select>#}
+{#                                </div>#}
+{#                            </div>#}
+
+                            <div class="form-group">
+                                <label for="menu" class="col-sm-2 control-label">关联菜单权限<span class="red-fonts">*</span></label>
+                                <div class="col-sm-8" size="12">
+                                    <ul id="tt" class="easyui-tree" animate = "true" lines = "true" url="{% url 'get_menu_dict' %}" checkbox="true"></ul>
+                                </div>
+                            </div>
+
+
+
+
+                            <div class="hr-line-dashed"></div>
+{#                            <div class="form-group">#}
+{#                                <label for="sudo" class="col-sm-2 control-label">关联Sudo</label>#}
+{#                                <div class="col-sm-8" id="sudo_name">#}
+{#                                    <select name="sudo_name" data-placeholder="请选择Sudo别名" class="chosen-select form-control m-b" multiple  tabindex="2">#}
+{#                                        {% for sudo in sudos %}#}
+{#                                            <option  value="{{ sudo.id }}">{{ sudo.name }}</option>#}
+{#                                        {% endfor %}#}
+{#                                    </select>#}
+{#                                </div>#}
+{#                            </div>#}
+                            <div class="hr-line-dashed"></div>
+                            <div class="form-group">
+                                <label for="role_comment" class="col-sm-2 control-label">备注</label>
+                                <div class="col-sm-8">
+                                    <input id="role_comment" name="role_comment" placeholder="Role Comment" type="text" class="form-control">
+                                </div>
+                            </div>
+                            <div class="hr-line-dashed"></div>
+                            <div class="hide">
+                                <input id="role_id_list" name="role_id_list" type="text" readonly >
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <button class="btn btn-white"><a href="{% url 'role_list' %}">取消</a></button>
+                                    <button id="submit_button" class="btn btn-primary" type="submit">确认保存</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block self_footer_js %}
+<script>
+$('#roleForm').validator({
+    timely: 2,
+    theme: "yellow_right_effect",
+    rules: {
+        check_name: [/(?!^root$)^[\w.]{2,20}$/i, '大小写字母数字和下划线小数点,2-20位,并且非root'],
+        check_begin: [/^[\-]+BEGIN R|DSA PRIVATE KEY[\-]+/gm, 'RSA|DSA Key填写有误，请检查']
+
+    },
+
+    fields: {
+        "role_name": {
+            rule: "required",
+            tip: "输入角色用户名称",
+            ok: "",
+            msg: {required: "角色名称必填"}
+        }
+    },
+    valid: function(form) {
+            form.submit();
+        }
+});
+
+    $('#tt').tree({
+{#        data : {{ data|safe }},#}
+        onCheck: function (node) {
+            var check_array = [];
+            var nodes = $('#tt').tree('getChecked');
+
+            jQuery.each(nodes, function() {
+                check_array.push(this.id);
+                console.log("--",check_array)
+            });
+            $('#role_id_list').val(check_array)
+        }
+    });
+
+</script>
+{#    <script src="/static/js/cropper/cropper.min.js"></script>#}
+{#    <script src="/static/js/datapicker/bootstrap-datepicker.js"></script>#}
+{% endblock %}
+

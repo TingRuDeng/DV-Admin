@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load mytags %}
+{% block self_head_css_js %}
+{#    <link href="/static/css/plugins/datepicker/datepicker3.css" rel="stylesheet">#}
+    <link href="/static/css/plugins/chosen/chosen.css" rel="stylesheet">
+    <script src="/static/js/plugins/chosen/chosen.jquery.js"></script>
+{% endblock %}
+
+{% block content %}
+    {% include 'nav_cat_bar.html' %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-sm-10">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>新增赛事</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                <i class="fa fa-wrench"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="panel blank-panel">
+                            <div class="ibox-content">
+                                <form method="post" id="userForm" class="form-horizontal" action="">
+                                    {% if emg %}
+                                        <div class="alert alert-warning text-center">{{ emg }}</div>
+                                    {% endif %}
+                                    {% if msg %}
+                                        <div class="alert alert-success">{{ msg }}</div>
+                                    {% endif %}
+                                    <div class="form-group">
+                                        <label for="home_team" class="col-sm-2 control-label">主队<span class="red-fonts">*</span></label>
+                                        <div class="col-sm-8">
+                                            <select id="home_team" name="home_team" class="chosen-select form-control m-b" >
+                                                <option value="" selected></option>
+                                                {% for teams in team_obj %}
+                                                    <option value="{{ teams.id }}" >{{ teams.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="visit_team" class="col-sm-2 control-label">客队<span class="red-fonts">*</span></label>
+                                        <div class="col-sm-8">
+                                            <select id="visit_team" name="visit_team" class="chosen-select form-control m-b" >
+                                                <option value="" selected></option>
+                                                {% for teams in team_obj %}
+                                                    <option value="{{ teams.id }}" >{{ teams.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="time" class="col-sm-2 control-label">比赛时间<span class="red-fonts">*</span></label>
+                                        <div class="col-sm-8">
+                                            <input id="time" name="time" type="datetime-local">
+                                        </div>
+                                    </div>
+                                    <div class="hr-line-dashed"></div>
+
+                                    <div class="form-group">
+                                        <label for="concede_goal" class="col-sm-2 control-label">让球</label>
+                                        <div class="col-sm-8">
+                                            <input id="concede_goal" name="concede_goal" type="text" class="form-control">
+                                        </div>
+                                    </div>
+                                    <div class="hr-line-dashed"></div>
+
+                                    <div class="form-group">
+                                        <div class="col-sm-4 col-sm-offset-2">
+                                            <button class="btn btn-white" ><a href="{% url 'user_list' %}">取消</a></button>
+                                            <button id="submit_button" class="btn btn-primary" type="submit">确认保存</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block self_footer_js %}
+
+<script>
+$('#userForm').validator({
+    timely: 2,
+    theme: "yellow_right_effect",
+    rules: {
+        type_m: function(element){
+                    return  $("#M").is(":checked");
+            }
+    },
+    fields: {
+        "home_team": {
+            rule: "required",
+            tip: "",
+{#            ok: "",#}
+            msg: {required: "必须选择一支队伍!"}
+        },
+        "visit_team": {
+            rule: "required",
+            tip: "",
+{#            ok: "",#}
+            msg: {required: "必须选择一支队伍"}
+        },
+        "time": {
+            rule: "required",
+            tip: "",
+            ok: "",
+            msg: {required: "必须填写"}
+        }
+    },
+    valid: function(form) {
+        form.submit();
+    }
+});
+
+{#$(function(){#}
+{##}
+{#    $('.chosen-select').chosen();#}
+{##}
+{#{);#}
+
+var config = {
+                '.chosen-select'           : {},
+                '.chosen-select-deselect'  : {allow_single_deselect:true},
+                '.chosen-select-no-single' : {disable_search_threshold:10},
+                '.chosen-select-no-results': {no_results_text:'Oops, nothing found!'},
+                '.chosen-select-width'     : {width:"95%"}
+            };
+
+for (var selector in config) {
+    $(selector).chosen(config[selector]);
+}
+
+
+
+</script>
+
+{% endblock %}
