@@ -6,69 +6,44 @@
 
 <div class="wrapper wrapper-content">
     <div class="row">
-        <div class="col-sm-3">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <span class="label label-success pull-right">Users</span>
-                    <h5>系统用户数</h5>
-                </div>
-                <div class="ibox-content">
-                    <h1 class="no-margins"><a href="{% url 'user_list' %}">{{ users.count}}</a></h1>
-                    <small>All user</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <span class="label label-info pull-right">Hosts</span>
-                    <h5>ETH总资产</h5>
-                </div>
-                <div class="ibox-content">
-                    <h1 class="no-margins"><a href="">{{ amount }}</a></h1>
-                    <small>All host</small>
-                </div>
-            </div>
-        </div>
+{#        <div class="col-sm-3">#}
+{#            <div class="ibox float-e-margins">#}
+{#                <div class="ibox-title">#}
+{#                    <span class="label label-primary pull-right">Online</span>#}
+{#                    <h5>一周登录员工数</h5>#}
+{#                </div>#}
+{#                <div class="ibox-content">#}
+{#                    <h1 class="no-margins"><a href="{% url 'log_list' 'online' %}"> <span id="online_users">{{ login_user | length }}</span></a></h1>#}
+{#                    <div class="stat-percent font-bold text-navy">{{ percent_online_user }} <i class="fa fa-level-up"></i></div>#}
+{#                    <small>login user</small>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
 
-        <div class="col-sm-3">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <span class="label label-primary pull-right">Online</span>
-                    <h5>一周登录员工数</h5>
-                </div>
-                <div class="ibox-content">
-                    <h1 class="no-margins"><a href="{% url 'log_list' 'online' %}"> <span id="online_users">{{ login_user | length }}</span></a></h1>
-                    <div class="stat-percent font-bold text-navy">{{ percent_online_user }} <i class="fa fa-level-up"></i></div>
-                    <small>login user</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-sm-3">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <span class="label label-danger pull-right">Connected</span>
-                    <h5>任务数</h5>
-                </div>
-                <div class="ibox-content">
-                        <h1 class="no-margins"><a href="{% url 'log_list' 'online' %}"> <span id="online_hosts">{{ online_host | length }}</span></a></h1>
-                    <small>Connected host</small>
-                </div>
-            </div>
-        </div>
+{#        <div class="col-sm-3">#}
+{#            <div class="ibox float-e-margins">#}
+{#                <div class="ibox-title">#}
+{#                    <span class="label label-danger pull-right">Connected</span>#}
+{#                    <h5>任务数</h5>#}
+{#                </div>#}
+{#                <div class="ibox-content">#}
+{#                        <h1 class="no-margins"><a href="{% url 'log_list' 'online' %}"> <span id="online_hosts">{{ online_host | length }}</span></a></h1>#}
+{#                    <small>Connected host</small>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
     </div>
     <div class="row">
         <div class="col-sm-2 border-bottom white-bg dashboard-header" style="margin-left:15px;height: 346px">
-            <h2>活跃用户TOP5</h2>
+            <h2>本月TOP5</h2>
             <small>过去一周共有<span class="text-info">{{ week_users }}</span>位用户登录<span class="text-success">{{ week_hosts }}</span>次系统.</small>
             <ul class="list-group clear-list m-t">
-                {% for data in user_top_five %}
+                {% for card__name, sum  in ek_card.item %}
                     <li class="list-group-item fist-item">
                         <span class="pull-right">
-                            {{ data.times }}次/周
+                            {{ sum }} /月
                         </span>
-                        <span class="label {{ color|random }}">{{ forloop.counter }}</span> {{ data.user }}
+                        <span class="label {{ color|random }}">{{ forloop.counter }}</span> {{ card__name }}
                     </li>
                 {% endfor %}
             </ul>

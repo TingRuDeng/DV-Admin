@@ -1,22 +1,14 @@
 # coding: utf-8
 
-# import csv
-# import codecs
-# import zipfile
 import re
-import os
-import sys
-# from django.http import JsonResponse
 from django.core.urlresolvers import reverse_lazy
 
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from juser.user_api import *
-# from juser.ldap_api import *
 from jperm.perm_api import *
-# from jasset.asset_api import get_user_consumables
 from jlog.models import ManagerLog
-# from jattendance.attendance_api import cal_user_holiday
+
 MAIL_FROM = EMAIL_HOST_USER
 
 
@@ -111,8 +103,8 @@ def group_del(request):
                 dep_obj = UserGroup.objects.filter(id=group_id)
                 dep_obj.update(is_active=0)
                 ManagerLog.objects.create(user_id=request.user.id, type='部门删除', msg=model_to_dict(dep_obj[0]))
-            except Exception as e:
-                print ("日志记录异常！%s" % e)
+            except Exception, e:
+                print "日志记录异常！%s" % e
     return HttpResponse('删除成功')
 
 
@@ -195,7 +187,7 @@ def group_edit(request):
             user_group.comment = comment
             user_group.save()
             ManagerLog.objects.create(user_id=request.user.id, type='部门信息变更后', msg=model_to_dict(user_group))
-        except ServerError as e:
+        except ServerError, e:
             logger.error(u'部门变更失败：%s' % e)
             error = e
 
@@ -233,6 +225,7 @@ def user_add(request):
         parent_id = request.POST.get('parent', '')
         is_active = True
 
+        print username,
         try:
             if '' in [username, name]:
                 error = u'带*内容不能为空'
@@ -266,12 +259,12 @@ def user_add(request):
 
                 return HttpResponseRedirect(reverse('user_list'))
 
-            except IndexError as e:
+            except IndexError, e:
                 error = u'添加用户 %s 失败 %s ' % (username, e)
                 logger.error(error)
                 try:
                     db_del_user(username)
-                except Exception as e:
+                except Exception, e:
                     logger.warning(u'删除新增失败的用户异常：%s' % e)
     return my_render('juser/user_add.html', locals(), request)
 
@@ -279,22 +272,14 @@ def user_add(request):
 @require_role('admin', 'user_list')
 def user_test(request):
     try:
-        from juser.models import MailContent
-        d_res = get_email_info()
-        if MailContent.objects.filter(mail_id=d_res['id']):
-            logger.warn('邮件已存在%s' % d_res['id'])
-        else:
-            print(d_res)
-            MailContent.objects.create(mail_id=d_res['id'],
-                                       from_user=d_res['from'],
-                                       create_time=d_res['date'],
-                                       title=d_res['subject'],
-                                       file_name=d_res['filename'],
-                                       content=d_res['text']
-                                       )
+        for i in xrange(30001, 200000):
+            User.objects.create(name=str(i),
+                                username=str(i),
+                                is_active=1,
+                                is_staff=1)
         return HttpResponse(u'成功')
-    except Exception as e:
-        print("error========", e)
+    except Exception, e:
+        print "error========", e
 
 
 # @require_role('admin', 'user_induction_list')
@@ -751,10 +736,13 @@ def user_list(request):
     header_title, path1, path2 = '员工查看', '员工管理', '员工列表'
 
     users_list = User.objects.filter(is_active=1)
+    # position_obj = userposition.objects.all()
     group_obj = UserGroup.objects.filter(is_active=1)
 
     keyword = request.GET.get('keyword')
     user_group = request.GET.get('user_group')
+    # user_active = request.GET.get('user_active')
+    # user_position = request.GET.get('user_position')
     user_sex = request.GET.get('user_sex')
     gid = request.GET.get('gid')
 
@@ -784,24 +772,6 @@ def user_list(request):
     return my_render('juser/user_list.html', locals(), request)
 
 
-# @require_role('user')
-# def user_index(request):
-#     header_title, path1, path2 = '员工信息', '组织管理', '个人信息详情'
-#
-#     user_id = request.GET.get('id')
-#     if user_id:
-#         user_obj = get_user_data(request, id=user_id)
-#     else:
-#         user_obj = get_user_data(request, id=request.user.id)
-#
-#     try:
-#         user_obj = user_obj[0]
-#     except Exception, e:
-#         logger.warning(u'获取员工列表失败: %s' % e)
-#     amount = cal_amount(user_obj)
-#     return my_render('index_cu.html', locals(), request)
-
-
 @require_role('user')
 def user_detail(request):
     header_title, path1, path2 = '员工信息', '组织管理', '个人信息详情'
@@ -814,7 +784,7 @@ def user_detail(request):
 
     try:
         user_obj = user_obj[0]
-    except Exception as e:
+    except Exception, e:
         logger.warning(u'获取员工列表失败: %s' % e)
 
     if not user_obj:
@@ -823,8 +793,6 @@ def user_detail(request):
     user_log_ten = Log.objects.filter(user=user_obj.username).order_by('id')[0:10]
     user_log_last = Log.objects.filter(user=user_obj.username).order_by('id')[0:50]
     user_log_last_num = len(user_log_last)
-
-
     # user_consumables = get_user_consumables(user_obj)
     # user_consumables_sum = 0
     # for consumable in user_consumables:
@@ -972,104 +940,101 @@ def change_info(request):
     return my_render('juser/change_info.html', locals(), request)
 
 
-# @require_role('admin', 'portrait_list')
-# def portrait_list(request):
-#     header_title, path1, path2 = '上传员工头像', '员工管理', '修改员工头像'
-#     users = User.objects.exclude(id=1)
-#
-#     keyword = request.GET.get('keyword', '')
-#     user_group = request.GET.get('user_group', '')
-#     user_position = request.GET.get('user_position', '')
-#     user_sex = request.GET.get('user_sex', '')
-#     emp_way = request.GET.get('emp_way')
-#     status = request.GET.get('status')
-#     if emp_way:
-#         emp_way = int(emp_way)
-#     if status:
-#         status = int(status)
-#     position_obj = userposition.objects.all()
-#     group_obj = UserGroup.objects.filter(is_active=True)
-#
-#     if keyword:
-#         users = users.filter(Q(username__icontains=keyword) | Q(name__icontains=keyword))
-#     if user_group:
-#         users = users.filter(group_id=int(user_group))
-#     if user_position:
-#         users = users.filter(position=int(user_position))
-#     if user_sex:
-#         users = users.filter(sex=user_sex)
-#     if emp_way == 0:
-#         users = users.filter(is_active=1, is_staff=1).exclude(code='')
-#         emp_way = u'在职'
-#     elif emp_way == 1:
-#         users = users.filter(is_active=0).order_by('-departure_time', 'entry_time')
-#         emp_way = u'离职'
-#     else:
-#         users = users.exclude(code='').exclude(code__isnull=True)
-#     if status == 0:
-#         users = users.filter(portrait_address__isnull=False)
-#         status = u'已上传'
-#     elif status == 1:
-#         users = users.filter(portrait_address__isnull=True)
-#         status = u'未上传'
-#     users = users.order_by('code')
-#
-#     user_list_all, p, users_list, page_range, current_page, show_first, show_end = pages(users, request)
-#     return my_render('juser/portrait_list.html', locals(), request)
+@require_role('admin', 'portrait_list')
+def portrait_list(request):
+    header_title, path1, path2 = '上传员工头像', '员工管理', '修改员工头像'
+    users = User.objects.exclude(id=1)
+
+    keyword = request.GET.get('keyword', '')
+    user_group = request.GET.get('user_group', '')
+    user_position = request.GET.get('user_position', '')
+    user_sex = request.GET.get('user_sex', '')
+    emp_way = request.GET.get('emp_way')
+    status = request.GET.get('status')
+    if emp_way:
+        emp_way = int(emp_way)
+    if status:
+        status = int(status)
+    group_obj = UserGroup.objects.filter(is_active=True)
+
+    if keyword:
+        users = users.filter(Q(username__icontains=keyword) | Q(name__icontains=keyword))
+    if user_group:
+        users = users.filter(group_id=int(user_group))
+    if user_position:
+        users = users.filter(position=int(user_position))
+    if user_sex:
+        users = users.filter(sex=user_sex)
+    if emp_way == 0:
+        users = users.filter(is_active=1, is_staff=1)
+        emp_way = u'在职'
+    elif emp_way == 1:
+        users = users.filter(is_active=0).order_by('-departure_time', 'entry_time')
+        emp_way = u'离职'
+
+    if status == 0:
+        users = users.filter(portrait_address__isnull=False)
+        status = u'已上传'
+    elif status == 1:
+        users = users.filter(portrait_address__isnull=True)
+        status = u'未上传'
+
+    user_list_all, p, users_list, page_range, current_page, show_first, show_end = pages(users, request)
+    return my_render('juser/portrait_list.html', locals(), request)
 
 
-# @require_role('admin', 'portrait_list')
-# def portrait_upload(request):
-#     header_title, path1, path2 = '上传员工头像', '员工管理', '修改员工头像'
-#     user_id = request.GET.get('id')
-#     user = get_object(User, id=user_id)
-#     if user is None:
-#         return HttpResponseRedirect(reverse_lazy('portrait_list'))
-#     if request.method == 'POST':
-#         try:
-#             image = request.FILES.get("portrait", None)
-#             if image is None:
-#                 return HttpResponseRedirect(reverse_lazy('portrait_list'))
-#             else:
-#                 img_size = image.size
-#                 img_url = image.name
-#                 pattern = re.compile(r'(gif|jpg|jpeg|GIF|JPG|JPEG|png)$')
-#                 match = pattern.match(img_url.split('.')[-1])
-#                 if not match:
-#                     emg = u'请上传gif|jpg|jpeg|GIF|JPG|JPEG|png为后缀的图片'
-#                     return my_render('juser/portrait_admin_upload.html', locals(), request)
-#                 if img_size > FILE_UPLOAD_MAX_SIZE:
-#                     emg = u'图片大小不能超过%fM' % round(FILE_UPLOAD_MAX_SIZE / 1024.0 / 1024.0, 4)
-#                     return my_render('juser/portrait_admin_upload.html', locals(), request)
-#
-#                 img_url_list = str(image.name).split('.')
-#                 img_storage_name = "%s_%d.%s" % (str(uuid.uuid4().get_hex().lower()[0:8]), user.id, img_url_list[-1])
-#                 image_dir = "%s%s%s" % (BASE_DIR, IMAGE_URL, "portrait")
-#                 if not os.path.exists(image_dir):
-#                     os.mkdir(image_dir, 0755)
-#                 img_storage_path = os.path.join(image_dir, img_storage_name)
-#
-#                 with open(img_storage_path, 'wb+') as f:
-#                     for chunk in image.chunks():
-#                         f.write(chunk)
-#                     f.close()
-#                 if user.portrait_address:
-#                     ManagerLog.objects.create(user_id=request.user.id, type='头像-修改前', msg=model_to_dict(user))
-#                     user.portrait_address = "%s%s/%s" % (IMAGE_URL, "portrait", img_storage_name)
-#                     user.save()
-#                     ManagerLog.objects.create(user_id=request.user.id, type='头像-修改后', msg=model_to_dict(user))
-#                 else:
-#                     user.portrait_address = "%s%s/%s" % (IMAGE_URL, "portrait", img_storage_name)
-#                     user.save()
-#                     ManagerLog.objects.create(user_id=request.user.id, type='头像-上传后', msg=model_to_dict(user))
-#                 return HttpResponseRedirect(reverse_lazy('portrait_list'))
-#         except Exception, e:
-#             emg = u'头像上传出错'
-#             logger.error("头像上传出错%s" % e)
-#             return my_render('juser/portrait_admin_upload.html', locals(), request)
-#
-#     else:
-#         return my_render('juser/portrait_admin_upload.html', locals(), request)
+@require_role('admin', 'portrait_list')
+def portrait_upload(request):
+    header_title, path1, path2 = '上传员工头像', '员工管理', '修改员工头像'
+    user_id = request.GET.get('id')
+    user = get_object(User, id=user_id)
+    if user is None:
+        return HttpResponseRedirect(reverse_lazy('portrait_list'))
+    if request.method == 'POST':
+        try:
+            image = request.FILES.get("portrait", None)
+            if image is None:
+                return HttpResponseRedirect(reverse_lazy('portrait_list'))
+            else:
+                img_size = image.size
+                img_url = image.name
+                pattern = re.compile(r'(gif|jpg|jpeg|GIF|JPG|JPEG|png)$')
+                match = pattern.match(img_url.split('.')[-1])
+                if not match:
+                    emg = u'请上传gif|jpg|jpeg|GIF|JPG|JPEG|png为后缀的图片'
+                    return my_render('juser/portrait_admin_upload.html', locals(), request)
+                if img_size > FILE_UPLOAD_MAX_SIZE:
+                    emg = u'图片大小不能超过%fM' % round(FILE_UPLOAD_MAX_SIZE / 1024.0 / 1024.0, 4)
+                    return my_render('juser/portrait_admin_upload.html', locals(), request)
+
+                img_url_list = str(image.name).split('.')
+                img_storage_name = "%s_%d.%s" % (str(uuid.uuid4().get_hex().lower()[0:8]), user.id, img_url_list[-1])
+                image_dir = "%s%s%s" % (BASE_DIR, IMAGE_URL, "portrait")
+                if not os.path.exists(image_dir):
+                    os.mkdir(image_dir, 0755)
+                img_storage_path = os.path.join(image_dir, img_storage_name)
+
+                with open(img_storage_path, 'wb+') as f:
+                    for chunk in image.chunks():
+                        f.write(chunk)
+                    f.close()
+                if user.portrait_address:
+                    ManagerLog.objects.create(user_id=request.user.id, type='头像-修改前', msg=model_to_dict(user))
+                    user.portrait_address = "%s%s/%s" % (IMAGE_URL, "portrait", img_storage_name)
+                    user.save()
+                    ManagerLog.objects.create(user_id=request.user.id, type='头像-修改后', msg=model_to_dict(user))
+                else:
+                    user.portrait_address = "%s%s/%s" % (IMAGE_URL, "portrait", img_storage_name)
+                    user.save()
+                    ManagerLog.objects.create(user_id=request.user.id, type='头像-上传后', msg=model_to_dict(user))
+                return HttpResponseRedirect(reverse_lazy('portrait_list'))
+        except Exception, e:
+            emg = u'头像上传出错'
+            logger.error("头像上传出错%s" % e)
+            return my_render('juser/portrait_admin_upload.html', locals(), request)
+
+    else:
+        return my_render('juser/portrait_admin_upload.html', locals(), request)
 
 
 @require_role('user')
@@ -1097,7 +1062,7 @@ def portrait_userupload(request):
                 img_storage_name = "%s_%d.%s" % (str(uuid.uuid4().get_hex().lower()[0:8]), user.id, img_url_list[-1])
                 image_dir = "%s%s%s" % (BASE_DIR, IMAGE_URL, "portrait")
                 if not os.path.exists(image_dir):
-                    os.mkdir(image_dir, 755)
+                    os.mkdir(image_dir, 0755)
                 img_storage_path = os.path.join(image_dir, img_storage_name)
 
                 with open(img_storage_path, 'wb+') as f:
@@ -1114,7 +1079,7 @@ def portrait_userupload(request):
                     user.save()
                     ManagerLog.objects.create(user_id=request.user.id, type='头像-上传后', msg=model_to_dict(user))
                 return HttpResponseRedirect(reverse_lazy('index'))
-        except Exception as e:
+        except Exception, e:
             emg = u'头像上传出错'
             logger.error("头像上传出错%s" % e)
             return my_render('juser/portrait_user_upload.html', locals(), request)
@@ -1123,82 +1088,15 @@ def portrait_userupload(request):
         return my_render('juser/portrait_user_upload.html', locals(), request)
 
 
-# @require_role('admin', 'portrait_list')
-# def portrait_batch(request):
-#     header_title, path1, path2 = '上传员工头像', '员工管理', '批量上传员工头像'
-#     if request.method == 'POST':
-#         try:
-#             file = request.FILES.get("portrait", None)
-#             if file is None:
-#                 emg = u'请上传zip格式的归档文件'
-#                 return my_render('juser/portrait_batch.html', locals(), request)
-#             else:
-#                 file_size = file.size
-#                 if not zipfile.is_zipfile(file):
-#                     emg = u'请上传zip格式的归档文件'
-#                     return my_render('juser/portrait_batch.html', locals(), request)
-#                 if file_size > FILE_UPLOAD_MAX_SIZE * 500:
-#                     emg = u'文件大小不能超过%fM' % round((FILE_UPLOAD_MAX_SIZE * 500 ) / 1024.0 / 1024.0, 4)
-#                     return my_render('juser/portrait_batch.html', locals(), request)
-#
-#                 unzipped = zipfile.ZipFile(file)
-#                 error = []
-#                 for name in unzipped.namelist():
-#                     if name.startswith('__MACOSX/'):
-#                         continue
-#                     if name.endswith('/') or "desktop.ini" in name or "DS_Store" in name:
-#                         continue
-#                     file_name_list = re.split("\.|/", str(name))
-#                     pattern = re.compile(r'(gif|jpg|jpeg|GIF|JPG|JPEG|png)$')
-#                     match = pattern.match(file_name_list[-1])
-#                     if not match:
-#                         error.append(str(name))
-#                         continue
-#                     if len(file_name_list) < 2:
-#                         error.append(str(name))
-#                         continue
-#                     code = file_name_list[-2]
-#                     user = get_object(User, code=code, is_active=1)
-#                     if not user:
-#                         error.append(str(name))
-#                         continue
-#                     img_storage_name = "%s_%d.%s" % (str(uuid.uuid4().get_hex().lower()[0:8]), user.id, file_name_list[-1])
-#                     image_dir = "%s%s%s" % (BASE_DIR, IMAGE_URL, "portrait")
-#                     if not os.path.exists(image_dir):
-#                         os.mkdir(image_dir, 0755)
-#                     img_storage_path = os.path.join(image_dir, img_storage_name)
-#
-#                     with open(img_storage_path, 'wb+') as f:
-#                         f.write(unzipped.read(name))
-#                     f.close()
-#                     if user.portrait_address:
-#                         ManagerLog.objects.create(user_id=request.user.id, type='头像-修改前', msg=model_to_dict(user))
-#                         user.portrait_address = "%s%s/%s" % (IMAGE_URL, "portrait", img_storage_name)
-#                         user.save()
-#                         ManagerLog.objects.create(user_id=request.user.id, type='头像-修改后', msg=model_to_dict(user))
-#                     else:
-#                         user.portrait_address = "%s%s/%s" % (IMAGE_URL, "portrait", img_storage_name)
-#                         user.save()
-#                         ManagerLog.objects.create(user_id=request.user.id, type='头像-上传后', msg=model_to_dict(user))
-#                 emg = u'失败:\t%s' % "\t".join(error)
-#                 return my_render('juser/portrait_batch.html', locals(), request)
-#         except Exception, e:
-#             smg = u'批量上传头像出错'
-#             logger.error("头像上传出错%s" % e)
-#             return my_render('juser/portrait_batch.html', locals(), request)
-#     else:
-#         return my_render('juser/portrait_batch.html', locals(), request)
-
-
-# @require_role('admin', 'portrait_list')
-# def portrait_download(request):
-#     user_id = request.GET.get('id')
-#     user = get_object(User, id=user_id)
-#     if user is not None and user.portrait_address and os.path.exists("%s%s" % (BASE_DIR, user.portrait_address)):
-#         image_path = "%s%s" % (BASE_DIR, user.portrait_address)
-#         with open(image_path, 'rb') as f:
-#             response = HttpResponse(f.read(), content_type="image/" + image_path.split('.')[-1].strip())
-#             response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(image_path)
-#             return response
-#     else:
-#         return HttpResponseRedirect(reverse_lazy('portrait_list'))
+@require_role('admin', 'portrait_list')
+def portrait_download(request):
+    user_id = request.GET.get('id')
+    user = get_object(User, id=user_id)
+    if user is not None and user.portrait_address and os.path.exists("%s%s" % (BASE_DIR, user.portrait_address)):
+        image_path = "%s%s" % (BASE_DIR, user.portrait_address)
+        with open(image_path, 'rb') as f:
+            response = HttpResponse(f.read(), content_type="image/" + image_path.split('.')[-1].strip())
+            response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(image_path)
+            return response
+    else:
+        return HttpResponseRedirect(reverse_lazy('portrait_list'))

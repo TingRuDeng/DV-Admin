@@ -3,3 +3,5 @@ jlog/migrations
 jperm/migrations
 jumpserver/migrations
 juser/migrations
+webserver/templatetags
+webserver/migrations

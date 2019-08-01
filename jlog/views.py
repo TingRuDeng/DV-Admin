@@ -2,23 +2,22 @@
 from django.db.models import Q
 # from django.template import RequestContext
 from django.shortcuts import render_to_response, render
-from jumpserver.api import *
+from webserver.api import *
 from jperm.perm_api import user_have_perm
 from django.http import HttpResponseNotFound
 from jlog.log_api import renderJSON
 
 from jlog.models import Log, ExecLog, FileLog, TermLog
-from jumpserver.settings import LOG_DIR
+from webserver.settings import LOG_DIR
 import zipfile
 import json
 import pyte
-from django.forms.models import model_to_dict
 
 
 @require_role('admin')
 def log_list(request, offset):
     """ 显示日志 """
-    header_title, path1 = '审计', '操作审计'
+    header_title, path1 = u'审计', u'操作审计'
     date_seven_day = request.GET.get('start', '')
     date_now_str = request.GET.get('end', '')
     username_list = request.GET.getlist('username', [])
@@ -93,7 +92,7 @@ def log_kill(request):
         Log.objects.filter(pid=pid).update(is_finished=1, end_time=datetime.datetime.now())
         return render_to_response('jlog/log_offline.html', locals(), context_instance=RequestContext(request))
     else:
-        return HttpResponseNotFound('没有此进程!')
+        return HttpResponseNotFound(u'没有此进程!')
 
 
 @require_role('admin')
@@ -174,52 +173,6 @@ def log_detail(request, offset):
             result = {}
         return my_render('jlog/file_detail.html', locals(), request)
 
-
-@require_role('admin','match_list')
-def log_info(request, offset):
-    log_id = request.GET.get('id')
-    if offset == 'bid':
-        log = get_object(PBEventGameBid, id=log_id)
-        try:
-            result = model_to_dict(log)
-        except (SyntaxError, NameError):
-            result = {}
-        return my_render('jlog/bid_detail.html', locals(), request)
-    elif offset == 'winbid':
-        log = get_object(PBEventWinBid, id=log_id)
-        try:
-            result = model_to_dict(log)
-        except (SyntaxError, NameError):
-            result = {}
-        return my_render('jlog/bid_detail.html', locals(), request)
-    elif offset == 'chain':
-        log = get_object(PrivateBlockChainLog, id=log_id)
-        try:
-            result = model_to_dict(log)
-        except (SyntaxError, NameError):
-            result = {}
-        return my_render('jlog/bid_detail.html', locals(), request)
-
-@require_role('admin','match_list')
-def log_bid(request):
-    #投注记录
-    #gamebid_group = PBEventGameBid.objects.all().order_by("-id")
-    gamebid_group = PBEventGameBid.objects.raw("select ta.name as teamAname, tb.name as teamBname, jlog_pbeventgamebid.*,juser_user.*,jcoin_match.* from jlog_pbeventgamebid left join juser_user on jlog_pbeventgamebid.arg_from = juser_user.coin_addr left join jcoin_match  on jlog_pbeventgamebid.arg_gameid = jcoin_match.id  left join jcoin_team as ta on ta.id = jcoin_match.home_team_id left join jcoin_team as tb on tb.id = jcoin_match.visit_team_id order by jlog_pbeventgamebid.id desc;")
-    return my_render('jlog/log_bid.html',locals(),request)
-
-@require_role('admin','match_list')
-def log_winbid(request):
-    #奖金发放记录
-    winbid_group = PBEventWinBid.objects.all().order_by("-id")
-    return my_render('jlog/log_winbid.html',locals(),request)
-
-@require_role('admin','match_list')
-def log_chain(request):
-    #区块信息记录
-    #chain_group = PrivateBlockChainLog.objects.filter( ~Q(transactions= "[]")).order_by("-id")
-    chain_group = PrivateBlockChainLog.objects.all().order_by("-id")
-    chain_group_all, p, chain_group, page_range, current_page, show_first, show_end = pages(chain_group, request)
-    return my_render('jlog/log_chain.html',locals(),request)
 
 class TermLogRecorder(object):
     """

@@ -1,22 +1,13 @@
 #!/bin/bash
-# jumpserver        Startup script for the jumpserver Server
-#
-# chkconfig: - 85 12
-# description: Open source detecting system
-# processname: jumpserver
-# Date: 2016-02-27
-# Version: 3.0.1
-# Site: http://www.jumpserver.org
-# Author: Jumpserver Team
 
-jumpserver_dir=
+webserver_dir=
 
 base_dir=$(dirname $0)
-jumpserver_dir=${jumpserver_dir:-$base_dir}
+webserver_dir=${webserver_dir:-$base_dir}
 export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
-if [ -f ${jumpserver_dir}/install/functions ];then
-    . ${jumpserver_dir}/install/functions
+if [ -f ${webserver_dir}/install/functions ];then
+    . ${webserver_dir}/install/functions
 elif [ -f /etc/init.d/functions ];then
     . /etc/init.d/functions
 else
@@ -24,7 +15,7 @@ else
     exit 1
 fi
 
-PROC_NAME="jumpserver"
+PROC_NAME="webserver"
 lockfile=/var/lock/subsys/${PROC_NAME}
 
 start() {
@@ -35,13 +26,13 @@ start() {
     
         jump_start=$"Starting ${PROC_NAME} service:"
         if [ -f $lockfile ];then
-             echo -n "jumpserver is running..."
+             echo -n "webserver is running..."
              success "$jump_start"
              echo
         else
-            daemon python $jumpserver_dir/manage.py crontab add &>> /var/log/jumpserver.log 2>&1
-#            daemon python $jumpserver_dir/run_server.py &> /dev/null 2>&1 &
-            daemon python $jumpserver_dir/run_server.py &>> /opt/Assets/logs/huli_oa.log 2>&1 &
+            daemon python $webserver_dir/manage.py crontab add &>> /var/log/webserver.log 2>&1
+#            daemon python $webserver_dir/run_server.py &> /dev/null 2>&1 &
+            daemon python $webserver_dir/run_server.py &>> /opt/Assets/logs/huli_oa.log 2>&1 &
             sleep 1
             echo -n "$jump_start"
             ps axu | grep 'run_server' | grep -v 'grep' &> /dev/null
@@ -63,7 +54,7 @@ start() {
 
 stop() {
     echo -n $"Stopping ${PROC_NAME} service:"
-    daemon python $jumpserver_dir/manage.py crontab remove &>> /var/log/jumpserver.log 2>&1
+    daemon python $webserver_dir/manage.py crontab remove &>> /var/log/webserver.log 2>&1
     ps aux | grep -E 'run_server.py' | grep -v grep | awk '{print $2}' | xargs kill -9 &> /dev/null
     ret=$?
     if [ $ret -eq 0 ]; then
@@ -81,12 +72,12 @@ stop() {
 status(){
     ps axu | grep 'run_server' | grep -v 'grep' &> /dev/null
     if [ $? == '0' ];then
-        echo -n "jumpserver is running..."
+        echo -n "webserver is running..."
         success
         touch "$lockfile"
         echo
     else
-        echo -n "jumpserver is not running."
+        echo -n "webserver is not running."
         failure
         echo
     fi

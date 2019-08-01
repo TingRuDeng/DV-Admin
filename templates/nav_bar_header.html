@@ -11,11 +11,11 @@
     </div>
     <div class="navbar-header">
         {% if DEVELOPMENT %}
-{#            <h2 class="red-fonts">#}
-{#                <strong>#}
-{#                    Beta：{{ VERSION }}#}
-{#                </strong>#}
-{#            </h2>#}
+            <h2 class="red-fonts">
+                <strong>
+                    开发版：{{ VERSION }}
+                </strong>
+            </h2>
         {% endif %}
     </div>
     <ul class="nav navbar-top-links navbar-right">
@@ -24,7 +24,7 @@
                 欢迎使用SW
                 {% if DEVELOPMENT %}
                     <strong class="red-fonts">
-                        Beta：{{ VERSION }}
+                        开发版：{{ VERSION }}
                     </strong>
                 {% endif %}
             </span>

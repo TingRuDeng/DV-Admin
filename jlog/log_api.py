@@ -19,7 +19,7 @@ from os.path import basename, dirname, exists, join
 from jinja2 import FileSystemLoader, Template
 from jinja2.environment import Environment
 
-from jumpserver.api import BASE_DIR, logger
+from webserver.api import BASE_DIR, logger
 from jlog.models import Log
 
 
@@ -94,28 +94,28 @@ def renderJSON(script_path, time_file_path):
                     ret[str(offset/float(1000))] = dt.decode('utf-8', 'replace')
     return dumps(ret)
 
-def kill_invalid_connection():
-    unfinished_logs = Log.objects.filter(is_finished=False)
-    now = datetime.datetime.now()
-    now_timestamp = int(time.mktime(now.timetuple()))
 
-    for log in unfinished_logs:
-        try:
-            log_file_mtime = int(os.stat('%s.log' % log.log_path).st_mtime)
-        except OSError:
-            log_file_mtime = 0
-
-        if (now_timestamp - log_file_mtime) > 3600:
-            if log.login_type == 'ssh':
-                try:
-                    os.kill(int(log.pid), 9)
-                except OSError:
-                    pass
-            elif (now - log.start_time).days < 1:
-                continue
-
-            log.is_finished = True
-            log.end_time = now
-            log.save()
-            logger.warn('kill log %s' % log.log_path)
-
+# def kill_invalid_connection():
+#     unfinished_logs = Log.objects.filter(is_finished=False)
+#     now = datetime.datetime.now()
+#     now_timestamp = int(time.mktime(now.timetuple()))
+#
+#     for log in unfinished_logs:
+#         try:
+#             log_file_mtime = int(os.stat('%s.log' % log.log_path).st_mtime)
+#         except OSError:
+#             log_file_mtime = 0
+#
+#         if (now_timestamp - log_file_mtime) > 3600:
+#             if log.login_type == 'ssh':
+#                 try:
+#                     os.kill(int(log.pid), 9)
+#                 except OSError:
+#                     pass
+#             elif (now - log.start_time).days < 1:
+#                 continue
+#
+#             log.is_finished = True
+#             log.end_time = now
+#             log.save()
+#             logger.warn('kill log %s' % log.log_path)
