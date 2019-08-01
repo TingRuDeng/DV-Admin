@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import os
-import path
+import os.path
 import shutil
 # from paramiko import SSHException
 # from paramiko.rsakey import RSAKey
-from jumpserver.api import mkdir
+from webserver.api import mkdir
 from uuid import uuid4
-from jumpserver.api import CRYPTOR
+from webserver.api import CRYPTOR
 
-# from jumpserver.api import logger
+# from webserver.api import logger
 
 
-from jumpserver.settings import KEY_DIR
+from webserver.settings import KEY_DIR
 
 
 def get_rand_pass():
@@ -55,16 +54,16 @@ def gen_keys(key="", key_path_dir=""):
         with open(key_file) as f:
             try:
                 key = RSAKey.from_private_key(f)
-            except SSHException as e:
+            except SSHException, e:
                 shutil.rmtree(key_path_dir, ignore_errors=True)
                 raise SSHException(e)
-    os.chmod(private_key, 0o644)
+    os.chmod(private_key, 0644)
 
     with open(public_key, 'w') as content_file:
         for data in [key.get_name(),
                      " ",
                      key.get_base64(),
-                     " %s@%s" % ("jumpserver", os.uname()[1])]:
+                     " %s@%s" % ("webserver", os.uname()[1])]:
             content_file.write(data)
     return key_path_dir
 
@@ -76,6 +75,6 @@ def trans_all(str):
         return str
 
 if __name__ == "__main__":
-    print((gen_keys()))
+    print gen_keys()
 
 

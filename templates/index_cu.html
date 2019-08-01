@@ -3,151 +3,166 @@
 {% block content %}
 {% include 'nav_cat_bar.html' %}
 
-<div class="wrapper wrapper-content">
+<div class="wrapper wrapper-content" xmlns="http://www.w3.org/1999/html">
     <div class="row">
-        <div class="col-sm-3">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <span class="label label-success pull-right">Users</span>
-                    <h5>当前ETH余额</h5>
-                </div>
-                <div class="ibox-content">
-                    <h1 class="no-margins">{{amount}}</h1>
-                    <small>All user</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <span class="label label-info pull-right">Hosts</span>
-                    <h5>资产</h5>
-                </div>
-                <div class="ibox-content">
-                    <h1 class="no-margins"><a href="">{{ hosts.count }}</a></h1>
-                    <small>All host</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-sm-3">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <span class="label label-primary pull-right">Online</span>
-                    <h5>投注数</h5>
-                </div>
-                <div class="ibox-content">
-                    <h1 class="no-margins"><a href="{% url 'match_mybid' %}"> <span id="online_users">{{ bid_count }}</span></a></h1>
-                    <div class="stat-percent font-bold text-navy">{{ percent_online_user }} <i class="fa fa-level-up"></i></div>
-{#                    <small>login user</small>#}
-                </div>
-            </div>
-        </div>
-
-        <div class="col-sm-3">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <span class="label label-danger pull-right">Connected</span>
-                    <h5>任务数</h5>
-                </div>
-                <div class="ibox-content">
-                        <h1 class="no-margins"><a href="{% url 'log_list' 'online' %}"> <span id="online_hosts">{{ online_host | length }}</span></a></h1>
-{#                    <small>Connected host</small>#}
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-{#        <div class="col-sm-1"></div>#}
-        <div class="col-sm-12" id="top10" style="height: 346px;">
-            {% for res in bid_result %}
-            <div class="col-sm-3 white-bg" id="top1">
-                <div class="statistic-box">
-                <h4>
-                    {{ res.match.time|date:"Y-m-d H:i:s" }} 赛事预测
-                </h4>
-                <p>
-                    以下为本场投注的百分比
-                </p>
-                <div class="row text-center">
-                    <div class="col-sm-4">
-{#                        <div id="activeUser"  style="width: 140px; height: 140px;">#}
-{#                        </div>#}
-                        <h5>{{ res.match.home_team.name }}</h5>
+        <div class="col-sm-8">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5> 使用说明 </h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                <i class="fa fa-wrench"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
                     </div>
-                    <div class="col-sm-2">VS</div>
-                    <div class="col-sm-4">
-{#                        <div id="activeAsset" style="width: 140px; height: 140px;"></div>#}
-                        <h5>{{ res.match.visit_team.name }}</h5>
+
+                    <div class="ibox-content" style="line-height: 26px">
+                        <span style="font-size: large">欢</span>迎使用<span class="text-navy"><b>SW</b></span>系统，
+                        首先需要 <b><a href="{% url 'key_down' %}?id={{ user.id }}">下载</a></b> 登录跳板机的SSH密钥文件，然后导入到工具或者ssh命令指定密钥文件(确保密钥文件权限600)，输入收到的密钥密码，登录跳板机。
+                        登录后根据提示进行操作。跳板机web界面支持修改密码、个人信息和上传下载文件等功能，可以向管理员申请权限。
                     </div>
                 </div>
-                {% for k, y in res.bid_status  %}
-                    <td class="text-center" style="min-width: 140px">
-                        <div class="progress">
-                            <div class="progress-bar {{ progress_color|random }} progress-bar-striped active"
-                                 role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"
-                                 style="width: {% widthratio y res.max_bid 100 %}%">
-                                <p>{{ k }}: {{ y }}%</p>
+            </div>
+            <div class="col-sm-12">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h5>登录记录</h5>
+                            <div class="ibox-tools">
+                                <span class="label label-warning-light">最近登录</span>
+                               </div>
+                        </div>
+                        <div class="ibox-content">
+                            <div id="last">
+                                <div class="feed-activity-list" >
+                                    {% for log in logs_last %}
+                                        <div class="feed-element">
+                                            <a href="profile.html" class="pull-left">
+                                                <img alt="image" class="img-circle" src="/static/img/{{ session_role_id | to_avatar }}.png">
+                                            </a>
+                                            <div class="media-body ">
+{#                                                <small class="pull-right">{{ log.start_time|time_delta }}</small>#}
+                                                <small class="pull-right">{{ log.start_time }}</small>
+                                                <strong>{{ log.user }}</strong> 登录了 <span class="text-navy">{{ log.host }}. </span><br>
+                                                <small class="text-muted">{{ log.start_time|date:"Y-m-d H:i:s" }}</small>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                    {% if not logs_last %}
+                                        (暂无)
+                                    {% endif %}
+                                </div>
+                                {% if logs_num > 10 %}
+                                <button id="show" class="btn btn-primary btn-block m-t"><i class="fa fa-arrow-down"></i> Show All</button>
+                                {% endif %}
+                            </div>
+
+                            <div id="all" style="display: none">
+                                <div class="feed-activity-list" >
+                                    {% for log in logs_all %}
+                                        <div class="feed-element">
+                                            <a href="profile.html" class="pull-left">
+                                                <img alt="image" class="img-circle" src="/static/img/{{ session_role_id | to_avatar }}.png">
+                                            </a>
+                                            <div class="media-body ">
+                                                <small class="pull-right">{{ log.start_time }}</small>
+{#                                                <small class="pull-right">{{ log.start_time|time_delta }}</small>#}
+                                                <strong>{{ log.user }}</strong> 登录了 <span class="text-navy">{{ log.host }}. </span><br>
+                                                <small class="text-muted">{{ log.start_time|date:"Y-m-d H:i:s" }}</small>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
-                    </td>
-                {% endfor %}
-                <div class="m-t">
-                    <small></small>
+                    </div>
                 </div>
-            </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    <div class="row" style="margin-top: 30px; margin-left: 0px">
-        <div class="col-sm-3 border-bottom white-bg dashboard-header">
-            <h2>资产TOP10</h2>
-            <div class="hr-line-dashed"></div>
-            <ul class="list-group clear-list m-t">
-                {% for name, u_amount in user_top_five %}
-                    <li class="list-group-item fist-item">
-                        <span class="pull-right">
-                            {{ u_amount }} ETH
-                        </span>
-                        <a href=""><span class="label {{ color|random }}">{{ forloop.counter }}</span> {{ name }}</a>
-                    </li>
-{#                    <div class="hr-line-dashed"></div>#}
-                {% endfor %}
-            </ul>
-        </div>
-        <div class="col-sm-3 border-bottom white-bg dashboard-header" style="margin-left: 25px; max-width: 400px">
-            <h2>狐狸赌王top10</h2>
-            <div class="hr-line-dashed"></div>
-            <ul class="list-group clear-list m-t">
-                {% for winners in top_10_winner %}
-                    <li class="list-group-item fist-item">
-                        <span class="pull-right">
-                            {{ winners.win_rate }}% ({{ winners.bid_num }}投{{ winners.win_num }}中)
-                        </span>
-                        <a href=""><span class="label {{ color|random }}">{{ forloop.counter }}</span> {{ winners.username }}</a>
-                    </li>
-{#                    <div class="hr-line-dashed"></div>#}
-                {% endfor %}
-            </ul>
         </div>
 
-        <div class="col-sm-3 border-bottom white-bg dashboard-header" style="margin-left: 25px; max-width: 400px">
-            <h2>投注明灯top10</h2>
-            <div class="hr-line-dashed"></div>
-            <ul class="list-group clear-list m-t">
-                {% for losers in top_10_loser %}
-                    <li class="list-group-item fist-item">
-                        <span class="pull-right">
-                            {{ losers.win_rate }}% ({{ losers.bid_num }}投{{ losers.win_num }}中)
-                        </span>
-                        <a href=""><span class="label {{ color|random }}">{{ forloop.counter }}</span> {{ losers.username }}</a>
-                    </li>
-{#                    <div class="hr-line-dashed"></div>#}
-                {% endfor %}
-            </ul>
+        <div class="col-sm-4">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <span class="label label-primary"><b>{{ user.username }}</b></span>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-user">
+                            <li><a href="#"></a>
+                            </li>
+                            <li><a href="#"></a>
+                            </li>
+                        </ul>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <div class="text-left">
+                            <table class="table">
+                                <tr>
+                                    <td class="text-navy">ID</td>
+                                    <td>{{ user.id }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-navy">用户名</td>
+                                    <td>{{ user.username }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-navy">姓名</td>
+                                    <td>{{ user.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-navy">系统用户</td>
+                                    <td>{{ user.role }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-navy">Email</td>
+                                    <td>{{ user.email }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-navy">激活</td>
+                                    <td>{{ user.is_active|bool2str }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-navy">添加日期</td>
+                                    <td>{{ user.date_joined|date:"Y-m-d H:i:s" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-navy">最后登录</td>
+                                    <td>{{ user.last_login|date:"Y-m-d H:i:s" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-navy">所在用户组</td>
+                                    <td>
+                                         <table class="table">
+                                             {% for group in user.group.all %}
+                                                <tr>
+                                                    <td>{{ group.name }}</td>
+                                                </tr>
+                                             {% endfor %}
+                                         </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
 
 {% endblock %}
