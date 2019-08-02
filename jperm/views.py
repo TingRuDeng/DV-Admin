@@ -255,6 +255,7 @@ def perm_role_list(request):
     if role_id:
         roles_list = roles_list.filter(id=role_id)
 
+    roles_list = roles_list.order_by('id')
     roles_list, p, roles, page_range, current_page, show_first, show_end = pages(roles_list, request)
 
     return my_render('jperm/perm_role_list.html', locals(), request)
