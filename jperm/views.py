@@ -9,9 +9,7 @@ from django.forms import model_to_dict
 from jperm.perm_api import *
 from jperm.forms import *
 from webserver.api import my_render, get_object
-# from juser.urls import user_induction_list
-
-
+from jlog.models import ManagerLog
 # 设置PERM APP Log
 from webserver.api import logger
 
@@ -294,7 +292,7 @@ def perm_role_add(request):
             role_add_permission(role_obj, all_list)
 
             return HttpResponseRedirect(reverse('role_list'))
-        except ServerError, e:
+        except ServerError as e:
             error = e
     return my_render('jperm/perm_role_add.html', locals(), request)
 
@@ -327,7 +325,7 @@ def perm_role_delete(request):
                                                   msg=model_to_dict(user_obj[0]))
                 ManagerLog.objects.create(user_id=request.user.id, type='角色删除', msg=model_to_dict(role_obj))
                 role_obj.delete()
-        except ServerError, e:
+        except ServerError as e:
             return HttpResponse(e)
     return HttpResponseRedirect(reverse("role_list"))
 
@@ -420,7 +418,7 @@ def perm_role_edit(request):
                                       msg=[i.menu.name for i in menu_permission.objects.filter(role_id=role_id)])
 
             return HttpResponseRedirect(reverse('role_list'))
-        except ServerError, e:
+        except ServerError as e:
             error = e
     return my_render('jperm/perm_role_edit.html', locals(), request)
 
@@ -666,8 +664,8 @@ def sys_email_edit(request):
                 #         email_obj.to_email.remove(emails)
                 # ef_save.save()
                 return HttpResponseRedirect(reverse('sys_email_list'))
-        except Exception, e:
-            print "error=%s" % e
+        except Exception as e:
+            logger.error("error=%s" % e)
     return my_render('jperm/sys_email_edit.html', locals(), request)
 
 
@@ -711,7 +709,7 @@ def sys_email_detail(request):
                     block = file.read(1024)
             else:
                 error = u"该邮件模板内容为空"
-        except Exception, e:
+        except Exception as e:
             logger.error(u"邮件模板读取出错：%s" % e)
             error = u"邮件模板读取出错"
         finally:
@@ -742,7 +740,7 @@ def sys_email_save(request):
                 msg = u"保存成功"
             else:
                 msg = u"未传入模板邮件内容"
-        except Exception, e:
+        except Exception as e:
             logger.error(u"邮件模板保存出错：%s" % e)
             msg = u"邮件模板保存出错"
         finally:
@@ -782,17 +780,17 @@ def sys_email_send(request):
                 try:
                     user_guide = user_obj.guide
                     cc_email_dict[user_guide.username] = user_guide.id
-                except Exception, e:
+                except Exception as e:
                     pass
                 try:
                     user_parent = user_obj.parent
                     cc_email_dict[user_parent.username] = user_parent.id
-                except Exception, e:
+                except Exception as e:
                     pass
                 try:
                     user_group_admin = user_obj.group.dep_admin
                     cc_email_dict[user_group_admin.username] = user_group_admin.id
-                except Exception, e:
+                except Exception as e:
                     pass
 
             for k in cc_email_dict:
@@ -845,7 +843,7 @@ def sys_email_send(request):
                        'sendemail': sendemail}
         try:
             send_emails(mail_obj, to_email, cc_email, email_value)
-        except Exception, e:
+        except Exception as e:
             error = '邮件服务器返回异常：%s' % e
             return my_render('jperm/sys_email_send.html', locals(), request)
         msg = '邮件发送成功'
@@ -944,11 +942,8 @@ def get_menu_dict(request):
     menu_obj = menu.objects.filter(parent__isnull=True)
     c_menu_obj = menu.objects.filter(parent__isnull=False)
 
-    print "role_id=", role_id
     if role_id:
-        my_obj = menu_permission.objects.select_related(
-            'menu__url'
-        ).select_related('menu__name').filter(role_id=role_id)
+        my_obj = menu_permission.objects.prefetch_related('menu').filter(role_id=role_id)
         m_list = [i.menu_id for i in my_obj]
     else:
         m_list = []
@@ -959,7 +954,7 @@ def get_menu_dict(request):
         c_data = []
         i_menu_obj = c_menu_obj.filter(parent_id=i.id)
         for j in i_menu_obj:
-            c_dict_data = {}
+            c_dict_data = dict()
             c_dict_data['id'] = j.id
             c_dict_data['text'] = j.name
             if j.id in m_list:
@@ -1015,7 +1010,7 @@ def passwd_update(request):
             else:
                 error = u'两次输入不一致，请重新输入！'
         return my_render('jperm/passwd_update.html', locals(), request)
-    except Exception, e:
+    except Exception as e:
         error = u'密码重置异常：%s' % e
         logger.error(error)
         return my_render('jperm/passwd_update.html', locals(), request)
@@ -1042,7 +1037,7 @@ def passwd_update_self(request):
             else:
                 error = u'两次输入不一致，请重新输入！'
         return my_render('jperm/passwd_update.html', locals(), request)
-    except Exception, e:
+    except Exception as e:
         error = u'个人密码重置异常：%s' % e
         logger.error(error)
         return my_render('jperm/passwd_update.html', locals(), request)

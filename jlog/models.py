@@ -5,7 +5,7 @@ import time
 
 class ManagerLog(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     create_time = models.DateTimeField(auto_now_add=True)
     type = models.CharField(max_length=100)
     msg = models.TextField(blank=True, null=True)
@@ -37,7 +37,7 @@ class Alert(models.Model):
 
 
 class TtyLog(models.Model):
-    log = models.ForeignKey(Log)
+    log = models.ForeignKey(Log, on_delete=models.DO_NOTHING)
     datetime = models.DateTimeField(auto_now=True)
     cmd = models.CharField(max_length=200)
 

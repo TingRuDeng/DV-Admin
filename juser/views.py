@@ -1,8 +1,6 @@
 # coding: utf-8
 
 import re
-from django.core.urlresolvers import reverse_lazy
-
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from juser.user_api import *
@@ -103,8 +101,8 @@ def group_del(request):
                 dep_obj = UserGroup.objects.filter(id=group_id)
                 dep_obj.update(is_active=0)
                 ManagerLog.objects.create(user_id=request.user.id, type='部门删除', msg=model_to_dict(dep_obj[0]))
-            except Exception, e:
-                print "日志记录异常！%s" % e
+            except Exception as e:
+                logger.error("日志记录异常！%s" % e)
     return HttpResponse('删除成功')
 
 
@@ -187,7 +185,7 @@ def group_edit(request):
             user_group.comment = comment
             user_group.save()
             ManagerLog.objects.create(user_id=request.user.id, type='部门信息变更后', msg=model_to_dict(user_group))
-        except ServerError, e:
+        except ServerError as e:
             logger.error(u'部门变更失败：%s' % e)
             error = e
 
@@ -225,7 +223,6 @@ def user_add(request):
         parent_id = request.POST.get('parent', '')
         is_active = True
 
-        print username,
         try:
             if '' in [username, name]:
                 error = u'带*内容不能为空'
@@ -259,27 +256,14 @@ def user_add(request):
 
                 return HttpResponseRedirect(reverse('user_list'))
 
-            except IndexError, e:
+            except IndexError as e:
                 error = u'添加用户 %s 失败 %s ' % (username, e)
                 logger.error(error)
                 try:
                     db_del_user(username)
-                except Exception, e:
+                except Exception as e:
                     logger.warning(u'删除新增失败的用户异常：%s' % e)
     return my_render('juser/user_add.html', locals(), request)
-
-
-@require_role('admin', 'user_list')
-def user_test(request):
-    try:
-        for i in xrange(30001, 200000):
-            User.objects.create(name=str(i),
-                                username=str(i),
-                                is_active=1,
-                                is_staff=1)
-        return HttpResponse(u'成功')
-    except Exception, e:
-        print "error========", e
 
 
 # @require_role('admin', 'user_induction_list')
@@ -484,7 +468,8 @@ def user_edit(request):
 #
 #     # 界面模糊搜索匹配并返回结果
 #     if keyword:
-#         users_list = users_list.filter(Q(username__icontains=keyword) | Q(name__icontains=keyword)).order_by('username')
+#         users_list = users_list.filter(Q(username__icontains=keyword) |
+#         Q(name__icontains=keyword)).order_by('username')
 #
 #     # if user_active == '1':
 #     #     users_list = users_list.filter(is_active=1)
@@ -646,7 +631,8 @@ def user_edit(request):
 #
 #     # 界面模糊搜索匹配并返回结果
 #     if keyword:
-#         users_list = users_list.filter(Q(username__icontains=keyword) | Q(name__icontains=keyword)).order_by('username')
+#         users_list = users_list.filter(Q(username__icontains=keyword) |
+#         Q(name__icontains=keyword)).order_by('username')
 #
 #     if user_position:
 #         users_list = users_list.filter(position=int(user_position))
@@ -784,7 +770,7 @@ def user_detail(request):
 
     try:
         user_obj = user_obj[0]
-    except Exception, e:
+    except Exception as e:
         logger.warning(u'获取员工列表失败: %s' % e)
 
     if not user_obj:
@@ -989,12 +975,12 @@ def portrait_upload(request):
     user_id = request.GET.get('id')
     user = get_object(User, id=user_id)
     if user is None:
-        return HttpResponseRedirect(reverse_lazy('portrait_list'))
+        return HttpResponseRedirect(reverse('portrait_list'))
     if request.method == 'POST':
         try:
             image = request.FILES.get("portrait", None)
             if image is None:
-                return HttpResponseRedirect(reverse_lazy('portrait_list'))
+                return HttpResponseRedirect(reverse('portrait_list'))
             else:
                 img_size = image.size
                 img_url = image.name
@@ -1011,7 +997,7 @@ def portrait_upload(request):
                 img_storage_name = "%s_%d.%s" % (str(uuid.uuid4().get_hex().lower()[0:8]), user.id, img_url_list[-1])
                 image_dir = "%s%s%s" % (BASE_DIR, IMAGE_URL, "portrait")
                 if not os.path.exists(image_dir):
-                    os.mkdir(image_dir, 0755)
+                    os.mkdir(image_dir, 755)
                 img_storage_path = os.path.join(image_dir, img_storage_name)
 
                 with open(img_storage_path, 'wb+') as f:
@@ -1027,8 +1013,8 @@ def portrait_upload(request):
                     user.portrait_address = "%s%s/%s" % (IMAGE_URL, "portrait", img_storage_name)
                     user.save()
                     ManagerLog.objects.create(user_id=request.user.id, type='头像-上传后', msg=model_to_dict(user))
-                return HttpResponseRedirect(reverse_lazy('portrait_list'))
-        except Exception, e:
+                return HttpResponseRedirect(reverse('portrait_list'))
+        except Exception as e:
             emg = u'头像上传出错'
             logger.error("头像上传出错%s" % e)
             return my_render('juser/portrait_admin_upload.html', locals(), request)
@@ -1045,7 +1031,7 @@ def portrait_userupload(request):
         try:
             image = request.FILES.get("portrait", None)
             if image is None:
-                return HttpResponseRedirect(reverse_lazy('index'))
+                return HttpResponseRedirect(reverse('index'))
             else:
                 img_size = image.size
                 img_url = image.name
@@ -1062,7 +1048,7 @@ def portrait_userupload(request):
                 img_storage_name = "%s_%d.%s" % (str(uuid.uuid4().get_hex().lower()[0:8]), user.id, img_url_list[-1])
                 image_dir = "%s%s%s" % (BASE_DIR, IMAGE_URL, "portrait")
                 if not os.path.exists(image_dir):
-                    os.mkdir(image_dir, 0755)
+                    os.mkdir(image_dir, 755)
                 img_storage_path = os.path.join(image_dir, img_storage_name)
 
                 with open(img_storage_path, 'wb+') as f:
@@ -1078,8 +1064,8 @@ def portrait_userupload(request):
                     user.portrait_address = "%s%s/%s" % (IMAGE_URL, "portrait", img_storage_name)
                     user.save()
                     ManagerLog.objects.create(user_id=request.user.id, type='头像-上传后', msg=model_to_dict(user))
-                return HttpResponseRedirect(reverse_lazy('index'))
-        except Exception, e:
+                return HttpResponseRedirect(reverse('index'))
+        except Exception as e:
             emg = u'头像上传出错'
             logger.error("头像上传出错%s" % e)
             return my_render('juser/portrait_user_upload.html', locals(), request)
@@ -1099,4 +1085,4 @@ def portrait_download(request):
             response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(image_path)
             return response
     else:
-        return HttpResponseRedirect(reverse_lazy('portrait_list'))
+        return HttpResponseRedirect(reverse('portrait_list'))

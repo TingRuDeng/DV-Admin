@@ -2,25 +2,20 @@
 
 from django.db.models.query import QuerySet
 from webserver.api import *
-# import uuid
-# import re
-
-# from webserver.models import Setting
 from jperm.models import PermRole, menu, menu_permission
 
 
-def list_fomat(list):
+def list_fomat(objs):
     f_list = []
-    for i in list:
+    for i in objs:
         f_list.append(int(i))
     return f_list
 
 
-
-def diff_list(list_A, list_B):
-    list_A = list_fomat(list_A)
-    list_B = list_fomat(list_B)
-    d_list = list(set(list_A).difference(set(list_B)))
+def diff_list(list_a, list_b):
+    list_a = list_fomat(list_a)
+    list_b = list_fomat(list_b)
+    d_list = list(set(list_a).difference(set(list_b)))
     return d_list
 
 
@@ -60,7 +55,7 @@ def user_add_role(role_id,user_list):
     return True
 
 
-def user_del_role(role_id,user_list):
+def user_del_role(role_id, user_list):
     for user_id in user_list:
         if user_id:
             User.objects.filter(id=user_id).update(role_id=1)
@@ -183,7 +178,9 @@ def get_object_list(model, id_list):
 def get_role_info(role_id, type="all"):
     """
     获取role对应的一些信息
-    :return: 返回值 均为对象列表
+    :param role_id: 
+    :param type: 
+    :return: 
     """
     # 获取role对应的授权规则
     role_obj = PermRole.objects.get(id=role_id)
@@ -241,8 +238,3 @@ def get_role_push_host(role):
                                     'result': push.result}
     asset_no_push = set(asset_all) - set(asset_pushed.keys())
     return asset_pushed, asset_no_push
-
-
-if __name__ == "__main__":
-    print get_role_info(1)
-

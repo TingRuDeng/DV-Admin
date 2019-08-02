@@ -23,8 +23,8 @@ class menu(models.Model):
 
 class menu_permission(models.Model):
     id = models.AutoField(primary_key=True)
-    menu = models.ForeignKey(menu, related_name='role_menu_id')
-    role = models.ForeignKey(role, related_name='role_permission_id')
+    menu = models.ForeignKey(menu, related_name='role_menu_id', on_delete=models.CASCADE)
+    role = models.ForeignKey(role, related_name='role_permission_id', on_delete=models.CASCADE)
     update_time = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
@@ -40,10 +40,10 @@ class Email_template(models.Model):
     # from_email = models.EmailField(max_length=30,blank=True, null=True, verbose_name=u'发件人地址')
     # to_email = models.CharField(max_length=200,blank=True, null=True, verbose_name=u'收件人地址')
     to_email = models.ManyToManyField(User, related_name='email_user', verbose_name=u'收件人')
-    email_host = models.CharField(max_length=30,blank=True, null=True, verbose_name=u'邮箱服务器地址')
-    email_port = models.CharField(max_length=30,blank=True, null=True, verbose_name=u'邮箱服务器端口')
-    email_host_user = models.CharField(max_length=30,blank=True, null=True, verbose_name=u'发件人账号')
-    email_host_password = models.CharField(max_length=30,blank=True, null=True, verbose_name=u'发件人密码')
+    email_host = models.CharField(max_length=30, blank=True, null=True, verbose_name=u'邮箱服务器地址')
+    email_port = models.CharField(max_length=30, blank=True, null=True, verbose_name=u'邮箱服务器端口')
+    email_host_user = models.CharField(max_length=30, blank=True, null=True, verbose_name=u'发件人账号')
+    email_host_password = models.CharField(max_length=30, blank=True, null=True, verbose_name=u'发件人密码')
 
     def __unicode__(self):
         return self.subject

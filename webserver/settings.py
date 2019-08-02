@@ -12,21 +12,21 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 from __future__ import absolute_import
 import os
 import ldap
-import ConfigParser
+import configparser
 from django_auth_ldap.config import LDAPSearch
 
-config = ConfigParser.ConfigParser()
+config = configparser.ConfigParser()
 
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-config.read(os.path.join(BASE_DIR, 'webserver.conf'))
-KEY_DIR = os.path.join(BASE_DIR, 'keys')
+config.read(os.path.join(BASE_DIR, 'server.conf'))
+# KEY_DIR = os.path.join(BASE_DIR, 'keys')
 
 
 # add ldap backend
 if config.get('ldap', 'enable'):
     try:
         AUTH_LDAP_SERVER_URI = config.get('ldap', 'ldap_server')
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         AUTH_LDAP_SERVER_URI = "ldap://127.0.0.1"
     AUTH_LDAP_CONNECTION_OPTIONS = {
         ldap.OPT_REFERRALS: 0,
@@ -40,8 +40,8 @@ if config.get('ldap', 'enable'):
                                        ldap.SCOPE_SUBTREE, "(sAMAccountName=%(user)s)")
     AUTH_LDAP_USER_ATTR_MAP = {
         "name": "displayName",
-        # "uuid": "sAMAccountName",
-        # "first_name": "givenName",
+        "uuid": "sAMAccountName",
+        "first_name": "givenName",
         "last_name": "sn",
         "email": "mail"
     }
@@ -69,7 +69,7 @@ EMAIL_HOST_PASSWORD = config.get('mail', 'email_host_password')
 EMAIL_USE_TLS = config.getboolean('mail', 'email_use_tls')
 try:
     EMAIL_USE_SSL = config.getboolean('mail', 'email_use_ssl')
-except ConfigParser.NoOptionError:
+except configparser.NoOptionError:
     EMAIL_USE_SSL = False
 EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend' if EMAIL_USE_SSL else 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_TIMEOUT = 5
@@ -120,14 +120,13 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django_crontab',
     'bootstrapform',
-    'djcelery',
     'webserver',
     'juser',
     'jperm',
     'jlog',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -136,7 +135,6 @@ MIDDLEWARE_CLASSES = (
 )
 
 ROOT_URLCONF = 'webserver.urls'
-
 WSGI_APPLICATION = 'webserver.wsgi.application'
 
 
@@ -157,6 +155,10 @@ if config.get('db', 'engine') == 'mysql':
             'PASSWORD': DB_PASSWORD,
             'HOST': DB_HOST,
             'PORT': DB_PORT,
+            'OPTIONS': {
+                "init_command": "SET foreign_key_checks = 0;",
+                # "charset": "utf8mb4"
+            },
         }
     }
 elif config.get('db', 'engine') == 'sqlite':
@@ -173,20 +175,28 @@ else:
             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.contrib.auth.context_processors.auth',
-    'django.core.context_processors.debug',
-    'django.core.context_processors.i18n',
-    'django.core.context_processors.media',
-    'django.core.context_processors.static',
-    'django.core.context_processors.tz',
-    'django.contrib.messages.context_processors.messages',
-    'webserver.context_processors.name_proc',
-)
 
-TEMPLATE_DIRS = (
-    os.path.join(BASE_DIR, 'templates'),
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'APP_DIRS': True,
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'OPTIONS': {
+            'context_processors': [
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'webserver.context_processors.name_proc',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+            ],
+        },
+    },
+]
+
+
+# TEMPLATE_DIRS = (
+#     os.path.join(BASE_DIR, 'templates'),
+# )
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),
