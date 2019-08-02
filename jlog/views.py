@@ -11,7 +11,6 @@ from jlog.models import Log, ExecLog, FileLog, TermLog
 from webserver.settings import LOG_DIR
 import zipfile
 import json
-import pyte
 
 
 @require_role('admin')

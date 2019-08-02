@@ -15,26 +15,22 @@ import logging
 import logging.handlers
 import requests
 
-from settings import *
+from webserver.settings import *
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.http import HttpResponse, Http404
 from django.template import RequestContext
+from django.shortcuts import render
 from juser.models import User, UserGroup
-from jlog.models import Log, TtyLog, ManagerLog
-from jperm.models import menu_permission,menu
+from jlog.models import Log
+from jperm.models import menu_permission, menu
 from webserver.models import Setting
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.mail import EmailMessage, get_connection
 from django.template.loader import get_template
 from django.template import Context
-# from django.forms.models import model_to_dict
 from email.mime.image import MIMEImage
-
-# import smtplib
-# from email.mime.multipart import MIMEMultipart
-# from email.mime.text import MIMEText
 
 
 def add_img(src):
@@ -112,7 +108,7 @@ def set_log(level, filename='webserver.log'):
     log_file = os.path.join(LOG_DIR, filename)
     if not os.path.isfile(log_file):
         os.mknod(log_file)
-        os.chmod(log_file, 0777)
+        os.chmod(log_file, 0o777)
     log_level_total = {'debug': logging.DEBUG, 'info': logging.INFO, 'warning': logging.WARN, 'error': logging.ERROR,
                        'critical': logging.CRITICAL}
     logger_f = logging.getLogger('webserver')
@@ -161,24 +157,24 @@ def get_asset_info(asset):
     return info
 
 
-def get_role_key(user, role):
-    """
-    由于role的key的权限是所有人可以读的， ansible执行命令等要求为600，所以拷贝一份到特殊目录
-    :param user:
-    :param role:
-    :return: self key path
-    """
-    user_role_key_dir = os.path.join(KEY_DIR, 'user')
-    user_role_key_path = os.path.join(user_role_key_dir, '%s_%s.pem' % (user.username, role.name))
-    mkdir(user_role_key_dir, mode=777)
-    if not os.path.isfile(user_role_key_path):
-        with open(os.path.join(role.key_path, 'id_rsa')) as fk:
-            with open(user_role_key_path, 'w') as fu:
-                fu.write(fk.read())
-        logger.debug(u"创建新的系统用户key %s, Owner: %s" % (user_role_key_path, user.username))
-        chown(user_role_key_path, user.username)
-        os.chmod(user_role_key_path, 0600)
-    return user_role_key_path
+# def get_role_key(user, role):
+#     """
+#     由于role的key的权限是所有人可以读的， ansible执行命令等要求为600，所以拷贝一份到特殊目录
+#     :param user:
+#     :param role:
+#     :return: self key path
+#     """
+#     user_role_key_dir = os.path.join(KEY_DIR, 'user')
+#     user_role_key_path = os.path.join(user_role_key_dir, '%s_%s.pem' % (user.username, role.name))
+#     mkdir(user_role_key_dir, mode=777)
+#     if not os.path.isfile(user_role_key_path):
+#         with open(os.path.join(role.key_path, 'id_rsa')) as fk:
+#             with open(user_role_key_path, 'w') as fu:
+#                 fu.write(fk.read())
+#         logger.debug(u"创建新的系统用户key %s, Owner: %s" % (user_role_key_path, user.username))
+#         chown(user_role_key_path, user.username)
+#         os.chmod(user_role_key_path, 0600)
+#     return user_role_key_path
 
 
 def chown(path, user, group=''):
@@ -388,7 +384,7 @@ def require_role(role='user',url='null'):
     def _deco(func):
         def __deco(request, *args, **kwargs):
             request.session['pre_url'] = request.path
-            if not request.user.is_authenticated():
+            if not request.user.is_authenticated:
                 return HttpResponseRedirect(reverse('login'))
             if role == 'admin':
                 menu_permission_obj = menu_permission.objects.filter(role_id=request.user.role.id)
@@ -603,7 +599,7 @@ def http_error(request, emg):
 
 
 def my_render(template, data, request):
-    return render_to_response(template, data, context_instance=RequestContext(request))
+    return render(request, template, data)
 
 
 def get_tmp_dir():
@@ -657,7 +653,7 @@ def get_top_dep(user_obj):
             else:
                 return dep_obj.id
         return None
-    except Exception,e:
+    except Exception as e:
         logger.error(u'获取员工一级部门异常：%s' % e)
         return None
 

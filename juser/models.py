@@ -45,6 +45,7 @@ class User(AbstractUser):
                              blank=True,
                              null=True,
                              default=1,
+                             on_delete=models.SET_NULL,
                              verbose_name=u'角色')
     group = models.ForeignKey('UserGroup',
                               related_name='group_id',
@@ -60,8 +61,8 @@ class User(AbstractUser):
                                on_delete=models.SET_NULL,
                                verbose_name=u'直属领导')
     sex = models.CharField(max_length=20, default='', blank=True, null=True, verbose_name=u'性别')
-    mobile = models.CharField(max_length=20,default='', blank=True, null=True, verbose_name=u'手机')
-    wechat = models.CharField(max_length=20,default='', blank=True, null=True, verbose_name=u'微信')
+    mobile = models.CharField(max_length=20, default='', blank=True, null=True, verbose_name=u'手机')
+    wechat = models.CharField(max_length=20, default='', blank=True, null=True, verbose_name=u'微信')
     departure_time = models.DateTimeField(blank=True, null=True, verbose_name=u'注销日期')
     update_time = models.DateTimeField(auto_now=True)
     portrait_address = models.CharField(max_length=80, blank=True, null=True, verbose_name=u'头像地址')
