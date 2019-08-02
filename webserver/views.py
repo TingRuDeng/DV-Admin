@@ -2,11 +2,10 @@
 
 from __future__ import division
 
-from django.db.models import Count, Sum
+from django.db.models import Count
 from webserver.api import *
 from django.contrib.auth import authenticate, login, logout
 from jlog.models import Log
-from jcard.models import CreditCard, TransRecord
 
 
 def getDaysByNum(num):
@@ -72,15 +71,10 @@ def index(request):
     today = datetime.datetime.now().day
     from_week = datetime.datetime.now() - datetime.timedelta(days=7)
 
-    if request.user.role is None:
-        return render_to_response('login.html')
-    if request.user.role.code == 'CU':
+    if request.user.role.code in ['CU', 'GA']:
         return HttpResponseRedirect(reverse('user_detail'))
 
-    # if request.user.role.code == 'GA':
-    #     return HttpResponseRedirect(reverse('user_detail'))
-
-    if request.user.role.code == 'SU' or request.user.role.id == 6:
+    if request.user.role.code == 'SU':
         # dashboard 显示汇总
         users = User.objects.filter(is_active=True, is_staff=True)
         # hosts = asset.objects.exclude(status_id=6)
@@ -116,7 +110,7 @@ def index(request):
         user_top_five = week_data.values('user').annotate(times=Count('user')).order_by('-times')[:5]
         color = ['label-success', 'label-info', 'label-primary', 'label-default', 'label-warnning']
 
-        return render_to_response('index.html', locals(), context_instance=RequestContext(request))
+        return render(request, 'index.html', locals())
     return HttpResponseRedirect(reverse('user_detail'))
 
 
@@ -128,7 +122,7 @@ def skin_config(request):
 def Login(request):
     """登录界面"""
     error = ''
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return HttpResponseRedirect(reverse('index'))
     if request.method == 'GET':
         return render_to_response('login.html')

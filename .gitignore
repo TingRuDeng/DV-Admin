@@ -5,3 +5,4 @@ jumpserver/migrations
 juser/migrations
 webserver/templatetags
 webserver/migrations
+.idea
