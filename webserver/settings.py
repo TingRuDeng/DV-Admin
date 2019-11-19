@@ -18,12 +18,12 @@ from django_auth_ldap.config import LDAPSearch
 config = configparser.ConfigParser()
 
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-config.read(os.path.join(BASE_DIR, 'server.conf'))
+config.read(os.path.join(BASE_DIR, 'service.comf'))
 # KEY_DIR = os.path.join(BASE_DIR, 'keys')
 
 
 # add ldap backend
-if config.get('ldap', 'enable'):
+if config.getboolean('ldap', 'enable'):
     try:
         AUTH_LDAP_SERVER_URI = config.get('ldap', 'ldap_server')
     except configparser.NoOptionError:

@@ -375,7 +375,6 @@ def filter_object(request, object, values):
         the_object = object.filter(values=request.user.id)
 
 
-
 def require_role(role='user',url='null'):
     """
     判断用户是否有权限调用该url指向的方法
@@ -387,15 +386,9 @@ def require_role(role='user',url='null'):
             if not request.user.is_authenticated:
                 return HttpResponseRedirect(reverse('login'))
             if role == 'admin':
-                menu_permission_obj = menu_permission.objects.filter(role_id=request.user.role.id)
-                menu_list = [i.menu.url for i in menu_permission_obj]
-                # if request.session.get('role_id', 0) < 1:
-                if url in menu_list:
-                    pass
-                else:
+                if not menu_permission.objects.filter(role_id=request.user.role.id, menu__url=url).exists():
                     return HttpResponseRedirect(reverse('index'))
             elif role == 'super':
-                # if request.session.get('role_id', 0) < 2:
                 if request.user.role.code in ['CU', 'GA']:
                     return HttpResponseRedirect(reverse('index'))
             return func(request, *args, **kwargs)
