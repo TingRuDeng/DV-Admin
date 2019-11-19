@@ -18,7 +18,7 @@ from django_auth_ldap.config import LDAPSearch
 config = configparser.ConfigParser()
 
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-config.read(os.path.join(BASE_DIR, 'service.comf'))
+config.read(os.path.join(BASE_DIR, 'service.conf'))
 # KEY_DIR = os.path.join(BASE_DIR, 'keys')
 
 
