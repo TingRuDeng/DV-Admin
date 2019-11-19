@@ -39,7 +39,7 @@
 2、在项目目录Asset下依次执行下面命令
 
     find ./ -type d -name "migrations" |xargs rm -rf
-    python3.6 manage.py makemigrations juser webserver jlog jperm analysis
+    python3.6 manage.py makemigrations juser webserver jlog jperm
     python3.6 manage.py migrate
 
 3、导入初始化数据（数据库用户名密码及库名视实际修改）
