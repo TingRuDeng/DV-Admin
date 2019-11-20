@@ -86,15 +86,17 @@ def alert_over(content):
 
 class AlertHandler(logging.handlers.HTTPHandler):
     """
-    重写日志Handler类，开发人员视情况自定义，如不需要可取消 
-    ---dengtingru@huli.com
+    重写日志Handler类
     """
     def __init__(self):
         logging.handlers.HTTPHandler.__init__(self, host=None, url=None, method="POST")
 
     def emit(self, record):
         try:
-            content = u'%s - %s - 【%s】' % (record.asctime, record.filename, record.message)
+            content = '%s - [%s | %s | %d | %s] - %s' % (
+                record.asctime, record.filename, record.funcName, record.lineno, record.levelname, record.message
+            )
+            # content = u'%s - %s - 【%s】' % (record.asctime, record.filename, record.message)
             alert_over(content)
         except Exception as err:
             logger.error('AlertHandler::error::%s' % err)
@@ -115,7 +117,9 @@ def set_log(level, filename='webserver.log'):
     logger_f.setLevel(logging.DEBUG)
     fh = logging.FileHandler(log_file)
     fh.setLevel(log_level_total.get(level, logging.DEBUG))
-    formatter = logging.Formatter('%(asctime)s - %(filename)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)s - [%(filename)s | %(funcName)s | %(lineno)d | %(levelname)s] - %(message)s'
+    )
     fh.setFormatter(formatter)
     logger_f.addHandler(fh)
     ah = AlertHandler()
