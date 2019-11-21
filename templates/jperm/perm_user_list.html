@@ -55,7 +55,7 @@
                             </tr>
                         </thead>
                         <tbody id="edittbody">
-                        {% for users in user_list %}
+                        {% for users in contacts %}
                             <tr class="gradeX" id={{ users.id }}>
                                 <td class="text-center"><a href="">{{ users.name }} </a></td>
                                 <td class="text-center"> {{ users.username }} </td>
@@ -75,7 +75,7 @@
                     <div class="row">
                         <div class="col-sm-6">
                             <div class="dataTables_info" id="editable_info" role="status" aria-live="polite">
-                                Showing {{ roles.start_index }} to {{ roles.end_index }} of {{ p.count }} entries
+                                Showing {{ contacts.start_index }} to {{ contacts.end_index }} of {{ p.count }} entries
                             </div>
                         </div>
                         {% include 'paginator.html' %}
