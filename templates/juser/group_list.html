@@ -54,7 +54,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                        {% for group in user_groups.object_list %}
+                        {% for group in contacts %}
                             <tr class="gradeX">
                                 <td class="text-center">
                                     <input class="shiftCheckbox" type="checkbox"  name="selected" value="{{ group.id }}">
@@ -77,7 +77,7 @@
                     <div class="row">
                         <div class="col-sm-6">
                             <div class="dataTables_info" id="editable_info" role="status" aria-live="polite">
-                                Showing {{ user_groups.start_index }} to {{ user_groups.end_index }} of {{ p.count }} entries
+                                Showing {{ contacts.start_index }} to {{ contacts.end_index }} of {{ p.count }} entries
                             </div>
                         </div>
                         {% include 'paginator.html' %}

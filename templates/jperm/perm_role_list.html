@@ -55,7 +55,7 @@
                             </tr>
                         </thead>
                         <tbody id="edittbody">
-                        {% for role in roles %}
+                        {% for role in contacts %}
                             <tr class="gradeX" id={{ role.id }}>
                                 <td class="text-center"><a href="">{{ role.name }} </a></td>
 {#                                <td class="text-center"> {{ role | role_which_permission }} </td>#}
@@ -81,7 +81,7 @@
                     <div class="row">
                         <div class="col-sm-6">
                             <div class="dataTables_info" id="editable_info" role="status" aria-live="polite">
-                                Showing {{ roles.start_index }} to {{ roles.end_index }} of {{ p.count }} entries
+                                Showing {{ contacts.start_index }} to {{ contacts.end_index }} of {{ p.count }} entries
                             </div>
                         </div>
                         {% include 'paginator.html' %}
