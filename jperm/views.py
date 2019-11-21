@@ -256,7 +256,8 @@ def perm_role_list(request):
         roles_list = roles_list.filter(id=role_id)
 
     roles_list = roles_list.order_by('id')
-    roles_list, p, roles, page_range, current_page, show_first, show_end = pages(roles_list, request)
+    # roles_list, p, roles, page_range, current_page, show_first, show_end = pages(roles_list, request)
+    contact_list, p, contacts, page_range, current_page, show_first, show_end = pages(roles_list, request)
 
     return my_render('jperm/perm_role_list.html', locals(), request)
 
@@ -981,7 +982,8 @@ def user_passwd_list(request):
     if keyword:
         user_list = user_list.filter(Q(name=keyword)|Q(username__icontains=keyword))
 
-    roles_list, p, user_list, page_range, current_page, show_first, show_end = pages(user_list, request)
+    # roles_list, p, user_list, page_range, current_page, show_first, show_end = pages(user_list, request)
+    contact_list, p, contacts, page_range, current_page, show_first, show_end = pages(user_list, request)
 
     return my_render('jperm/perm_user_list.html', locals(), request)
 

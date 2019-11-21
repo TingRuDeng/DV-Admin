@@ -67,7 +67,8 @@ def group_list(request):
     if group_id:
         user_group_list = user_group_list.filter(id=int(group_id))
 
-    user_group_list, p, user_groups, page_range, current_page, show_first, show_end = pages(user_group_list, request)
+    contact_list, p, contacts, page_range, current_page, show_first, show_end = pages(user_group_list, request)
+
     return my_render('juser/group_list.html', locals(), request)
 
 
@@ -753,8 +754,7 @@ def user_list(request):
         users_list = users_list.filter(group_id__in=dep_list)
 
     # 分页，界面从users取当前页内容
-    users_list, p, users, page_range, current_page, show_first, show_end = pages(users_list, request)
-
+    contact_list, p, contacts, page_range, current_page, show_first, show_end = pages(users_list, request)
     return my_render('juser/user_list.html', locals(), request)
 
 
@@ -965,7 +965,7 @@ def portrait_list(request):
         users = users.filter(portrait_address__isnull=True)
         status = u'未上传'
 
-    user_list_all, p, users_list, page_range, current_page, show_first, show_end = pages(users, request)
+    contact_list, p, contacts, page_range, current_page, show_first, show_end = pages(users, request)
     return my_render('juser/portrait_list.html', locals(), request)
 
 
