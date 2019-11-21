@@ -215,7 +215,7 @@ def user_add(request):
         username = request.POST.get('username', '')
         name = first_name + last_name
         groups = request.POST.get('groups', '')
-        uuid_r = uuid.uuid4().get_hex()
+        uuid_r = uuid.uuid4().hex
         sex = request.POST.get('sex', '')
         mobile = request.POST.get('mobile', '')
         wechat = request.POST.get('wechat', '')
@@ -994,7 +994,7 @@ def portrait_upload(request):
                     return my_render('juser/portrait_admin_upload.html', locals(), request)
 
                 img_url_list = str(image.name).split('.')
-                img_storage_name = "%s_%d.%s" % (str(uuid.uuid4().get_hex().lower()[0:8]), user.id, img_url_list[-1])
+                img_storage_name = "%s_%d.%s" % (str(uuid.uuid4().hex.lower()[0:8]), user.id, img_url_list[-1])
                 image_dir = "%s%s%s" % (BASE_DIR, IMAGE_URL, "portrait")
                 if not os.path.exists(image_dir):
                     os.mkdir(image_dir, 755)
@@ -1045,7 +1045,7 @@ def portrait_userupload(request):
                     return my_render('juser/portrait_user_upload.html', locals(), request)
 
                 img_url_list = str(image.name).split('.')
-                img_storage_name = "%s_%d.%s" % (str(uuid.uuid4().get_hex().lower()[0:8]), user.id, img_url_list[-1])
+                img_storage_name = "%s_%d.%s" % (str(uuid.uuid4().hex.lower()[0:8]), user.id, img_url_list[-1])
                 image_dir = "%s%s%s" % (BASE_DIR, IMAGE_URL, "portrait")
                 if not os.path.exists(image_dir):
                     os.mkdir(image_dir, 755)
