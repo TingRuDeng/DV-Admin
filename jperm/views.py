@@ -397,10 +397,14 @@ def perm_role_edit(request):
 
         try:
             for menu_id in menu_list_new:
-                m_id = int(list(str(menu_id))[0])
-                all_list.append(m_id)
                 all_list.append(int(menu_id))
 
+                # 取子菜单所属主菜单
+                if len(str(menu_id)) > 2:
+                    m_id = int(str(menu_id)[:-2])
+                    all_list.append(m_id)
+
+            # 去重
             all_list = list(set(all_list))
             role_get = get_object(role, name=name)
             
