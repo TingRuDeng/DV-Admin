@@ -74,14 +74,13 @@ def send_emails(mail_obj, to_email, cc_email, msg, picture_name=None):
 
 
 def alert_over(content):
-    def alert_over(content):
-        dict_data = {
-            "msgtype": "text",
-            "text": {
-                "content": content,
-            }
+    dict_data = {
+        "msgtype": "text",
+        "text": {
+            "content": content,
         }
-        requests.post(AlertUrl, json=dict_data, timeout=3, verify=True)
+    }
+    requests.post(AlertUrl, json=dict_data, timeout=3, verify=True)
 
 
 class AlertHandler(logging.handlers.HTTPHandler):
