@@ -6,3 +6,5 @@ juser/migrations
 webserver/templatetags
 webserver/migrations
 .idea
+pnpm-lock.yaml
+frontend/node_modules
