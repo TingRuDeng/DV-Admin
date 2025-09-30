@@ -14,12 +14,12 @@ logger = logging.getLogger('info')
 
 
 # 信号：新用户创建时自动分配默认角色
-@receiver(post_save, sender=Users)
-def assign_default_role(sender, instance, created, **kwargs):
-    if created:
-        default_role = Roles.objects.filter(is_default=True).first()
-        if default_role:
-            instance.roles.add(default_role)
+# @receiver(post_save, sender=Users)
+# def assign_default_role(sender, instance, created, **kwargs):
+#     if created:
+#         default_role = Roles.objects.filter(is_default=True).first()
+#         if default_role:
+#             instance.roles.add(default_role)
 
 
 # 信号：角色权限变更时清除关联用户的权限缓存
