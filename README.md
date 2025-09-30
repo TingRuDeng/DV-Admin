@@ -17,3 +17,5 @@ Redis (可选，最新版)
 -----
 
 ## 开发配置及部署请看前端/后端项目下的README.md文件
+backend/README.md
+frontend/README.md

@@ -44,16 +44,21 @@ class OperationLogMiddleware:
                 request_body[key] = '******'
         response = self.get_response(request)
         try:
-            response_body = response.data
-            # 处理token, log中token已******替代真实token值
-            if isinstance(response_body, dict) and 'data' in response_body:
-                if isinstance(response_body['data'], dict):
-                    if response_body['data'].get('accessToken'):
-                        response_body['data']['accessToken'] = '******'
-                    if response_body['data'].get('refreshToken'):
-                        response_body['data']['refreshToken'] = '******'
+            # 修复: 首先检查response是否有data属性
+            if hasattr(response, 'data'):
+                response_body = response.data
+                # 处理token, log中token已******替代真实token值
+                if isinstance(response_body, dict) and 'data' in response_body:
+                    if isinstance(response_body['data'], dict):
+                        if response_body['data'].get('accessToken'):
+                            response_body['data']['accessToken'] = '******'
+                        if response_body['data'].get('refreshToken'):
+                            response_body['data']['refreshToken'] = '******'
+            else:
+                # 对于没有data属性的响应类型(如静态文件)
+                response_body = dict()
         except Exception as e:
-            logging.error(f'日志敏感信息覆写失败: {e}, 请求URL：{request.path}, 响应：{response_body}')
+            logging.error(f'日志敏感信息覆写失败: {e}, 请求URL：{request.path}')
             response_body = dict()
 
         request_ip = get_request_ip(request)

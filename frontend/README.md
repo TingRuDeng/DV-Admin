@@ -17,29 +17,16 @@
 
 ## 项目启动
 
-
-- **环境准备**
-
-| 环境类型       | 版本要求                     | 下载链接                     |
-|----------------|-----------------------------|-----------------------------|
-| **开发工具**   | Visual Studio Code (最新版) | [官方下载](https://code.visualstudio.com/Download) |
-| **运行环境**   | Node.js 18.x (推荐18.16.1)  | [中文镜像](https://npmmirror.com/mirrors/node/v18.16.1/) |
-> ⚠️ 注意：Node.js 20.6.0版本存在兼容性问题，请勿使用
-
-
 - **快速开始**
 
 ```bash
-# 克隆代码
-git clone https://gitee.com/youlaiorg/vue3-element-admin.git
-
 # 切换目录
-cd vue3-element-admin
+cd backend
 
 # 安装 pnpm
 npm install pnpm -g
 
-# 设置镜像源(可忽略)
+# 设置镜像源(可选)
 pnpm config set registry https://registry.npmmirror.com
 
 # 安装依赖
@@ -72,15 +59,9 @@ server {
 
     # 反向代理配置
     location /prod-api/ {
-        # 请将 api.youlai.tech 替换为您的后端 API 地址，并注意保留后面的斜杠 /
-        proxy_pass http://api.youlai.tech/;
+        proxy_pass http://api.xxxx.com/;
     }
 }
 ```
 
 更多详细信息，请参考这篇文章：[Nginx 安装和配置](https://blog.csdn.net/u013737132/article/details/145667694)。
-
-
-## 提交规范
-
-执行 `pnpm run commit` 唤起 git commit 交互，根据提示完成信息的输入和选择。
