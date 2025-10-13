@@ -161,7 +161,7 @@
         v-model:total="total"
         v-model:page="queryParams.pageNum"
         v-model:limit="queryParams.pageSize"
-        @pagination="handleQuery()"
+        @pagination="fetchData()"
       />
     </el-card>
 
@@ -194,9 +194,9 @@
           <el-select v-model="formData.targetUserIds" multiple search placeholder="请选择指定用户">
             <el-option
               v-for="item in userOptions"
-              :key="item.value"
+              :key="item.id"
               :label="item.label"
-              :value="item.value"
+              :value="item.id"
             />
           </el-select>
         </el-form-item>
@@ -323,12 +323,17 @@ const currentNotice = ref<NoticeDetailVO>({});
 
 // 查询通知公告
 function handleQuery() {
-  loading.value = true;
   queryParams.pageNum = 1;
+  fetchData();
+}
+
+//发送请求接口
+function fetchData() {
+  loading.value = true;
   NoticeAPI.getPage(queryParams)
     .then((data) => {
-      pageData.value = data.list;
-      total.value = data.total;
+      pageData.value = data.results;
+      total.value = data.count;
     })
     .finally(() => {
       loading.value = false;

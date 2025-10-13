@@ -1,6 +1,6 @@
 ## 简介
 基于RBAC模型权限控制的中小型应用的基础开发平台，前后端分离架构
-前端采用Vue3 + Vite + JavaScript + Element-Plus，后端Django + Django-rest-framework。
+前端采用Vue3 + Vite + TypeScript + Element-Plus，后端Django4 + Django-rest-framework。
 
 JWT认证，支持swagger
 
@@ -17,5 +17,8 @@ Redis (可选，最新版)
 -----
 
 ## 开发配置及部署请看前端/后端项目下的README.md文件
+```angular2html
 backend/README.md
 frontend/README.md
+```
+
