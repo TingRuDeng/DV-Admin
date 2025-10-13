@@ -4,8 +4,6 @@
 <script setup>
 import RedocFrame from "./components/RedocFrame.vue";
 import { ref } from "vue";
-import { defineOptions } from "vue";
-
 // 明确指定组件名称
 defineOptions({
   name: "Redoc",
