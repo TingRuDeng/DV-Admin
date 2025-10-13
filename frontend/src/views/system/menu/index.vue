@@ -1,7 +1,8 @@
 <template>
   <div class="app-container">
-    <div class="search-bar">
-      <el-form ref="queryFormRef" :model="queryParams" :inline="true" @submit.native.prevent>
+    <!-- 搜索区域 -->
+    <div class="search-container">
+      <el-form ref="queryFormRef" :model="queryParams" :inline="true" @submit.prevent>
         <el-form-item label="关键字" prop="search">
           <el-input
             v-model="queryParams.search"
@@ -10,34 +11,39 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item>
+
+        <el-form-item class="search-buttons">
           <el-button type="primary" icon="search" @click="handleQuery">搜索</el-button>
           <el-button icon="refresh" @click="handleResetQuery">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
 
-    <el-card shadow="never">
-      <div class="mb-10px">
-        <el-button
-          v-hasPerm="['system:permissions:add']"
-          type="success"
-          icon="plus"
-          @click="handleOpenDialog(0)"
-        >
-          新增
-        </el-button>
+    <el-card shadow="hover" class="data-table">
+      <div class="data-table__toolbar">
+        <div class="data-table__toolbar--actions">
+          <el-button
+            v-hasPerm="['system:permissions:add']"
+            type="success"
+            icon="plus"
+            @click="handleOpenDialog('0')"
+          >
+            新增
+          </el-button>
+        </div>
       </div>
 
       <el-table
+        ref="dataTableRef"
         v-loading="loading"
-        :data="menuTableData"
         highlight-current-row
         row-key="id"
+        :data="menuTableData"
         :tree-props="{
           children: 'children',
           hasChildren: 'hasChildren',
         }"
+        class="data-table__content"
         @row-click="handleRowClick"
       >
         <el-table-column label="菜单名称" min-width="200">
@@ -205,6 +211,7 @@
               </el-tooltip>
             </div>
           </template>
+
           <el-input v-model="formData.component" placeholder="system/user/index" style="width: 95%">
             <template v-if="formData.type === 'MENU'" #prepend>src/views/</template>
             <template v-if="formData.type === 'MENU'" #append>.vue</template>
@@ -309,7 +316,7 @@
 
         <!-- 权限标识 -->
         <el-form-item v-if="formData.type === 'BUTTON'" label="权限标识" prop="perm">
-          <el-input v-model="formData.perm" placeholder="system:user:add" />
+          <el-input v-model="formData.perm" placeholder="sys:user:add" />
         </el-form-item>
 
         <el-form-item v-if="formData.type !== 'BUTTON'" label="图标" prop="icon">
@@ -317,7 +324,7 @@
           <icon-select v-model="formData.icon" />
         </el-form-item>
 
-        <el-form-item v-if="formData.type == 'CATALOG'" label="跳转路由">
+        <el-form-item v-if="formData.type === 'CATALOG'" label="跳转路由">
           <el-input v-model="formData.redirect" placeholder="跳转路由" />
         </el-form-item>
       </el-form>
@@ -332,12 +339,12 @@
   </div>
 </template>
 
-<script setup>
-import { useAppStore } from "@/store/modules/app.store";
-import { DeviceEnum } from "@/enums/settings/device.enum";
+<script setup lang="ts">
+import { useAppStore } from "@/store/modules/app-store";
+import { DeviceEnum } from "@/enums/settings/device-enum";
 
-import MenuAPI from "@/api/system/menu.api";
-// import { MenuTypeEnum } from "../../../enums/index.js";
+import MenuAPI, { MenuQuery, MenuForm, MenuVO } from "@/api/system/menu-api";
+// import { MenuTypeEnum } from "@/enums/system/menu-enum";
 
 defineOptions({
   name: "SysMenu",
@@ -357,15 +364,15 @@ const dialog = reactive({
 
 const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "600px" : "90%"));
 // 查询参数
-const queryParams = reactive({});
+const queryParams = reactive<MenuQuery>({});
 // 菜单表格数据
-const menuTableData = ref([]);
-// 顶级菜单下拉选项
-const menuOptions = ref([]);
+const menuTableData = ref<MenuVO[]>([]);
+// 顶级目录下拉选项
+const menuOptions = ref<OptionType[]>([]);
 // 初始菜单表单数据
-const initialMenuFormData = ref({
+const initialMenuFormData = ref<MenuForm>({
   id: undefined,
-  parent: 0,
+  parent: "0",
   visible: 1,
   sort: 1,
   type: "MENU", // 默认菜单
@@ -387,7 +394,7 @@ const rules = reactive({
 });
 
 // 选择表格的行菜单ID
-const selectedMenuId = ref();
+const selectedMenuId = ref<string | undefined>();
 
 // 查询菜单
 function handleQuery() {
@@ -408,7 +415,7 @@ function handleResetQuery() {
 }
 
 // 行点击事件
-function handleRowClick(row) {
+function handleRowClick(row: MenuVO) {
   selectedMenuId.value = row.id;
 }
 
@@ -418,26 +425,27 @@ function handleRowClick(row) {
  * @param parent 父菜单ID
  * @param menuId 菜单ID
  */
-function handleOpenDialog(parent, menuId) {
-  MenuAPI.getList()
+function handleOpenDialog(parent?: string, menuId?: string) {
+  MenuAPI.getOptions(true)
     .then((data) => {
-      menuOptions.value = [{ id: 0, label: "顶级菜单", children: data }];
+      // 将顶级目录的id改为字符串类型"0"
+      menuOptions.value = [{ id: "0", label: "顶级目录", children: data }];
     })
     .then(() => {
       dialog.visible = true;
       if (menuId) {
         dialog.title = "编辑菜单";
         MenuAPI.getFormData(menuId).then((data) => {
-          // 检查并处理父菜单ID，确保顶级菜单正确显示
-          if (data.parent === null || data.parent === "" || data.parent === undefined) {
-            data.parent = 0; // 确保顶级菜单的父ID为0
+          if (data.parent === null || data.parent === undefined) {
+            data.parent = "0";
           }
           initialMenuFormData.value = { ...data };
           formData.value = data;
         });
       } else {
         dialog.title = "新增菜单";
-        formData.value.parent = parent;
+        // 新增时也改为字符串类型，与menuOptions中的id保持一致
+        formData.value.parent = parent || "0";
       }
     });
 }
@@ -463,20 +471,18 @@ function handleMenuTypeChange() {
  * 提交表单
  */
 function handleSubmit() {
-  menuFormRef.value.validate((isValid) => {
+  menuFormRef.value.validate((isValid: boolean) => {
     if (isValid) {
       const menuId = formData.value.id;
-      // 创建要提交的数据副本，避免直接修改原始数据
       const submitData = { ...formData.value };
 
       // 如果parent值为0，则从提交数据中移除该字段
-      if (submitData.parent === 0) {
+      if (submitData.parent === "0") {
         delete submitData.parent;
       }
-
       if (menuId) {
         //修改时父级菜单不能为当前菜单
-        if (formData.value.parent === menuId) {
+        if (submitData.parent === menuId) {
           ElMessage.error("父级菜单不能为当前菜单");
           return;
         }
@@ -497,7 +503,7 @@ function handleSubmit() {
 }
 
 // 删除菜单
-function handleDelete(menuId) {
+function handleDelete(menuId: string) {
   if (!menuId) {
     ElMessage.warning("请勾选删除项");
     return false;
@@ -530,7 +536,7 @@ function resetForm() {
   menuFormRef.value.clearValidate();
   formData.value = {
     id: undefined,
-    parent: 0,
+    parent: "0",
     visible: 1,
     sort: 1,
     type: "MENU", // 默认菜单

@@ -6,7 +6,6 @@
       :style="props.style"
       :before-upload="handleBeforeUpload"
       :http-request="handleUpload"
-      :on-progress="handleProgress"
       :on-success="handleSuccess"
       :on-error="handleError"
       :accept="props.accept"
@@ -20,30 +19,36 @@
 
       <!-- 文件列表 -->
       <template #file="{ file }">
-        <div class="el-upload-list__item-info">
-          <a class="el-upload-list__item-name" @click="handleDownload(file)">
-            <el-icon><Document /></el-icon>
-            <span class="el-upload-list__item-file-name">{{ file.name }}</span>
-            <span class="el-icon--close" @click.stop="handleRemove(file.url)">
-              <el-icon><Close /></el-icon>
-            </span>
-          </a>
-        </div>
+        <template v-if="file.status === 'success'">
+          <div class="el-upload-list__item-info">
+            <a class="el-upload-list__item-name" @click="handleDownload(file)">
+              <el-icon><Document /></el-icon>
+              <span class="el-upload-list__item-file-name">{{ file.name }}</span>
+              <span class="el-icon--close" @click.stop="handleRemove(file.url!)">
+                <el-icon><Close /></el-icon>
+              </span>
+            </a>
+          </div>
+        </template>
+        <template v-else>
+          <div class="el-upload-list__item-info">
+            <el-progress style="display: inline-flex" :percentage="file.percentage" />
+          </div>
+        </template>
       </template>
     </el-upload>
-
-    <el-progress
-      :style="{
-        display: showProgress ? 'inline-flex' : 'none',
-        width: '100%',
-      }"
-      :percentage="progressPercent"
-    />
   </div>
 </template>
+<script lang="ts" setup>
+import {
+  UploadRawFile,
+  UploadUserFile,
+  UploadFile,
+  UploadFiles,
+  UploadRequestOptions,
+} from "element-plus";
 
-<script setup>
-import FileAPI from "@/api/file.api";
+import FileAPI, { FileInfo } from "@/api/file-api";
 
 const props = defineProps({
   /**
@@ -103,17 +108,13 @@ const props = defineProps({
     },
   },
 });
-
 const modelValue = defineModel("modelValue", {
-  type: Array,
+  type: [Array] as PropType<FileInfo[]>,
   required: true,
   default: () => [],
 });
 
-const fileList = ref([]);
-
-const showProgress = ref(false);
-const progressPercent = ref(0);
+const fileList = ref([] as UploadFile[]);
 
 // 监听 modelValue 转换用于显示的 fileList
 watch(
@@ -122,11 +123,11 @@ watch(
     fileList.value = value.map((item) => {
       const name = item.name ? item.name : item.url?.substring(item.url.lastIndexOf("/") + 1);
       return {
-        name: name,
+        name,
         url: item.url,
         status: "success",
         uid: getUid(),
-      };
+      } as UploadFile;
     });
   },
   {
@@ -137,7 +138,7 @@ watch(
 /**
  * 上传前校验
  */
-function handleBeforeUpload(file) {
+function handleBeforeUpload(file: UploadRawFile) {
   // 限制文件大小
   if (file.size > props.maxFileSize * 1024 * 1024) {
     ElMessage.warning("上传文件不能大于" + props.maxFileSize + "M");
@@ -149,10 +150,9 @@ function handleBeforeUpload(file) {
 /*
  * 上传文件
  */
-function handleUpload(options) {
+function handleUpload(options: UploadRequestOptions) {
   return new Promise((resolve, reject) => {
     const file = options.file;
-
     const formData = new FormData();
     formData.append(props.name, file);
 
@@ -160,44 +160,40 @@ function handleUpload(options) {
     Object.keys(props.data).forEach((key) => {
       formData.append(key, props.data[key]);
     });
-
-    FileAPI.upload(formData)
-      .then((data) => {
-        resolve(data);
+    FileAPI.upload(formData, (percent) => {
+      const uid = file.uid;
+      const fileItem = fileList.value.find((file) => file.uid === uid);
+      if (fileItem) {
+        fileItem.percentage = percent;
+      }
+    })
+      .then((res) => {
+        resolve(res);
       })
-      .catch((error) => {
-        reject(error);
+      .catch((err) => {
+        reject(err);
       });
   });
 }
 
 /**
- * 上传进度
- *
- * @param event
- */
-const handleProgress = (event) => {
-  progressPercent.value = event.percent;
-};
-
-/**
  * 上传成功
  */
-const handleSuccess = (response, uploadFile, files) => {
+const handleSuccess = (response: any, uploadFile: UploadFile, files: UploadFiles) => {
   ElMessage.success("上传成功");
   //只有当状态为success或者fail，代表文件上传全部完成了，失败也算完成
   if (
-    files.every((file) => {
+    files.every((file: UploadFile) => {
       return file.status === "success" || file.status === "fail";
     })
   ) {
-    let fileInfos = [];
-    files.map((file) => {
+    const fileInfos = [] as FileInfo[];
+    files.map((file: UploadFile) => {
       if (file.status === "success") {
         //只取携带response的才是刚上传的
-        let res = file.response;
+        const res = file.response as FileInfo;
         if (res) {
-          fileInfos.push({ name: res.name, url: res.url });
+          fileInfos.push({ name: res.name, url: res.url } as FileInfo);
         }
       } else {
         //失败上传 从fileList删掉，不展示
@@ -216,7 +212,7 @@ const handleSuccess = (response, uploadFile, files) => {
 /**
  * 上传失败
  */
-const handleError = (_error) => {
+const handleError = (_error: any) => {
   console.error(_error);
   ElMessage.error("上传失败");
 };
@@ -224,7 +220,7 @@ const handleError = (_error) => {
 /**
  * 删除文件
  */
-function handleRemove(fileUrl) {
+function handleRemove(fileUrl: string) {
   FileAPI.delete(fileUrl).then(() => {
     modelValue.value = modelValue.value.filter((file) => file.url !== fileUrl);
   });
@@ -233,7 +229,7 @@ function handleRemove(fileUrl) {
 /**
  * 下载文件
  */
-function handleDownload(file) {
+function handleDownload(file: UploadUserFile) {
   const { url, name } = file;
   if (url) {
     FileAPI.download(url, name);
@@ -241,7 +237,7 @@ function handleDownload(file) {
 }
 
 /** 获取一个不重复的id */
-function getUid() {
+function getUid(): number {
   // 时间戳左移13位（相当于乘以8192） + 4位随机数
   return (Date.now() << 13) | Math.floor(Math.random() * 8192);
 }

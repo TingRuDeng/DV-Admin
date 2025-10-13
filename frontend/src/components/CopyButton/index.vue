@@ -7,7 +7,7 @@
   </el-button>
 </template>
 
-<script setup>
+<script setup lang="ts">
 defineOptions({
   name: "CopyButton",
   inheritAttrs: false,

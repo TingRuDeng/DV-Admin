@@ -1,7 +1,6 @@
 <!-- 单图上传组件 -->
 <template>
   <el-upload
-    v-model="modelValue"
     class="single-upload"
     list-type="picture-card"
     :show-file-list="false"
@@ -12,19 +11,29 @@
     :on-error="onError"
   >
     <template #default>
-      <el-image v-if="modelValue" :src="modelValue" />
-      <el-icon v-if="modelValue" class="single-upload__delete-btn" @click.stop="handleDelete">
-        <CircleCloseFilled />
-      </el-icon>
-      <el-icon v-else class="single-upload__add-btn">
-        <Plus />
-      </el-icon>
+      <template v-if="modelValue">
+        <el-image
+          class="single-upload__image"
+          :src="modelValue"
+          :preview-src-list="[modelValue]"
+          @click.stop="handlePreview"
+        />
+        <el-icon class="single-upload__delete-btn" @click.stop="handleDelete">
+          <CircleCloseFilled />
+        </el-icon>
+      </template>
+      <template v-else>
+        <el-icon>
+          <Plus />
+        </el-icon>
+      </template>
     </template>
   </el-upload>
 </template>
 
-<script setup>
-import FileAPI from "@/api/file.api";
+<script setup lang="ts">
+import { UploadRawFile, UploadRequestOptions } from "element-plus";
+import FileAPI, { FileInfo } from "@/api/file-api";
 
 const props = defineProps({
   /**
@@ -81,7 +90,7 @@ const modelValue = defineModel("modelValue", {
 /**
  * 限制用户上传文件的格式和大小
  */
-function handleBeforeUpload(file) {
+function handleBeforeUpload(file: UploadRawFile) {
   // 校验文件类型：虽然 accept 属性限制了用户在文件选择器中可选的文件类型，但仍需在上传时再次校验文件实际类型，确保符合 accept 的规则
   const acceptTypes = props.accept.split(",").map((type) => type.trim());
 
@@ -115,7 +124,7 @@ function handleBeforeUpload(file) {
 /*
  * 上传图片
  */
-function handleUpload(options) {
+function handleUpload(options: UploadRequestOptions) {
   return new Promise((resolve, reject) => {
     const file = options.file;
 
@@ -138,6 +147,13 @@ function handleUpload(options) {
 }
 
 /**
+ * 预览图片
+ */
+function handlePreview() {
+  console.log("预览图片,停止冒泡");
+}
+
+/**
  * 删除图片
  */
 function handleDelete() {
@@ -149,7 +165,7 @@ function handleDelete() {
  *
  * @param fileInfo 上传成功后的文件信息
  */
-const onSuccess = (fileInfo) => {
+const onSuccess = (fileInfo: FileInfo) => {
   ElMessage.success("上传成功");
   modelValue.value = fileInfo.url;
 };
@@ -157,7 +173,7 @@ const onSuccess = (fileInfo) => {
 /**
  * 上传失败回调
  */
-const onError = (error) => {
+const onError = (error: any) => {
   console.log("onError");
   ElMessage.error("上传失败: " + error.message);
 };
@@ -165,21 +181,14 @@ const onError = (error) => {
 
 <style scoped lang="scss">
 :deep(.el-upload--picture-card) {
-  /*  width: var(--el-upload-picture-card-size);
-  height: var(--el-upload-picture-card-size); */
-  width: v-bind("props.style.width");
-  height: v-bind("props.style.height");
+  position: relative;
+  width: v-bind("props.style.width ?? '150px'");
+  height: v-bind("props.style.height ?? '150px'");
 }
 
 .single-upload {
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-  border: 1px var(--el-border-color) solid;
-  border-radius: 5px;
-
-  &:hover {
-    border-color: var(--el-color-primary);
+  &__image {
+    border-radius: 6px;
   }
 
   &__delete-btn {

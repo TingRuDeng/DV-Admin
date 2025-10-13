@@ -1,41 +1,45 @@
 <!-- 系统配置 -->
 <template>
   <div class="app-container">
-    <div class="search-bar">
+    <!-- 搜索区域 -->
+    <div class="search-container">
       <el-form ref="queryFormRef" :model="queryParams" :inline="true">
-        <el-form-item label="关键字" prop="search">
+        <el-form-item label="关键字" prop="keywords">
           <el-input
-            v-model="queryParams.search"
+            v-model="queryParams.keywords"
             placeholder="请输入配置键\配置名称"
             clearable
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item>
+
+        <el-form-item class="search-buttons">
           <el-button type="primary" icon="search" @click="handleQuery">搜索</el-button>
           <el-button icon="refresh" @click="handleResetQuery">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
 
-    <el-card shadow="never">
-      <div class="mb-10px">
-        <el-button
-          v-hasPerm="['sys:config:add']"
-          type="success"
-          icon="plus"
-          @click="handleOpenDialog()"
-        >
-          新增
-        </el-button>
-        <el-button
-          v-hasPerm="['sys:config:refresh']"
-          color="#626aef"
-          icon="RefreshLeft"
-          @click="handleRefreshCache"
-        >
-          刷新缓存
-        </el-button>
+    <el-card shadow="hover" class="data-table">
+      <div class="data-table__toolbar">
+        <div class="data-table__toolbar--actions">
+          <el-button
+            v-hasPerm="['sys:config:add']"
+            type="success"
+            icon="plus"
+            @click="handleOpenDialog()"
+          >
+            新增
+          </el-button>
+          <el-button
+            v-hasPerm="['sys:config:refresh']"
+            color="#626aef"
+            icon="RefreshLeft"
+            @click="handleRefreshCache"
+          >
+            刷新缓存
+          </el-button>
+        </div>
       </div>
 
       <el-table
@@ -43,6 +47,8 @@
         v-loading="loading"
         :data="pageData"
         highlight-current-row
+        class="data-table__content"
+        border
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="index" label="序号" width="60" />
@@ -81,7 +87,7 @@
         v-model:total="total"
         v-model:page="queryParams.pageNum"
         v-model:limit="queryParams.pageSize"
-        @pagination="handleQuery"
+        @pagination="fetchData"
       />
     </el-card>
 
@@ -129,36 +135,38 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 defineOptions({
   name: "Config",
   inheritAttrs: false,
 });
 
-import ConfigAPI from "@/api/system/config.api";
+import ConfigAPI, { ConfigPageVO, ConfigForm, ConfigPageQuery } from "@/api/system/config-api";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { useDebounceFn } from "@vueuse/core";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
 
 const loading = ref(false);
-const selectIds = ref([]);
+const selectIds = ref<number[]>([]);
 const total = ref(0);
 
-const queryParams = reactive({
+const queryParams = reactive<ConfigPageQuery>({
   pageNum: 1,
   pageSize: 10,
-  search: "",
+  keywords: "",
 });
 
 // 系统配置表格数据
-const pageData = ref([]);
+const pageData = ref<ConfigPageVO[]>([]);
 
 const dialog = reactive({
   title: "",
   visible: false,
 });
 
-const formData = reactive({
+const formData = reactive<ConfigForm>({
   id: undefined,
   configName: "",
   configKey: "",
@@ -172,8 +180,8 @@ const rules = reactive({
   configValue: [{ required: true, message: "请输入系统配置值", trigger: "blur" }],
 });
 
-// 查询系统配置
-function handleQuery() {
+// 获取数据
+function fetchData() {
   loading.value = true;
   ConfigAPI.getPage(queryParams)
     .then((data) => {
@@ -185,20 +193,26 @@ function handleQuery() {
     });
 }
 
+// 查询（重置页码后获取数据）
+function handleQuery() {
+  queryParams.pageNum = 1;
+  fetchData();
+}
+
 // 重置查询
 function handleResetQuery() {
   queryFormRef.value.resetFields();
   queryParams.pageNum = 1;
-  handleQuery();
+  fetchData();
 }
 
 // 行复选框选中项变化
-function handleSelectionChange(selection) {
-  selectIds.value = selection.map((item) => item.id);
+function handleSelectionChange(selection: any) {
+  selectIds.value = selection.map((item: any) => item.id);
 }
 
 // 打开系统配置弹窗
-function handleOpenDialog(id) {
+function handleOpenDialog(id?: string) {
   dialog.visible = true;
   if (id) {
     dialog.title = "修改系统配置";
@@ -220,7 +234,7 @@ const handleRefreshCache = useDebounceFn(() => {
 
 // 系统配置表单提交
 function handleSubmit() {
-  dataFormRef.value.validate((valid) => {
+  dataFormRef.value.validate((valid: any) => {
     if (valid) {
       loading.value = true;
       const id = formData.id;
@@ -259,7 +273,7 @@ function handleCloseDialog() {
 }
 
 // 删除系统配置
-function handleDelete(id) {
+function handleDelete(id: string) {
   ElMessageBox.confirm("确认删除该项配置?", "警告", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",

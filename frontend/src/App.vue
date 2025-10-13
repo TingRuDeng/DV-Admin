@@ -3,7 +3,7 @@
     <!-- 开启水印 -->
     <el-watermark
       :font="{ color: fontColor }"
-      :content="watermarkEnabled ? defaultSettings.watermarkContent : ''"
+      :content="showWatermark ? defaultSettings.watermarkContent : ''"
       :z-index="9999"
       class="wh-full"
     >
@@ -12,17 +12,17 @@
   </el-config-provider>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useAppStore, useSettingsStore } from "@/store";
-import defaultSettings from "@/settings";
-import { ThemeMode } from "@/enums/settings/theme.enum";
+import { defaultSettings } from "@/settings";
+import { ThemeMode, ComponentSize } from "@/enums";
 
 const appStore = useAppStore();
 const settingsStore = useSettingsStore();
 
 const locale = computed(() => appStore.locale);
-const size = computed(() => appStore.size);
-const watermarkEnabled = computed(() => settingsStore.watermarkEnabled);
+const size = computed(() => appStore.size as ComponentSize);
+const showWatermark = computed(() => settingsStore.showWatermark);
 
 // 明亮/暗黑主题水印字体颜色适配
 const fontColor = computed(() => {

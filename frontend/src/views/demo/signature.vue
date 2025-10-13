@@ -1,25 +1,47 @@
-<script setup>
-import FileAPI from "@/api/file.api";
+<template>
+  <div class="canvas-dom">
+    <h3>基于canvas实现的签名组件</h3>
+    <header>
+      <el-button type="primary" @click="handleSaveImg">保存为图片</el-button>
+      <el-button @click="handleToFile">保存到后端</el-button>
+      <el-button @click="handleClearSign">清空签名</el-button>
+    </header>
+    <canvas
+      ref="canvas"
+      height="200"
+      width="500"
+      @mousedown="onEventStart"
+      @mousemove.stop.prevent="onEventMove"
+      @mouseup="onEventEnd"
+      @touchstart="onEventStart"
+      @touchmove.stop.prevent="onEventMove"
+      @touchend="onEventEnd"
+    />
+    <img v-if="imgUrl" :src="imgUrl" alt="签名" />
+  </div>
+</template>
+<script setup lang="ts">
+import FileAPI from "@/api/file-api";
 
 const imgUrl = ref("");
 const canvas = ref();
-let ctx;
+let ctx: CanvasRenderingContext2D;
 
 // 正在绘制中，用来控制 move 和 end 事件
 let painting = false;
 
 // 获取触发点相对被触发dom的左、上角距离
-const getOffset = (event) => {
-  let offset;
-  if (event.offsetX) {
+const getOffset = (event: MouseEvent | TouchEvent) => {
+  let offset: [number, number];
+  if ((event as MouseEvent).offsetX) {
     // pc端
-    const { offsetX, offsetY } = event;
+    const { offsetX, offsetY } = event as MouseEvent;
     offset = [offsetX, offsetY];
   } else {
     // 移动端
     const { top, left } = canvas.value.getBoundingClientRect();
-    const offsetX = event.touches[0].clientX - left;
-    const offsetY = event.touches[0].clientY - top;
+    const offsetX = (event as TouchEvent).touches[0].clientX - left;
+    const offsetY = (event as TouchEvent).touches[0].clientY - top;
     offset = [offsetX, offsetY];
   }
 
@@ -31,12 +53,12 @@ let startX = 0,
   startY = 0;
 
 // 鼠标/触摸 按下时，保存 触发点相对被触发dom的左、上 距离
-const onEventStart = (event) => {
+const onEventStart = (event: MouseEvent | TouchEvent) => {
   [startX, startY] = getOffset(event);
   painting = true;
 };
 
-const onEventMove = (event) => {
+const onEventMove = (event: MouseEvent | TouchEvent) => {
   if (painting) {
     // 鼠标/触摸 移动时，保存 移动点相对 被触发dom的左、上 距离
     const [endX, endY] = getOffset(event);
@@ -55,7 +77,7 @@ const onEventEnd = () => {
 };
 
 onMounted(() => {
-  ctx = canvas.value.getContext("2d");
+  ctx = canvas.value.getContext("2d") as CanvasRenderingContext2D;
 });
 const handleToFile = async () => {
   if (isCanvasBlank(canvas.value)) {
@@ -75,7 +97,7 @@ const handleToFile = async () => {
 const handleClearSign = () => {
   ctx.clearRect(0, 0, canvas.value.width, canvas.value.height);
 };
-const isCanvasBlank = (canvas) => {
+const isCanvasBlank = (canvas: HTMLCanvasElement) => {
   const blank = document.createElement("canvas"); //系统获取一个空canvas对象
   blank.width = canvas.width;
   blank.height = canvas.height;
@@ -100,8 +122,8 @@ const handleSaveImg = () => {
   el.dispatchEvent(event);
 };
 // 转为file格式，可传递给后端
-const dataURLtoFile = (dataurl, filename) => {
-  const arr = dataurl.split(",");
+const dataURLtoFile = (dataurl: string, filename: string) => {
+  const arr: string[] = dataurl.split(",");
   if (!arr.length) return;
 
   const mime = arr[0].match(/:(.*?);/);
@@ -116,7 +138,13 @@ const dataURLtoFile = (dataurl, filename) => {
   }
 };
 // canvas 画图
-function paint(startX, startY, endX, endY, ctx) {
+function paint(
+  startX: number,
+  startY: number,
+  endX: number,
+  endY: number,
+  ctx: CanvasRenderingContext2D
+) {
   ctx.beginPath();
   ctx.globalAlpha = 1;
   ctx.lineWidth = 2;
@@ -127,28 +155,6 @@ function paint(startX, startY, endX, endY, ctx) {
   ctx.stroke();
 }
 </script>
-<template>
-  <div class="canvas-dom">
-    <h3>基于canvas实现的签名组件</h3>
-    <header>
-      <el-button type="primary" @click="handleSaveImg">保存为图片</el-button>
-      <el-button @click="handleToFile">保存到后端</el-button>
-      <el-button @click="handleClearSign">清空签名</el-button>
-    </header>
-    <canvas
-      ref="canvas"
-      height="200"
-      width="500"
-      @mousedown="onEventStart"
-      @mousemove.stop.prevent="onEventMove"
-      @mouseup="onEventEnd"
-      @touchstart="onEventStart"
-      @touchmove.stop.prevent="onEventMove"
-      @touchend="onEventEnd"
-    />
-    <img v-if="imgUrl" :src="imgUrl" alt="签名" />
-  </div>
-</template>
 <style scoped lang="scss">
 .canvas-dom {
   width: 100%;
