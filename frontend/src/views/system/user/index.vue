@@ -9,14 +9,14 @@
 
       <!-- 用户列表 -->
       <el-col :lg="20" :xs="24">
-        <div class="search-bar">
-          <el-form ref="queryFormRef" :model="queryParams" :inline="true">
+        <!-- 搜索区域 -->
+        <div class="search-container">
+          <el-form ref="queryFormRef" :model="queryParams" :inline="true" label-width="auto">
             <el-form-item label="关键字" prop="search">
               <el-input
                 v-model="queryParams.search"
-                placeholder="用户名/昵称/手机号/邮箱"
+                placeholder="用户名/昵称/手机号"
                 clearable
-                style="width: 200px"
                 @keyup.enter="handleQuery"
               />
             </el-form-item>
@@ -26,22 +26,35 @@
                 v-model="queryParams.isActive"
                 placeholder="全部"
                 clearable
-                class="!w-[100px]"
+                style="width: 100px"
               >
                 <el-option label="正常" :value="1" />
                 <el-option label="禁用" :value="0" />
               </el-select>
             </el-form-item>
-            <el-form-item>
+
+            <!--            <el-form-item label="创建时间">-->
+            <!--              <el-date-picker-->
+            <!--                v-model="queryParams.createTime"-->
+            <!--                :editable="false"-->
+            <!--                type="daterange"-->
+            <!--                range-separator="~"-->
+            <!--                start-placeholder="开始时间"-->
+            <!--                end-placeholder="截止时间"-->
+            <!--                value-format="YYYY-MM-DD"-->
+            <!--              />-->
+            <!--            </el-form-item>-->
+
+            <el-form-item class="search-buttons">
               <el-button type="primary" icon="search" @click="handleQuery">搜索</el-button>
               <el-button icon="refresh" @click="handleResetQuery">重置</el-button>
             </el-form-item>
           </el-form>
         </div>
 
-        <el-card shadow="never">
-          <div class="flex-x-between mb-10px">
-            <div>
+        <el-card shadow="hover" class="data-table">
+          <div class="data-table__toolbar">
+            <div class="data-table__toolbar--actions">
               <el-button
                 v-hasPerm="['system:users:add']"
                 type="success"
@@ -51,7 +64,7 @@
                 新增
               </el-button>
               <el-button
-                v-hasPerm="'system:users:delete'"
+                v-hasPerm="['system:users:delete']"
                 type="danger"
                 icon="delete"
                 :disabled="selectIds.length === 0"
@@ -60,31 +73,38 @@
                 删除
               </el-button>
             </div>
-            <div>
-              <el-button
-                v-hasPerm="['system:users:import']"
-                icon="upload"
-                @click="handleOpenImportDialog"
-              >
-                导入
-              </el-button>
+            <!--            <div class="data-table__toolbar&#45;&#45;tools">-->
+            <!--              <el-button-->
+            <!--                v-hasPerm="['system:users:import']"-->
+            <!--                icon="upload"-->
+            <!--                @click="handleOpenImportDialog"-->
+            <!--              >-->
+            <!--                导入-->
+            <!--              </el-button>-->
 
-              <el-button v-hasPerm="['system:users:export']" icon="download" @click="handleExport">
-                导出
-              </el-button>
-            </div>
+            <!--              <el-button v-hasPerm="['system:users:export']" icon="download" @click="handleExport">-->
+            <!--                导出-->
+            <!--              </el-button>-->
+            <!--            </div>-->
           </div>
 
-          <el-table v-loading="loading" :data="pageData" @selection-change="handleSelectionChange">
+          <el-table
+            v-loading="loading"
+            :data="pageData"
+            border
+            stripe
+            highlight-current-row
+            class="data-table__content"
+            @selection-change="handleSelectionChange"
+          >
             <el-table-column type="selection" width="50" align="center" />
             <el-table-column label="用户名" prop="username" />
             <el-table-column label="昵称" width="150" align="center" prop="name" />
-<!--            <el-table-column label="性别" width="100" align="center">-->
-<!--              <template #default="scope">-->
-<!--                &lt;!&ndash; 性别字典翻译 &ndash;&gt;-->
-<!--                <DictLabel v-model="scope.row.gender" code="gender" />-->
-<!--              </template>-->
-<!--            </el-table-column>-->
+            <!--            <el-table-column label="性别" width="100" align="center">-->
+            <!--              <template #default="scope">-->
+            <!--                <DictLabel v-model="scope.row.gender" code="gender" />-->
+            <!--              </template>-->
+            <!--            </el-table-column>-->
             <el-table-column label="部门" width="120" align="center" prop="deptName" />
             <el-table-column label="手机号码" align="center" prop="mobile" width="120" />
             <el-table-column label="邮箱" align="center" prop="email" width="160" />
@@ -95,7 +115,7 @@
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="创建时间" align="center" prop="createTime" width="150" />
+            <!--            <el-table-column label="创建时间" align="center" prop="createTime" width="150" />-->
             <el-table-column label="操作" fixed="right" width="220">
               <template #default="scope">
                 <el-button
@@ -137,7 +157,7 @@
             v-model:total="total"
             v-model:page="queryParams.pageNum"
             v-model:limit="queryParams.pageSize"
-            @pagination="handleQuery"
+            @pagination="fetchData"
           />
         </el-card>
       </el-col>
@@ -178,14 +198,13 @@
             node-key="id"
             filterable
             check-strictly
-            default-expand-all="true"
             :render-after-expand="false"
           />
         </el-form-item>
 
-<!--        <el-form-item label="性别" prop="gender">-->
-<!--          <Dict v-model="formData.gender" code="gender" />-->
-<!--        </el-form-item>-->
+        <!--        <el-form-item label="性别" prop="gender">-->
+        <!--          <Dict v-model="formData.gender" code="gender" />-->
+        <!--        </el-form-item>-->
 
         <el-form-item label="角色" prop="roles">
           <el-select v-model="formData.roles" multiple placeholder="请选择">
@@ -220,7 +239,9 @@
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="handleSubmit">确 定</el-button>
+          <el-button type="primary" :loading="formLoading" @click="handleSubmitWrapper">
+            确 定
+          </el-button>
           <el-button @click="handleCloseDialog">取 消</el-button>
         </div>
       </template>
@@ -231,18 +252,18 @@
   </div>
 </template>
 
-<script setup>
-import { useAppStore } from "@/store/modules/app.store";
-import { DeviceEnum } from "@/enums/settings/device.enum";
+<script setup lang="ts">
+import { useAppStore } from "@/store/modules/app-store";
+import { DeviceEnum } from "@/enums/settings/device-enum";
 
-import UserAPI from "@/api/system/user.api";
-import DeptAPI from "@/api/system/dept.api";
-import RoleAPI from "@/api/system/role.api";
+import UserAPI, { UserForm, UserPageQuery, UserPageVO } from "@/api/system/user-api";
+import DeptAPI from "@/api/system/dept-api";
+import RoleAPI from "@/api/system/role-api";
 
 import DeptTree from "./components/DeptTree.vue";
 import UserImport from "./components/UserImport.vue";
-import { ElMessage, ElMessageBox } from "element-plus";
-
+import { useUserStore } from "@/store";
+const userStore = useUserStore();
 defineOptions({
   name: "User",
   inheritAttrs: false,
@@ -253,14 +274,12 @@ const appStore = useAppStore();
 const queryFormRef = ref();
 const userFormRef = ref();
 
-const queryParams = reactive({
+const queryParams = reactive<UserPageQuery>({
   pageNum: 1,
   pageSize: 10,
-  search: "",
-  isActive: 1,
 });
 
-const pageData = ref();
+const pageData = ref<UserPageVO[]>();
 const total = ref(0);
 const loading = ref(false);
 const formLoading = ref(false);
@@ -271,14 +290,7 @@ const dialog = reactive({
 });
 const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "600px" : "90%"));
 
-const formData = reactive({
-  id: undefined,
-  username: "",
-  name: "",
-  dept: undefined,
-  roles: [],
-  mobile: "",
-  email: "",
+const formData = reactive<UserForm>({
   isActive: 1,
 });
 
@@ -304,25 +316,30 @@ const rules = reactive({
 });
 
 // 选中的用户ID
-const selectIds = ref([]);
+const selectIds = ref<number[]>([]);
 // 部门下拉数据源
-const deptOptions = ref();
+const deptOptions = ref<OptionType[]>();
 // 角色下拉数据源
-const roleOptions = ref();
+const roleOptions = ref<OptionType[]>();
 // 导入弹窗显示状态
 const importDialogVisible = ref(false);
 
-// 查询
-async function handleQuery() {
+// 获取数据
+async function fetchData() {
   loading.value = true;
-  UserAPI.getPage(queryParams)
-    .then((data) => {
-      pageData.value = data.results;
-      total.value = data.count;
-    })
-    .finally(() => {
-      loading.value = false;
-    });
+  try {
+    const data = await UserAPI.getPage(queryParams);
+    pageData.value = data.results;
+    total.value = data.count;
+  } finally {
+    loading.value = false;
+  }
+}
+
+// 查询（重置页码后获取数据）
+function handleQuery() {
+  queryParams.pageNum = 1;
+  fetchData();
 }
 
 // 重置查询
@@ -330,17 +347,17 @@ function handleResetQuery() {
   queryFormRef.value.resetFields();
   queryParams.pageNum = 1;
   queryParams.dept = undefined;
-  queryParams.createTime = undefined;
-  handleQuery();
+  // queryParams.createTime = undefined;
+  fetchData();
 }
 
 // 选中项发生变化
-function handleSelectionChange(selection) {
+function handleSelectionChange(selection: any[]) {
   selectIds.value = selection.map((item) => item.id);
 }
 
 // 重置密码
-function hancleResetPassword(row) {
+function hancleResetPassword(row: UserPageVO) {
   ElMessageBox.prompt("请输入用户【" + row.username + "】的新密码", "重置密码", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
@@ -365,7 +382,7 @@ function hancleResetPassword(row) {
  *
  * @param id 用户ID
  */
-async function handleOpenDialog(id) {
+async function handleOpenDialog(id?: string) {
   dialog.visible = true;
   // 加载角色下拉数据源
   roleOptions.value = await RoleAPI.getOptions();
@@ -382,64 +399,94 @@ async function handleOpenDialog(id) {
   }
 }
 
-const initialFormData = {
-  id: undefined,
-  isActive: 1,
-  // 其他字段的初始值
-};
-
+// 关闭弹窗
 function handleCloseDialog() {
   dialog.visible = false;
   userFormRef.value.resetFields();
   userFormRef.value.clearValidate();
 
-  // 完全重置 formData
-  Object.keys(formData).forEach((key) => delete formData[key]);
-  Object.assign(formData, initialFormData);
+  formData.id = undefined;
+  formData.isActive = 1;
 }
 
 // 提交用户表单（防抖）
-const handleSubmit = () => {
-  formLoading.value = true;
-  userFormRef.value.validate((valid) => {
+const handleSubmit = useDebounceFn(() => {
+  userFormRef.value.validate((valid: boolean) => {
     if (valid) {
       const userId = formData.id;
-      // 使用防抖处理API调用，避免重复提交
-      const submitFn = useDebounceFn(() => {
-        if (userId) {
-          UserAPI.update(userId, formData)
-            .then(() => {
-              ElMessage.success("修改用户成功");
-              handleCloseDialog();
-              handleResetQuery();
-            })
-            .finally(() => (formLoading.value = false));
-        } else {
-          UserAPI.create(formData)
-            .then(() => {
-              ElMessage.success("新增用户成功");
-              handleCloseDialog();
-              handleResetQuery();
-            })
-            .finally(() => (formLoading.value = false));
-        }
-      }, 300);
-      submitFn();
+      if (userId) {
+        UserAPI.update(userId, formData)
+          .then(() => {
+            ElMessage.success("修改用户成功");
+            handleCloseDialog();
+            handleResetQuery();
+          })
+          .finally(() => (formLoading.value = false));
+      } else {
+        UserAPI.create(formData)
+          .then(() => {
+            ElMessage.success("新增用户成功");
+            handleCloseDialog();
+            handleResetQuery();
+          })
+          .finally(() => (formLoading.value = false));
+      }
     } else {
+      // 验证失败时也要重置loading状态
       formLoading.value = false;
     }
   });
-};
+}, 300);
+
+// 立即设置loading状态的包装函数
+function handleSubmitWrapper() {
+  formLoading.value = true;
+  handleSubmit();
+}
+
+/**
+ * 检查是否删除当前登录用户
+ * @param singleId 单个删除的用户ID
+ * @param selectedIds 批量删除的用户ID数组
+ * @param currentUserInfo 当前用户信息
+ * @returns 是否包含当前用户
+ */
+function isDeletingCurrentUser(
+  singleId?: number,
+  selectedIds: number[] = [],
+  currentUserInfo?: any
+): boolean {
+  if (!currentUserInfo?.userId) return false;
+
+  // 单个删除检查
+  if (singleId && singleId.toString() === currentUserInfo.userId) {
+    return true;
+  }
+
+  // 批量删除检查
+  if (!singleId && selectedIds.length > 0) {
+    return selectedIds.map(String).includes(currentUserInfo.userId);
+  }
+
+  return false;
+}
 
 /**
  * 删除用户
  *
  * @param id  用户ID
  */
-function handleDelete(id) {
-  const userIds = [id || selectIds.value].join(",");
+function handleDelete(id?: number) {
+  const userIds = id !== undefined ? [id] : selectIds.value;
   if (!userIds) {
     ElMessage.warning("请勾选删除项");
+    return;
+  }
+
+  // 安全检查：防止删除当前登录用户
+  const currentUserInfo = userStore.userInfo;
+  if (isDeletingCurrentUser(id, selectIds.value, currentUserInfo)) {
+    ElMessage.error("不能删除当前登录用户");
     return;
   }
 
@@ -448,7 +495,7 @@ function handleDelete(id) {
     cancelButtonText: "取消",
     type: "warning",
   }).then(
-    function () {
+    () => {
       loading.value = true;
       UserAPI.deleteByIds(userIds)
         .then(() => {
@@ -457,39 +504,39 @@ function handleDelete(id) {
         })
         .finally(() => (loading.value = false));
     },
-    function () {
+    () => {
       ElMessage.info("已取消删除");
     }
   );
 }
 
 // 打开导入弹窗
-function handleOpenImportDialog() {
-  importDialogVisible.value = true;
-}
+// function handleOpenImportDialog() {
+//   importDialogVisible.value = true;
+// }
 
 // 导出用户
-function handleExport() {
-  UserAPI.export(queryParams).then((response) => {
-    const fileData = response.data;
-    const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
-    const fileType =
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
-
-    const blob = new Blob([fileData], { type: fileType });
-    const downloadUrl = window.URL.createObjectURL(blob);
-
-    const downloadLink = document.createElement("a");
-    downloadLink.href = downloadUrl;
-    downloadLink.download = fileName;
-
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-
-    document.body.removeChild(downloadLink);
-    window.URL.revokeObjectURL(downloadUrl);
-  });
-}
+// function handleExport() {
+//   UserAPI.export(queryParams).then((response: any) => {
+//     const fileData = response.data;
+//     const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
+//     const fileType =
+//       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
+//
+//     const blob = new Blob([fileData], { type: fileType });
+//     const downloadUrl = window.URL.createObjectURL(blob);
+//
+//     const downloadLink = document.createElement("a");
+//     downloadLink.href = downloadUrl;
+//     downloadLink.download = fileName;
+//
+//     document.body.appendChild(downloadLink);
+//     downloadLink.click();
+//
+//     document.body.removeChild(downloadLink);
+//     window.URL.revokeObjectURL(downloadUrl);
+//   });
+// }
 
 onMounted(() => {
   handleQuery();

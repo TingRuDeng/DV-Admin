@@ -1,19 +1,6 @@
 ## 项目简介
 
-基于 Vue3、Vite、JavaScript 和 Element-Plus 搭建的极简开箱即用企业级后台管理前端模板。
-
-
-## 项目特色
-
-- **简洁易用**：基于 [vue3-element-admin] 的 Vue3 版本，适合快速开发。
-- **数据交互**： 支持 `Mock` 数据。
-
-- **系统功能：** 提供用户管理、角色管理、菜单管理、部门管理、字典管理等功能模块。
-- **权限管理：** 支持动态路由、按钮权限、角色权限和数据权限等多种权限管理方式。
-
-- **基础设施：** 提供国际化、多布局、暗黑模式、全屏、水印、接口文档和代码生成器等功能。
-- **持续更新**：项目持续开源更新，实时更新工具和依赖。
-
+基于 Vue3、Vite7、TypeScript 和 Element-Plus 搭建的极简开箱即用企业级后台管理前端模板。 
 
 ## 项目启动
 
@@ -21,7 +8,7 @@
 
 ```bash
 # 切换目录
-cd backend
+cd frontend
 
 # 安装 pnpm
 npm install pnpm -g
@@ -34,6 +21,12 @@ pnpm install
 
 # 启动运行
 pnpm run dev
+
+# 代码检查
+pnpm run lint
+
+# 代码提交（请在提交前先执行 pnpm run lint 检查代码是否符合规范）
+pnpm run commit
 ```
 
 
@@ -63,5 +56,3 @@ server {
     }
 }
 ```
-
-更多详细信息，请参考这篇文章：[Nginx 安装和配置](https://blog.csdn.net/u013737132/article/details/145667694)。

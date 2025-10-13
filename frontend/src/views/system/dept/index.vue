@@ -1,6 +1,7 @@
 <template>
   <div class="app-container">
-    <div class="search-bar">
+    <!-- 搜索区域 -->
+    <div class="search-container">
       <el-form ref="queryFormRef" :model="queryParams" :inline="true">
         <el-form-item label="关键字" prop="search">
           <el-input
@@ -11,12 +12,13 @@
         </el-form-item>
 
         <el-form-item label="部门状态" prop="status">
-          <el-select v-model="queryParams.status" placeholder="全部" clearable class="!w-[100px]">
+          <el-select v-model="queryParams.status" placeholder="全部" clearable style="width: 100px">
             <el-option :value="1" label="正常" />
             <el-option :value="0" label="禁用" />
           </el-select>
         </el-form-item>
-        <el-form-item>
+
+        <el-form-item class="search-buttons">
           <el-button class="filter-item" type="primary" icon="search" @click="handleQuery">
             搜索
           </el-button>
@@ -25,48 +27,48 @@
       </el-form>
     </div>
 
-    <el-card shadow="never">
-      <div class="mb-10px">
-        <el-button
-          v-hasPerm="['system:departments:add']"
-          type="success"
-          icon="plus"
-          @click="handleOpenDialog(0)"
-        >
-          新增
-        </el-button>
-        <el-button
-          v-hasPerm="['system:departments:delete']"
-          type="danger"
-          :disabled="selectIds.length === 0"
-          icon="delete"
-          @click="handleDelete()"
-        >
-          删除
-        </el-button>
+    <el-card shadow="hover" class="data-table">
+      <div class="data-table__toolbar">
+        <div class="data-table__toolbar--actions">
+          <el-button
+            v-hasPerm="['system:departments:add']"
+            type="success"
+            icon="plus"
+            @click="handleOpenDialog()"
+          >
+            新增
+          </el-button>
+          <el-button
+            v-hasPerm="['system:departments:delete']"
+            type="danger"
+            :disabled="selectIds.length === 0"
+            icon="delete"
+            @click="handleDelete()"
+          >
+            删除
+          </el-button>
+        </div>
       </div>
 
       <el-table
         v-loading="loading"
         :data="deptList"
         row-key="id"
+        highlight-current-row
         default-expand-all
         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
+        class="data-table__content"
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" align="center" />
+        <el-table-column prop="sort" label="排序" width="100" />
         <el-table-column prop="name" label="部门名称" min-width="200" />
-        <!--        <el-table-column prop="code" label="部门编号" width="200" />-->
-        <el-table-column prop="parentName" label="上级部门" min-width="200" />
         <el-table-column prop="status" label="状态" width="100">
           <template #default="scope">
-            <el-tag v-if="scope.row.status === 1" type="success">正常</el-tag>
+            <el-tag v-if="scope.row.status == 1" type="success">正常</el-tag>
             <el-tag v-else type="info">禁用</el-tag>
           </template>
         </el-table-column>
-
-        <el-table-column prop="sort" label="排序" width="100" />
-
         <el-table-column label="操作" fixed="right" align="left" width="200">
           <template #default="scope">
             <el-button
@@ -116,8 +118,8 @@
             v-model="formData.parent"
             placeholder="选择上级部门"
             :data="deptOptions"
-            node-key="id"
             filterable
+            node-key="id"
             check-strictly
             :render-after-expand="false"
           />
@@ -125,9 +127,6 @@
         <el-form-item label="部门名称" prop="name">
           <el-input v-model="formData.name" placeholder="请输入部门名称" />
         </el-form-item>
-        <!--        <el-form-item label="部门编号" prop="code">-->
-        <!--          <el-input v-model="formData.code" placeholder="请输入部门编号" />-->
-        <!--        </el-form-item>-->
         <el-form-item label="显示排序" prop="sort">
           <el-input-number
             v-model="formData.sort"
@@ -154,40 +153,37 @@
   </div>
 </template>
 
-<script setup>
-import { ElMessage } from "element-plus";
-
+<script setup lang="ts">
 defineOptions({
   name: "Dept",
   inheritAttrs: false,
 });
 
-import DeptAPI from "@/api/system/dept.api";
+import DeptAPI, { DeptForm, DeptQuery, DeptVO } from "@/api/system/dept-api";
 
 const queryFormRef = ref();
 const deptFormRef = ref();
 
 const loading = ref(false);
-const selectIds = ref([]);
-const queryParams = reactive({});
+const selectIds = ref<number[]>([]);
+const queryParams = reactive<DeptQuery>({});
 
 const dialog = reactive({
   title: "",
   visible: false,
 });
 
-const deptList = ref();
-const deptOptions = ref();
-const formData = reactive({
+const deptList = ref<DeptVO[]>();
+const deptOptions = ref<OptionType[]>();
+const formData = reactive<DeptForm>({
   status: 1,
-  parent: 0,
+  parent: undefined,
   sort: 1,
 });
 
 const rules = reactive({
-  parent: [{ required: true, message: "上级部门不能为空", trigger: "change" }],
+  // parent: [{ required: true, message: "上级部门不能为空", trigger: "change" }],
   name: [{ required: true, message: "部门名称不能为空", trigger: "blur" }],
-  // code: [{ required: true, message: "部门编号不能为空", trigger: "blur" }],
   sort: [{ required: true, message: "显示排序不能为空", trigger: "blur" }],
 });
 
@@ -207,8 +203,8 @@ function handleResetQuery() {
 }
 
 // 处理选中项变化
-function handleSelectionChange(selection) {
-  selectIds.value = selection.map((item) => item.id);
+function handleSelectionChange(selection: any) {
+  selectIds.value = selection.map((item: any) => item.id);
 }
 
 /**
@@ -217,48 +213,30 @@ function handleSelectionChange(selection) {
  * @param parent 父部门ID
  * @param deptId 部门ID
  */
-async function handleOpenDialog(parent, deptId) {
+async function handleOpenDialog(parent?: string, deptId?: string) {
   // 加载部门下拉数据
-  const data = await DeptAPI.getOptions();
-  deptOptions.value = [
-    {
-      id: 0,
-      label: "顶级部门",
-      children: data,
-    },
-  ];
+  deptOptions.value = await DeptAPI.getOptions();
 
   dialog.visible = true;
   if (deptId) {
     dialog.title = "修改部门";
     DeptAPI.getFormData(deptId).then((data) => {
-      if (data.parent === null || data.parent === undefined || data.parent === "") {
-        data.parent = 0;
-      }
       Object.assign(formData, data);
     });
   } else {
     dialog.title = "新增部门";
-    formData.parent = parent || 0;
+    formData.parent = parent;
   }
 }
 
 // 提交部门表单
 function handleSubmit() {
-  deptFormRef.value.validate((valid) => {
+  deptFormRef.value.validate((valid: any) => {
     if (valid) {
       loading.value = true;
-      // 创建提交数据副本，避免直接修改原数据
-      const submitData = { ...formData };
-      // 处理顶级部门的parent字段
-      if (submitData.parent === 0) {
-        // 可以选择将parent设为null或直接删除该字段
-        delete submitData.parent;
-      }
-
       const deptId = formData.id;
       if (deptId) {
-        DeptAPI.update(deptId, submitData)
+        DeptAPI.update(deptId, formData)
           .then(() => {
             ElMessage.success("修改成功");
             handleCloseDialog();
@@ -266,7 +244,7 @@ function handleSubmit() {
           })
           .finally(() => (loading.value = false));
       } else {
-        DeptAPI.create(submitData)
+        DeptAPI.create(formData)
           .then(() => {
             ElMessage.success("新增成功");
             handleCloseDialog();
@@ -279,9 +257,9 @@ function handleSubmit() {
 }
 
 // 删除部门
-function handleDelete(deptId) {
-  const deptIds = [deptId || selectIds.value].join(",");
-
+function handleDelete(deptId?: number) {
+  // const deptIds = [deptId || selectIds.value].join(",");
+  const deptIds = deptId !== undefined ? [deptId] : selectIds.value;
   if (!deptIds) {
     ElMessage.warning("请勾选删除项");
     return;
@@ -313,7 +291,7 @@ function resetForm() {
   deptFormRef.value.clearValidate();
 
   formData.id = undefined;
-  formData.parent = 0;
+  formData.parent = undefined;
   formData.status = 1;
   formData.sort = 1;
 }

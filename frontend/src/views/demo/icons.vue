@@ -35,14 +35,14 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import * as ElementPlusIconsVue from "@element-plus/icons-vue";
 
 defineOptions({
   name: "Icons",
   inheritAttrs: false,
 });
-const svg_icons = [
+const svg_icons: string[] = [
   "api",
   "cascader",
   "client",
@@ -85,11 +85,11 @@ const svg_icons = [
 ];
 const icons = ref(ElementPlusIconsVue);
 
-function generateIconCode(symbol) {
+function generateIconCode(symbol: any) {
   return `<div class="i-svg:${symbol}" />`;
 }
 
-function generateElementIconCode(symbol) {
+function generateElementIconCode(symbol: any) {
   return `<el-icon><${symbol} /></el-icon>`;
 }
 </script>

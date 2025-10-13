@@ -1,13 +1,5 @@
 <template>
   <div class="app-container">
-    <el-link
-      href="https://gitee.com/youlaiorg/vue3-element-admin/blob/master/src/views/demo/websocket.vue"
-      type="primary"
-      target="_blank"
-      class="mb-[20px]"
-    >
-      示例源码 请点击>>>>
-    </el-link>
     <el-row :gutter="10">
       <el-col :span="12">
         <el-card>
@@ -96,15 +88,20 @@
   </div>
 </template>
 
-<script setup>
-import { useStomp } from "@/hooks/useStomp";
-import { useUserStoreHook } from "@/store/modules/user.store";
+<script setup lang="ts">
+import { useStomp } from "@/composables/websocket/useStomp";
+import { useUserStoreHook } from "@/store/modules/user-store";
 
 const userStore = useUserStoreHook();
 // 用于手动调整 WebSocket 地址
 const socketEndpoint = ref(import.meta.env.VITE_APP_WS_ENDPOINT);
 // 同步连接状态
-const messages = ref([]);
+interface MessageType {
+  type?: string;
+  sender?: string;
+  content: string;
+}
+const messages = ref<MessageType[]>([]);
 // 广播消息内容
 const topicMessage = ref("亲爱的朋友们，系统已恢复最新状态。");
 // 点对点消息内容（默认示例）
@@ -112,7 +109,7 @@ const queneMessage = ref("Hi, " + userStore.userInfo.username + " 这里是点�
 const receiver = ref("root");
 
 // 调用 useStomp hook，默认使用 socketEndpoint 和 token（此处用 getAccessToken()）
-const { isConnected, connect, subscribe, disconnect, client } = useStomp({
+const { isConnected, connect, subscribe, disconnect } = useStomp({
   debug: true,
 });
 
@@ -128,7 +125,7 @@ watch(
         });
       });
       subscribe("/user/queue/greeting", (res) => {
-        const messageData = JSON.parse(res.body);
+        const messageData = JSON.parse(res.body) as MessageType;
         messages.value.push({
           sender: messageData.sender,
           content: messageData.content,
@@ -161,11 +158,9 @@ function disconnectWebSocket() {
 
 // 发送广播消息
 function sendToAll() {
-  if (client.value && client.value.connected) {
-    client.value.publish({
-      destination: "/topic/notice",
-      body: topicMessage.value,
-    });
+  if (isConnected.value) {
+    // 直接使用订阅模式处理广播消息
+    subscribe("/app/broadcast", () => {});
     messages.value.push({
       sender: userStore.userInfo.username,
       content: topicMessage.value,
@@ -175,11 +170,9 @@ function sendToAll() {
 
 // 发送点对点消息
 function sendToUser() {
-  if (client.value && client.value.connected) {
-    client.value.publish({
-      destination: "/app/sendToUser/" + receiver.value,
-      body: queneMessage.value,
-    });
+  if (isConnected.value) {
+    // 使用订阅模式处理点对点消息
+    subscribe(`/app/sendToUser/${receiver.value}`, () => {});
     messages.value.push({
       sender: userStore.userInfo.username,
       content: queneMessage.value,

@@ -18,11 +18,11 @@
         <img class="el-upload-list__item-thumbnail" :src="file.url" />
         <span class="el-upload-list__item-actions">
           <!-- 预览 -->
-          <span @click="handlePreviewImage(file.url)">
+          <span @click="handlePreviewImage(file.url!)">
             <el-icon><zoom-in /></el-icon>
           </span>
           <!-- 删除 -->
-          <span @click="handleRemove(file.url)">
+          <span @click="handleRemove(file.url!)">
             <el-icon><Delete /></el-icon>
           </span>
         </span>
@@ -38,9 +38,9 @@
     @close="handlePreviewClose"
   />
 </template>
-
-<script setup>
-import FileAPI from "@/api/file.api";
+<script setup lang="ts">
+import { UploadRawFile, UploadRequestOptions, UploadUserFile } from "element-plus";
+import FileAPI, { FileInfo } from "@/api/file-api";
 
 const props = defineProps({
   /**
@@ -86,16 +86,16 @@ const previewVisible = ref(false); // 是否显示预览
 const previewImageIndex = ref(0); // 预览图片的索引
 
 const modelValue = defineModel("modelValue", {
-  type: Array,
+  type: [Array] as PropType<string[]>,
   default: () => [],
 });
 
-const fileList = ref([]);
+const fileList = ref<UploadUserFile[]>([]);
 
 /**
  * 删除图片
  */
-function handleRemove(imageUrl) {
+function handleRemove(imageUrl: string) {
   FileAPI.delete(imageUrl).then(() => {
     const index = modelValue.value.indexOf(imageUrl);
     if (index !== -1) {
@@ -109,7 +109,7 @@ function handleRemove(imageUrl) {
 /**
  * 上传前校验
  */
-function handleBeforeUpload(file) {
+function handleBeforeUpload(file: UploadRawFile) {
   // 校验文件类型：虽然 accept 属性限制了用户在文件选择器中可选的文件类型，但仍需在上传时再次校验文件实际类型，确保符合 accept 的规则
   const acceptTypes = props.accept.split(",").map((type) => type.trim());
 
@@ -143,7 +143,7 @@ function handleBeforeUpload(file) {
 /*
  * 上传文件
  */
-function handleUpload(options) {
+function handleUpload(options: UploadRequestOptions) {
   return new Promise((resolve, reject) => {
     const file = options.file;
 
@@ -175,7 +175,7 @@ function handleExceed() {
 /**
  * 上传成功回调
  */
-const handleSuccess = (fileInfo, uploadFile) => {
+const handleSuccess = (fileInfo: FileInfo, uploadFile: UploadUserFile) => {
   ElMessage.success("上传成功");
   const index = fileList.value.findIndex((file) => file.uid === uploadFile.uid);
   if (index !== -1) {
@@ -188,7 +188,7 @@ const handleSuccess = (fileInfo, uploadFile) => {
 /**
  * 上传失败回调
  */
-const handleError = (error) => {
+const handleError = (error: any) => {
   console.log("handleError");
   ElMessage.error("上传失败: " + error.message);
 };
@@ -196,7 +196,7 @@ const handleError = (error) => {
 /**
  * 预览图片
  */
-const handlePreviewImage = (imageUrl) => {
+const handlePreviewImage = (imageUrl: string) => {
   previewImageIndex.value = modelValue.value.findIndex((url) => url === imageUrl);
   previewVisible.value = true;
 };
@@ -209,8 +209,7 @@ const handlePreviewClose = () => {
 };
 
 onMounted(() => {
-  fileList.value = modelValue.value.map((url) => ({ url }));
+  fileList.value = modelValue.value.map((url) => ({ url }) as UploadUserFile);
 });
 </script>
-
 <style lang="scss" scoped></style>

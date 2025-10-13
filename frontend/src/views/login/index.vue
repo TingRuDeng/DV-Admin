@@ -1,290 +1,129 @@
 <template>
-  <div class="login flex-center wh-full relative overflow-scroll">
-    <!-- 登录页头部 -->
-    <div class="flex-x-end absolute top-0 w-full p-4">
-      <el-switch
-        v-model="isDark"
-        inline-prompt
-        active-icon="Moon"
-        inactive-icon="Sunny"
-        @change="toggleTheme"
-      />
-      <lang-select class="ml-2 cursor-pointer" />
+  <div class="login-container">
+    <!-- 右侧切换主题、语言按钮  -->
+    <div class="action-bar">
+      <el-tooltip :content="t('login.themeToggle')" placement="bottom">
+        <CommonWrapper>
+          <DarkModeSwitch />
+        </CommonWrapper>
+      </el-tooltip>
+      <el-tooltip :content="t('login.languageToggle')" placement="bottom">
+        <CommonWrapper>
+          <LangSelect size="text-20px" />
+        </CommonWrapper>
+      </el-tooltip>
     </div>
+    <!-- 登录页主体 -->
+    <div flex-1 flex-center>
+      <div
+        class="p-4xl w-full h-auto sm:w-450px border-rd-10px sm:h-680px shadow-[var(--el-box-shadow-light)] backdrop-blur-3px"
+      >
+        <div w-full flex flex-col items-center>
+          <!-- logo -->
+          <el-image :src="logo" style="width: 84px" />
 
-    <!-- 登录页内容 -->
-    <div
-      class="m-5 w-full min-w-[335px] max-w-[460px] p-5 shadow-[var(--el-box-shadow-light)] sm:p-10"
-      :class="[isDark ? 'bg-transparent' : 'bg-white']"
-    >
-      <div class="flex-center relative pb-5">
-        <h2>{{ defaultSettings.title }}</h2>
-        <el-dropdown class="absolute! right-0">
-          <div class="cursor-pointer">
-            <el-icon><arrow-down /></el-icon>
-          </div>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item>
-                <el-tag>{{ defaultSettings.version }}</el-tag>
-              </el-dropdown-item>
-              <!--              <el-dropdown-item @click="setLoginCredentials('root', '123456')">-->
-              <!--                超级管理员: root/123456-->
-              <!--              </el-dropdown-item>-->
-              <!--              <el-dropdown-item @click="setLoginCredentials('admin', '123456')">-->
-              <!--                系统管理员: admin/123456-->
-              <!--              </el-dropdown-item>-->
-              <!--              <el-dropdown-item @click="setLoginCredentials('test', '123456')">-->
-              <!--                测试小游客: test/123456-->
-              <!--              </el-dropdown-item>-->
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </div>
+          <!-- 标题 -->
+          <h2>
+            <el-badge :value="`v ${defaultSettings.version}`" type="success">
+              {{ defaultSettings.title }}
+            </el-badge>
+          </h2>
 
-      <el-form ref="loginFormRef" :model="loginFormData" :rules="loginRules" size="large">
-        <!-- 用户名 -->
-        <el-form-item prop="username">
-          <el-input v-model.trim="loginFormData.username" :placeholder="t('login.username')">
-            <template #prefix>
-              <el-icon :color="isDark ? 'white' : 'black'"><User /></el-icon>
-            </template>
-          </el-input>
-        </el-form-item>
-
-        <!-- 密码 -->
-        <el-tooltip :visible="isCapsLock" :content="t('login.capsLock')" placement="right">
-          <el-form-item prop="password">
-            <el-input
-              v-model.trim="loginFormData.password"
-              :placeholder="t('login.password')"
-              type="password"
-              show-password
-              @keyup="checkCapsLock"
-              @keyup.enter="handleLoginSubmit"
-            >
-              <template #prefix>
-                <el-icon :color="isDark ? 'white' : 'black'"><Lock /></el-icon>
-              </template>
-            </el-input>
-          </el-form-item>
-        </el-tooltip>
-
-        <!-- 验证码 -->
-<!--        <el-form-item prop="captchaCode">-->
-<!--          <el-input-->
-<!--            v-model.trim="loginFormData.captchaCode"-->
-<!--            :placeholder="t('login.captchaCode')"-->
-<!--            @keyup.enter="handleLoginSubmit"-->
-<!--          >-->
-<!--            <template #prefix>-->
-<!--              <div :class="['i-svg:captcha', isDark ? 'text-white' : 'text-black']" />-->
-<!--            </template>-->
-<!--            <template #suffix>-->
-<!--              <el-image :src="captchaBase64" class="w-[138px] cursor-pointer" @click="getCaptcha" />-->
-<!--            </template>-->
-<!--          </el-input>-->
-<!--        </el-form-item>-->
-
-        <div class="flex-x-between w-full">
-          <el-checkbox v-model="loginFormData.rememberMe">{{ t("login.rememberMe") }}</el-checkbox>
-<!--          <el-link type="primary" @click="unfinished">{{ t("login.forgetPassword") }}</el-link>-->
+          <!-- 组件切换 -->
+          <transition name="fade-slide" mode="out-in">
+            <component :is="formComponents[component]" v-model="component" class="w-90%" />
+          </transition>
         </div>
-
-        <!-- 登录按钮 -->
-        <el-button :loading="loading" type="primary" class="w-full" @click="handleLoginSubmit">
-          {{ t("login.login") }}
-        </el-button>
-
-        <!-- 第三方登录 -->
-        <!--        <el-divider>-->
-        <!--          <el-text size="small">{{ t("login.otherLoginMethods") }}</el-text>-->
-        <!--        </el-divider>-->
-        <!--        <div class="flex-center gap-x-5 text-[var(&#45;&#45;el-text-color-secondary)]">-->
-        <!--          <div class="i-svg:wechat" />-->
-        <!--          <div class="i-svg:qq" />-->
-        <!--          <div class="i-svg:github" />-->
-        <!--          <div class="i-svg:gitee" />-->
-        <!--        </div>-->
-      </el-form>
+      </div>
+      <!-- 登录页底部版权 -->
+      <el-text size="small" class="py-2.5! fixed bottom-0 text-center">
+        Copyright © 2021 - 2025 {{ defaultSettings.title }} All Rights Reserved.
+        <!--        <a href="" target="_blank">{{ defaultSettings.title }}</a>-->
+      </el-text>
     </div>
-
-    <!-- 登录页底部 -->
-    <el-text size="small" class="py-2.5! fixed bottom-0 text-center">
-      Copyright © 2021 - 2025 . All Rights Reserved.
-    </el-text>
   </div>
 </template>
 
-<script setup>
-import { useRoute } from "vue-router";
-import { useI18n } from "vue-i18n";
+<script setup lang="ts">
+import logo from "@/assets/logo.png";
+import { defaultSettings } from "@/settings";
+import CommonWrapper from "@/components/CommonWrapper/index.vue";
+import DarkModeSwitch from "@/components/DarkModeSwitch/index.vue";
 
-// import AuthAPI from "@/api/auth.api";
-import router from "@/router";
+type LayoutMap = "login" | "register" | "resetPwd";
 
-import defaultSettings from "@/settings";
-import { ThemeMode } from "@/enums/settings/theme.enum";
+const t = useI18n().t;
 
-import { useSettingsStore, useUserStore } from "@/store";
-
-const userStore = useUserStore();
-const settingsStore = useSettingsStore();
-
-const route = useRoute();
-const { t } = useI18n();
-const loginFormRef = ref();
-
-const isDark = ref(settingsStore.theme === ThemeMode.DARK); // 是否暗黑模式
-const loading = ref(false); // 按钮 loading 状态
-const isCapsLock = ref(false); // 是否大写锁定
-// const captchaBase64 = ref(); // 验证码图片Base64字符串
-
-const loginFormData = ref({
-  username: "admin",
-  password: "123456",
-  captchaKey: "",
-  captchaCode: "",
-  rememberMe: false,
-});
-
-const loginRules = computed(() => {
-  return {
-    username: [
-      {
-        required: true,
-        trigger: "change",
-        message: t("login.message.username.required"),
-      },
-    ],
-    password: [
-      {
-        required: true,
-        trigger: "change",
-        message: t("login.message.password.required"),
-      },
-      {
-        min: 6,
-        message: t("login.message.password.min"),
-        trigger: "blur",
-      },
-    ],
-    // captchaCode: [
-    //   {
-    //     required: true,
-    //     trigger: "change",
-    //     message: t("login.message.captchaCode.required"),
-    //   },
-    // ],
-  };
-});
-
-// 获取验证码
-// function getCaptcha() {
-//   AuthAPI.getCaptcha().then((data) => {
-//     loginFormData.value.captchaKey = data.captchaKey;
-//     captchaBase64.value = data.captchaBase64;
-//   });
-// }
-
-// 登录提交处理
-async function handleLoginSubmit() {
-  try {
-    // 1. 表单验证
-    const valid = await loginFormRef.value?.validate();
-    if (!valid) return;
-
-    loading.value = true;
-
-    // 2. 执行登录
-    await userStore.login(loginFormData.value);
-
-    // 3. 获取用户信息
-    await userStore.getUserInfo();
-
-    // 4. 解析并跳转目标地址
-    const redirect = resolveRedirectTarget(route.query);
-    await router.push(redirect);
-  } catch (error) {
-    // 5. 统一错误处理
-    // getCaptcha(); // 刷新验证码
-    console.error("登录失败:", error);
-  } finally {
-    loading.value = false;
-  }
-}
-
-/**
- * 解析重定向目标
- * @param query 路由查询参数
- * @returns 标准化后的路由地址对象
- */
-function resolveRedirectTarget(query) {
-  // 默认跳转路径
-  const defaultPath = "/";
-
-  // 获取原始重定向路径
-  const rawRedirect = query.redirect || defaultPath;
-
-  try {
-    // 6. 使用Vue Router解析路径
-    const resolved = router.resolve(rawRedirect);
-    return {
-      path: resolved.path,
-      query: resolved.query,
-    };
-  } catch {
-    // 7. 异常处理：返回安全路径
-    return { path: defaultPath };
-  }
-}
-
-// 主题切换
-const toggleTheme = () => {
-  const newTheme = settingsStore.theme === ThemeMode.DARK ? ThemeMode.LIGHT : ThemeMode.DARK;
-  settingsStore.changeTheme(newTheme);
+const component = ref<LayoutMap>("login"); // 切换显示的组件
+const formComponents = {
+  login: defineAsyncComponent(() => import("./components/Login.vue")),
+  register: defineAsyncComponent(() => import("./components/Register.vue")),
+  resetPwd: defineAsyncComponent(() => import("./components/ResetPwd.vue")),
 };
-
-// 检查大写锁定
-function checkCapsLock(e) {
-  const key = e.key;
-  isCapsLock.value = key && key.length === 1 && key >= "A" && key <= "Z" && !e.shiftKey;
-}
-
-// 设置登录凭证
-function setLoginCredentials(username, password) {
-  loginFormData.value.username = username;
-  loginFormData.value.password = password;
-}
-
-// 未完成功能提示
-function unfinished() {
-  ElMessage.warning("功能开发中，敬请期待！");
-}
-
-// 初始化验证码
-// getCaptcha();
 </script>
 
 <style lang="scss" scoped>
-.login {
-  background: url("@/assets/images/login-bg.jpg") no-repeat center right;
+.login-container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
-html.dark {
-  .login {
-    background: url("@/assets/images/login-bg-dark.jpg") no-repeat center right;
-    .el-card {
-      background: transparent;
-    }
+
+// 添加伪元素作为背景层
+.login-container::before {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  content: "";
+  background: url("@/assets/images/login-bg.svg");
+  background-position: center center;
+  background-size: cover;
+}
+
+.action-bar {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+
+  @media (max-width: 480px) {
+    top: 10px;
+    right: auto;
+    left: 10px;
+  }
+
+  @media (min-width: 640px) {
+    top: 40px;
+    right: 40px;
   }
 }
-.el-form-item {
-  margin-bottom: 20px;
+
+/* fade-slide */
+.fade-slide-leave-active,
+.fade-slide-enter-active {
+  transition: all 0.3s;
 }
-:deep(.el-input) {
-  height: 48px;
-  .el-input__wrapper {
-    padding: 1px 10px;
-  }
+
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
 }
 </style>

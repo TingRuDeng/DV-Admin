@@ -1,6 +1,7 @@
 <template>
   <div class="app-container">
-    <div class="search-bar">
+    <!-- 搜索区域 -->
+    <div class="search-container">
       <el-form ref="queryFormRef" :model="queryParams" :inline="true">
         <el-form-item label="通知标题" prop="title">
           <el-input
@@ -10,7 +11,8 @@
             @keyup.enter="handleQuery()"
           />
         </el-form-item>
-        <el-form-item>
+
+        <el-form-item class="search-buttons">
           <el-button type="primary" @click="handleQuery()">
             <template #icon>
               <Search />
@@ -27,8 +29,14 @@
       </el-form>
     </div>
 
-    <el-card shadow="never">
-      <el-table ref="dataTableRef" v-loading="loading" :data="pageData" highlight-current-row>
+    <el-card shadow="hover" class="data-table">
+      <el-table
+        ref="dataTableRef"
+        v-loading="loading"
+        :data="pageData"
+        highlight-current-row
+        class="data-table__content"
+      >
         <el-table-column type="index" label="序号" width="60" />
         <el-table-column label="通知标题" prop="title" min-width="200" />
         <el-table-column align="center" label="通知类型" width="150">
@@ -101,27 +109,27 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 defineOptions({
   name: "MyNotice",
   inheritAttrs: false,
 });
 
-import NoticeAPI from "@/api/system/notice.api";
+import NoticeAPI, { NoticePageVO, NoticePageQuery, NoticeDetailVO } from "@/api/system/notice-api";
 
 const queryFormRef = ref();
-const pageData = ref([]);
+const pageData = ref<NoticePageVO[]>([]);
 
 const loading = ref(false);
 const total = ref(0);
 
-const queryParams = reactive({
+const queryParams = reactive<NoticePageQuery>({
   pageNum: 1,
   pageSize: 10,
 });
 
 const noticeDialogVisible = ref(false);
-const noticeDetail = ref(null);
+const noticeDetail = ref<NoticeDetailVO | null>(null);
 
 // 查询通知公告
 function handleQuery() {
@@ -138,13 +146,13 @@ function handleQuery() {
 
 // 重置通知公告查询
 function handleResetQuery() {
-  queryFormRef.value.resetFields();
+  queryFormRef.value!.resetFields();
   queryParams.pageNum = 1;
   handleQuery();
 }
 
 // 阅读通知公告
-function handleReadNotice(id) {
+function handleReadNotice(id: string) {
   NoticeAPI.getDetail(id).then((data) => {
     noticeDialogVisible.value = true;
     noticeDetail.value = data;
