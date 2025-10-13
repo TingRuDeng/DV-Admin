@@ -1,6 +1,6 @@
 <template>
   <el-dropdown trigger="click" @command="handleLanguageChange">
-    <div class="i-svg:language" />
+    <div class="i-svg:language" :class="size" />
     <template #dropdown>
       <el-dropdown-menu>
         <el-dropdown-item
@@ -16,9 +16,9 @@
   </el-dropdown>
 </template>
 
-<script setup>
-import { useAppStore } from "@/store/modules/app.store";
-import { LanguageEnum } from "@/enums/settings/locale.enum";
+<script setup lang="ts">
+import { useAppStore } from "@/store/modules/app-store";
+import { LanguageEnum } from "@/enums/settings/locale-enum";
 
 defineProps({
   size: {
@@ -40,7 +40,7 @@ const { locale, t } = useI18n();
  *
  * @param lang  语言（zh-cn、en）
  */
-function handleLanguageChange(lang) {
+function handleLanguageChange(lang: string) {
   locale.value = lang;
   appStore.changeLanguage(lang);
 

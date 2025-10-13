@@ -1,10 +1,8 @@
 <template>
   <!-- 布局大小 -->
-  <el-tooltip :content="$t('sizeSelect.tooltip')" effect="dark" placement="bottom">
+  <el-tooltip :content="t('sizeSelect.tooltip')" effect="dark" placement="bottom">
     <el-dropdown trigger="click" @command="handleSizeChange">
-      <div>
-        <div class="i-svg:size" />
-      </div>
+      <div class="i-svg:size" />
       <template #dropdown>
         <el-dropdown-menu>
           <el-dropdown-item
@@ -21,9 +19,9 @@
   </el-tooltip>
 </template>
 
-<script setup>
-import { ComponentSize } from "@/enums/settings/layout.enum";
-import { useAppStore } from "@/store/modules/app.store";
+<script setup lang="ts">
+import { ComponentSize } from "@/enums/settings/layout-enum";
+import { useAppStore } from "@/store/modules/app-store";
 
 const { t } = useI18n();
 const sizeOptions = computed(() => {
@@ -35,7 +33,7 @@ const sizeOptions = computed(() => {
 });
 
 const appStore = useAppStore();
-function handleSizeChange(size) {
+function handleSizeChange(size: string) {
   appStore.changeSize(size);
   ElMessage.success(t("sizeSelect.message.success"));
 }

@@ -4,10 +4,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useSettingsStore } from "@/store";
-import { ThemeMode, SidebarColor } from "@/enums/settings/theme.enum";
-import { LayoutMode } from "@/enums/settings/layout.enum";
+import { ThemeMode, SidebarColor } from "@/enums/settings/theme-enum";
+import { LayoutMode } from "@/enums/settings/layout-enum";
 
 defineProps({
   isActive: { type: Boolean, required: true },
@@ -31,6 +31,9 @@ const hamburgerClass = computed(() => {
   ) {
     return "hamburger--white";
   }
+
+  // 默认返回空字符串
+  return "";
 });
 
 function toggleClick() {

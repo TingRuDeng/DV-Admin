@@ -1,6 +1,7 @@
 <template>
   <div class="app-container">
-    <div class="search-bar">
+    <!-- 搜索区域 -->
+    <div class="search-container">
       <el-form ref="queryFormRef" :model="queryParams" :inline="true" label-suffix=":">
         <el-form-item label="标题" prop="title">
           <el-input
@@ -10,51 +11,56 @@
             @keyup.enter="handleQuery()"
           />
         </el-form-item>
+
         <el-form-item label="发布状态" prop="publishStatus">
           <el-select
             v-model="queryParams.publishStatus"
-            class="!w-[100px]"
             clearable
             placeholder="全部"
+            style="width: 100px"
           >
             <el-option :value="0" label="未发布" />
             <el-option :value="1" label="已发布" />
             <el-option :value="-1" label="已撤回" />
           </el-select>
         </el-form-item>
-        <el-form-item>
+
+        <el-form-item class="search-buttons">
           <el-button type="primary" icon="search" @click="handleQuery()">搜索</el-button>
           <el-button icon="refresh" @click="handleResetQuery()">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
 
-    <el-card shadow="never" class="table-wrapper">
-      <template #header>
-        <el-button
-          v-hasPerm="['sys:notice:add']"
-          type="success"
-          icon="plus"
-          @click="handleOpenDialog()"
-        >
-          新增通知
-        </el-button>
-        <el-button
-          v-hasPerm="['sys:notice:delete']"
-          type="danger"
-          :disabled="selectIds.length === 0"
-          icon="delete"
-          @click="handleDelete()"
-        >
-          删除
-        </el-button>
-      </template>
+    <el-card shadow="hover" class="data-table">
+      <div class="data-table__toolbar">
+        <div class="data-table__toolbar--actions">
+          <el-button
+            v-hasPerm="['sys:notice:add']"
+            type="success"
+            icon="plus"
+            @click="handleOpenDialog()"
+          >
+            新增通知
+          </el-button>
+          <el-button
+            v-hasPerm="['sys:notice:delete']"
+            type="danger"
+            :disabled="selectIds.length === 0"
+            icon="delete"
+            @click="handleDelete()"
+          >
+            删除
+          </el-button>
+        </div>
+      </div>
 
       <el-table
         ref="dataTableRef"
         v-loading="loading"
         :data="pageData"
         highlight-current-row
+        class="data-table__content"
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" align="center" />
@@ -248,30 +254,35 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 defineOptions({
   name: "Notice",
   inheritAttrs: false,
 });
 
-import NoticeAPI from "@/api/system/notice.api";
-import UserAPI from "@/api/system/user.api";
+import NoticeAPI, {
+  NoticePageVO,
+  NoticeForm,
+  NoticePageQuery,
+  NoticeDetailVO,
+} from "@/api/system/notice-api";
+import UserAPI from "@/api/system/user-api";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
 
 const loading = ref(false);
-const selectIds = ref([]);
+const selectIds = ref<number[]>([]);
 const total = ref(0);
 
-const queryParams = reactive({
+const queryParams = reactive<NoticePageQuery>({
   pageNum: 1,
   pageSize: 10,
 });
 
-const userOptions = ref([]);
+const userOptions = ref<OptionType[]>([]);
 // 通知公告表格数据
-const pageData = ref([]);
+const pageData = ref<NoticePageVO[]>([]);
 
 // 弹窗
 const dialog = reactive({
@@ -280,7 +291,7 @@ const dialog = reactive({
 });
 
 // 通知公告表单数据
-const formData = reactive({
+const formData = reactive<NoticeForm>({
   level: "L", // 默认优先级为低
   targetType: 1, // 默认目标类型为全体
 });
@@ -293,7 +304,7 @@ const rules = reactive({
       required: true,
       message: "请输入通知内容",
       trigger: "blur",
-      validator: (rule, value, callback) => {
+      validator: (rule: any, value: string, callback: any) => {
         if (!value.replace(/<[^>]+>/g, "").trim()) {
           callback(new Error("请输入通知内容"));
         } else {
@@ -308,11 +319,12 @@ const rules = reactive({
 const detailDialog = reactive({
   visible: false,
 });
-const currentNotice = ref({});
+const currentNotice = ref<NoticeDetailVO>({});
 
 // 查询通知公告
 function handleQuery() {
   loading.value = true;
+  queryParams.pageNum = 1;
   NoticeAPI.getPage(queryParams)
     .then((data) => {
       pageData.value = data.list;
@@ -325,18 +337,18 @@ function handleQuery() {
 
 // 重置查询
 function handleResetQuery() {
-  queryFormRef.value.resetFields();
+  queryFormRef.value!.resetFields();
   queryParams.pageNum = 1;
   handleQuery();
 }
 
 // 行复选框选中项变化
-function handleSelectionChange(selection) {
-  selectIds.value = selection.map((item) => item.id);
+function handleSelectionChange(selection: any) {
+  selectIds.value = selection.map((item: any) => item.id);
 }
 
 // 打开通知公告弹窗
-function handleOpenDialog(id) {
+function handleOpenDialog(id?: string) {
   UserAPI.getOptions().then((data) => {
     userOptions.value = data;
   });
@@ -354,7 +366,7 @@ function handleOpenDialog(id) {
 }
 
 // 发布通知公告
-function handlePublish(id) {
+function handlePublish(id: string) {
   NoticeAPI.publish(id).then(() => {
     ElMessage.success("发布成功");
     handleQuery();
@@ -362,7 +374,7 @@ function handlePublish(id) {
 }
 
 // 撤回通知公告
-function handleRevoke(id) {
+function handleRevoke(id: string) {
   NoticeAPI.revoke(id).then(() => {
     ElMessage.success("撤回成功");
     handleQuery();
@@ -371,7 +383,7 @@ function handleRevoke(id) {
 
 // 通知公告表单提交
 function handleSubmit() {
-  dataFormRef.value.validate((valid) => {
+  dataFormRef.value.validate((valid: any) => {
     if (valid) {
       loading.value = true;
       const id = formData.id;
@@ -411,7 +423,7 @@ function handleCloseDialog() {
 }
 
 // 删除通知公告
-function handleDelete(id) {
+function handleDelete(id?: number) {
   const deleteIds = [id || selectIds.value].join(",");
   if (!deleteIds) {
     ElMessage.warning("请勾选删除项");
@@ -442,7 +454,7 @@ const closeDetailDialog = () => {
   detailDialog.visible = false;
 };
 
-const openDetailDialog = async (id) => {
+const openDetailDialog = async (id: string) => {
   const noticeDetail = await NoticeAPI.getDetail(id);
   currentNotice.value = noticeDetail;
   detailDialog.visible = true;

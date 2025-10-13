@@ -58,8 +58,8 @@ onUnmounted(() => {
 .redoc-iframe {
   width: 100%;
   height: 100%;
+  overflow: auto;
   border: none;
-  overflow: auto; /* 使用CSS overflow属性替代已废弃的scrolling属性 */
   transition: opacity 0.3s ease;
 }
 </style>

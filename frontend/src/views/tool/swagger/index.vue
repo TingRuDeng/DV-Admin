@@ -1,15 +1,13 @@
 <template>
   <SwaggerFrame :src="swaggerApi" />
 </template>
-<script>
-import SwaggerFrame from "./components/SwaggerFrame";
-export default {
+<script setup lang="ts">
+// Import the required component
+import SwaggerFrame from "./components/SwaggerFrame.vue";
+
+defineOptions({
   name: "Swagger",
-  components: { SwaggerFrame: SwaggerFrame },
-  data() {
-    return {
-      swaggerApi: import.meta.env.VITE_APP_API_URL + "/swagger/",
-    };
-  },
-};
+});
+
+const swaggerApi = import.meta.env.VITE_APP_API_URL + "/api/swagger/";
 </script>

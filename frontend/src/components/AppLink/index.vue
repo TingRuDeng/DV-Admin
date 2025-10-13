@@ -4,7 +4,7 @@
   </component>
 </template>
 
-<script setup>
+<script setup lang="ts">
 defineOptions({
   name: "AppLink",
   inheritAttrs: false,
@@ -25,7 +25,7 @@ const isExternalLink = computed(() => {
 
 const linkType = computed(() => (isExternalLink.value ? "a" : "router-link"));
 
-const linkProps = (to) => {
+const linkProps = (to: any) => {
   if (isExternalLink.value) {
     return {
       href: to.path,
@@ -33,6 +33,6 @@ const linkProps = (to) => {
       rel: "noopener noreferrer",
     };
   }
-  return { to: to };
+  return { to };
 };
 </script>

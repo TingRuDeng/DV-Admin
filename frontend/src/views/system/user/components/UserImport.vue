@@ -10,7 +10,6 @@
       <el-scrollbar max-height="60vh">
         <el-form
           ref="importFormRef"
-          label-width="auto"
           style="padding-right: var(--el-dialog-padding-primary)"
           :model="importFormData"
           :rules="importFormRules"
@@ -37,7 +36,7 @@
                   <el-link
                     type="primary"
                     icon="download"
-                    :underline="false"
+                    underline="never"
                     @click="handleDownloadTemplate"
                   >
                     下载模板
@@ -88,10 +87,10 @@
   </div>
 </template>
 
-<script setup>
-import { ElMessage } from "element-plus";
-import UserAPI from "@/api/system/user.api";
-import { isSuccessCode, ResultEnum } from "@/enums/api/result.enum";
+<script lang="ts" setup>
+import { ElMessage, type UploadUserFile } from "element-plus";
+import UserAPI from "@/api/system/user-api";
+import { ApiCodeEnum } from "@/enums/api/code-enum";
 
 const emit = defineEmits(["import-success"]);
 const visible = defineModel("modelValue", {
@@ -101,14 +100,16 @@ const visible = defineModel("modelValue", {
 });
 
 const resultVisible = ref(false);
-const resultData = ref([]);
+const resultData = ref<string[]>([]);
 const invalidCount = ref(0);
 const validCount = ref(0);
 
 const importFormRef = ref(null);
 const uploadRef = ref(null);
 
-const importFormData = reactive({
+const importFormData = reactive<{
+  files: UploadUserFile[];
+}>({
   files: [],
 });
 
@@ -132,7 +133,7 @@ const handleFileExceed = () => {
 
 // 下载导入模板
 const handleDownloadTemplate = () => {
-  UserAPI.downloadTemplate().then((response) => {
+  UserAPI.downloadTemplate().then((response: any) => {
     const fileData = response.data;
     const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
     const fileType =
@@ -161,8 +162,8 @@ const handleUpload = async () => {
   }
 
   try {
-    const result = await UserAPI.import("1", importFormData.files[0].raw);
-    if (isSuccessCode(result.code) && result.invalidCount === 0) {
+    const result = await UserAPI.import("1", importFormData.files[0].raw as File);
+    if (result.code === ApiCodeEnum.SUCCESS && result.invalidCount === 0) {
       ElMessage.success("导入成功，导入数据：" + result.validCount + "条");
       emit("import-success");
       handleClose();
@@ -173,7 +174,7 @@ const handleUpload = async () => {
       invalidCount.value = result.invalidCount;
       validCount.value = result.validCount;
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     ElMessage.error("上传失败：" + error);
   }
