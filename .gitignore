@@ -1,10 +1,7 @@
 *.pyc
-jlog/migrations
-jperm/migrations
-jumpserver/migrations
-juser/migrations
-webserver/templatetags
-webserver/migrations
 .idea
 pnpm-lock.yaml
 frontend/node_modules
+frontend/.vscode
+.eslintcache
+.stylelintcache
