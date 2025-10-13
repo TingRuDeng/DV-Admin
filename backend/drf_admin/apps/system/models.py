@@ -21,50 +21,10 @@ def user_avatar_path(instance, filename):
     return os.path.join('avatar', date_path, random_name)
 
 
-# class Permissions(BaseModel):
-#     """
-#     权限
-#     """
-#     method_choices = (
-#         (u'POST', u'增'),
-#         (u'DELETE', u'删'),
-#         (u'PUT', u'改'),
-#         (u'PATCH', u'局部改'),
-#         (u'GET', u'查')
-#     )
-#
-#     name = models.CharField(max_length=30, verbose_name='权限名')
-#     sign = models.CharField(max_length=30, unique=True, verbose_name='权限标识')
-#     menu = models.BooleanField(verbose_name='是否为菜单')  # True为菜单,False为接口
-#     method = models.CharField(max_length=8, blank=True, default='', choices=method_choices, verbose_name='方法')
-#     path = models.CharField(max_length=200, blank=True, default='', verbose_name='请求路径正则')
-#     pid = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, verbose_name='父权限')
-#     desc = models.CharField(max_length=30, blank=True, default='', verbose_name='权限描述')
-#
-#     objects = models.Manager()
-#
-#     def __str__(self):
-#         return self.name
-#
-#     class Meta:
-#         db_table = 'system_permissions'
-#         verbose_name = '权限'
-#         verbose_name_plural = verbose_name
-#         ordering = ['id']
-
-
 class Permissions(BaseModel):
     """
     菜单
     """
-    # method_choices = (
-    #     (u'POST', u'增'),
-    #     (u'DELETE', u'删'),
-    #     (u'PUT', u'改'),
-    #     (u'PATCH', u'局部改'),
-    #     (u'GET', u'查')
-    # )
-
     type_choices = (
         ('CATALOG', '根目录'),
         ('MENU', '菜单'),
@@ -108,7 +68,6 @@ class Roles(BaseModel):
     code = models.CharField(max_length=32, blank=True, null=True, verbose_name='角色编码')
     permissions = models.ManyToManyField(Permissions, db_table='system_roles_to_system_permissions',
                                          blank=True, verbose_name='权限')
-    # menus = models.ManyToManyField(Menus, db_table='system_roles_to_system_menus', blank=True, verbose_name='菜单')
     status = models.IntegerField(default=1, verbose_name='状态')
     sort = models.IntegerField(default=0, verbose_name='排序')
     is_default = models.IntegerField(default=0, verbose_name="是否默认角色（新用户自动分配）")
