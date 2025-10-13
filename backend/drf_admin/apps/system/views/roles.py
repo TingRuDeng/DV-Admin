@@ -122,5 +122,4 @@ class RoleMenuIdsAPIView(AutoPermissionAPIView, RetrieveAPIView):
         # 从角色对象中获取菜单ID列表
         menu_ids = list(instance.permissions.values_list('id', flat=True))
         # 返回自定义格式的数据
-        print(f'menu_ids: {menu_ids}')
         return Response(data=menu_ids)
