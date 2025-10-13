@@ -7,8 +7,24 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 
 from drf_admin.apps.information.serializers.centre import (
-    ChangePasswordSerializer, ChangeInformationSerializer, ChangeAvatarSerializer
+    ChangePasswordSerializer, ChangeInformationSerializer, ChangeAvatarSerializer, InformationSerializer
 )
+
+
+class CentreAPIView(GenericAPIView):
+    """
+    get:
+    个人中心--获取个人信息
+
+    个人中心获取个人信息, status: 200(成功), return: 当前登录用户的个人信息
+    """
+    serializer_class = InformationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        serializer = InformationSerializer(user)
+        return Response(serializer.data)
 
 
 class ChangePasswordAPIView(mixins.UpdateModelMixin, GenericAPIView):

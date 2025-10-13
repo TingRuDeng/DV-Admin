@@ -5,6 +5,7 @@ import re
 from django.conf import settings
 from rest_framework import serializers
 from drf_admin.apps.system.models import Users
+from drf_admin.utils.views import OptionsSerializer
 
 
 class UsersSerializer(serializers.ModelSerializer):
@@ -158,3 +159,12 @@ class UpdateUserProfileSerializer(serializers.ModelSerializer):
         
         self.instance.save()
         return self.instance
+
+
+class UsersOptionsSerializer(OptionsSerializer):
+    """
+    用户数据序列化器(Options类型)
+    """
+    class Meta:
+        model = Users
+        fields = ['id', 'label']

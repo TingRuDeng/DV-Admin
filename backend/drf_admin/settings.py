@@ -75,6 +75,11 @@ INSTALLED_APPS = [
     'drf_admin.apps.information',
 ]
 
+# 从环境变量中获取额外的应用
+EXTRA_INSTALLED_APPS = ['drf_admin.apps.' + app for app in env.list('EXTRA_INSTALLED_APPS', default=[])]
+# 添加额外的应用到 INSTALLED_APPS
+INSTALLED_APPS.extend(EXTRA_INSTALLED_APPS)
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -445,7 +450,7 @@ LOGGING = {
         },
         # GET方法查询日志
         'query': {
-            'handlers': ['query'],
+            'handlers': ['query', 'console'],
             'level': 'INFO',
             'propagate': True,
         },

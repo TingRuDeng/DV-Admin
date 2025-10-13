@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 from django.urls import path, include, re_path
 from django.views.decorators.clickjacking import xframe_options_exempt
 
-from drf_admin.settings import DEBUG
+from drf_admin.settings import DEBUG, env
 
 # swagger API文档配置 https://github.com/axnsan12/drf-yasg
 schema_view = get_schema_view(
@@ -44,6 +44,11 @@ urlpatterns = [
     # path(f'{base_api}monitor/', include('drf_admin.apps.monitor.urls')),  # 系统监控模块
     path(f'{base_api}information/', include('drf_admin.apps.information.urls')),  # 个人中心模块
 ]
+
+EXTRA_ROUTES = [path(f'{base_api}{route}/', include(f'drf_admin.apps.{route}.urls')) for route in env.list('EXTRA_INSTALLED_APPS', default=[])]
+
+# 添加额外的路由到 urlpatterns
+urlpatterns.extend(EXTRA_ROUTES)
 
 # 仅在非生产环境添加 Swagger 文档 URL
 if DEBUG:
