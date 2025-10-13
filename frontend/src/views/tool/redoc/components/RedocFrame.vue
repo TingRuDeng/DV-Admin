@@ -5,8 +5,6 @@
 </template>
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
-import { defineOptions } from "vue";
-
 // 明确指定组件名称，避免与其他组件冲突
 defineOptions({
   name: "RedocFrame",
