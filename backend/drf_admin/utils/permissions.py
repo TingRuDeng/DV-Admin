@@ -32,10 +32,10 @@ class RBACPermission(BasePermission):
         """获取用户拥有的所有权限（带缓存）"""
         conn = None
         user_perms = set()
-        cache_key = f'user_permissions_{user.id}'
+        # 统一使用user_info_前缀的缓存键
+        cache_key = f'user_info_{user.id}_perms'
         # 检查Redis配置是否存在
-        if hasattr(settings, 'REDIS_HOST') and hasattr(settings,
-                                                       'REDIS_PORT') and settings.REDIS_HOST and settings.REDIS_PORT:
+        if hasattr(settings, 'REDIS_HOST') and hasattr(settings, 'REDIS_PORT') and settings.REDIS_HOST and settings.REDIS_PORT:
             try:
                 conn = get_redis_connection('user_info')
                 if conn.exists(f'user_info_{user.id}'):
@@ -54,16 +54,11 @@ class RBACPermission(BasePermission):
         for role in user.roles.all():
             user_perms.update(role.permissions.values_list("perm", flat=True))
 
-        # 如果是超级用户，添加admin权限
-        # if user.is_superuser:
-        #     user_perms.add('admin')
-
         # 转换为列表格式
         user_perms_list = list(user_perms)
 
         # 根据Redis可用性选择缓存方式
-        if hasattr(settings, 'REDIS_HOST') and hasattr(settings,
-                                                       'REDIS_PORT') and settings.REDIS_HOST and settings.REDIS_PORT:
+        if hasattr(settings, 'REDIS_HOST') and hasattr(settings, 'REDIS_PORT') and settings.REDIS_HOST and settings.REDIS_PORT:
             try:
                 # 缓存到Redis，1小时
                 conn.hset(f'user_info_{user.id}', 'perms', json.dumps(user_perms_list))
@@ -82,19 +77,13 @@ class RBACPermission(BasePermission):
             if re.match(settings.REGEX_URL.format(url=safe_url), request_url):
                 return True
 
-        user_permissions = self.get_user_permissions(request.user)
-        # if 'admin' in user_permissions:
-        #     return True
-
         # RBAC权限验证
         # 获取当前操作标识（ViewSet 用 action，APIView 用 HTTP 方法）
         operation = self._get_operation(view, request)
-
         # 从required_permissions获取权限要求
         required_perms = []
         if hasattr(view, 'required_permissions'):
             required_perms = view.required_permissions.get(operation, [])
-
         if not required_perms:
             # 未指定权限的操作默认拒绝
             return False

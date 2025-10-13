@@ -93,6 +93,7 @@ class AutoPermissionModelViewSet(ModelViewSet):
             'update': 'edit',
             'partial_update': 'edit',
             'destroy': 'delete',
+            'multiple_delete': 'delete',
         }
 
 

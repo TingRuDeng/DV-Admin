@@ -3,16 +3,16 @@
 from rest_framework import mixins
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
-from drf_admin.utils.views import AdminViewSet
+from drf_admin.utils.views import AdminViewSet, AutoPermissionAPIView
 from drf_admin.apps.system.filters.users import UsersFilter
 from drf_admin.apps.system.models import Users, Permissions
 from drf_admin.apps.system.serializers.users import (
-    UsersSerializer, UsersPartialSerializer, ResetPasswordSerializer
+    UsersSerializer, UsersPartialSerializer, ResetPasswordSerializer, UsersOptionsSerializer
 )
 
 
@@ -65,6 +65,18 @@ class UsersViewSet(AdminViewSet):
             return UsersPartialSerializer
         else:
             return UsersSerializer
+
+
+class UsersOptionsViewSet(AutoPermissionAPIView, ListAPIView):
+    """
+    get:
+    用户--下拉框列表
+
+    获取用户下拉框列表, status: 200(成功), return: 用户下拉框列表
+    """
+    queryset = Users.objects.all()
+    serializer_class = UsersOptionsSerializer
+    pagination_class = None  # 禁用分页
 
 
 class ResetPasswordAPIView(mixins.UpdateModelMixin, GenericAPIView):

@@ -178,8 +178,8 @@ class Users(AbstractUser):
     def _get_user_permissions(self):
         # 获取用户权限
         perms = list(filter(None, set(self.roles.values_list('permissions__perm', flat=True))))
-        if 'admin' in self.roles.values_list('name', flat=True):
-            perms.append('admin')
+        # if 'admin' in self.roles.values_list('name', flat=True):
+        #     perms.append('admin')
         return perms
 
     def get_menus(self):
@@ -280,9 +280,9 @@ class DictItems(BaseModel):
     """
     字典项
     """
-    label = models.CharField(max_length=32, verbose_name='字典项名称')
-    value = models.CharField(max_length=32, verbose_name='字典编码')
-    sort = models.IntegerField(default=1, verbose_name='排序')
+    label = models.CharField(max_length=32, verbose_name='字典项标签')
+    value = models.CharField(max_length=32, verbose_name='字典项值')
+    # sort = models.IntegerField(default=1, verbose_name='排序')
     status = models.IntegerField(default=1, verbose_name='状态')
     tag_type = models.CharField(max_length=32, blank=True, null=True, verbose_name='标签类型')
     dict = models.ForeignKey(Dicts, on_delete=models.CASCADE, verbose_name='字典')
@@ -296,4 +296,4 @@ class DictItems(BaseModel):
         db_table = 'system_dict_items'
         verbose_name = '字典项'
         verbose_name_plural = verbose_name
-        ordering = ['dict', 'sort']
+        ordering = ['dict', 'value']
