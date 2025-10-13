@@ -88,6 +88,8 @@ export interface RoleForm {
   sort?: number;
   /** 角色状态(1-正常；0-停用) */
   status?: number;
+  /** 是否默认角色(1-是；0-否) */
+  isDefault?: number;
   /** 备注 */
   desc?: string;
 }

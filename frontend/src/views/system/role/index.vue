@@ -52,6 +52,12 @@
             <el-tag v-else type="info">禁用</el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="是否默认角色" align="center" width="120">
+          <template #default="scope">
+            <el-tag v-if="scope.row.isDefault" type="primary">是</el-tag>
+            <el-tag v-else type="info">否</el-tag>
+          </template>
+        </el-table-column>
 
         <el-table-column label="备注" prop="desc" min-width="200" />
 
@@ -122,6 +128,12 @@
           <el-radio-group v-model="formData.status">
             <el-radio :value="1">正常</el-radio>
             <el-radio :value="0">停用</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="是否默认" prop="isDefault">
+          <el-radio-group v-model="formData.isDefault">
+            <el-radio :value="1">是</el-radio>
+            <el-radio :value="0">否</el-radio>
           </el-radio-group>
         </el-form-item>
 
@@ -258,6 +270,7 @@ const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "600
 const formData = reactive<RoleForm>({
   sort: 1,
   status: 1,
+  isDefault: 1, // 新增：是否默认角色字段，默认值为1（是）
 });
 
 const rules = reactive({
@@ -361,6 +374,7 @@ function handleCloseDialog() {
   formData.id = undefined;
   formData.sort = 1;
   formData.status = 1;
+  formData.isDefault = 1; // 新增：重置是否默认角色字段为1（是）
 }
 
 // 删除角色
