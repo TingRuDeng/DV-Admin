@@ -141,13 +141,14 @@
 <script setup lang="ts">
 import { useDictStoreHook } from "@/store/modules/dict-store";
 import { useDateFormat } from "@vueuse/core";
-import DictAPI, { DictItemForm } from "@/api/system/dict-api";
+import { DictItemForm } from "@/api/system/dict-items-api";
 import { useDictSync, DictMessage } from "@/composables";
+import DictItemsApi from "@/api/system/dict-items-api";
 
 // 性别字典编码
 const DICT_CODE = "gender";
 // 男性字典项ID
-const MALE_ITEM_ID = "1";
+const MALE_ITEM_ID = 1;
 
 // 字典store
 const dictStore = useDictStoreHook();
@@ -208,7 +209,7 @@ const refreshDictComponent = async () => {
 // 加载男性字典表单数据
 const loadMaleDict = async () => {
   // 获取男性字典项表单数据 - 使用接口 /dicts/gender/items/1/form
-  const data = await DictAPI.getDictItemFormData(DICT_CODE, MALE_ITEM_ID);
+  const data = await DictItemsApi.getDictItemFormData(MALE_ITEM_ID);
   dictForm.value = data;
 };
 
@@ -219,7 +220,7 @@ const saveDict = async () => {
   saving.value = true;
   try {
     // dictForm的类型已经是DictItemForm，直接传入
-    await DictAPI.updateDictItem(DICT_CODE, MALE_ITEM_ID, dictForm.value);
+    await DictItemsApi.updateDictItem(MALE_ITEM_ID, dictForm.value);
 
     // 更新时间
     lastUpdateTime.value = useDateFormat(new Date(), "YYYY-MM-DD HH:mm:ss").value;
