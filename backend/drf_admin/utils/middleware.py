@@ -92,12 +92,12 @@ class ResponseMiddleware(MiddlewareMixin):
             if response.status_code >= 400:
                 msg = '请求失败'
                 detail = response.data.get('detail')
-                code = 'B0001'
+                code = 40000
                 data = {}
             elif response.status_code in [200, 201]:
                 msg = '成功'
                 detail = ''
-                code = '00000'
+                code = 20000
                 data = response.data
             else:
                 return response

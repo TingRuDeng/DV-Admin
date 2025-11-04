@@ -28,8 +28,13 @@ dependencies = [
     "pymysql>=1.1.2",
     "redis==6.4.0",
     "requests>=2.32.5",
+    "uwsgi>=2.0.31",
 ]
 
+# 添加平台特定依赖
+[tool.poetry.dependencies]
+# 只在非 Windows 平台安装 uwsgi
+uwsgi = { version = ">=2.0.31", platform = "!= 'win32'" }
 
 [[tool.uv.index]]
 url = "https://pypi.tuna.tsinghua.edu.cn/simple"

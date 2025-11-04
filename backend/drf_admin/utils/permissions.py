@@ -35,7 +35,7 @@ class RBACPermission(BasePermission):
         # 统一使用user_info_前缀的缓存键
         cache_key = f'user_info_{user.id}_perms'
         # 检查Redis配置是否存在
-        if hasattr(settings, 'REDIS_HOST') and hasattr(settings, 'REDIS_PORT') and settings.REDIS_HOST and settings.REDIS_PORT:
+        if settings.REDIS_HOST and settings.REDIS_PORT:
             try:
                 conn = get_redis_connection('user_info')
                 if conn.exists(f'user_info_{user.id}'):
@@ -58,7 +58,7 @@ class RBACPermission(BasePermission):
         user_perms_list = list(user_perms)
 
         # 根据Redis可用性选择缓存方式
-        if hasattr(settings, 'REDIS_HOST') and hasattr(settings, 'REDIS_PORT') and settings.REDIS_HOST and settings.REDIS_PORT:
+        if settings.REDIS_HOST and settings.REDIS_PORT:
             try:
                 # 缓存到Redis，1小时
                 conn.hset(f'user_info_{user.id}', 'perms', json.dumps(user_perms_list))

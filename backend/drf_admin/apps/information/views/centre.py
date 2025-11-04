@@ -100,7 +100,13 @@ class ChangeAvatarAPIView(GenericAPIView):
             serializer.save()
 
             # 构建完整的头像URL
-            avatar_url = request.build_absolute_uri(serializer.data['image'])
+            http_host = request.get_host()
+            http_port = request.get_port()
+            if http_port in http_host:
+                host_url = f'{request.scheme}://{http_host}'
+            else:
+                host_url = f'{request.scheme}://{http_host}:{http_port}'
+            avatar_url = f'{host_url}{serializer.data["image"]}'
 
             return Response({
                 'detail': '头像更新成功',
