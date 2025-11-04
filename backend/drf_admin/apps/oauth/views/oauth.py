@@ -70,6 +70,12 @@ class UserInfoView(APIView):
 
     def get(self, request):
         user_info = request.user.get_user_info()
+        http_host = request.get_host()
+        http_port = request.get_port()
+        if http_port in http_host:
+            host_url = f'{request.scheme}://{http_host}'
+        else:
+            host_url = f'{request.scheme}://{http_host}:{http_port}'
         # 检查Redis配置是否存在
         if hasattr(settings, 'REDIS_HOST') and hasattr(settings, 'REDIS_PORT') and settings.REDIS_HOST and settings.REDIS_PORT:
             try:
@@ -78,7 +84,8 @@ class UserInfoView(APIView):
                 if request.user.is_superuser and 'admin' not in user_info['perms']:
                     user_info['perms'].append('admin')
                 user_info['perms'] = json.dumps(user_info['perms'])
-                user_info['avatar'] = request._current_scheme_host + user_info.get('avatar')
+                user_info[
+                    'avatar'] = f'{host_url}{user_info.get("avatar")}'
                 conn.hmset(f'user_info_{request.user.id}', user_info)
                 conn.expire(f'user_info_{request.user.id}', 60 * 60 * 24)  # 设置过期时间为1天
                 user_info['perms'] = json.loads(user_info['perms'])
@@ -88,7 +95,8 @@ class UserInfoView(APIView):
             # Redis不可用时，使用Django缓存存储用户信息
             if request.user.is_superuser and 'admin' not in user_info['perms']:
                 user_info['perms'].append('admin')
-            user_info['avatar'] = request._current_scheme_host + user_info.get('avatar')
+            user_info[
+                'avatar'] = f'{host_url}{user_info.get("avatar")}'
             cache_key = f'user_info_{request.user.id}'
             cache.set(cache_key, user_info, 60 * 60 * 24)
         return Response(user_info, status=status.HTTP_200_OK)

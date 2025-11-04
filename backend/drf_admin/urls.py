@@ -41,7 +41,6 @@ urlpatterns = [
     # 加载项目模块
     path(f'{base_api}oauth/', include('drf_admin.apps.oauth.urls')),  # 用户鉴权模块
     path(f'{base_api}system/', include('drf_admin.apps.system.urls')),  # 系统管理模块
-    # path(f'{base_api}monitor/', include('drf_admin.apps.monitor.urls')),  # 系统监控模块
     path(f'{base_api}information/', include('drf_admin.apps.information.urls')),  # 个人中心模块
 ]
 
