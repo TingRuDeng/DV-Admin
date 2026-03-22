@@ -9,7 +9,7 @@ router.register(r'roles', roles.RolesViewSet, basename="roles")  # 角色管理
 router.register(r'menus', menus.MenusViewSet, basename="menus")  # 菜单管理
 router.register(r'dicts', dicts.DictsViewSet, basename="dicts")  # 字典管理
 router.register(r'dict-items', dicts.DictItemsViewSet, basename="dict-items")  # 字典项管理
-router.register(r'dept', departments.DepartmentsViewSet, basename="departments")  # 部门管理
+router.register(r'departments', departments.DepartmentsViewSet, basename="departments")  # 部门管理
 
 urlpatterns = [
     path('users/options/', users.UsersOptionsViewSet.as_view()),  # 用户下拉框列表

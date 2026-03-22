@@ -87,7 +87,7 @@
               link
               size="small"
               icon="edit"
-              @click.stop="handleOpenDialog(scope.row.parent, scope.row.id)"
+              @click.stop="handleOpenDialog(scope.row.parentId, scope.row.id)"
             >
               编辑
             </el-button>
@@ -113,9 +113,9 @@
       @closed="handleCloseDialog"
     >
       <el-form ref="deptFormRef" :model="formData" :rules="rules" label-width="80px">
-        <el-form-item label="上级部门" prop="parent">
+        <el-form-item label="上级部门" prop="parentId">
           <el-tree-select
-            v-model="formData.parent"
+            v-model="formData.parentId"
             placeholder="选择上级部门"
             :data="deptOptions"
             filterable
@@ -177,7 +177,7 @@ const deptList = ref<DeptVO[]>();
 const deptOptions = ref<OptionType[]>();
 const formData = reactive<DeptForm>({
   status: 1,
-  parent: undefined,
+  parentId: undefined,
   sort: 1,
 });
 
@@ -210,10 +210,10 @@ function handleSelectionChange(selection: any) {
 /**
  * 打开部门弹窗
  *
- * @param parent 父部门ID
+ * @param parentId 父部门ID
  * @param deptId 部门ID
  */
-async function handleOpenDialog(parent?: string, deptId?: string) {
+async function handleOpenDialog(parentId?: string, deptId?: string) {
   // 加载部门下拉数据
   deptOptions.value = await DeptAPI.getOptions();
 
@@ -225,7 +225,7 @@ async function handleOpenDialog(parent?: string, deptId?: string) {
     });
   } else {
     dialog.title = "新增部门";
-    formData.parent = parent;
+    formData.parentId = parentId;
   }
 }
 
@@ -291,7 +291,7 @@ function resetForm() {
   deptFormRef.value.clearValidate();
 
   formData.id = undefined;
-  formData.parent = undefined;
+  formData.parentId = undefined;
   formData.status = 1;
   formData.sort = 1;
 }

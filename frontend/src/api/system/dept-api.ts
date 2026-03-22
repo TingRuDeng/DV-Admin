@@ -1,6 +1,6 @@
 import request from "@/utils/request";
 
-const DEPT_BASE_URL = "/api/system/dept";
+const DEPT_BASE_URL = "/api/system/departments";
 
 const DeptAPI = {
   /** 获取部门树形列表 */
@@ -50,7 +50,7 @@ export interface DeptVO {
   /** 部门编号 */
   // code?: string;
   /** 父部门ID */
-  parentid?: string;
+  parentId?: string;
   /** 排序 */
   sort?: number;
   /** 状态(1:启用；0:禁用) */
@@ -67,7 +67,7 @@ export interface DeptForm {
   /** 部门编号 */
   // code?: string;
   /** 父部门ID */
-  parent?: string;
+  parentId?: string;
   /** 排序 */
   sort?: number;
   /** 状态(1:启用；0：禁用) */

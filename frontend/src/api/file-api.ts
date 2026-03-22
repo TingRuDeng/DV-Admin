@@ -4,7 +4,7 @@ const FileAPI = {
   /** 上传文件 （传入 FormData，上传进度回调） */
   upload(formData: FormData, onProgress?: (percent: number) => void) {
     return request<any, FileInfo>({
-      url: "/api/v1/files",
+      url: "/api/v1/files/",
       method: "post",
       data: formData,
       headers: { "Content-Type": "multipart/form-data" },
@@ -22,7 +22,7 @@ const FileAPI = {
     const formData = new FormData();
     formData.append("file", file);
     return request<any, FileInfo>({
-      url: "/api/v1/files",
+      url: "/api/v1/files/",
       method: "post",
       data: formData,
       headers: { "Content-Type": "multipart/form-data" },
@@ -32,7 +32,7 @@ const FileAPI = {
   /** 删除文件 */
   delete(filePath?: string) {
     return request({
-      url: "/api/v1/files",
+      url: "/api/v1/files/",
       method: "delete",
       params: { filePath },
     });
