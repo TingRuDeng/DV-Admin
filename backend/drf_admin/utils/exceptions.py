@@ -23,6 +23,8 @@ def errors_handler(exc):
     :param exc:
     :return: data: 错误消息
     """
+    if not hasattr(exc, "detail"):
+        return {"detail": str(exc)}
     try:
         if isinstance(exc.detail, list):
             msg = ''.join([str(x) for x in exc.detail])
@@ -50,7 +52,7 @@ def errors_handler(exc):
         if not msg:
             msg = exc.detail
     except Exception:
-        msg = exc.detail
+        msg = str(exc)
     data = {'detail': msg}
     return data
 

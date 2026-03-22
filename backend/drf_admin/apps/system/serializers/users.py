@@ -14,12 +14,13 @@ class UsersSerializer(serializers.ModelSerializer):
     """
     roles_list = serializers.SerializerMethodField()
     date_joined = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', read_only=True)
+    dept_id = serializers.IntegerField(required=False, allow_null=True)
     dept_name = serializers.ReadOnlyField(source='dept.name')
     is_superuser = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Users
-        fields = ['id', 'username', 'name', 'mobile', 'email', 'is_active', 'dept', 'dept_name',
+        fields = ['id', 'username', 'name', 'mobile', 'email', 'is_active', 'dept_id', 'dept_name',
                   'date_joined', 'roles', 'roles_list', 'is_superuser']
 
     def validate(self, attrs):

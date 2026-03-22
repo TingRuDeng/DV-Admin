@@ -64,7 +64,7 @@ const UserAPI = {
    */
   resetPassword(id: string, password: string) {
     return request({
-      url: `${USER_BASE_URL}/${id}/password/reset`,
+      url: `${USER_BASE_URL}/${id}/password/reset/`,
       method: "put",
       params: { password },
     });
@@ -97,9 +97,9 @@ const UserAPI = {
    *
    * @param queryParams 查询参数
    */
-  export(queryParams: UserPageQuery) {
-    return request({
-      url: `${USER_BASE_URL}/export`,
+  export(queryParams?: UserPageQuery) {
+    return request<any, Blob>({
+      url: `${USER_BASE_URL}/export/`,
       method: "get",
       params: queryParams,
       responseType: "blob",
@@ -109,16 +109,16 @@ const UserAPI = {
   /**
    * 导入用户
    *
-   * @param dept 部门ID
+   * @param deptId 部门ID
    * @param file 导入文件
    */
-  import(dept: string, file: File) {
+  import(deptId: string, file: File) {
     const formData = new FormData();
     formData.append("file", file);
     return request<any, ExcelResult>({
       url: `${USER_BASE_URL}/import`,
       method: "post",
-      params: { dept },
+      params: { deptId },
       data: formData,
       headers: {
         "Content-Type": "multipart/form-data",
@@ -212,7 +212,7 @@ export interface UserPageQuery extends PageQuery {
   isActive?: number;
 
   /** 部门ID */
-  dept?: string;
+  deptId?: string;
 
   /** 开始时间 */
   // createTime?: [string, string];
@@ -251,7 +251,7 @@ export interface UserForm {
   /** 用户头像 */
   avatar?: string;
   /** 部门ID */
-  dept?: string;
+  deptId?: number | string;
   /** 邮箱 */
   email?: string;
   /** 性别 */

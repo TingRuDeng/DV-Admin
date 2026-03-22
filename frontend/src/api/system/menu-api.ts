@@ -6,12 +6,13 @@ const MenuAPI = {
   getList(queryParams: MenuQuery) {
     return request<any, MenuVO[]>({ url: `${MENU_BASE_URL}/`, method: "get", params: queryParams });
   },
-  /** 获取菜单下拉数据源 */
-  getOptions(onlyParent?: boolean) {
+  /**
+   * 获取菜单下拉列表
+   */
+  getOptions() {
     return request<any, OptionType[]>({
-      url: `${MENU_BASE_URL}/`,
+      url: `${MENU_BASE_URL}/options/`,
       method: "get",
-      params: { onlyParent },
     });
   },
   /** 获取菜单表单数据 */

@@ -13,7 +13,7 @@ const DictAPI = {
   },
   /** 字典列表 */
   getList() {
-    return request<any, OptionType[]>({ url: `${DICT_BASE_URL}`, method: "get" });
+    return request<any, OptionType[]>({ url: `${DICT_BASE_URL}/`, method: "get" });
   },
   /** 字典表单数据 */
   getFormData(id: string) {

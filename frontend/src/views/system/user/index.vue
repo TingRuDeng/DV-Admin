@@ -4,7 +4,7 @@
     <el-row :gutter="20">
       <!-- 部门树 -->
       <el-col :lg="4" :xs="24" class="mb-[12px]">
-        <DeptTree v-model="queryParams.dept" @node-click="handleQuery" />
+        <DeptTree v-model="queryParams.deptId" @node-click="handleQuery" />
       </el-col>
 
       <!-- 用户列表 -->
@@ -190,9 +190,9 @@
           <el-input v-model="formData.name" placeholder="请输入用户昵称" />
         </el-form-item>
 
-        <el-form-item label="所属部门" prop="dept">
+        <el-form-item label="所属部门" prop="deptId">
           <el-tree-select
-            v-model="formData.dept"
+            v-model="formData.deptId"
             placeholder="请选择所属部门"
             :data="deptOptions"
             node-key="id"
@@ -297,7 +297,7 @@ const formData = reactive<UserForm>({
 const rules = reactive({
   username: [{ required: true, message: "用户名不能为空", trigger: "blur" }],
   name: [{ required: true, message: "用户昵称不能为空", trigger: "blur" }],
-  dept: [{ required: true, message: "所属部门不能为空", trigger: "blur" }],
+  deptId: [{ required: true, message: "所属部门不能为空", trigger: "blur" }],
   roles: [{ required: true, message: "用户角色不能为空", trigger: "blur" }],
   email: [
     {
@@ -346,7 +346,7 @@ function handleQuery() {
 function handleResetQuery() {
   queryFormRef.value.resetFields();
   queryParams.pageNum = 1;
-  queryParams.dept = undefined;
+  queryParams.deptId = undefined;
   // queryParams.createTime = undefined;
   fetchData();
 }
@@ -406,6 +406,7 @@ function handleCloseDialog() {
   userFormRef.value.clearValidate();
 
   formData.id = undefined;
+  formData.deptId = undefined;
   formData.isActive = 1;
 }
 
