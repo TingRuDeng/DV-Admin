@@ -8,6 +8,9 @@ import { authConfig } from "@/settings";
 // 初始化token刷新组合式函数
 const { refreshTokenAndRetry } = useTokenRefresh();
 
+// 获取 API 版本前缀
+const apiVersion = import.meta.env.VITE_APP_API_VERSION;
+
 /**
  * 创建 HTTP 请求实例
  */
@@ -30,6 +33,11 @@ httpRequest.interceptors.request.use(
       config.headers.Authorization = `Bearer ${accessToken}`;
     } else {
       delete config.headers.Authorization;
+    }
+
+    // 自动添加版本前缀
+    if (apiVersion && config.url?.startsWith("/api/") && !config.url.includes(`/${apiVersion}/`)) {
+      config.url = config.url.replace("/api/", `/api/${apiVersion}/`);
     }
 
     return config;

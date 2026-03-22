@@ -33,7 +33,7 @@ const deptList = ref<OptionType[]>(); // 部门列表
 const deptTreeRef = ref(); // 部门树
 const deptName = ref(); // 部门名称
 
-const emits = defineEmits(["node-click"]);
+const emits = defineEmits(["node-click", "update:modelValue"]);
 
 const deptId = useVModel(props, "modelValue", emits);
 
@@ -58,7 +58,7 @@ function handleFilter(value: string, data: any) {
 
 /** 部门树节点 Click */
 function handleNodeClick(data: { [key: string]: any }) {
-  deptId.value = data.value;
+  deptId.value = data.id;
   emits("node-click");
 }
 

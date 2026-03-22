@@ -15,17 +15,30 @@ const RoleAPI = {
   getOptions() {
     return request<any, OptionType[]>({ url: `${ROLE_BASE_URL}/options/`, method: "get" });
   },
-  /** 获取角色的菜单ID集合 */
-  getRoleMenuIds(roleId: string) {
-    return request<any, string[]>({ url: `${ROLE_BASE_URL}/${roleId}/menuIds/`, method: "get" });
+  /**
+   * 获取角色的菜单ID集合
+   *
+   * @param roleId 角色ID
+   * @returns 菜单ID集合
+   */
+  getRoleMenuIds(roleId: number) {
+    return request<any, number[]>({
+      url: `${ROLE_BASE_URL}/${roleId}/menu-ids/`,
+      method: "get",
+    });
   },
 
-  /** 分配菜单权限 */
-  updateRoleMenus(roleId: string, data: number[]) {
+  /**
+   * 分配菜单权限给角色
+   *
+   * @param roleId 角色ID
+   * @param menuIds 菜单ID集合
+   */
+  updateRoleMenus(roleId: number, menuIds: number[]) {
     return request({
-      url: `${ROLE_BASE_URL}/${roleId}/`,
-      method: "patch",
-      data: { permissions: data },
+      url: `${ROLE_BASE_URL}/${roleId}/menus/`,
+      method: "put",
+      data: { menuIds },
     });
   },
 

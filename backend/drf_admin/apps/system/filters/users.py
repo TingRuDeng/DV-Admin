@@ -7,11 +7,11 @@ from drf_admin.apps.system.models import Departments, Users
 
 class UsersFilter(django_filters.rest_framework.FilterSet):
     """自定义用户管理过滤器"""
-    dept = django_filters.rest_framework.NumberFilter(method='dept_service_filter')
+    dept_id = django_filters.rest_framework.NumberFilter(method='dept_service_filter')
 
     class Meta:
         model = Users
-        fields = ['is_active', 'dept']
+        fields = ['is_active', 'dept_id']
 
     def dept_service_filter(self, queryset, name, value):
         """过滤该部门及所有子部门下的用户"""

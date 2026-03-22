@@ -310,8 +310,15 @@ AUTHENTICATION_BACKENDS = [
 # 新增用户默认密码
 DEFAULT_PWD = env.str('DEFAULT_PWD', default='123456')
 
+# API版本
+API_VERSION = env.str('API_VERSION', default='v1')
+
 # 项目BASE API, 如设置时必须以/结尾，可使用v1, v2等版本号
-BASE_API = 'api/'
+if API_VERSION:
+    BASE_API = f'api/{API_VERSION}/'
+else:
+    BASE_API = 'api/'
+
 WHITE_LIST = [
     f'/{BASE_API}oauth/login/',
     f'/{BASE_API}oauth/logout/',

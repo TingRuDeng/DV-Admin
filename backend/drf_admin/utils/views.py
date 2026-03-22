@@ -207,8 +207,9 @@ class TreeAPIView(ListAPIView):
             for item in serializer.data:
                 tree_dict[item['id']] = item
             for i in tree_dict:
-                if tree_dict[i]['parent']:
-                    parent = tree_dict[i]['parent']
+                parent_key = 'parent_id' if 'parent_id' in tree_dict[i] else 'parent'
+                if tree_dict[i].get(parent_key):
+                    parent = tree_dict[i][parent_key]
                     parent = tree_dict[parent]
                     parent.setdefault('children', []).append(tree_dict[i])
                 else:
