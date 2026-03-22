@@ -14,7 +14,8 @@
 ## 测试结果
 
 ```
-58 tests passed
+475 tests passed
+覆盖率: 80.12%
 ```
 
 ## 目录结构
@@ -33,7 +34,20 @@ fastapi/
 │   ├── test_notices.py          # 通知公告测试
 │   ├── test_profile.py          # 个人中心测试
 │   ├── test_files.py            # 文件上传测试
-│   └── test_captcha.py          # 验证码测试
+│   ├── test_captcha.py          # 验证码测试
+│   ├── test_health.py           # 健康检查测试
+│   ├── test_cache.py            # 缓存服务测试
+│   ├── test_redis.py            # Redis 连接测试
+│   ├── test_token_blacklist.py  # Token 黑名单测试
+│   ├── test_security.py         # 安全模块测试
+│   ├── test_security_validator.py # 安全验证器测试
+│   ├── test_config.py           # 配置测试
+│   ├── test_exceptions.py       # 异常测试
+│   ├── test_user_service.py     # 用户服务测试
+│   ├── test_role_service.py     # 角色服务测试
+│   ├── test_dict_service.py     # 字典服务测试
+│   ├── test_log_service.py      # 日志服务测试
+│   └── test_notice_service.py   # 通知服务测试
 ```
 
 ## 测试 Fixture
@@ -64,6 +78,7 @@ fastapi/
 - system:dicts:query, add, edit, delete
 - system:notices:query, add, edit, delete, publish, revoke
 - system:files:query
+- system:logs:query, delete
 ```
 
 ## 运行测试
@@ -72,33 +87,61 @@ fastapi/
 
 ```bash
 cd fastapi
-uv run --with httpx pytest tests/ -v
+uv run pytest tests/ -v
 ```
 
 ### 运行单个测试文件
 
 ```bash
-uv run --with httpx pytest tests/test_oauth.py -v
+uv run pytest tests/test_oauth.py -v
 ```
 
 ### 运行单个测试用例
 
 ```bash
-uv run --with httpx pytest tests/test_oauth.py::TestOAuthLogin::test_login_success -v
+uv run pytest tests/test_oauth.py::TestOAuthLogin::test_login_success -v
 ```
 
 ### 显示详细输出
 
 ```bash
-uv run --with httpx pytest tests/ -v -s
+uv run pytest tests/ -v -s
+```
+
+### 生成覆盖率报告
+
+```bash
+# 终端输出
+uv run pytest --cov=app --cov-report=term-missing
+
+# HTML 报告
+uv run pytest --cov=app --cov-report=html
+open htmlcov/index.html
 ```
 
 ## 测试覆盖
 
+### 模块覆盖率
+
+| 模块 | 覆盖率 | 测试用例 |
+|------|--------|----------|
+| app/api/v1/system/logs.py | 100% | 14 |
+| app/services/system/log_service.py | 99% | 42 |
+| app/services/system/dict_service.py | 96% | 45 |
+| app/services/system/role_service.py | 95% | 28 |
+| app/services/system/notice_service.py | 95% | 25 |
+| app/core/security.py | 93% | 15 |
+| app/core/cache.py | 97% | 44 |
+| app/core/redis.py | 100% | 14 |
+| app/services/token_blacklist.py | 100% | 22 |
+| app/core/security_validator.py | 98% | 28 |
+
+### 功能测试覆盖
+
 | 模块 | 测试用例 |
 |------|----------|
-| OAuth 认证 | 登录成功、登录失败、验证码、用户信息、菜单路由、登出 |
-| 用户管理 | 列表、创建、更新、删除、重置密码 |
+| OAuth 认证 | 登录成功、登录失败、验证码、用户信息、菜单路由、登出、Token 刷新 |
+| 用户管理 | 列表、创建、更新、删除、重置密码、导入、导出 |
 | 角色管理 | 列表、创建、更新、删除、权限分配 |
 | 菜单管理 | 列表、详情、创建、更新、删除、权限标识、下拉选项 |
 | 部门管理 | 列表、创建、更新、删除 |
@@ -107,6 +150,10 @@ uv run --with httpx pytest tests/ -v -s
 | 通知公告 | 列表、创建、更新、发布、撤销、我的公告、表单 |
 | 个人中心 | 获取信息、更新信息、修改密码、修改头像 |
 | 文件管理 | 上传文件、删除文件 |
+| 操作日志 | 分页列表、访问统计、访问趋势、删除日志 |
+| 健康检查 | 基本检查、就绪检查、存活检查 |
+| 缓存服务 | 内存缓存、Redis 缓存、TTL、模式删除 |
+| Token 黑名单 | 单个撤销、批量撤销、黑名单检查 |
 
 ## 添加新测试
 
@@ -149,6 +196,27 @@ def test_with_auth(auth_client: TestClient):
     assert response.status_code == 200
 ```
 
+### 异步测试
+
+```python
+import pytest
+
+@pytest.mark.asyncio
+async def test_async_operation():
+    """异步测试示例"""
+    result = await some_async_function()
+    assert result is not None
+```
+
+## 测试最佳实践
+
+1. **使用唯一的测试数据**: 使用 UUID 确保测试数据唯一
+2. **清理测试数据**: 每个测试后清理数据库
+3. **测试独立性**: 每个测试应该独立运行
+4. **清晰的测试命名**: 使用描述性的测试名称
+5. **合理的断言**: 断言应该清晰表达预期行为
+6. **Mock 外部依赖**: 使用 Mock 隔离外部服务
+
 ## 常见问题
 
 ### 1. 数据库连接问题
@@ -190,10 +258,56 @@ assert data.get("code") == 20000
 assert response.status_code in [200, 401]
 ```
 
-## 测试最佳实践
+### 4. Redis 连接问题
 
-1. **使用唯一的测试数据**: 使用 UUID 确保测试数据唯一
-2. **清理测试数据**: 每个测试后清理数据库
-3. **测试独立性**: 每个测试应该独立运行
-4. **清晰的测试命名**: 使用描述性的测试名称
-5. **合理的断言**: 断言应该清晰表达预期行为
+**问题**: Redis 相关测试失败
+
+**解决**: 测试环境使用内存缓存替代
+
+```python
+# 测试时自动降级为内存缓存
+from app.core.cache import cache
+
+# 测试前确保使用内存模式
+cache._use_redis = False
+```
+
+### 5. 事件循环问题
+
+**问题**: Tortoise ORM 事件循环绑定错误
+
+**解决**: 使用 pytest-asyncio 的 auto 模式
+
+```python
+# pyproject.toml
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+```
+
+## 持续集成
+
+### GitHub Actions 配置
+
+```yaml
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - run: uv sync
+      - run: uv run pytest --cov=app --cov-report=xml
+      - uses: codecov/codecov-action@v4
+```
+
+## 测试报告
+
+运行测试后会生成以下报告：
+
+- **终端输出**: 测试结果和覆盖率摘要
+- **HTML 报告**: `htmlcov/index.html` - 详细的覆盖率报告
+- **XML 报告**: `coverage.xml` - CI 集成使用
