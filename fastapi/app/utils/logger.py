@@ -5,6 +5,7 @@
 """
 
 import json
+import os
 import sys
 from contextvars import ContextVar
 from datetime import datetime
@@ -119,6 +120,8 @@ def setup_logger(
     """
     # 移除默认处理器
     logger.remove()
+    is_test_env = environment.lower() in {"test", "testing"} or "PYTEST_CURRENT_TEST" in os.environ
+    use_async_queue = not is_test_env
 
     # 根据格式配置处理器
     if log_format.lower() == "json":
@@ -131,7 +134,7 @@ def setup_logger(
             sys.stdout,
             level=log_level,
             format=formatter.format,
-            enqueue=True,  # 异步写入
+            enqueue=use_async_queue,
             backtrace=True,
             diagnose=environment == "development",
         )
@@ -145,7 +148,7 @@ def setup_logger(
                    "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
                    "{extra[request_id] if extra.get('request_id') else '-'} | "
                    "<level>{message}</level>",
-            enqueue=True,
+            enqueue=use_async_queue,
             backtrace=True,
             diagnose=environment == "development",
         )
@@ -163,7 +166,7 @@ def setup_logger(
                 format=formatter.format,
                 rotation=rotation,
                 retention=retention,
-                enqueue=True,
+                enqueue=use_async_queue,
                 compression="zip",
             )
         else:
@@ -173,7 +176,7 @@ def setup_logger(
                 format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} | {message}",
                 rotation=rotation,
                 retention=retention,
-                enqueue=True,
+                enqueue=use_async_queue,
                 compression="zip",
             )
 
