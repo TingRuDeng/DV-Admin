@@ -1,24 +1,22 @@
-# -*- coding: utf-8 -*-
 """
 个人中心 API 路由
 
 提供个人信息、修改密码、修改头像等接口。
 """
 
-from fastapi import APIRouter, UploadFile, File, Request
+import json
+from datetime import datetime
+from pathlib import Path
 
 from app.api.deps import CurrentUser
+from app.core.config import settings
 from app.core.exceptions import ValidationError
 from app.core.security import get_password_hash, verify_password
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
-from app.schemas.oauth import UserProfile, UserInfo, ChangePassword, UpdateProfile
+from app.schemas.oauth import ChangePassword, UpdateProfile, UserInfo, UserProfile
 from app.utils.file import allowed_file, secure_filename
-from app.core.config import settings
-from pathlib import Path
-import os
-import json
-from datetime import datetime
+from fastapi import APIRouter, File, Request, UploadFile
 
 router = APIRouter()
 

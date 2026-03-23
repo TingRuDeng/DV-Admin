@@ -22,9 +22,9 @@ declare global {
    */
   interface PageResult<T> {
     /** 数据列表 */
-    results: T;
+    list: T;
     /** 总数 */
-    count: number;
+    total: number;
   }
 
   /**
@@ -100,7 +100,7 @@ declare global {
    */
   interface ExcelResult {
     /** 状态码 */
-    code: string;
+    code: string | number;
     /** 无效数据条数 */
     invalidCount: number;
     /** 有效数据条数 */

@@ -165,7 +165,7 @@ const queryFormRef = ref();
 const deptFormRef = ref();
 
 const loading = ref(false);
-const selectIds = ref<number[]>([]);
+const selectIds = ref<string[]>([]);
 const queryParams = reactive<DeptQuery>({});
 
 const dialog = reactive({

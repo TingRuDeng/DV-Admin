@@ -1,12 +1,8 @@
-# -*- coding: utf-8 -*-
 """
 操作日志 Service
 """
-import json
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
-
-from tortoise.expressions import Q
+from typing import Any
 
 from app.db.models.system import OperationLog
 from app.schemas.system import (
@@ -24,12 +20,12 @@ class LogService:
         self,
         page: int,
         page_size: int,
-        username: Optional[str] = None,
-        operation: Optional[str] = None,
-        method: Optional[str] = None,
-        status: Optional[int] = None,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
+        username: str | None = None,
+        operation: str | None = None,
+        method: str | None = None,
+        status: int | None = None,
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
     ) -> OperationLogPageResult:
         """获取操作日志分页列表"""
         query = OperationLog.all()
@@ -85,13 +81,13 @@ class LogService:
             for log in logs
         ]
 
-        return OperationLogPageResult(results=results, count=total)
+        return OperationLogPageResult(list=results, total=total)
 
     async def get_visit_trend(
         self,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-    ) -> List[VisitTrendOut]:
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+    ) -> list[VisitTrendOut]:
         """获取访问趋势统计"""
         if not start_date:
             start_date = datetime.now() - timedelta(days=7)
@@ -105,7 +101,7 @@ class LogService:
         ).all()
 
         # 按日期统计
-        date_count: Dict[str, int] = {}
+        date_count: dict[str, int] = {}
         for log in logs:
             date_str = log.created_at.strftime("%Y-%m-%d")
             date_count[date_str] = date_count.get(date_str, 0) + 1
@@ -180,12 +176,12 @@ class LogService:
             top_paths=top_paths_data,
         )
 
-    async def _get_top_users(self, limit: int = 10) -> List[Dict[str, Any]]:
+    async def _get_top_users(self, limit: int = 10) -> list[dict[str, Any]]:
         """获取活跃用户 TOP N"""
         logs = await OperationLog.all().order_by("-created_at").limit(1000).all()
 
         # 统计用户访问次数
-        user_count: Dict[str, Dict[str, Any]] = {}
+        user_count: dict[str, dict[str, Any]] = {}
         for log in logs:
             if log.username:
                 if log.username not in user_count:
@@ -202,12 +198,12 @@ class LogService:
         )
         return sorted_users[:limit]
 
-    async def _get_top_paths(self, limit: int = 10) -> List[Dict[str, Any]]:
+    async def _get_top_paths(self, limit: int = 10) -> list[dict[str, Any]]:
         """获取热门路径 TOP N"""
         logs = await OperationLog.all().order_by("-created_at").limit(1000).all()
 
         # 统计路径访问次数
-        path_count: Dict[str, Dict[str, Any]] = {}
+        path_count: dict[str, dict[str, Any]] = {}
         for log in logs:
             if log.path:
                 if log.path not in path_count:
@@ -224,7 +220,7 @@ class LogService:
         )
         return sorted_paths[:limit]
 
-    async def delete_by_ids(self, ids: List[int]) -> int:
+    async def delete_by_ids(self, ids: list[int]) -> int:
         """批量删除日志"""
         deleted_count = await OperationLog.filter(id__in=ids).delete()
         return deleted_count
@@ -237,7 +233,7 @@ class LogService:
 
     async def create_log(
         self,
-        user_id: Optional[int] = None,
+        user_id: int | None = None,
         username: str = "",
         name: str = "",
         operation: str = "",

@@ -1,17 +1,17 @@
-# -*- coding: utf-8 -*-
 """
 通知服务层测试
 测试 NoticeService 的所有方法
 """
-import pytest
-import pytest_asyncio
 import uuid
 from datetime import datetime
 
-from app.services.system.notice_service import notice_service
-from app.db.models.system import Notices, NoticeReads
-from app.schemas.system import NoticeCreate, NoticeUpdate
+import pytest
+import pytest_asyncio
+
 from app.core.exceptions import NotFound, ValidationError
+from app.db.models.system import NoticeReads, Notices
+from app.schemas.system import NoticeCreate, NoticeUpdate
+from app.services.system.notice_service import notice_service
 
 
 @pytest_asyncio.fixture
@@ -57,8 +57,8 @@ class TestNoticeServiceGetPage:
     async def test_get_page_basic(self, db, test_notices_for_service):
         """测试基本分页查询"""
         result = await notice_service.get_page(page_num=1, page_size=10)
-        assert result.count >= 1
-        assert len(result.results) >= 1
+        assert result.total >= 1
+        assert len(result.list) >= 1
 
     @pytest.mark.asyncio
     async def test_get_page_with_title(self, db, test_notices_for_service):
@@ -66,7 +66,7 @@ class TestNoticeServiceGetPage:
         result = await notice_service.get_page(
             page_num=1, page_size=10, title="测试通知"
         )
-        assert result.count >= 1
+        assert result.total >= 1
 
     @pytest.mark.asyncio
     async def test_get_page_with_publish_status(self, db, test_notices_for_service):
@@ -74,8 +74,8 @@ class TestNoticeServiceGetPage:
         result = await notice_service.get_page(
             page_num=1, page_size=10, publish_status=0
         )
-        assert result.count >= 1
-        for notice in result.results:
+        assert result.total >= 1
+        for notice in result.list:
             assert notice.publish_status == 0
 
     @pytest.mark.asyncio
@@ -84,8 +84,8 @@ class TestNoticeServiceGetPage:
         result = await notice_service.get_page(
             page_num=1, page_size=10, title="nonexistent_notice_xyz"
         )
-        assert result.count == 0
-        assert len(result.results) == 0
+        assert result.total == 0
+        assert len(result.list) == 0
 
 
 class TestNoticeServiceGetForm:
@@ -130,7 +130,7 @@ class TestNoticeServiceGetDetail:
             test_published_notice.id, user_id=1
         )
         assert result.id == test_published_notice.id
-        
+
         # 验证已标记已读
         read = await NoticeReads.filter(
             notice_id=test_published_notice.id, user_id=1
@@ -227,7 +227,7 @@ class TestNoticeServiceDelete:
         """测试批量删除"""
         ids = [n.id for n in test_notices_for_service[:2]]
         await notice_service.delete_by_ids(ids)
-        
+
         for nid in ids:
             exists = await Notices.filter(id=nid).exists()
             assert not exists
@@ -247,7 +247,7 @@ class TestNoticeServicePublish:
         """测试发布通知"""
         notice = test_notices_for_service[0]
         await notice_service.publish(notice.id)
-        
+
         updated = await Notices.get(id=notice.id)
         assert updated.publish_status == 1
         assert updated.publish_time is not None
@@ -272,7 +272,7 @@ class TestNoticeServiceRevoke:
     async def test_revoke(self, db, test_published_notice):
         """测试撤销通知"""
         await notice_service.revoke(test_published_notice.id)
-        
+
         updated = await Notices.get(id=test_published_notice.id)
         assert updated.publish_status == -1
         assert updated.revoke_time is not None
@@ -298,7 +298,7 @@ class TestNoticeServiceReadAll:
     async def test_read_all(self, db, test_published_notice):
         """测试标记全部已读"""
         await notice_service.read_all(user_id=1)
-        
+
         read = await NoticeReads.filter(
             notice_id=test_published_notice.id, user_id=1
         ).exists()
@@ -338,7 +338,7 @@ class TestNoticeServiceGetMyPage:
         """测试按已读状态过滤"""
         # 先标记已读
         await NoticeReads.create(notice_id=test_published_notice.id, user_id=1)
-        
+
         result = await notice_service.get_my_page(
             user_id=1, page_num=1, page_size=10, is_read=1
         )

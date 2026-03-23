@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 基础模型模块
 
@@ -6,7 +5,7 @@
 """
 
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 from tortoise import Model, fields
 
@@ -25,7 +24,7 @@ class BaseModel(Model):
     class Meta:
         abstract = True
 
-    def to_dict(self, *args: str, exclude: list = None) -> Dict[str, Any]:
+    def to_dict(self, *args: str, exclude: list = None) -> dict[str, Any]:
         """
         将模型转换为字典
 

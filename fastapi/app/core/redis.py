@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Redis 连接管理模块
 
@@ -7,13 +6,12 @@ Redis 连接管理模块
 
 from typing import Optional
 
-import redis.asyncio as redis
+from loguru import logger
 from redis.asyncio import Redis
 from redis.asyncio.connection import ConnectionPool
 from redis.exceptions import RedisError
 
 from app.core.config import settings
-from loguru import logger
 
 
 class RedisManager:
@@ -24,8 +22,8 @@ class RedisManager:
     """
 
     _instance: Optional["RedisManager"] = None
-    _pool: Optional[ConnectionPool] = None
-    _client: Optional[Redis] = None
+    _pool: ConnectionPool | None = None
+    _client: Redis | None = None
 
     def __new__(cls) -> "RedisManager":
         if cls._instance is None:

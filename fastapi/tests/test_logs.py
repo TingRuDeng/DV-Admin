@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
 """
 日志管理 API 测试
 测试日志管理相关的 API 端点
 """
-import pytest
 import pytest_asyncio
-from datetime import datetime, timedelta
 from fastapi.testclient import TestClient
 
 from app.db.models.system import OperationLog, Permissions
@@ -24,14 +21,14 @@ async def test_log_permissions(db):
         sort=8,
         perm="system:logs:query",
     )
-    
+
     log_delete = await Permissions.create(
         name="日志删除",
         type="BUTTON",
         parent=log_menu,
         perm="system:logs:delete",
     )
-    
+
     return {
         "log_menu": log_menu,
         "log_delete": log_delete,
@@ -76,8 +73,8 @@ class TestLogList:
         assert response.status_code == 200
         data = response.json()
         assert data["code"] == 20000
-        assert "results" in data["data"]
-        assert "count" in data["data"]
+        assert "list" in data["data"]
+        assert "total" in data["data"]
 
     def test_get_logs_with_filters(
         self, client: TestClient, auth_headers: dict, test_logs_for_api

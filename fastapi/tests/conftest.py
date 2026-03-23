@@ -1,15 +1,13 @@
-# -*- coding: utf-8 -*-
 """
 Pytest 配置和 fixtures
 
 提供测试数据库初始化、认证等辅助功能。
 """
-import pytest
-import pytest_asyncio
 import asyncio
 import uuid
-from typing import Optional
 
+import pytest
+import pytest_asyncio
 from fastapi.testclient import TestClient
 from tortoise import Tortoise
 
@@ -65,7 +63,7 @@ def anyio_backend():
     return "asyncio"
 
 
-def get_token_from_response(response) -> Optional[str]:
+def get_token_from_response(response) -> str | None:
     """从登录响应中提取 token"""
     if response.status_code == 200:
         data = response.json()
@@ -78,14 +76,14 @@ def get_token_from_response(response) -> Optional[str]:
 async def test_permissions(db):
     """创建测试权限/菜单"""
     from app.db.models.system import Permissions
-    
+
     # 创建根目录
     system_catalog = await Permissions.create(
         name="系统管理",
         type="CATALOG",
         sort=1,
     )
-    
+
     # 创建菜单 - 使用正确的权限标识
     user_menu = await Permissions.create(
         name="用户管理",
@@ -157,7 +155,7 @@ async def test_permissions(db):
         parent=system_catalog,
         perm="system:files:query",
     )
-    
+
     # 创建按钮权限
     user_add = await Permissions.create(
         name="用户新增",
@@ -177,7 +175,7 @@ async def test_permissions(db):
         parent=user_menu,
         perm="system:users:delete",
     )
-    
+
     role_add = await Permissions.create(
         name="角色新增",
         type="BUTTON",
@@ -196,7 +194,7 @@ async def test_permissions(db):
         parent=role_menu,
         perm="system:roles:delete",
     )
-    
+
     menu_add = await Permissions.create(
         name="菜单新增",
         type="BUTTON",
@@ -215,7 +213,7 @@ async def test_permissions(db):
         parent=menu_menu,
         perm="system:menus:delete",
     )
-    
+
     dept_add = await Permissions.create(
         name="部门新增",
         type="BUTTON",
@@ -234,7 +232,7 @@ async def test_permissions(db):
         parent=dept_menu,
         perm="system:departments:delete",
     )
-    
+
     dict_add = await Permissions.create(
         name="字典新增",
         type="BUTTON",
@@ -253,7 +251,7 @@ async def test_permissions(db):
         parent=dict_menu,
         perm="system:dicts:delete",
     )
-    
+
     notice_add = await Permissions.create(
         name="公告新增",
         type="BUTTON",
@@ -284,7 +282,7 @@ async def test_permissions(db):
         parent=notice_menu,
         perm="system:notices:revoke",
     )
-    
+
     # 日志管理菜单和权限
     log_menu = await Permissions.create(
         name="日志管理",
@@ -302,7 +300,7 @@ async def test_permissions(db):
         parent=log_menu,
         perm="system:logs:delete",
     )
-    
+
     return {
         "system_catalog": system_catalog,
         "user_menu": user_menu,
@@ -340,9 +338,9 @@ async def test_permissions(db):
 @pytest_asyncio.fixture(scope="function")
 async def test_role(db, test_permissions):
     """创建测试角色（带权限）"""
-    from app.db.models.system import Roles
-    
     import uuid
+
+    from app.db.models.system import Roles
     role_name = f"超级管理员_{uuid.uuid4().hex[:6]}"
 
     role = await Roles.create(
@@ -352,7 +350,7 @@ async def test_role(db, test_permissions):
         sort=1,
         remark="测试角色",
     )
-    
+
     # 关联所有权限
     permissions = [
         test_permissions["user_menu"],
@@ -387,7 +385,7 @@ async def test_role(db, test_permissions):
         test_permissions["log_delete"],
     ]
     await role.permissions.add(*permissions)
-    
+
     return {"id": role.id, "name": role.name, "code": role.code}
 
 
@@ -395,7 +393,7 @@ async def test_role(db, test_permissions):
 async def test_dept(db):
     """创建测试部门"""
     from app.db.models.system import Departments
-    
+
     dept = await Departments.create(
         name="测试公司",
         sort=1,
@@ -409,13 +407,14 @@ async def test_dept(db):
 @pytest_asyncio.fixture(scope="function")
 async def test_user_with_role(db, test_role, test_dept):
     """创建测试用户（带角色和部门）"""
-    from app.db.models.oauth import Users
-    from app.db.models.system import Roles, Departments
     from passlib.context import CryptContext
+
+    from app.db.models.oauth import Users
+    from app.db.models.system import Roles
 
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     hashed_password = pwd_context.hash("admin123")
-    
+
     # 使用唯一手机号
     unique_mobile = f"1380013{str(uuid.uuid4())[:4]}"
 
@@ -444,12 +443,13 @@ async def test_user_with_role(db, test_role, test_dept):
 @pytest_asyncio.fixture(scope="function")
 async def test_user(db) -> dict:
     """创建测试用户（每个测试使用唯一的手机号）"""
-    from app.db.models.oauth import Users
     from passlib.context import CryptContext
+
+    from app.db.models.oauth import Users
 
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     hashed_password = pwd_context.hash("admin123")
-    
+
     # 使用唯一手机号
     unique_mobile = f"1380013{str(uuid.uuid4())[:4]}"
 
@@ -489,7 +489,7 @@ async def auth_headers(client: TestClient, test_user_with_role) -> dict:
 
 
 @pytest.fixture(scope="function")
-def auth_client(client: TestClient, auth_headers: dict) -> Optional[TestClient]:
+def auth_client(client: TestClient, auth_headers: dict) -> TestClient | None:
     """
     创建带认证的测试客户端
     """

@@ -1,21 +1,18 @@
-# -*- coding: utf-8 -*-
 """
 异常处理测试
 测试 exceptions 模块的功能
 """
-import pytest
-from fastapi import HTTPException
-
 from app.core.exceptions import (
-    NotFound,
-    ValidationError,
-    BusinessError,
-    AuthenticationError,
-    PermissionDenied,
-    DuplicateError,
-    RateLimitError,
     APIException,
+    AuthenticationError,
+    BusinessError,
+    DuplicateError,
+    NotFound,
+    PermissionDenied,
+    RateLimitError,
+    ValidationError,
 )
+from fastapi import HTTPException
 
 
 class TestExceptions:
@@ -82,9 +79,9 @@ class TestExceptions:
         """测试异常默认消息"""
         exc = NotFound()
         assert exc.message == "资源不存在"
-        
+
         exc2 = ValidationError()
         assert exc2.message == "数据验证失败"
-        
+
         exc3 = BusinessError()
         assert exc3.message == "业务处理失败"

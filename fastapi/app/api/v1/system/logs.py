@@ -1,22 +1,18 @@
-# -*- coding: utf-8 -*-
 """
 操作日志 API
 """
 from datetime import datetime
-from typing import Optional
-
-from fastapi import APIRouter, Path, Query, Request
 
 from app.api.deps import require_permissions
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
 from app.schemas.system import (
-    BulkDelete,
     OperationLogPageResult,
     VisitStatsOut,
     VisitTrendOut,
 )
 from app.services.system.log_service import log_service
+from fastapi import APIRouter, Path, Query, Request
 
 router = APIRouter()
 
@@ -45,8 +41,8 @@ router = APIRouter()
 
 ### 响应数据
 返回分页结果：
-- `count`: 总记录数
-- `results`: 日志列表，每条日志包含：
+- `total`: 总记录数
+- `list`: 日志列表，每条日志包含：
   - `id`: 日志ID
   - `userId`: 用户ID
   - `username`: 用户名
@@ -80,8 +76,8 @@ router = APIRouter()
                         "code": 20000,
                         "message": "success",
                         "data": {
-                            "count": 150,
-                            "results": [
+                            "total": 150,
+                            "list": [
                                 {
                                     "id": 1,
                                     "userId": 1,
@@ -115,12 +111,12 @@ async def get_log_page(
     request: Request,
     page: int = Query(1, ge=1, description="页码"),
     page_size: int = Query(10, ge=1, le=100, description="每页数量"),
-    username: Optional[str] = Query(None, description="用户名"),
-    operation: Optional[str] = Query(None, description="操作描述"),
-    method: Optional[str] = Query(None, description="请求方法"),
-    status: Optional[int] = Query(None, description="状态"),
-    start_time: Optional[datetime] = Query(None, description="开始时间"),
-    end_time: Optional[datetime] = Query(None, description="结束时间"),
+    username: str | None = Query(None, description="用户名"),
+    operation: str | None = Query(None, description="操作描述"),
+    method: str | None = Query(None, description="请求方法"),
+    status: int | None = Query(None, description="状态"),
+    start_time: datetime | None = Query(None, description="开始时间"),
+    end_time: datetime | None = Query(None, description="结束时间"),
     current_user: Users = require_permissions("system:logs:query"),
 ):
     data = await log_service.get_page(
@@ -191,8 +187,8 @@ async def get_log_page(
 )
 async def get_visit_trend(
     request: Request,
-    start_date: Optional[datetime] = Query(None, description="开始日期"),
-    end_date: Optional[datetime] = Query(None, description="结束日期"),
+    start_date: datetime | None = Query(None, description="开始日期"),
+    end_date: datetime | None = Query(None, description="结束日期"),
     current_user: Users = require_permissions("system:logs:query"),
 ):
     data = await log_service.get_visit_trend(

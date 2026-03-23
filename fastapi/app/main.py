@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 DV-Admin FastAPI 主应用入口
 
@@ -7,15 +6,14 @@ DV-Admin FastAPI 主应用入口
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from tortoise.contrib.fastapi import register_tortoise
 
 from app.api.health import router as health_router
 from app.api.v1 import router as api_v1_router
+from app.core.cache import cache_service
 from app.core.config import settings
 from app.core.exceptions import (
     APIException,
@@ -24,13 +22,12 @@ from app.core.exceptions import (
     ValidationError,
     api_exception_handler,
     general_exception_handler,
-    http_exception_handler,
     validation_exception_handler,
 )
 from app.core.redis import redis_manager
 from app.middleware import RequestLoggingMiddleware, SlowQueryMiddleware
 from app.utils.logger import setup_logger
-from app.core.cache import cache_service
+from fastapi import FastAPI, status
 
 
 @asynccontextmanager

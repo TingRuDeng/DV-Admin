@@ -1,15 +1,15 @@
-# -*- coding: utf-8 -*-
 """
 自定义异常模块
 
 定义应用中使用的自定义异常类，用于统一错误处理。
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from fastapi import HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+
+from fastapi import HTTPException, Request, status
 
 
 class APIException(HTTPException):
@@ -24,7 +24,7 @@ class APIException(HTTPException):
         code: int = 500,
         message: str = "服务器内部错误",
         status_code: int = status.HTTP_200_OK,
-        headers: Optional[Dict[str, Any]] = None,
+        headers: dict[str, Any] | None = None,
     ):
         self.code = code
         self.message = message
@@ -123,7 +123,7 @@ async def api_exception_handler(request: Request, exc: APIException) -> JSONResp
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     """处理验证异常"""
-    errors: List[Dict[str, str]] = []
+    errors: list[dict[str, str]] = []
     for error in exc.errors():
         errors.append({
             "field": ".".join(str(x) for x in error["loc"]),

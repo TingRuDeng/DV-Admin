@@ -75,7 +75,7 @@ const UserAPI = {
    *
    * @param ids 用户ID字符串，多个以英文逗号(,)分割
    */
-  deleteByIds(ids: number[]) {
+  deleteByIds(ids: Array<string | number>) {
     return request({
       url: `${USER_BASE_URL}/`,
       method: "delete",

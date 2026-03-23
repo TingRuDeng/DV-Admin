@@ -1,11 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 字典管理 API 路由
 """
 
-from typing import List, Optional
-
-from fastapi import APIRouter, Query, Request
 
 from app.api.deps import require_permissions
 from app.schemas.base import PageResult, ResponseModel
@@ -20,6 +16,7 @@ from app.schemas.system import (
     DictWithItems,
 )
 from app.services.system.dict_service import dict_service
+from fastapi import APIRouter, Query, Request
 
 router = APIRouter()
 
@@ -29,7 +26,7 @@ async def get_dicts(
     request: Request,
     page: int = Query(1, ge=1, description="页码"),
     page_size: int = Query(10, ge=1, le=100, description="每页数量"),
-    search: Optional[str] = Query(None, description="搜索关键词"),
+    search: str | None = Query(None, description="搜索关键词"),
     current_user=require_permissions("system:dicts:query"),
 ):
     """获取字典类型分页列表"""
@@ -97,7 +94,7 @@ async def batch_delete_dicts(
 
 
 # 字典项管理
-@router.get("/{dict_id}/items", response_model=ResponseModel[List[DictItemOut]])
+@router.get("/{dict_id}/items", response_model=ResponseModel[list[DictItemOut]])
 async def get_dict_items(
     request: Request,
     dict_id: int,
@@ -144,7 +141,7 @@ async def delete_dict_item(
     return ResponseModel.success(message="删除成功")
 
 
-@router.get("/code/{code}", response_model=ResponseModel[List[DictItemOut]])
+@router.get("/code/{code}", response_model=ResponseModel[list[DictItemOut]])
 async def get_dict_by_code(
     request: Request,
     code: str,

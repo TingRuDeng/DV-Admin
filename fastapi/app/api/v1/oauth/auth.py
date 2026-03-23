@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 认证 API 路由
 
@@ -6,19 +5,16 @@
 """
 
 from datetime import timedelta
-from typing import Optional
 
-from fastapi import APIRouter, Depends, Request, Query
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.api.deps import CurrentUser, get_current_user
+from app.api.deps import CurrentUser
 from app.core.config import settings
 from app.core.exceptions import AuthenticationError
 from app.core.security import (
     create_access_token,
     create_refresh_token,
     decode_token,
-    get_password_hash,
     get_token_subject,
     verify_password,
     verify_token_type,
@@ -27,6 +23,7 @@ from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
 from app.schemas.oauth import Token, UserInfo, UserLogin
 from app.services.token_blacklist import token_blacklist_service
+from fastapi import APIRouter, Depends, Query, Request
 
 router = APIRouter()
 
@@ -735,7 +732,6 @@ async def get_captcha(
     request: Request,
 ) -> ResponseModel[dict]:
     import base64
-    from io import BytesIO
 
     from captcha.image import ImageCaptcha
 

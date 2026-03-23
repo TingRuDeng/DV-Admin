@@ -9,7 +9,8 @@ const MenuAPI = {
   /**
    * 获取菜单下拉列表
    */
-  getOptions() {
+  getOptions(_includeRoot?: boolean) {
+    void _includeRoot;
     return request<any, OptionType[]>({
       url: `${MENU_BASE_URL}/options/`,
       method: "get",

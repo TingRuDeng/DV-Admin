@@ -1,16 +1,13 @@
-# -*- coding: utf-8 -*-
 """
 角色管理 API 路由
 """
 
-from typing import List, Optional
-
-from fastapi import APIRouter, Query, Request
 
 from app.api.deps import require_permissions
 from app.schemas.base import PageResult, ResponseModel
 from app.schemas.system import BulkDelete, RoleCreate, RoleOut, RoleUpdate, RoleWithPermissions
 from app.services.system.role_service import role_service
+from fastapi import APIRouter, Query, Request
 
 router = APIRouter()
 
@@ -20,7 +17,7 @@ async def get_roles(
     request: Request,
     page: int = Query(1, ge=1, description="页码"),
     page_size: int = Query(10, ge=1, le=100, description="每页数量"),
-    search: Optional[str] = Query(None, description="搜索关键词"),
+    search: str | None = Query(None, description="搜索关键词"),
     current_user=require_permissions("system:roles:query"),
 ):
     """获取角色分页列表"""
@@ -32,7 +29,7 @@ async def get_roles(
     return ResponseModel.success(data=result)
 
 
-@router.get("/options/", response_model=ResponseModel[List[dict]])
+@router.get("/options/", response_model=ResponseModel[list[dict]])
 async def get_role_options(
     request: Request,
     current_user=require_permissions("system:roles:query"),
@@ -98,7 +95,7 @@ async def batch_delete_roles(
     return ResponseModel.success(message="批量删除成功")
 
 
-@router.get("/{role_id}/menu-ids/", response_model=ResponseModel[List[int]])
+@router.get("/{role_id}/menu-ids/", response_model=ResponseModel[list[int]])
 async def get_role_menu_ids(
     request: Request,
     role_id: int,
@@ -109,7 +106,7 @@ async def get_role_menu_ids(
     return ResponseModel.success(data=menu_ids)
 
 
-@router.get("/{role_id}/menus/", response_model=ResponseModel[List[dict]])
+@router.get("/{role_id}/menus/", response_model=ResponseModel[list[dict]])
 async def get_role_menus(
     request: Request,
     role_id: int,

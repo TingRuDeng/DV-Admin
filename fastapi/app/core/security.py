@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 安全工具模块
 
@@ -6,7 +5,7 @@
 """
 
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -45,9 +44,9 @@ def get_password_hash(password: str) -> str:
 
 
 def create_access_token(
-    subject: Union[str, Any],
-    expires_delta: Optional[timedelta] = None,
-    extra_claims: Optional[Dict[str, Any]] = None,
+    subject: str | Any,
+    expires_delta: timedelta | None = None,
+    extra_claims: dict[str, Any] | None = None,
 ) -> str:
     """
     创建访问令牌
@@ -86,8 +85,8 @@ def create_access_token(
 
 
 def create_refresh_token(
-    subject: Union[str, Any],
-    expires_delta: Optional[timedelta] = None,
+    subject: str | Any,
+    expires_delta: timedelta | None = None,
 ) -> str:
     """
     创建刷新令牌
@@ -121,7 +120,7 @@ def create_refresh_token(
     return encoded_jwt
 
 
-def decode_token(token: str) -> Optional[Dict[str, Any]]:
+def decode_token(token: str) -> dict[str, Any] | None:
     """
     解码令牌
 
@@ -142,7 +141,7 @@ def decode_token(token: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def verify_token_type(payload: Dict[str, Any], expected_type: str) -> bool:
+def verify_token_type(payload: dict[str, Any], expected_type: str) -> bool:
     """
     验证令牌类型
 
@@ -157,7 +156,7 @@ def verify_token_type(payload: Dict[str, Any], expected_type: str) -> bool:
     return token_type == expected_type
 
 
-def get_token_subject(payload: Dict[str, Any]) -> Optional[str]:
+def get_token_subject(payload: dict[str, Any]) -> str | None:
     """
     获取令牌主题（用户ID）
 
@@ -170,7 +169,7 @@ def get_token_subject(payload: Dict[str, Any]) -> Optional[str]:
     return payload.get("sub")
 
 
-def get_token_expiration(payload: Dict[str, Any]) -> Optional[datetime]:
+def get_token_expiration(payload: dict[str, Any]) -> datetime | None:
     """
     获取令牌过期时间
 
@@ -186,7 +185,7 @@ def get_token_expiration(payload: Dict[str, Any]) -> Optional[datetime]:
     return None
 
 
-def get_token_issued_at(payload: Dict[str, Any]) -> Optional[datetime]:
+def get_token_issued_at(payload: dict[str, Any]) -> datetime | None:
     """
     获取令牌签发时间
 

@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
 """
 文件上传接口测试
 """
-import pytest
-from fastapi.testclient import TestClient
 from io import BytesIO
+
+from fastapi.testclient import TestClient
 
 
 class TestFileUpload:

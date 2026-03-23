@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
 """
 系统管理 API 模块
 
 包含用户、角色、部门、菜单、字典等系统管理接口。
 """
-
-from fastapi import APIRouter
 
 from app.api.v1.system.depts import router as depts_router
 from app.api.v1.system.dict_items import router as dict_items_router
@@ -15,6 +12,7 @@ from app.api.v1.system.menus import router as menus_router
 from app.api.v1.system.notices import router as notices_router
 from app.api.v1.system.roles import router as roles_router
 from app.api.v1.system.users import router as users_router
+from fastapi import APIRouter
 
 router = APIRouter(prefix="/system", tags=["系统管理"])
 

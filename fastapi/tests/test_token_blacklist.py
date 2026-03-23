@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
 """
 Token 黑名单服务测试
 测试 app/services/token_blacklist.py 的功能
 """
-import pytest
-import pytest_asyncio
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from app.services.token_blacklist import TokenBlacklistService, token_blacklist_service
 

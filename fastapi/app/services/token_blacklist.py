@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Token 黑名单服务
 
@@ -6,15 +5,14 @@ Token 黑名单服务
 """
 
 from datetime import datetime, timezone
-from typing import Dict, Optional
 
+from loguru import logger
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
 
 from app.core.config import settings
 from app.core.redis import redis_manager
 from app.core.security import decode_token, get_token_expiration
-from loguru import logger
 
 
 class TokenBlacklistService:
@@ -32,7 +30,7 @@ class TokenBlacklistService:
 
     def __init__(self):
         """初始化服务"""
-        self._redis: Optional[Redis] = None
+        self._redis: Redis | None = None
 
     @property
     def redis(self) -> Redis:
@@ -76,7 +74,7 @@ class TokenBlacklistService:
     async def add_token_to_blacklist(
         self,
         token: str,
-        user_id: Optional[int] = None,
+        user_id: int | None = None,
         reason: str = "logout",
     ) -> bool:
         """

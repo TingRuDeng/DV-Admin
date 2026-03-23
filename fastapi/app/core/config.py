@@ -1,17 +1,14 @@
-# -*- coding: utf-8 -*-
 """
 应用配置模块
 
 使用 Pydantic Settings 管理应用配置，支持环境变量和 .env 文件。
 """
 
-import os
 import secrets
 import warnings
 from functools import lru_cache
-from typing import List, Optional
 
-from pydantic import Field, field_validator
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.core.security_validator import SecurityValidator
@@ -49,13 +46,13 @@ class Settings(BaseSettings):
 
     # Redis 配置
     redis_url: str = Field(default="redis://localhost:6379/0", alias="REDIS_URL")
-    redis_password: Optional[str] = Field(default=None, alias="REDIS_PASSWORD")
+    redis_password: str | None = Field(default=None, alias="REDIS_PASSWORD")
 
     # JWT 配置
     # 生产环境必须通过环境变量设置 SECRET_KEY
     # 开发环境如果未设置，将自动生成临时密钥
-    _actual_secret_key: Optional[str] = None  # 实际使用的密钥（可能是自动生成的）
-    secret_key: Optional[str] = Field(default=None, alias="SECRET_KEY")
+    _actual_secret_key: str | None = None  # 实际使用的密钥（可能是自动生成的）
+    secret_key: str | None = Field(default=None, alias="SECRET_KEY")
     algorithm: str = Field(default="HS256", alias="ALGORITHM")
     access_token_expire_minutes: int = Field(default=30, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
     refresh_token_expire_days: int = Field(default=7, alias="REFRESH_TOKEN_EXPIRE_DAYS")
@@ -72,7 +69,7 @@ class Settings(BaseSettings):
     # 日志配置
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
     log_format: str = Field(default="json", alias="LOG_FORMAT")
-    log_file: Optional[str] = Field(default=None, alias="LOG_FILE")
+    log_file: str | None = Field(default=None, alias="LOG_FILE")
     log_rotation: str = Field(default="10 MB", alias="LOG_ROTATION")
     log_retention: str = Field(default="7 days", alias="LOG_RETENTION")
 
@@ -131,7 +128,7 @@ class Settings(BaseSettings):
             SecurityValidator.print_security_warnings(security_warnings)
 
     @property
-    def allowed_origins(self) -> List[str]:
+    def allowed_origins(self) -> list[str]:
         """解析允许的来源列表"""
         if not self.allowed_origins_str or self.allowed_origins_str.strip() == "":
             return ["http://localhost:3000", "http://localhost:5173"]

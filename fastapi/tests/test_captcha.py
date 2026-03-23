@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 """
 验证码接口测试 - TDD 红阶段
 """
-import pytest
 from fastapi.testclient import TestClient
 
 
