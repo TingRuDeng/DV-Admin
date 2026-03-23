@@ -49,5 +49,6 @@ htmlcov/
 .mypy_cache/
 fastapi/uploads/avatar
 fastapi/uploads/files
+.worktrees/
 dv_admin.db-shm
 dv_admin.db-wal
