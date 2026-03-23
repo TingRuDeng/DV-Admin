@@ -5,6 +5,8 @@ Pytest 配置和 fixtures
 """
 import asyncio
 import uuid
+from pathlib import Path
+from tempfile import gettempdir
 
 import pytest
 import pytest_asyncio
@@ -23,9 +25,10 @@ def event_loop():
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def init_test_db():
     """初始化测试数据库 (session 级别，所有测试共享)"""
-    # 使用内存数据库
+    # 使用临时文件数据库，避免跨事件循环重连时丢失内存表结构
+    db_path = Path(gettempdir()) / f"dv_admin_fastapi_test_{uuid.uuid4().hex}.sqlite3"
     await Tortoise.init(
-        db_url="sqlite://:memory:",
+        db_url=f"sqlite://{db_path}",
         modules={
             "models": [
                 "app.db.models.oauth",
@@ -42,6 +45,8 @@ async def init_test_db():
     yield
 
     await Tortoise.close_connections()
+    if db_path.exists():
+        db_path.unlink()
 
 
 @pytest_asyncio.fixture(scope="function")
