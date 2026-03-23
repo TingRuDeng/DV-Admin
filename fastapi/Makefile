@@ -10,7 +10,8 @@ help:
 	@echo "  make clean      - 清理缓存和临时文件"
 
 lint:
-	uv run ruff check .
+	uv run ruff check . --ignore I
+	uv run isort . --check-only
 
 typecheck:
 	uv run mypy app/schemas
