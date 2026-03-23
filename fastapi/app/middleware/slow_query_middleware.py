@@ -8,12 +8,12 @@ import time
 from collections.abc import Callable
 from typing import Any
 
+from fastapi import Request, Response
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
 from app.utils.logger import get_request_id
-from fastapi import Request, Response
 
 
 class SlowQueryMiddleware(BaseHTTPMiddleware):

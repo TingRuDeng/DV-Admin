@@ -3,11 +3,12 @@
 """
 
 
+from fastapi import APIRouter, Request
+
 from app.api.deps import require_permissions
 from app.schemas.base import ResponseModel
 from app.schemas.system import BulkDelete, DeptCreate, DeptOut, DeptTree, DeptUpdate
 from app.services.system.dept_service import dept_service
-from fastapi import APIRouter, Request
 
 router = APIRouter()
 

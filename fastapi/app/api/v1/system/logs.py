@@ -3,6 +3,8 @@
 """
 from datetime import datetime
 
+from fastapi import APIRouter, Path, Query, Request
+
 from app.api.deps import require_permissions
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
@@ -12,7 +14,6 @@ from app.schemas.system import (
     VisitTrendOut,
 )
 from app.services.system.log_service import log_service
-from fastapi import APIRouter, Path, Query, Request
 
 router = APIRouter()
 
