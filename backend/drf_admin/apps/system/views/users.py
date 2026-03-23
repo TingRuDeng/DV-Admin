@@ -53,7 +53,7 @@ class UsersViewSet(AdminViewSet):
 
     用户详情信息, status: 200(成功), return: 单个用户信息详情
     """
-    queryset = Users.objects.all()
+    queryset = Users.objects.all().select_related('dept').prefetch_related('roles')
     serializer_class = UsersSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
     filterset_class = UsersFilter

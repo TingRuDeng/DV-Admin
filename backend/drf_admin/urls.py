@@ -49,8 +49,8 @@ EXTRA_ROUTES = [path(f'{base_api}{route}/', include(f'drf_admin.apps.{route}.url
 # 添加额外的路由到 urlpatterns
 urlpatterns.extend(EXTRA_ROUTES)
 
-# 仅在非生产环境添加 Swagger 文档 URL
-if DEBUG:
+# Swagger API docs - controlled by ENABLE_SWAGGER env var (default False for security)
+if settings.ENABLE_SWAGGER:
     urlpatterns += [
         re_path(rf'^{base_api}swagger(?P<format>\.json|\.yaml)$',
                 xframe_options_exempt(schema_view.without_ui(cache_timeout=0)), name='schema-json'),
