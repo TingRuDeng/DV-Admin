@@ -7,12 +7,12 @@
 from datetime import datetime
 from typing import Any
 
+from fastapi import APIRouter, status
 from loguru import logger
 from pydantic import BaseModel
 from tortoise import Tortoise
 
 from app.core.config import settings
-from fastapi import APIRouter, status
 
 router = APIRouter(tags=["健康检查"])
 

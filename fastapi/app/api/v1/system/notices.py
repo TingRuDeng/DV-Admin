@@ -3,6 +3,8 @@
 """
 
 
+from fastapi import APIRouter, Query, Request
+
 from app.api.deps import require_permissions
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
@@ -16,7 +18,6 @@ from app.schemas.system import (
     NoticeUpdate,
 )
 from app.services.system.notice_service import notice_service
-from fastapi import APIRouter, Query, Request
 
 router = APIRouter()
 

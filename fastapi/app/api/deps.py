@@ -5,6 +5,7 @@ API 依赖模块
 """
 
 
+from fastapi import Depends, Header, Request
 from fastapi.security import OAuth2PasswordBearer
 
 from app.core.exceptions import AuthenticationError, PermissionDenied
@@ -16,7 +17,6 @@ from app.core.security import (
 )
 from app.db.models.oauth import Users
 from app.services.token_blacklist import token_blacklist_service
-from fastapi import Depends, Header, Request
 
 # OAuth2 密码模式
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/oauth/token", auto_error=False)

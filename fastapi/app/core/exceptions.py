@@ -6,10 +6,9 @@
 
 from typing import Any
 
+from fastapi import HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-
-from fastapi import HTTPException, Request, status
 
 
 class APIException(HTTPException):

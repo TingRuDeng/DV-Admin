@@ -2,6 +2,8 @@
 用户管理 API 路由
 """
 
+from fastapi import APIRouter, File, Query, Request, UploadFile
+
 from app.api.deps import require_permissions
 from app.db.models.oauth import Users
 from app.schemas.base import PageResult, ResponseModel
@@ -15,7 +17,6 @@ from app.schemas.system import (
     UserUpdate,
 )
 from app.services.system.user_service import user_service
-from fastapi import APIRouter, File, Query, Request, UploadFile
 
 router = APIRouter()
 

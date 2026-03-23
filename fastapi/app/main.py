@@ -6,6 +6,7 @@ DV-Admin FastAPI 主应用入口
 
 from contextlib import asynccontextmanager
 
+from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
@@ -27,7 +28,6 @@ from app.core.exceptions import (
 from app.core.redis import redis_manager
 from app.middleware import RequestLoggingMiddleware, SlowQueryMiddleware
 from app.utils.logger import setup_logger
-from fastapi import FastAPI, status
 
 
 @asynccontextmanager

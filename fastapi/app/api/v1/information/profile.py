@@ -8,6 +8,8 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+from fastapi import APIRouter, File, Request, UploadFile
+
 from app.api.deps import CurrentUser
 from app.core.config import settings
 from app.core.exceptions import ValidationError
@@ -16,7 +18,6 @@ from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
 from app.schemas.oauth import ChangePassword, UpdateProfile, UserInfo, UserProfile
 from app.utils.file import allowed_file, secure_filename
-from fastapi import APIRouter, File, Request, UploadFile
 
 router = APIRouter()
 
