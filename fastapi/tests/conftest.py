@@ -112,9 +112,17 @@ async def db():
 @pytest.fixture(scope="function")
 def client() -> TestClient:
     """创建测试客户端"""
-    from app.main import app
-    with TestClient(app) as test_client:
-        yield test_client
+    from app.core.config import settings
+    from app.main import create_app
+
+    original_database_url = settings.database_url
+    settings.database_url = f"sqlite://{TEST_DB_PATH}"
+    try:
+        app = create_app()
+        with TestClient(app) as test_client:
+            yield test_client
+    finally:
+        settings.database_url = original_database_url
 
 
 @pytest.fixture(scope="function")
