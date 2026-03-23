@@ -1,6 +1,5 @@
 *.pyc
 .idea
-pnpm-lock.yaml
 frontend/node_modules
 frontend/.vscode
 .eslintcache
@@ -51,3 +50,5 @@ fastapi/uploads/avatar
 fastapi/uploads/files
 dv_admin.db-shm
 dv_admin.db-wal
+!frontend/package.json
+!frontend/pnpm-lock.yaml
