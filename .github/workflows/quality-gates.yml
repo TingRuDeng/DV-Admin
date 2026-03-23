@@ -8,7 +8,7 @@ on:
       - main
 
 concurrency:
-  group: quality-gates-${{ github.event.pull_request.number || github.ref }}
+  group: quality-gates-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
