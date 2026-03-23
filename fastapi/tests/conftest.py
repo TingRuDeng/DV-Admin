@@ -60,7 +60,8 @@ async def db():
 def client() -> TestClient:
     """创建测试客户端"""
     from app.main import app
-    return TestClient(app)
+    with TestClient(app) as test_client:
+        yield test_client
 
 
 @pytest.fixture(scope="function")
@@ -501,6 +502,6 @@ def auth_client(client: TestClient, auth_headers: dict) -> TestClient | None:
     if not auth_headers:
         pytest.skip("无法获取认证 token，跳过需要认证的测试")
 
-    test_client = TestClient(client.app)
-    test_client.headers.update(auth_headers)
-    return test_client
+    with TestClient(client.app) as test_client:
+        test_client.headers.update(auth_headers)
+        yield test_client
