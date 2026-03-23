@@ -8,13 +8,62 @@ import uuid
 from pathlib import Path
 from tempfile import gettempdir
 
+import httpx
 import pytest
 import pytest_asyncio
-from fastapi.testclient import TestClient
 from tortoise import Tortoise
 from tortoise.exceptions import ConfigurationError
 
 TEST_DB_PATH = Path(gettempdir()) / f"dv_admin_fastapi_test_{uuid.uuid4().hex}.sqlite3"
+
+
+class SyncASGIClient:
+    """让同步测试通过同一事件循环驱动 ASGI 请求，避免 TestClient 额外 portal 线程。"""
+
+    def __init__(self, app, loop):
+        self._app = app
+        self._loop = loop
+        self._lifespan_cm = None
+        self._client: httpx.AsyncClient | None = None
+
+    def start(self) -> "SyncASGIClient":
+        self._lifespan_cm = self._app.router.lifespan_context(self._app)
+        self._loop.run_until_complete(self._lifespan_cm.__aenter__())
+        self._client = httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=self._app),
+            base_url="http://testserver",
+        )
+        self._loop.run_until_complete(self._client.__aenter__())
+        return self
+
+    def close(self) -> None:
+        if self._client is not None:
+            self._loop.run_until_complete(self._client.aclose())
+            self._client = None
+        if self._lifespan_cm is not None:
+            self._loop.run_until_complete(self._lifespan_cm.__aexit__(None, None, None))
+            self._lifespan_cm = None
+
+    @property
+    def headers(self):
+        assert self._client is not None
+        return self._client.headers
+
+    def request(self, method: str, url: str, **kwargs):
+        assert self._client is not None
+        return self._loop.run_until_complete(self._client.request(method, url, **kwargs))
+
+    def get(self, url: str, **kwargs):
+        return self.request("GET", url, **kwargs)
+
+    def post(self, url: str, **kwargs):
+        return self.request("POST", url, **kwargs)
+
+    def put(self, url: str, **kwargs):
+        return self.request("PUT", url, **kwargs)
+
+    def delete(self, url: str, **kwargs):
+        return self.request("DELETE", url, **kwargs)
 
 
 async def ensure_test_db_initialized() -> None:
@@ -79,14 +128,6 @@ async def reset_test_db_state() -> None:
     redis_manager._pool = None
 
 
-@pytest.fixture(scope="session")
-def event_loop():
-    """创建事件循环"""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
-
-
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def init_test_db():
     """初始化测试数据库 (session 级别，所有测试共享)"""
@@ -101,6 +142,11 @@ async def init_test_db():
         TEST_DB_PATH.unlink()
 
 
+@pytest_asyncio.fixture(scope="session")
+async def session_loop():
+    return asyncio.get_running_loop()
+
+
 @pytest_asyncio.fixture(scope="function")
 async def db():
     """确保函数级测试始终能拿到可用数据库上下文"""
@@ -110,18 +156,21 @@ async def db():
 
 
 @pytest.fixture(scope="function")
-def client() -> TestClient:
+def client(session_loop) -> SyncASGIClient:
     """创建测试客户端"""
     from app.core.config import settings
     from app.main import create_app
 
     original_database_url = settings.database_url
     settings.database_url = f"sqlite://{TEST_DB_PATH}"
+    sync_client = None
     try:
         app = create_app()
-        with TestClient(app) as test_client:
-            yield test_client
+        sync_client = SyncASGIClient(app, session_loop).start()
+        yield sync_client
     finally:
+        if sync_client is not None:
+            sync_client.close()
         settings.database_url = original_database_url
 
 
@@ -538,7 +587,7 @@ async def test_user(db) -> dict:
 
 
 @pytest.fixture(scope="function")
-async def auth_headers(client: TestClient, test_user_with_role) -> dict:
+def auth_headers(client: SyncASGIClient, test_user_with_role) -> dict:
     """
     获取认证 headers（登录获取 token）
     """
@@ -556,7 +605,7 @@ async def auth_headers(client: TestClient, test_user_with_role) -> dict:
 
 
 @pytest.fixture(scope="function")
-def auth_client(client: TestClient, auth_headers: dict) -> TestClient | None:
+def auth_client(client: SyncASGIClient, auth_headers: dict) -> SyncASGIClient | None:
     """
     创建带认证的测试客户端
     """
