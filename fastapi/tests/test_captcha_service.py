@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 """
 验证码服务测试
 测试 CaptchaService 的所有方法
 """
 import pytest
-import pytest_asyncio
 
 from app.services.captcha_service import get_captcha_service
 
@@ -17,7 +15,7 @@ class TestCaptchaService:
         """测试生成验证码"""
         service = get_captcha_service()
         key, base64_image = await service.create()
-        
+
         assert key is not None
         assert base64_image is not None
         assert isinstance(key, str)
@@ -31,7 +29,7 @@ class TestCaptchaService:
         service = get_captcha_service()
         # 生成验证码
         key, _ = await service.create()
-        
+
         # 验证错误的答案
         result = await service.verify(key, "wrong_answer")
         assert result is False
@@ -52,6 +50,6 @@ class TestCaptchaService:
         for _ in range(5):
             key, _ = await service.create()
             keys.add(key)
-        
+
         # 每个验证码的 key 应该是唯一的
         assert len(keys) == 5

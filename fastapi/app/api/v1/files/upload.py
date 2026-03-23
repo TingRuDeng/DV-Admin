@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 文件上传 API 路由
 
@@ -6,12 +5,12 @@
 """
 
 import os
-from fastapi import APIRouter, UploadFile, File, Request, Query
 
 from app.core.config import settings
 from app.core.exceptions import ValidationError
 from app.schemas.base import ResponseModel
 from app.utils.file import save_upload_file
+from fastapi import APIRouter, File, Query, Request, UploadFile
 
 router = APIRouter()
 

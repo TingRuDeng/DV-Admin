@@ -21,7 +21,7 @@ const RoleAPI = {
    * @param roleId 角色ID
    * @returns 菜单ID集合
    */
-  getRoleMenuIds(roleId: number) {
+  getRoleMenuIds(roleId: string | number) {
     return request<any, number[]>({
       url: `${ROLE_BASE_URL}/${roleId}/menu-ids/`,
       method: "get",
@@ -34,7 +34,7 @@ const RoleAPI = {
    * @param roleId 角色ID
    * @param menuIds 菜单ID集合
    */
-  updateRoleMenus(roleId: number, menuIds: number[]) {
+  updateRoleMenus(roleId: string | number, menuIds: number[]) {
     return request({
       url: `${ROLE_BASE_URL}/${roleId}/menus/`,
       method: "put",

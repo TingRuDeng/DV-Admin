@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 """
 角色管理 Service
 """
-from typing import List, Optional, Dict, Any
+from typing import Any
 
-from app.core.cache import cache_service, CacheKeys
-from app.core.exceptions import ValidationError, NotFound
+from app.core.cache import CacheKeys, cache_service
+from app.core.exceptions import NotFound, ValidationError
 from app.db.models.system import Permissions, Roles
 from app.schemas.base import PageResult
 from app.schemas.system import RoleCreate, RoleOut, RoleUpdate, RoleWithPermissions
@@ -17,7 +16,7 @@ class RoleService:
     # 缓存 TTL（秒）
     CACHE_TTL = 600  # 10分钟
 
-    async def _clear_role_cache(self, role_id: Optional[int] = None) -> None:
+    async def _clear_role_cache(self, role_id: int | None = None) -> None:
         """
         清除角色缓存
 
@@ -37,7 +36,7 @@ class RoleService:
         self,
         page: int,
         page_size: int,
-        search: Optional[str] = None,
+        search: str | None = None,
     ) -> PageResult[RoleOut]:
         """
         获取角色分页列表
@@ -194,7 +193,7 @@ class RoleService:
         # 清除缓存
         await self._clear_role_cache(role_id)
 
-    async def batch_delete(self, ids: List[int]) -> None:
+    async def batch_delete(self, ids: list[int]) -> None:
         """
         批量删除角色
         """
@@ -204,7 +203,7 @@ class RoleService:
         for role_id in ids:
             await self._clear_role_cache(role_id)
 
-    async def get_options(self) -> List[Dict[str, Any]]:
+    async def get_options(self) -> list[dict[str, Any]]:
         """
         获取角色下拉选项（带缓存）
         """
@@ -216,7 +215,7 @@ class RoleService:
             CacheKeys.ROLE_OPTIONS, _fetch_options, ttl=self.CACHE_TTL
         )
 
-    async def get_menu_ids(self, role_id: int) -> List[int]:
+    async def get_menu_ids(self, role_id: int) -> list[int]:
         """
         获取角色的菜单ID列表
         """
@@ -228,7 +227,7 @@ class RoleService:
         permission_ids = [perm.id for perm in role.permissions]
         return permission_ids
 
-    async def get_menus(self, role_id: int) -> List[Dict[str, Any]]:
+    async def get_menus(self, role_id: int) -> list[dict[str, Any]]:
         """
         获取角色的菜单列表
         """

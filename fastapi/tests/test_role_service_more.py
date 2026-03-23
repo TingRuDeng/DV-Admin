@@ -1,16 +1,16 @@
-# -*- coding: utf-8 -*-
 """
 角色服务层测试
 测试 RoleService 的更多方法
 """
-import pytest
-import pytest_asyncio
 import uuid
 
-from app.services.system.role_service import role_service
-from app.db.models.system import Roles, Permissions
-from app.schemas.system import RoleCreate, RoleUpdate
+import pytest
+import pytest_asyncio
+
 from app.core.exceptions import NotFound
+from app.db.models.system import Permissions, Roles
+from app.schemas.system import RoleCreate, RoleUpdate
+from app.services.system.role_service import role_service
 
 
 @pytest_asyncio.fixture
@@ -47,7 +47,7 @@ class TestRoleServiceGetPage:
         """测试基本分页查询"""
         result = await role_service.get_page(page=1, page_size=10)
         assert result.total >= 1
-        assert len(result.results) >= 1
+        assert len(result.list) >= 1
 
     @pytest.mark.asyncio
     async def test_get_page_with_search(self, db, test_role_for_service):
@@ -196,10 +196,10 @@ class TestRoleServiceDelete:
                 status=1,
             )
             roles.append(role)
-        
+
         ids = [r.id for r in roles]
         await role_service.batch_delete(ids)
-        
+
         for role_id in ids:
             exists = await Roles.filter(id=role_id).exists()
             assert not exists

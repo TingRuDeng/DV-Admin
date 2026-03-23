@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 Schema 基类测试
 测试 base schema 的功能
 """
-import pytest
 
 from app.schemas.base import PageResult
 
@@ -19,11 +17,11 @@ class TestPageResult:
             page_size=10,
             results=[1, 2, 3],
         )
-        
+
         assert result.total == 100
         assert result.page == 1
         assert result.page_size == 10
-        assert result.results == [1, 2, 3]
+        assert result.list == [1, 2, 3]
         assert result.total_pages == 10
 
     def test_create_empty(self):
@@ -34,7 +32,7 @@ class TestPageResult:
             page_size=10,
             results=[],
         )
-        
+
         assert result.total == 0
         assert result.total_pages == 0
 
@@ -46,7 +44,7 @@ class TestPageResult:
             page_size=10,
             results=[1, 2, 3, 4, 5],
         )
-        
+
         assert result.total_pages == 1
 
     def test_create_exact_pages(self):
@@ -57,7 +55,7 @@ class TestPageResult:
             page_size=10,
             results=[],
         )
-        
+
         assert result.total_pages == 2
 
     def test_create_with_remainder(self):
@@ -68,5 +66,5 @@ class TestPageResult:
             page_size=10,
             results=[],
         )
-        
+
         assert result.total_pages == 3

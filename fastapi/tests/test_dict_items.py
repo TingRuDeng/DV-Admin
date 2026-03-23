@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 """
 字典项管理接口测试
 """
-import pytest
 from fastapi.testclient import TestClient
 
 

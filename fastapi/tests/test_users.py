@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 """
 用户管理接口测试 - TDD
 """
-import pytest
 from fastapi.testclient import TestClient
 
 

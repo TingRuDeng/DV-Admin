@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
 """
 部门管理接口测试
 """
-import pytest
-import pytest_asyncio
 import uuid
+
+import pytest_asyncio
 from fastapi.testclient import TestClient
 
 from app.db.models.system import Departments

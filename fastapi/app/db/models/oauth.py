@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 认证授权模型模块
 
@@ -9,7 +8,7 @@
 from tortoise import fields
 
 from app.db.models.base import BaseModel
-from app.db.models.system import Departments, Roles
+from app.db.models.system import Roles
 
 
 class Users(BaseModel):
@@ -119,7 +118,7 @@ class Users(BaseModel):
         Returns:
             权限标识列表
         """
-        from app.core.cache import cache_service, CacheKeys
+        from app.core.cache import CacheKeys, cache_service
 
         # 超级用户返回空列表（拥有所有权限）
         if self.is_superuser:
@@ -157,7 +156,7 @@ class Users(BaseModel):
         Returns:
             菜单列表（树形结构）
         """
-        from app.core.cache import cache_service, CacheKeys
+        from app.core.cache import CacheKeys, cache_service
         from app.db.models.system import Permissions
 
         # 尝试从缓存获取

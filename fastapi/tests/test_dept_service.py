@@ -1,16 +1,16 @@
-# -*- coding: utf-8 -*-
 """
 部门服务层测试
 测试 DeptService 的所有方法
 """
-import pytest
-import pytest_asyncio
 import uuid
 
-from app.services.system.dept_service import dept_service
+import pytest
+import pytest_asyncio
+
+from app.core.exceptions import BusinessError, NotFound
 from app.db.models.system import Departments
 from app.schemas.system import DeptCreate, DeptUpdate
-from app.core.exceptions import NotFound, BusinessError
+from app.services.system.dept_service import dept_service
 
 
 @pytest_asyncio.fixture
@@ -22,7 +22,7 @@ async def test_depts_for_service(db):
         sort=1,
         status=1,
     )
-    
+
     # 创建子部门
     children = []
     for i in range(3):
@@ -33,7 +33,7 @@ async def test_depts_for_service(db):
             parent_id=parent.id,
         )
         children.append(child)
-    
+
     return {"parent": parent, "children": children}
 
 
@@ -182,10 +182,10 @@ class TestDeptServiceBulkDelete:
                 status=1,
             )
             depts.append(dept)
-        
+
         ids = [d.id for d in depts]
         await dept_service.bulk_delete(ids)
-        
+
         for dept_id in ids:
             exists = await Departments.filter(id=dept_id).exists()
             assert not exists

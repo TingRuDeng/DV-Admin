@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 缓存服务模块
 
@@ -9,7 +8,7 @@
 import json
 import time
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 from loguru import logger
 
@@ -20,12 +19,12 @@ class CacheBackend(ABC):
     """缓存后端抽象基类"""
 
     @abstractmethod
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """获取缓存值"""
         pass
 
     @abstractmethod
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """设置缓存值"""
         pass
 
@@ -40,7 +39,7 @@ class CacheBackend(ABC):
         pass
 
     @abstractmethod
-    async def clear(self, pattern: Optional[str] = None) -> int:
+    async def clear(self, pattern: str | None = None) -> int:
         """清除缓存"""
         pass
 
@@ -54,10 +53,10 @@ class MemoryCache(CacheBackend):
     """
 
     def __init__(self):
-        self._cache: Dict[str, Dict[str, Any]] = {}
+        self._cache: dict[str, dict[str, Any]] = {}
         self._default_ttl = settings.cache_ttl
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """获取缓存值"""
         if key not in self._cache:
             return None
@@ -71,7 +70,7 @@ class MemoryCache(CacheBackend):
 
         return item["value"]
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """设置缓存值"""
         ttl = ttl or self._default_ttl
         expires_at = time.time() + ttl if ttl > 0 else None
@@ -95,7 +94,7 @@ class MemoryCache(CacheBackend):
         value = await self.get(key)
         return value is not None
 
-    async def clear(self, pattern: Optional[str] = None) -> int:
+    async def clear(self, pattern: str | None = None) -> int:
         """清除缓存"""
         if pattern is None:
             count = len(self._cache)
@@ -156,7 +155,7 @@ class RedisCache(CacheBackend):
         """生成带前缀的键"""
         return f"{self._prefix}{key}"
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """获取缓存值"""
         try:
             redis = await self._get_redis()
@@ -173,7 +172,7 @@ class RedisCache(CacheBackend):
             logger.warning(f"Redis get 失败: {e}")
             return None
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """设置缓存值"""
         try:
             redis = await self._get_redis()
@@ -214,7 +213,7 @@ class RedisCache(CacheBackend):
             logger.warning(f"Redis exists 失败: {e}")
             return False
 
-    async def clear(self, pattern: Optional[str] = None) -> int:
+    async def clear(self, pattern: str | None = None) -> int:
         """清除缓存"""
         try:
             redis = await self._get_redis()
@@ -246,7 +245,7 @@ class CacheService:
     """
 
     def __init__(self):
-        self._backend: Optional[CacheBackend] = None
+        self._backend: CacheBackend | None = None
         self._memory_cache = MemoryCache()
         self._redis_cache = RedisCache()
         self._use_redis = False
@@ -269,11 +268,11 @@ class CacheService:
             self._use_redis = False
             logger.warning(f"Redis 初始化失败，使用内存缓存: {e}")
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """获取缓存值"""
         return await self._backend.get(key)
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """设置缓存值"""
         return await self._backend.set(key, value, ttl)
 
@@ -285,12 +284,12 @@ class CacheService:
         """检查缓存是否存在"""
         return await self._backend.exists(key)
 
-    async def clear(self, pattern: Optional[str] = None) -> int:
+    async def clear(self, pattern: str | None = None) -> int:
         """清除缓存"""
         return await self._backend.clear(pattern)
 
     async def get_or_set(
-        self, key: str, factory: callable, ttl: Optional[int] = None
+        self, key: str, factory: callable, ttl: int | None = None
     ) -> Any:
         """
         获取缓存，不存在则通过工厂函数创建

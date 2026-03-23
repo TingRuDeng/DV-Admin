@@ -222,8 +222,8 @@ function fetchData() {
   loading.value = true;
   DictItemAPI.getDictItemPage(queryParams)
     .then((data) => {
-      tableData.value = data.results;
-      total.value = data.count;
+      tableData.value = data.list;
+      total.value = data.total;
     })
     .finally(() => {
       loading.value = false;
@@ -329,7 +329,7 @@ function handleDelete(id?: number) {
 
 onMounted(() => {
   DictAPI.getPage().then((data) => {
-    dictList.value = data.results;
+    dictList.value = data.list;
     // 如果dict存在，设置为下拉框的选中值
     if (dict) {
       queryParams.dict = parseInt(dict, 10);

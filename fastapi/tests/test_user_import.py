@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 用户导入功能测试
 
@@ -6,7 +5,7 @@
 """
 import io
 import uuid
-import pytest
+
 import pytest_asyncio
 from openpyxl import Workbook
 
@@ -15,7 +14,7 @@ from openpyxl import Workbook
 async def test_import_setup(db):
     """创建导入测试所需的基础数据"""
     from app.db.models.system import Departments, Roles
-    
+
     # 创建测试部门
     dept = await Departments.create(
         name="测试部门",
@@ -24,7 +23,7 @@ async def test_import_setup(db):
         leader="管理员",
         phone="13800138000",
     )
-    
+
     # 创建测试角色
     role1 = await Roles.create(
         name=f"测试角色1_{uuid.uuid4().hex[:6]}",
@@ -32,14 +31,14 @@ async def test_import_setup(db):
         status=1,
         sort=1,
     )
-    
+
     role2 = await Roles.create(
         name=f"测试角色2_{uuid.uuid4().hex[:6]}",
         code=f"test_role2_{uuid.uuid4().hex[:6]}",
         status=1,
         sort=2,
     )
-    
+
     return {
         "dept": dept,
         "role1": role1,
@@ -52,7 +51,7 @@ async def test_user_import(test_import_setup):
     测试用户导入功能
     """
     from app.services.system.user_service import user_service
-    
+
     dept = test_import_setup["dept"]
     role1 = test_import_setup["role1"]
     role2 = test_import_setup["role2"]
@@ -118,6 +117,7 @@ async def test_import_template():
 
 if __name__ == "__main__":
     import asyncio
+
     import pytest_asyncio
 
     # 运行测试

@@ -1,11 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 字典项管理 API 路由 (扁平化接口)
 """
 
-from typing import Optional
-
-from fastapi import APIRouter, Query, Request
 
 from app.api.deps import require_permissions
 from app.schemas.base import PageResult, ResponseModel
@@ -16,6 +12,7 @@ from app.schemas.system import (
     DictItemUpdate,
 )
 from app.services.system.dict_service import dict_service
+from fastapi import APIRouter, Query, Request
 
 router = APIRouter()
 
@@ -25,9 +22,9 @@ async def get_dict_item_page(
     request: Request,
     page: int = Query(1, ge=1, description="页码"),
     page_size: int = Query(10, ge=1, le=100, description="每页数量"),
-    dict_id: Optional[int] = Query(None, alias="dict", description="字典ID"),
-    label: Optional[str] = Query(None, description="标签"),
-    code: Optional[str] = Query(None, alias="dictCode", description="字典编码"),
+    dict_id: int | None = Query(None, alias="dict", description="字典ID"),
+    label: str | None = Query(None, description="标签"),
+    code: str | None = Query(None, alias="dictCode", description="字典编码"),
     current_user=require_permissions("system:dicts:query"),
 ):
     """获取字典项分页列表"""

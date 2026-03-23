@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 """
 OAuth 认证接口测试
 """
-import pytest
 from fastapi.testclient import TestClient
 
 
@@ -85,6 +83,7 @@ class TestOAuthLoginWithCaptcha:
 
         # 2. 从服务中获取验证码（测试环境）
         import asyncio
+
         from app.services.captcha_service import get_captcha_service
 
         async def get_code():
@@ -160,6 +159,7 @@ class TestOAuthLoginWithCaptcha:
 
         # 2. 从服务中获取验证码
         import asyncio
+
         from app.services.captcha_service import get_captcha_service
 
         async def get_code():

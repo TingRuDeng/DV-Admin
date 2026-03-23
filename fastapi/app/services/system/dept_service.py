@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
 """
 部门管理 Service
 """
-from typing import List, Optional, Dict, Any
+from typing import Any
 
-from app.core.exceptions import ValidationError, NotFound, BusinessError
+from app.core.exceptions import BusinessError, NotFound, ValidationError
 from app.db.models.system import Departments
 from app.schemas.system import DeptCreate, DeptOut, DeptTree, DeptUpdate
 
@@ -12,7 +11,7 @@ from app.schemas.system import DeptCreate, DeptOut, DeptTree, DeptUpdate
 class DeptService:
     """部门管理服务"""
 
-    async def get_tree(self) -> List[DeptTree]:
+    async def get_tree(self) -> list[DeptTree]:
         """
         获取部门树形列表
         """
@@ -115,21 +114,21 @@ class DeptService:
 
         await dept.delete()
 
-    async def bulk_delete(self, ids: List[int]) -> None:
+    async def bulk_delete(self, ids: list[int]) -> None:
         """
         批量删除部门
         """
         for dept_id in ids:
             await self.delete(dept_id)
 
-    async def get_options(self) -> List[Dict[str, Any]]:
+    async def get_options(self) -> list[dict[str, Any]]:
         """
         获取部门下拉选项
         """
         depts = await Departments.filter(status=1).all()
         return self._build_options(depts)
 
-    def _build_dept_tree(self, depts: List[Departments], parent_id: Optional[int] = None) -> List[DeptTree]:
+    def _build_dept_tree(self, depts: list[Departments], parent_id: int | None = None) -> list[DeptTree]:
         """构建部门树"""
         tree = []
         for dept in depts:
@@ -149,7 +148,7 @@ class DeptService:
                 tree.append(dept_data)
         return sorted(tree, key=lambda x: x["sort"])
 
-    def _build_options(self, depts: List[Departments], parent_id: Optional[int] = None, level: int = 0) -> List[Dict[str, Any]]:
+    def _build_options(self, depts: list[Departments], parent_id: int | None = None, level: int = 0) -> list[dict[str, Any]]:
         """构建部门选项"""
         options = []
         for dept in depts:

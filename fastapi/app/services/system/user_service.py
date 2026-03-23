@@ -1,25 +1,24 @@
-# -*- coding: utf-8 -*-
 """
 用户管理 Service
 """
-from typing import List, Optional, Dict, Any, BinaryIO
+from typing import Any, BinaryIO
 
 from tortoise.expressions import Q
 
-from app.core.cache import cache_service, CacheKeys
+from app.core.cache import CacheKeys, cache_service
 from app.core.config import settings
-from app.core.exceptions import ValidationError, NotFound, BusinessError
+from app.core.exceptions import BusinessError, NotFound, ValidationError
 from app.core.security import get_password_hash
 from app.db.models.oauth import Users
 from app.db.models.system import Departments, Roles
 from app.schemas.base import PageResult
 from app.schemas.system import (
     UserCreate,
-    UserUpdate,
-    UserOut,
     UserFormOut,
-    UserPartialUpdate,
     UserImportResult,
+    UserOut,
+    UserPartialUpdate,
+    UserUpdate,
 )
 
 
@@ -44,9 +43,9 @@ class UserService:
         self,
         page: int,
         page_size: int,
-        search: Optional[str] = None,
-        is_active: Optional[int] = None,
-        dept_id: Optional[int] = None,
+        search: str | None = None,
+        is_active: int | None = None,
+        dept_id: int | None = None,
     ) -> PageResult[UserOut]:
         """
         获取用户分页列表
@@ -71,8 +70,9 @@ class UserService:
         # 计算总数
         total = await query.count()
 
-        # 分页查询 - 使用 prefetch_related 优化 N+1 查询
-        users = await query.prefetch_related("roles", "dept").offset((page - 1) * page_size).limit(page_size).all()
+        # 分页查询。部门名已经在下方批量查询，这里避免额外预取 direct relation，
+        # 否则在 sqlite 测试环境里会触发跨事件循环锁错误。
+        users = await query.prefetch_related("roles").offset((page - 1) * page_size).limit(page_size).all()
 
         # 预加载所有部门（避免每个用户单独查询）
         dept_ids = [u.dept_id for u in users if u.dept_id]
@@ -233,7 +233,7 @@ class UserService:
         # 清除用户缓存
         await self._clear_user_cache(user_id)
 
-    async def batch_delete(self, ids: List[int], current_user_id: int) -> None:
+    async def batch_delete(self, ids: list[int], current_user_id: int) -> None:
         """
         批量删除用户
         """
@@ -247,7 +247,7 @@ class UserService:
         for user_id in ids:
             await self._clear_user_cache(user_id)
 
-    async def get_options(self) -> List[Dict[str, Any]]:
+    async def get_options(self) -> list[dict[str, Any]]:
         """
         获取用户下拉选项
         """
@@ -274,7 +274,7 @@ class UserService:
         await user.save()
 
     async def import_users(
-        self, file: BinaryIO, dept_id: Optional[int] = None
+        self, file: BinaryIO, dept_id: int | None = None
     ) -> UserImportResult:
         """
         导入用户
@@ -446,12 +446,13 @@ class UserService:
             message_list=message_list,
         )
 
-    async def get_import_template(self) -> Dict[str, Any]:
+    async def get_import_template(self) -> dict[str, Any]:
         """
         获取用户导入模板（Excel格式）
         """
-        import io
         import base64
+        import io
+
         from openpyxl import Workbook
 
         # 创建工作簿
@@ -489,13 +490,13 @@ class UserService:
             "content": b64_content,
         }
 
-    async def export_users(self) -> Dict[str, Any]:
+    async def export_users(self) -> dict[str, Any]:
         """
         导出用户
         """
-        import io
-        import csv
         import base64
+        import csv
+        import io
 
         users = await Users.all()
 
@@ -553,7 +554,7 @@ class UserService:
             updated_at=user.updated_at,
         )
 
-    async def _serialize_user_optimized(self, user: Users, depts: Dict[int, str]) -> UserOut:
+    async def _serialize_user_optimized(self, user: Users, depts: dict[int, str]) -> UserOut:
         """
         序列化用户对象（优化版本，避免 N+1 查询）
 

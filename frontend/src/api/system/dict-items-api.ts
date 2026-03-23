@@ -11,19 +11,27 @@ const DictItemAPI = {
       params: queryParams,
     });
   },
+  /** 根据字典编码获取字典项列表 */
+  getDictItems(queryParams: DictItemQuery) {
+    return request<any, DictItemOption[]>({
+      url: `${DICT_BASE_URL}/`,
+      method: "get",
+      params: queryParams,
+    });
+  },
   /** 新增字典项 */
   createDictItem(data: DictItemForm) {
     return request({ url: `${DICT_BASE_URL}/`, method: "post", data });
   },
   /** 获取字典项表单数据 */
-  getDictItemFormData(id: number) {
+  getDictItemFormData(id: string | number) {
     return request<any, DictItemForm>({
       url: `${DICT_BASE_URL}/${id}/`,
       method: "get",
     });
   },
   /** 修改字典项 */
-  updateDictItem(id: string, data: DictItemForm) {
+  updateDictItem(id: string | number, data: DictItemForm) {
     return request({ url: `${DICT_BASE_URL}/${id}/`, method: "put", data });
   },
   /** 删除字典项 */
@@ -36,7 +44,7 @@ export default DictItemAPI;
 
 export interface DictItemOption {
   /** 值 */
-  id: number | string;
+  value: string | number;
   /** 标签 */
   label: string;
   /** 标签类型 */

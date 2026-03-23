@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
 """
 菜单管理 Service
 """
-from typing import List, Optional, Dict, Any
+from typing import Any
 
-from app.core.exceptions import ValidationError, NotFound, BusinessError
+from app.core.exceptions import BusinessError, NotFound, ValidationError
 from app.db.models.system import Permissions
 from app.schemas.system import MenuCreate, MenuOut, MenuTree, MenuUpdate
 
@@ -12,7 +11,7 @@ from app.schemas.system import MenuCreate, MenuOut, MenuTree, MenuUpdate
 class MenuService:
     """菜单管理服务"""
 
-    async def get_tree(self) -> List[MenuTree]:
+    async def get_tree(self) -> list[MenuTree]:
         """
         获取菜单树形列表
         """
@@ -154,21 +153,21 @@ class MenuService:
 
         await menu.delete()
 
-    async def get_permissions(self) -> List[str]:
+    async def get_permissions(self) -> list[str]:
         """
         获取所有权限标识
         """
         perms = await Permissions.filter(perm__isnull=False).values_list("perm", flat=True)
         return [p for p in perms if p]
 
-    async def get_options(self) -> List[Dict[str, Any]]:
+    async def get_options(self) -> list[dict[str, Any]]:
         """
         获取菜单下拉选项
         """
         menus = await Permissions.all()
         return self._build_options(menus)
 
-    def _build_menu_tree(self, menus: List[Permissions], parent_id: Optional[int] = None) -> List[MenuTree]:
+    def _build_menu_tree(self, menus: list[Permissions], parent_id: int | None = None) -> list[MenuTree]:
         """构建菜单树"""
         tree = []
         for menu in menus:
@@ -198,7 +197,7 @@ class MenuService:
                 tree.append(menu_data)
         return sorted(tree, key=lambda x: x["sort"])
 
-    def _build_options(self, menus: List[Permissions], parent_id: Optional[int] = None, level: int = 0) -> List[Dict[str, Any]]:
+    def _build_options(self, menus: list[Permissions], parent_id: int | None = None, level: int = 0) -> list[dict[str, Any]]:
         """构建菜单选项"""
         options = []
         for menu in menus:

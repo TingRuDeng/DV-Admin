@@ -42,6 +42,11 @@ fastapi/dv_admin_fastapi.egg-info
 find-skills
 .env
 dv_admin.db
+.coverage
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
 fastapi/uploads/avatar
 fastapi/uploads/files
 dv_admin.db-shm

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 慢查询日志中间件
 
@@ -6,14 +5,15 @@
 """
 
 import time
-from typing import Any, Callable, Dict, List, Optional, Set
+from collections.abc import Callable
+from typing import Any
 
-from fastapi import Request, Response
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
 from app.utils.logger import get_request_id
+from fastapi import Request, Response
 
 
 class SlowQueryMiddleware(BaseHTTPMiddleware):
@@ -30,7 +30,7 @@ class SlowQueryMiddleware(BaseHTTPMiddleware):
     DEFAULT_VERY_SLOW_THRESHOLD_MS = 5000
 
     # 不记录的路径（前缀匹配）
-    EXCLUDED_PATHS: Set[str] = {
+    EXCLUDED_PATHS: set[str] = {
         "/api/swagger",
         "/api/redoc",
         "/api/openapi.json",
@@ -44,7 +44,7 @@ class SlowQueryMiddleware(BaseHTTPMiddleware):
         app: ASGIApp,
         slow_threshold_ms: int = DEFAULT_SLOW_THRESHOLD_MS,
         very_slow_threshold_ms: int = DEFAULT_VERY_SLOW_THRESHOLD_MS,
-        exclude_paths: Optional[List[str]] = None,
+        exclude_paths: list[str] | None = None,
         enable_db_monitoring: bool = True,
     ):
         """
@@ -225,7 +225,7 @@ class SlowQueryMiddleware(BaseHTTPMiddleware):
             f"{execution_time_ms}ms - {type(error).__name__}: {str(error)}"
         )
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """获取统计信息"""
         return {
             "total_requests": self._request_count,
@@ -273,7 +273,7 @@ class DatabaseQueryMonitor:
     def log_query(
         self,
         sql: str,
-        params: Optional[Dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
         execution_time_ms: int = 0,
     ) -> None:
         """
@@ -319,7 +319,7 @@ class DatabaseQueryMonitor:
                 f"慢数据库查询: {execution_time_ms}ms"
             )
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """获取统计信息"""
         return {
             "total_queries": self._query_count,

@@ -1,16 +1,16 @@
-# -*- coding: utf-8 -*-
 """
 菜单服务层测试
 测试 MenuService 的所有方法
 """
-import pytest
-import pytest_asyncio
 import uuid
 
-from app.services.system.menu_service import menu_service
+import pytest
+import pytest_asyncio
+
+from app.core.exceptions import NotFound
 from app.db.models.system import Permissions
 from app.schemas.system import MenuCreate, MenuUpdate
-from app.core.exceptions import NotFound
+from app.services.system.menu_service import menu_service
 
 
 @pytest_asyncio.fixture
@@ -22,7 +22,7 @@ async def test_menus_for_service(db):
         type="CATALOG",
         sort=1,
     )
-    
+
     # 创建菜单
     menu = await Permissions.create(
         name=f"测试菜单_{uuid.uuid4().hex[:6]}",
@@ -34,7 +34,7 @@ async def test_menus_for_service(db):
         parent_id=catalog.id,
         perm="test:menu:query",
     )
-    
+
     # 创建按钮
     button = await Permissions.create(
         name=f"测试按钮_{uuid.uuid4().hex[:6]}",
@@ -42,7 +42,7 @@ async def test_menus_for_service(db):
         parent_id=menu.id,
         perm="test:menu:add",
     )
-    
+
     return {"catalog": catalog, "menu": menu, "button": button}
 
 

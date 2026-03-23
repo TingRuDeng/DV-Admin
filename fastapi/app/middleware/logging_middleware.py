@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 请求日志中间件
 
@@ -10,14 +9,14 @@
 
 import time
 import uuid
-from typing import Any, Callable, Dict, List, Optional, Set
+from collections.abc import Callable
 
-from fastapi import Request, Response
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
 from app.utils.logger import clear_request_id, set_request_id
+from fastapi import Request, Response
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
@@ -28,7 +27,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """
 
     # 不记录日志的路径（前缀匹配）
-    EXCLUDED_PATHS: Set[str] = {
+    EXCLUDED_PATHS: set[str] = {
         "/api/swagger",
         "/api/redoc",
         "/api/openapi.json",
@@ -38,7 +37,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     }
 
     # 不记录请求体的路径（可能包含敏感信息或文件）
-    EXCLUDED_BODY_PATHS: Set[str] = {
+    EXCLUDED_BODY_PATHS: set[str] = {
         "/api/v1/auth/login",
         "/api/v1/auth/password",
         "/api/v1/files",
@@ -48,8 +47,8 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app: ASGIApp,
-        exclude_paths: Optional[List[str]] = None,
-        exclude_body_paths: Optional[List[str]] = None,
+        exclude_paths: list[str] | None = None,
+        exclude_body_paths: list[str] | None = None,
         log_request_body: bool = True,
         log_response_body: bool = False,
         max_body_length: int = 1000,
@@ -107,7 +106,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         return "unknown"
 
-    def _parse_user_agent(self, user_agent: str) -> Dict[str, str]:
+    def _parse_user_agent(self, user_agent: str) -> dict[str, str]:
         """解析 User-Agent 字符串"""
         result = {
             "browser": "Unknown",

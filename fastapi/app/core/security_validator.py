@@ -1,15 +1,12 @@
-# -*- coding: utf-8 -*-
 """
 安全验证器模块
 
 提供生产环境安全配置验证功能。
 """
 
-import os
 import re
 import secrets
 import warnings
-from typing import List, Optional
 
 
 class SecurityValidationError(Exception):
@@ -47,7 +44,7 @@ class SecurityValidator:
     RECOMMENDED_SECRET_KEY_LENGTH = 64
 
     @classmethod
-    def validate_secret_key(cls, secret_key: Optional[str], is_production: bool) -> List[str]:
+    def validate_secret_key(cls, secret_key: str | None, is_production: bool) -> list[str]:
         """
         验证 SECRET_KEY 安全性
 
@@ -112,8 +109,8 @@ class SecurityValidator:
             if re.match(pattern, secret_key, re.IGNORECASE):
                 if is_production:
                     raise SecurityValidationError(
-                        f"生产环境 SECRET_KEY 不能使用默认或弱密钥！"
-                        f"请使用安全的随机密钥。"
+                        "生产环境 SECRET_KEY 不能使用默认或弱密钥！"
+                        "请使用安全的随机密钥。"
                     )
                 else:
                     warnings_list.append(
@@ -139,7 +136,7 @@ class SecurityValidator:
         return warnings_list
 
     @classmethod
-    def validate_password_strength(cls, password: str) -> List[str]:
+    def validate_password_strength(cls, password: str) -> list[str]:
         """
         验证密码强度
 
@@ -186,9 +183,9 @@ class SecurityValidator:
         cls,
         app_env: str,
         debug: bool,
-        secret_key: Optional[str],
+        secret_key: str | None,
         default_password: str,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         验证生产环境设置
 
@@ -245,7 +242,7 @@ class SecurityValidator:
         return secrets.token_urlsafe(length)
 
     @classmethod
-    def print_security_warnings(cls, warnings_list: List[str]) -> None:
+    def print_security_warnings(cls, warnings_list: list[str]) -> None:
         """
         打印安全警告
 

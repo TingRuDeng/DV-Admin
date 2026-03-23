@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 基础 Schema 模块
 
@@ -6,7 +5,7 @@
 """
 
 from datetime import datetime
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from typing import Generic, List, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
@@ -38,10 +37,10 @@ class ResponseModel(BaseSchema, Generic[T]):
 
     code: int = Field(default=20000, description="状态码")
     message: str = Field(default="success", description="消息")
-    data: Optional[T] = Field(default=None, description="数据")
+    data: T | None = Field(default=None, description="数据")
 
     @classmethod
-    def success(cls, data: Optional[T] = None, message: str = "success") -> "ResponseModel[T]":
+    def success(cls, data: T | None = None, message: str = "success") -> "ResponseModel[T]":
         """成功响应"""
         return cls(code=20000, message=message, data=data)
 
@@ -60,8 +59,8 @@ class PageQuery(BaseSchema):
 
     page: int = Field(default=1, ge=1, description="页码")
     page_size: int = Field(default=10, ge=1, le=100, description="每页数量")
-    search: Optional[str] = Field(default=None, description="搜索关键词")
-    ordering: Optional[str] = Field(default=None, description="排序字段")
+    search: str | None = Field(default=None, description="搜索关键词")
+    ordering: str | None = Field(default=None, description="排序字段")
 
     @property
     def offset(self) -> int:
@@ -80,7 +79,17 @@ class PageResult(BaseSchema, Generic[T]):
     page: int = Field(description="当前页码")
     page_size: int = Field(description="每页数量")
     total_pages: int = Field(description="总页数")
-    results: List[T] = Field(description="数据列表")
+    list: List[T] = Field(description="数据列表")
+
+    @property
+    def results(self) -> List[T]:
+        """Backward-compatible accessor for legacy internal callers."""
+        return self.list
+
+    @property
+    def count(self) -> int:
+        """Backward-compatible accessor for legacy internal callers."""
+        return self.total
 
     @classmethod
     def create(
@@ -108,7 +117,7 @@ class PageResult(BaseSchema, Generic[T]):
             page=page,
             page_size=page_size,
             total_pages=total_pages,
-            results=results,
+            list=results,
         )
 
 
