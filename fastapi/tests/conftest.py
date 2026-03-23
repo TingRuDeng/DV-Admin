@@ -12,14 +12,18 @@ import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
 from tortoise import Tortoise
+from tortoise.exceptions import ConfigurationError
 
 TEST_DB_PATH = Path(gettempdir()) / f"dv_admin_fastapi_test_{uuid.uuid4().hex}.sqlite3"
 
 
 async def ensure_test_db_initialized() -> None:
     """确保测试数据库上下文可用。"""
-    if Tortoise.is_inited():
+    try:
+        Tortoise.get_connection("default")
         return
+    except (ConfigurationError, RuntimeError):
+        pass
 
     await Tortoise.init(
         db_url=f"sqlite://{TEST_DB_PATH}",
