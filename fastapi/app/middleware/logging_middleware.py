@@ -11,12 +11,12 @@ import time
 import uuid
 from collections.abc import Callable
 
+from fastapi import Request, Response
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
 from app.utils.logger import clear_request_id, set_request_id
-from fastapi import Request, Response
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):

@@ -2,6 +2,8 @@
 异常处理测试
 测试 exceptions 模块的功能
 """
+from fastapi import HTTPException
+
 from app.core.exceptions import (
     APIException,
     AuthenticationError,
@@ -12,7 +14,6 @@ from app.core.exceptions import (
     RateLimitError,
     ValidationError,
 )
-from fastapi import HTTPException
 
 
 class TestExceptions:

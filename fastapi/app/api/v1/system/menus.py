@@ -3,11 +3,12 @@
 """
 
 
+from fastapi import APIRouter, Request
+
 from app.api.deps import require_permissions
 from app.schemas.base import ResponseModel
 from app.schemas.system import MenuCreate, MenuOut, MenuTree, MenuUpdate
 from app.services.system.menu_service import menu_service
-from fastapi import APIRouter, Request
 
 router = APIRouter()
 

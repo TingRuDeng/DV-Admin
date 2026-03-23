@@ -6,6 +6,7 @@
 
 from datetime import timedelta
 
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.api.deps import CurrentUser
@@ -23,7 +24,6 @@ from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
 from app.schemas.oauth import Token, UserInfo, UserLogin
 from app.services.token_blacklist import token_blacklist_service
-from fastapi import APIRouter, Depends, Query, Request
 
 router = APIRouter()
 

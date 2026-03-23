@@ -3,6 +3,8 @@
 """
 
 
+from fastapi import APIRouter, Query, Request
+
 from app.api.deps import require_permissions
 from app.schemas.base import PageResult, ResponseModel
 from app.schemas.system import (
@@ -12,7 +14,6 @@ from app.schemas.system import (
     DictItemUpdate,
 )
 from app.services.system.dict_service import dict_service
-from fastapi import APIRouter, Query, Request
 
 router = APIRouter()
 

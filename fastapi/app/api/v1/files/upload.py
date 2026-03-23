@@ -6,11 +6,12 @@
 
 import os
 
+from fastapi import APIRouter, File, Query, Request, UploadFile
+
 from app.core.config import settings
 from app.core.exceptions import ValidationError
 from app.schemas.base import ResponseModel
 from app.utils.file import save_upload_file
-from fastapi import APIRouter, File, Query, Request, UploadFile
 
 router = APIRouter()
 
