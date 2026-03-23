@@ -13,6 +13,67 @@ import pytest_asyncio
 from fastapi.testclient import TestClient
 from tortoise import Tortoise
 
+TEST_DB_PATH = Path(gettempdir()) / f"dv_admin_fastapi_test_{uuid.uuid4().hex}.sqlite3"
+
+
+async def ensure_test_db_initialized() -> None:
+    """确保测试数据库上下文可用。"""
+    if Tortoise.is_inited():
+        return
+
+    await Tortoise.init(
+        db_url=f"sqlite://{TEST_DB_PATH}",
+        modules={
+            "models": [
+                "app.db.models.oauth",
+                "app.db.models.system",
+            ]
+        },
+        _enable_global_fallback=True,
+    )
+
+    if not TEST_DB_PATH.exists():
+        await Tortoise.generate_schemas()
+
+    from app.core.cache import cache_service
+
+    await cache_service.init()
+
+
+async def reset_test_db_state() -> None:
+    """清空测试库中的业务表，并重置缓存。"""
+    connection = Tortoise.get_connection("default")
+    tables = await connection.execute_query_dict(
+        """
+        SELECT name
+        FROM sqlite_master
+        WHERE type = 'table' AND name NOT LIKE 'sqlite_%'
+        """
+    )
+    table_names = [row["name"] for row in tables]
+
+    statements = ["PRAGMA foreign_keys=OFF;"]
+    statements.extend(f'DELETE FROM "{table_name}";' for table_name in table_names)
+
+    sqlite_sequence = await connection.execute_query_dict(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'sqlite_sequence'"
+    )
+    if sqlite_sequence:
+        statements.append("DELETE FROM sqlite_sequence;")
+
+    statements.append("PRAGMA foreign_keys=ON;")
+    await connection.execute_script("\n".join(statements))
+
+    from app.core.cache import cache_service
+    from app.core.redis import redis_manager
+
+    await cache_service._memory_cache.clear()
+    cache_service._redis_cache._redis = None
+    cache_service._backend = cache_service._memory_cache
+    cache_service._use_redis = False
+    redis_manager._client = None
+    redis_manager._pool = None
+
 
 @pytest.fixture(scope="session")
 def event_loop():
@@ -25,35 +86,23 @@ def event_loop():
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def init_test_db():
     """初始化测试数据库 (session 级别，所有测试共享)"""
-    # 使用临时文件数据库，避免跨事件循环重连时丢失内存表结构
-    db_path = Path(gettempdir()) / f"dv_admin_fastapi_test_{uuid.uuid4().hex}.sqlite3"
-    await Tortoise.init(
-        db_url=f"sqlite://{db_path}",
-        modules={
-            "models": [
-                "app.db.models.oauth",
-                "app.db.models.system",
-            ]
-        },
-    )
-    await Tortoise.generate_schemas()
-
-    # 初始化缓存服务（使用内存缓存）
-    from app.core.cache import cache_service
-    await cache_service.init()
+    if TEST_DB_PATH.exists():
+        TEST_DB_PATH.unlink()
+    await ensure_test_db_initialized()
 
     yield
 
     await Tortoise.close_connections()
-    if db_path.exists():
-        db_path.unlink()
+    if TEST_DB_PATH.exists():
+        TEST_DB_PATH.unlink()
 
 
 @pytest_asyncio.fixture(scope="function")
 async def db():
-    """每个测试函数前的数据库清理"""
+    """确保函数级测试始终能拿到可用数据库上下文"""
+    await ensure_test_db_initialized()
+    await reset_test_db_state()
     yield
-    # 可以在这里清理测试数据
 
 
 @pytest.fixture(scope="function")
@@ -502,6 +551,12 @@ def auth_client(client: TestClient, auth_headers: dict) -> TestClient | None:
     if not auth_headers:
         pytest.skip("无法获取认证 token，跳过需要认证的测试")
 
-    with TestClient(client.app) as test_client:
-        test_client.headers.update(auth_headers)
-        yield test_client
+    original_auth = client.headers.get("Authorization")
+    client.headers.update(auth_headers)
+    try:
+        yield client
+    finally:
+        if original_auth is None:
+            client.headers.pop("Authorization", None)
+        else:
+            client.headers["Authorization"] = original_auth
