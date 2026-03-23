@@ -12,6 +12,7 @@ from django_redis import get_redis_connection
 from rest_framework.exceptions import ValidationError
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from drf_admin.apps.system.models import Permissions, Users
 from drf_admin.apps.oauth.serializers.token_serializers import CustomTokenObtainPairSerializer
@@ -113,7 +114,7 @@ class RoutesAPIView(APIView):
     def get(self, request):
         try:
             user = Users.objects.get(id=request.user.id, is_active=True)
-        except Permissions.DoesNotExist:
+        except Users.DoesNotExist:
             raise ValidationError('无效的用户ID')
         # admin角色
         # if 'admin' in user.roles.values_list('name', flat=True) or user.is_superuser:
@@ -131,6 +132,11 @@ class LogoutAPIView(APIView):
     """
 
     def post(self, request):
-        content = {}
-        # 后续将增加redis token黑名单功能
-        return Response(data=content)
+        try:
+            refresh_token = request.data.get('refreshToken')
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+        except Exception as e:
+            logger.warning(f"Token blacklist failed: {str(e)}")
+        return Response(status=status.HTTP_200_OK)
