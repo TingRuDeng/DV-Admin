@@ -17,9 +17,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
-        with:
-          persist-credentials: false
+      - name: Checkout repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init .
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          git fetch --no-tags --depth=1 origin "${{ github.sha }}"
+          git checkout --detach FETCH_HEAD
       - uses: pnpm/action-setup@v4
         with:
           version: 9
@@ -42,9 +48,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
-        with:
-          persist-credentials: false
+      - name: Checkout repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init .
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          git fetch --no-tags --depth=1 origin "${{ github.sha }}"
+          git checkout --detach FETCH_HEAD
       - name: Use Python 3.11 from runner toolcache
         run: |
           PY_DIR=$(find /opt/hostedtoolcache/Python -maxdepth 1 -type d -name '3.11.*' | sort -V | tail -n 1)
@@ -77,9 +89,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
-        with:
-          persist-credentials: false
+      - name: Checkout repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init .
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          git fetch --no-tags --depth=1 origin "${{ github.sha }}"
+          git checkout --detach FETCH_HEAD
       - name: Use Python 3.10 from runner toolcache
         run: |
           PY_DIR=$(find /opt/hostedtoolcache/Python -maxdepth 1 -type d -name '3.10.*' | sort -V | tail -n 1)
