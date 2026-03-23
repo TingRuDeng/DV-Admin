@@ -1,14 +1,12 @@
-# -*- coding: utf-8 -*-
 """
 通知公告 Service
 """
 from datetime import datetime
-from typing import List, Optional
 
 from tortoise.expressions import Q
 
 from app.core.exceptions import NotFound, ValidationError
-from app.db.models.system import Notices, NoticeReads
+from app.db.models.system import NoticeReads, Notices
 from app.schemas.system import (
     NoticeAdminPageResult,
     NoticeCreate,
@@ -28,8 +26,8 @@ class NoticeService:
         self,
         page_num: int,
         page_size: int,
-        title: Optional[str] = None,
-        publish_status: Optional[int] = None,
+        title: str | None = None,
+        publish_status: int | None = None,
     ) -> NoticeAdminPageResult:
         query = Notices.all()
 
@@ -65,7 +63,7 @@ class NoticeService:
             for n in notices
         ]
 
-        return NoticeAdminPageResult(results=results, count=total)
+        return NoticeAdminPageResult(list=results, total=total)
 
     async def get_form(self, notice_id: int) -> NoticeFormOut:
         notice = await Notices.get_or_none(id=notice_id)
@@ -82,7 +80,7 @@ class NoticeService:
             target_user_ids=list(notice.target_user_ids or []),
         )
 
-    async def get_detail(self, notice_id: int, user_id: Optional[int] = None) -> NoticeDetailOut:
+    async def get_detail(self, notice_id: int, user_id: int | None = None) -> NoticeDetailOut:
         notice = await Notices.get_or_none(id=notice_id)
         if not notice:
             raise NotFound("通知不存在")
@@ -170,7 +168,7 @@ class NoticeService:
             revoke_time=notice.revoke_time,
         )
 
-    async def delete_by_ids(self, ids: List[int]) -> None:
+    async def delete_by_ids(self, ids: list[int]) -> None:
         published = await Notices.filter(id__in=ids, publish_status=1).exists()
         if published:
             raise ValidationError("已发布通知不允许删除")
@@ -224,8 +222,8 @@ class NoticeService:
         user_id: int,
         page_num: int,
         page_size: int,
-        title: Optional[str] = None,
-        is_read: Optional[int] = None,
+        title: str | None = None,
+        is_read: int | None = None,
     ) -> NoticeMyPageResult:
         query = Notices.filter(publish_status=1)
 

@@ -1,21 +1,18 @@
-# -*- coding: utf-8 -*-
 """
 部门管理 API 路由
 """
 
-from typing import List
-
-from fastapi import APIRouter, Request
 
 from app.api.deps import require_permissions
 from app.schemas.base import ResponseModel
 from app.schemas.system import BulkDelete, DeptCreate, DeptOut, DeptTree, DeptUpdate
 from app.services.system.dept_service import dept_service
+from fastapi import APIRouter, Request
 
 router = APIRouter()
 
 
-@router.get("/", response_model=ResponseModel[List[DeptTree]])
+@router.get("/", response_model=ResponseModel[list[DeptTree]])
 async def get_depts(
     request: Request,
     current_user=require_permissions("system:departments:query"),
@@ -25,7 +22,7 @@ async def get_depts(
     return ResponseModel.success(data=dept_tree)
 
 
-@router.get("/options", response_model=ResponseModel[List[dict]])
+@router.get("/options", response_model=ResponseModel[list[dict]])
 async def get_dept_options(
     request: Request,
     current_user=require_permissions("system:departments:query"),

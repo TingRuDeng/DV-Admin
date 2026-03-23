@@ -9,8 +9,6 @@ VXETable.setConfig({
   zIndex: 9999,
   // 版本号，对于某些带数据缓存的功能有用到，上升版本号可以用于重置数据
   version: 0,
-  // 全局 loading 提示内容，如果为 null 则不显示文本
-  loadingText: null,
   table: {
     showHeader: true,
     showOverflow: "tooltip",

@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
 """
 字典管理 Service
 """
-from typing import List, Optional
 
-from app.core.cache import cache_service, CacheKeys
-from app.core.exceptions import ValidationError, NotFound
+from app.core.cache import CacheKeys, cache_service
+from app.core.exceptions import NotFound, ValidationError
 from app.db.models.system import DictData, DictItems
 from app.schemas.base import PageResult
 from app.schemas.system import (
@@ -25,7 +23,7 @@ class DictService:
     # 缓存 TTL（秒）
     CACHE_TTL = 600  # 10分钟
 
-    async def _clear_dict_cache(self, code: Optional[str] = None) -> None:
+    async def _clear_dict_cache(self, code: str | None = None) -> None:
         """
         清除字典缓存
 
@@ -45,7 +43,7 @@ class DictService:
         self,
         page: int,
         page_size: int,
-        search: Optional[str] = None,
+        search: str | None = None,
     ) -> PageResult[DictDataOut]:
         """
         获取字典类型分页列表
@@ -184,7 +182,7 @@ class DictService:
         # 清除缓存
         await self._clear_dict_cache(code)
 
-    async def batch_delete_dicts(self, ids: List[int]) -> None:
+    async def batch_delete_dicts(self, ids: list[int]) -> None:
         """
         批量删除字典类型
         """
@@ -204,9 +202,9 @@ class DictService:
         self,
         page: int,
         page_size: int,
-        dict_id: Optional[int] = None,
-        label: Optional[str] = None,
-        code: Optional[str] = None,
+        dict_id: int | None = None,
+        label: str | None = None,
+        code: str | None = None,
     ) -> PageResult[DictItemOut]:
         """
         获取字典项分页列表
@@ -215,10 +213,10 @@ class DictService:
 
         if dict_id:
             query = query.filter(dict_data_id=dict_id)
-        
+
         if label:
             query = query.filter(label__icontains=label)
-            
+
         if code:
             # 关联查询：通过字典类型的 code 过滤
             query = query.filter(dict_data__code=code)
@@ -246,7 +244,7 @@ class DictService:
             total=total, page=page, page_size=page_size, results=item_list
         )
 
-    async def get_items(self, dict_id: int) -> List[DictItemOut]:
+    async def get_items(self, dict_id: int) -> list[DictItemOut]:
         """
         获取字典项列表
         """
@@ -442,7 +440,7 @@ class DictService:
         if dict_data:
             await self._clear_dict_cache(dict_data.code)
 
-    async def batch_delete_items_flat(self, ids: List[int]) -> None:
+    async def batch_delete_items_flat(self, ids: list[int]) -> None:
         """
         批量删除字典项（扁平接口）
         """
@@ -457,7 +455,7 @@ class DictService:
         for dict_data in dict_datas:
             await self._clear_dict_cache(dict_data.code)
 
-    async def get_items_by_code(self, code: str) -> List[DictItemOut]:
+    async def get_items_by_code(self, code: str) -> list[DictItemOut]:
         """
         根据编码获取字典项（带缓存）
         """

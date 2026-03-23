@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 认证授权 Schema 模块
 
@@ -6,7 +5,7 @@
 """
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Any
 
 from pydantic import Field, field_validator
 
@@ -34,10 +33,10 @@ class TokenPayload(BaseSchema):
     JWT 令牌的载荷数据。
     """
 
-    sub: Optional[str] = Field(default=None, description="用户ID")
-    exp: Optional[datetime] = Field(default=None, description="过期时间")
-    type: Optional[str] = Field(default=None, description="令牌类型")
-    iat: Optional[datetime] = Field(default=None, description="签发时间")
+    sub: str | None = Field(default=None, description="用户ID")
+    exp: datetime | None = Field(default=None, description="过期时间")
+    type: str | None = Field(default=None, description="令牌类型")
+    iat: datetime | None = Field(default=None, description="签发时间")
 
 
 class UserLogin(BaseSchema):
@@ -49,8 +48,8 @@ class UserLogin(BaseSchema):
 
     username: str = Field(description="用户名")
     password: str = Field(description="密码")
-    captcha_key: Optional[str] = Field(default=None, description="验证码key")
-    captcha_code: Optional[str] = Field(default=None, description="验证码")
+    captcha_key: str | None = Field(default=None, description="验证码key")
+    captcha_code: str | None = Field(default=None, description="验证码")
 
 
 class UserInfo(TimestampSchema):
@@ -61,17 +60,17 @@ class UserInfo(TimestampSchema):
     """
 
     username: str = Field(description="用户名")
-    name: Optional[str] = Field(default=None, description="真实姓名")
-    email: Optional[str] = Field(default="", description="邮箱")
-    mobile: Optional[str] = Field(default="", description="手机号")
+    name: str | None = Field(default=None, description="真实姓名")
+    email: str | None = Field(default="", description="邮箱")
+    mobile: str | None = Field(default="", description="手机号")
     avatar: str = Field(default="avatar/default.png", description="头像")
     gender: int = Field(default=0, description="性别")
     is_active: int = Field(default=1, description="是否激活")
-    dept_id: Optional[int] = Field(default=None, description="部门ID")
-    dept_name: Optional[str] = Field(default="", description="部门名称")
-    role_names: Optional[str] = Field(default=None, description="角色名称")
-    roles: str = Field(default="[]", description="角色列表(JSON字符串)")
-    perms: List[str] = Field(default=[], description="权限列表")
+    dept_id: int | None = Field(default=None, description="部门ID")
+    dept_name: str | None = Field(default="", description="部门名称")
+    role_names: str | None = Field(default=None, description="角色名称")
+    roles: str | list[dict[str, Any]] = Field(default="[]", description="角色列表")
+    perms: list[str] = Field(default=[], description="权限列表")
 
     @field_validator("role_names", mode="before")
     @classmethod
@@ -89,8 +88,7 @@ class UserProfile(UserInfo):
     包含更详细的用户信息。
     """
 
-    permissions: List[str] = Field(default=[], description="权限列表")
-    roles: List[dict] = Field(default=[], description="角色列表")
+    permissions: list[str] = Field(default=[], description="权限列表")
 
 
 class ChangePassword(BaseSchema):
@@ -115,9 +113,8 @@ class UpdateProfile(BaseSchema):
     更新个人信息请求模型
     """
 
-    name: Optional[str] = Field(default=None, description="真实姓名")
-    email: Optional[str] = Field(default=None, description="邮箱")
-    mobile: Optional[str] = Field(default=None, description="手机号")
-    gender: Optional[int] = Field(default=None, description="性别")
-    avatar: Optional[str] = Field(default=None, description="头像URL")
-
+    name: str | None = Field(default=None, description="真实姓名")
+    email: str | None = Field(default=None, description="邮箱")
+    mobile: str | None = Field(default=None, description="手机号")
+    gender: int | None = Field(default=None, description="性别")
+    avatar: str | None = Field(default=None, description="头像URL")

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 结构化日志工具模块
 
@@ -9,15 +8,15 @@ import json
 import sys
 from contextvars import ContextVar
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from loguru import logger
 
 # 请求 ID 上下文变量
-request_id_var: ContextVar[Optional[str]] = ContextVar("request_id", default=None)
+request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
 
 
-def get_request_id() -> Optional[str]:
+def get_request_id() -> str | None:
     """获取当前请求 ID"""
     return request_id_var.get()
 
@@ -49,7 +48,7 @@ class JSONLogFormatter:
         self.environment = environment
         self.include_extra = include_extra
 
-    def format(self, record: Dict[str, Any]) -> str:
+    def format(self, record: dict[str, Any]) -> str:
         """
         格式化日志记录为 JSON
 
@@ -102,7 +101,7 @@ def setup_logger(
     log_format: str = "json",
     app_name: str = "DV-Admin",
     environment: str = "development",
-    log_file: Optional[str] = None,
+    log_file: str | None = None,
     rotation: str = "10 MB",
     retention: str = "7 days",
 ) -> None:

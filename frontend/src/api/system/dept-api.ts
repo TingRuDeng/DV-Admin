@@ -24,7 +24,7 @@ const DeptAPI = {
     return request({ url: `${DEPT_BASE_URL}/${id}/`, method: "put", data });
   },
   /** 批量删除部门，多个以英文逗号(,)分割 */
-  deleteByIds(ids: string[]) {
+  deleteByIds(ids: Array<string | number>) {
     return request({ url: `${DEPT_BASE_URL}/`, method: "delete", data: { ids } });
   },
 };

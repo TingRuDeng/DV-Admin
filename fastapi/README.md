@@ -229,14 +229,14 @@ await cache.delete(CacheKeys.dict_code("status"))
 ## 测试
 
 ```bash
-# 运行测试
-uv run pytest
-
-# 运行测试并生成覆盖率报告
-uv run pytest --cov=app --cov-report=html
+# 运行聚合质量检查 (ruff + mypy + pytest + coverage)
+make quality
 
 # 运行特定测试
 uv run pytest tests/test_oauth.py -v
+
+# 运行测试并生成覆盖率报告
+uv run pytest --cov=app --cov-report=html
 ```
 
 测试覆盖率: **80%+**

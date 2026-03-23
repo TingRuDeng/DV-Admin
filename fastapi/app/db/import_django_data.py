@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
 import json
 import os
 import sys
-import asyncio
-from typing import List, Dict, Any, Type
 
 # 添加路径以便导入 app
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -11,13 +8,14 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
 sys.path.append(os.path.join(project_root, "fastapi"))
 
 from tortoise import Tortoise, run_async
+
 from app.core.config import settings
-from app.db.models.system import Departments, Permissions, Roles, DictData, DictItems
-from app.db.models.oauth import Users
 from app.db.models.base import BaseModel
+from app.db.models.oauth import Users
+from app.db.models.system import Departments, DictData, DictItems, Permissions, Roles
 
 # 映射模型名称到类
-MODEL_MAPPING: Dict[str, Type[BaseModel]] = {
+MODEL_MAPPING: dict[str, type[BaseModel]] = {
     "system.departments": Departments,
     "system.permissions": Permissions,
     "system.roles": Roles,
@@ -47,15 +45,15 @@ async def import_data():
         return
 
     print(f"Reading data from {json_path}...")
-    with open(json_path, "r", encoding="utf-8") as f:
+    with open(json_path, encoding="utf-8") as f:
         data = json.load(f)
 
     # 存储 M2M 关系和外键更新任务
     m2m_tasks = []
     fk_updates = []
-    
+
     # 按模型分类数据
-    grouped_data = {k: [] for k in MODEL_MAPPING.keys()}
+    grouped_data = {k: [] for k in MODEL_MAPPING}
     for item in data:
         model_name = item.get("model")
         if model_name in grouped_data:
@@ -75,26 +73,26 @@ async def import_data():
         items = grouped_data.get(model_name, [])
         if not items:
             continue
-            
+
         ModelClass = MODEL_MAPPING[model_name]
         print(f"Importing {len(items)} items for {model_name}...")
-        
+
         for item in items:
             pk = item["pk"]
             fields_data = item["fields"]
-            
+
             # 准备创建参数
             create_kwargs = {"id": pk}
             update_kwargs = {} # 用于 update，不包含 id
             m2m_fields = {}
-            
+
             for k, v in fields_data.items():
                 # 特殊映射处理
                 if model_name == "system.dicts" and k == "remark":
                     new_k = "desc"
                 else:
                     new_k = FIELD_MAPPING.get(k, k)
-                
+
                 # 检查 M2M 字段 (优先检查，防止误判)
                 if new_k in ModelClass._meta.m2m_fields:
                     m2m_fields[new_k] = v
@@ -108,22 +106,22 @@ async def import_data():
                         if model_name in ["system.departments", "system.permissions"] and new_k == "parent" and v is not None:
                             fk_updates.append((ModelClass, pk, new_k, v))
                             v = None
-                        
+
                         # 设置外键 ID
                         key = f"{new_k}_id"
                         val = v if v is not None else None
                         create_kwargs[key] = val
                         update_kwargs[key] = val
                         continue
-                    
+
                     # 特殊值转换
                     if model_name == "system.users" and new_k == "is_active":
                         # Django bool -> FastAPI int
                         v = 1 if v else 0
-                    
+
                     create_kwargs[new_k] = v
                     update_kwargs[new_k] = v
-                
+
                 else:
                     # 忽略未知字段
                     # print(f"  Skipping unknown field: {k} -> {new_k}")
@@ -141,12 +139,12 @@ async def import_data():
                 else:
                     # 创建
                     obj = await ModelClass.create(**create_kwargs)
-                
+
                 # 收集 M2M 任务
                 for field, ids in m2m_fields.items():
                     if ids:
                         m2m_tasks.append((obj, field, ids))
-                        
+
             except Exception as e:
                 print(f"  Error importing {model_name} id={pk}: {e}")
 

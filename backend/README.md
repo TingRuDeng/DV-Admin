@@ -80,7 +80,18 @@ uv run python manage.py runserver 0.0.0.0:8769 --env test
 * visitor，(visitor角色，默认拥有项目部分权限；可给用户授予角色来给用户配置权限)
 
 
-## 问题汇总
+## 质量检查与测试
+
+```bash
+# 安装开发依赖
+uv sync --group dev
+
+# 代码风格检查 (Ruff)
+uv run ruff check .
+
+# 运行测试 (pytest)
+uv run pytest
+```
 
 - 问题1：环境同步异常，提示文件路径过长、could not create ... No such file or directory
     > 这是由于 Windows 默认的路径长度限制（MAX_PATH）导致的，尤其是当路径嵌套较深时 

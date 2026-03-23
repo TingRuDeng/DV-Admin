@@ -7,7 +7,7 @@ const AuthAPI = {
     return request<any, LoginResult>({
       url: `${AUTH_BASE_URL}/login/`,
       method: "post",
-      data: data,
+      data,
     });
   },
 

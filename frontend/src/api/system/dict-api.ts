@@ -28,7 +28,7 @@ const DictAPI = {
     return request({ url: `${DICT_BASE_URL}/${id}/`, method: "put", data });
   },
   /** 删除字典 */
-  deleteByIds(ids: number[]) {
+  deleteByIds(ids: Array<string | number>) {
     return request({ url: `${DICT_BASE_URL}/`, method: "delete", data: { ids } });
   },
 };

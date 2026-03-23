@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 健康检查路由模块
 
@@ -6,14 +5,14 @@
 """
 
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
-from fastapi import APIRouter, status
 from loguru import logger
 from pydantic import BaseModel
 from tortoise import Tortoise
 
 from app.core.config import settings
+from fastapi import APIRouter, status
 
 router = APIRouter(tags=["健康检查"])
 
@@ -34,7 +33,7 @@ class ReadyResponse(BaseModel):
     status: str
     version: str
     timestamp: str
-    checks: Dict[str, Any]
+    checks: dict[str, Any]
 
 
 class LiveResponse(BaseModel):
@@ -44,7 +43,7 @@ class LiveResponse(BaseModel):
     timestamp: str
 
 
-async def check_database() -> Dict[str, Any]:
+async def check_database() -> dict[str, Any]:
     """
     检查数据库连接状态
 
@@ -73,7 +72,7 @@ async def check_database() -> Dict[str, Any]:
         }
 
 
-async def check_redis() -> Optional[Dict[str, Any]]:
+async def check_redis() -> dict[str, Any] | None:
     """
     检查 Redis 连接状态
 
@@ -162,7 +161,7 @@ async def readiness_check() -> ReadyResponse:
     如果所有关键依赖都正常，返回 200 状态码。
     如果有关键依赖失败，返回 503 状态码。
     """
-    checks: Dict[str, Any] = {}
+    checks: dict[str, Any] = {}
 
     # 检查数据库
     db_status = await check_database()

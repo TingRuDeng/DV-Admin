@@ -21,11 +21,27 @@ pnpm install
 
 # 启动运行
 pnpm run dev
+```
 
-# 代码检查
+## 质量检查命令
+
+```bash
+# 代码检查（lint + prettier + stylelint）
 pnpm run lint
 
-# 代码提交（请在提交前先执行 pnpm run lint 检查代码是否符合规范）
+# 类型检查
+pnpm run type-check
+
+# 单元测试
+pnpm run test:unit
+
+# 统一质量门禁（lint + type-check + test:unit）
+pnpm run quality
+
+# 构建（包含类型检查）
+pnpm run build
+
+# 代码提交（请在提交前先执行 pnpm run quality 检查代码是否符合规范）
 pnpm run commit
 ```
 

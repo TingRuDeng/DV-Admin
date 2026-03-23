@@ -1,21 +1,18 @@
-# -*- coding: utf-8 -*-
 """
 菜单/权限管理 API 路由
 """
 
-from typing import List
-
-from fastapi import APIRouter, Request
 
 from app.api.deps import require_permissions
 from app.schemas.base import ResponseModel
 from app.schemas.system import MenuCreate, MenuOut, MenuTree, MenuUpdate
 from app.services.system.menu_service import menu_service
+from fastapi import APIRouter, Request
 
 router = APIRouter()
 
 
-@router.get("/", response_model=ResponseModel[List[MenuTree]])
+@router.get("/", response_model=ResponseModel[list[MenuTree]])
 async def get_menus(
     request: Request,
     current_user=require_permissions("system:menus:query"),
@@ -25,7 +22,7 @@ async def get_menus(
     return ResponseModel.success(data=menu_tree)
 
 
-@router.get("/options/", response_model=ResponseModel[List[dict]])
+@router.get("/options/", response_model=ResponseModel[list[dict]])
 async def get_menu_options(
     request: Request,
     current_user=require_permissions("system:menus:query"),
@@ -35,7 +32,7 @@ async def get_menu_options(
     return ResponseModel.success(data=options)
 
 
-@router.get("/perms", response_model=ResponseModel[List[str]])
+@router.get("/perms", response_model=ResponseModel[list[str]])
 async def get_permissions(
     request: Request,
     current_user=require_permissions("system:menus:query"),

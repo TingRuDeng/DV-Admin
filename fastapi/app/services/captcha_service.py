@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 验证码服务模块
 
@@ -9,8 +8,6 @@
 import random
 import string
 import uuid
-from datetime import timedelta
-from typing import Optional
 
 from app.core.config import settings
 
@@ -22,7 +19,7 @@ class CaptchaCache:
     定义验证码缓存的接口。
     """
 
-    async def get(self, key: str) -> Optional[str]:
+    async def get(self, key: str) -> str | None:
         """获取验证码"""
         raise NotImplementedError
 
@@ -48,7 +45,7 @@ class MemoryCaptchaCache(CaptchaCache):
         self._cleanup_interval = 100
         self._access_count = 0
 
-    async def get(self, key: str) -> Optional[str]:
+    async def get(self, key: str) -> str | None:
         """获取验证码"""
         import time
 
@@ -119,7 +116,7 @@ class RedisCaptchaCache(CaptchaCache):
                 )
         return self._redis
 
-    async def get(self, key: str) -> Optional[str]:
+    async def get(self, key: str) -> str | None:
         """获取验证码"""
         redis = await self._get_redis()
         return await redis.get(f"captcha:{key}")
@@ -142,7 +139,7 @@ class CaptchaService:
     提供验证码生成、存储和验证功能。
     """
 
-    def __init__(self, cache: Optional[CaptchaCache] = None):
+    def __init__(self, cache: CaptchaCache | None = None):
         """
         初始化验证码服务
 
@@ -223,7 +220,7 @@ class CaptchaService:
 
 
 # 全局验证码服务实例
-_captcha_service: Optional[CaptchaService] = None
+_captcha_service: CaptchaService | None = None
 
 
 def get_captcha_service() -> CaptchaService:

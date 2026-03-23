@@ -1,19 +1,17 @@
-# -*- coding: utf-8 -*-
 """
 缓存服务模块测试
 测试 app/core/cache.py 的功能
 """
-import pytest
-import pytest_asyncio
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
 from app.core.cache import (
+    CacheKeys,
+    CacheService,
     MemoryCache,
     RedisCache,
-    CacheService,
-    CacheKeys,
-    cache_service,
 )
 
 

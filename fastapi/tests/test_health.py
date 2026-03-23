@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
 """
 健康检查 API 测试
 测试 health 模块的功能
 """
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock, patch, MagicMock
 
 
 class TestHealthAPI:

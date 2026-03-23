@@ -1,11 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 通知公告 API
 """
 
-from typing import Optional
-
-from fastapi import APIRouter, Query, Request
 
 from app.api.deps import require_permissions
 from app.db.models.oauth import Users
@@ -20,6 +16,7 @@ from app.schemas.system import (
     NoticeUpdate,
 )
 from app.services.system.notice_service import notice_service
+from fastapi import APIRouter, Query, Request
 
 router = APIRouter()
 
@@ -29,8 +26,8 @@ async def get_notice_page(
     request: Request,
     page_num: int = Query(1, alias="pageNum", ge=1, description="页码"),
     page_size: int = Query(10, alias="pageSize", ge=1, le=100, description="每页数量"),
-    title: Optional[str] = Query(None, description="标题"),
-    publish_status: Optional[int] = Query(None, alias="publishStatus", description="发布状态"),
+    title: str | None = Query(None, description="标题"),
+    publish_status: int | None = Query(None, alias="publishStatus", description="发布状态"),
     current_user: Users = require_permissions("system:notices:query"),
 ):
     data = await notice_service.get_page(
@@ -130,8 +127,8 @@ async def get_my_notice_page(
     request: Request,
     page_num: int = Query(1, alias="pageNum", ge=1, description="页码"),
     page_size: int = Query(10, alias="pageSize", ge=1, le=100, description="每页数量"),
-    title: Optional[str] = Query(None, description="标题"),
-    is_read: Optional[int] = Query(None, alias="isRead", description="是否已读(1:是;0:否)"),
+    title: str | None = Query(None, description="标题"),
+    is_read: int | None = Query(None, alias="isRead", description="是否已读(1:是;0:否)"),
     current_user: Users = require_permissions("system:notices:query"),
 ):
     data = await notice_service.get_my_page(

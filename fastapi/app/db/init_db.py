@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 数据库初始化模块
 
@@ -20,11 +19,11 @@ async def init_db() -> None:
     try:
         # 初始化 Tortoise ORM
         await Tortoise.init(config=settings.tortoise_orm_config)
-        
+
         # 生成数据库表（开发环境使用，生产环境建议使用迁移工具）
         if settings.is_development:
             await Tortoise.generate_schemas()
-            
+
     except Exception as e:
         raise APIException(
             code=500,

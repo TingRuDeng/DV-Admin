@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Pydantic 模型模块
 

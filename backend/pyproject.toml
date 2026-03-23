@@ -36,6 +36,24 @@ dependencies = [
 # 只在非 Windows 平台安装 uwsgi
 uwsgi = { version = ">=2.0.31", platform = "!= 'win32'" }
 
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-django>=4.8.0",
+    "ruff>=0.6.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = [
+    "**/migrations/*.py",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501", "F401", "I001", "F403", "F405"]
+
 [[tool.uv.index]]
 url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 default = true

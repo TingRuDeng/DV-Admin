@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 """
 通知公告接口测试
 """
-import pytest
-import pytest_asyncio
 import uuid
 from datetime import datetime
+
+import pytest_asyncio
 from fastapi.testclient import TestClient
 
 from app.db.models.system import Notices

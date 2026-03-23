@@ -1,10 +1,6 @@
-# -*- coding: utf-8 -*-
 """
 用户管理 API 路由
 """
-from typing import List, Optional
-
-from fastapi import APIRouter, File, Query, Request, Depends, UploadFile
 
 from app.api.deps import require_permissions
 from app.db.models.oauth import Users
@@ -12,13 +8,14 @@ from app.schemas.base import PageResult, ResponseModel
 from app.schemas.system import (
     BulkDelete,
     UserCreate,
-    UserOut,
     UserFormOut,
+    UserImportResult,
+    UserOut,
     UserPartialUpdate,
     UserUpdate,
-    UserImportResult,
 )
 from app.services.system.user_service import user_service
+from fastapi import APIRouter, File, Query, Request, UploadFile
 
 router = APIRouter()
 
@@ -48,7 +45,7 @@ router = APIRouter()
 - `page`: 当前页码
 - `pageSize`: 每页数量
 - `totalPages`: 总页数
-- `results`: 用户列表，每个用户包含：
+- `list`: 用户列表，每个用户包含：
   - `id`: 用户ID
   - `username`: 用户名
   - `name`: 真实姓名
@@ -80,7 +77,7 @@ router = APIRouter()
                             "page": 1,
                             "pageSize": 10,
                             "totalPages": 10,
-                            "results": [
+                            "list": [
                                 {
                                     "id": 1,
                                     "username": "admin",
@@ -108,9 +105,9 @@ async def get_users(
     request: Request,
     page: int = Query(1, ge=1, description="页码"),
     page_size: int = Query(10, ge=1, le=100, description="每页数量"),
-    search: Optional[str] = Query(None, description="搜索关键词"),
-    is_active: Optional[int] = Query(None, description="状态"),
-    dept: Optional[int] = Query(None, description="部门ID"),
+    search: str | None = Query(None, description="搜索关键词"),
+    is_active: int | None = Query(None, description="状态"),
+    dept: int | None = Query(None, description="部门ID"),
     current_user: Users = require_permissions("system:users:query"),
 ) -> ResponseModel[PageResult[UserOut]]:
     result = await user_service.get_page(
@@ -125,7 +122,7 @@ async def get_users(
 
 @router.get(
     "/options",
-    response_model=ResponseModel[List[dict]],
+    response_model=ResponseModel[list[dict]],
     summary="获取用户下拉选项",
     description="""
 ## 获取用户下拉选项
@@ -170,7 +167,7 @@ async def get_users(
 async def get_user_options(
     request: Request,
     current_user: Users = require_permissions("system:users:view"),
-) -> ResponseModel[List[dict]]:
+) -> ResponseModel[list[dict]]:
     options = await user_service.get_options()
     return ResponseModel.success(data=options)
 
@@ -705,7 +702,7 @@ Excel 文件必须包含以下列：
 )
 async def import_users(
     request: Request,
-    dept_id: Optional[int] = Query(None, description="部门ID"),
+    dept_id: int | None = Query(None, description="部门ID"),
     file: UploadFile = File(..., description="Excel文件"),
     current_user: Users = require_permissions("system:users:add"),
 ) -> ResponseModel[UserImportResult]:

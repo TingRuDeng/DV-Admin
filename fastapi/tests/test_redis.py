@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
 """
 Redis 连接管理模块测试
 测试 app/core/redis.py 的功能
 """
-import pytest
-import pytest_asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.core.redis import RedisManager, redis_manager, get_redis
+import pytest
+
+from app.core.redis import RedisManager, get_redis, redis_manager
 
 
 class TestRedisManager:

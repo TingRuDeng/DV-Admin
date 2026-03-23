@@ -1,17 +1,15 @@
-# -*- coding: utf-8 -*-
 """
 文件工具测试
 测试 file 模块的功能
 """
-import pytest
 import os
 import tempfile
 
 from app.utils.file import (
     allowed_file,
-    secure_filename,
-    get_file_size,
     format_file_size,
+    get_file_size,
+    secure_filename,
 )
 
 
@@ -47,7 +45,7 @@ class TestFileUtils:
         with tempfile.NamedTemporaryFile(delete=False) as f:
             f.write(b"test content")
             temp_path = f.name
-        
+
         try:
             size = get_file_size(temp_path)
             assert size == 12

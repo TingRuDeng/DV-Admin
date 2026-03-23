@@ -1,13 +1,10 @@
-# -*- coding: utf-8 -*-
 """
 API 依赖模块
 
 定义 FastAPI 依赖注入函数，用于认证、权限检查等。
 """
 
-from typing import Optional
 
-from fastapi import Depends, Header, Request
 from fastapi.security import OAuth2PasswordBearer
 
 from app.core.exceptions import AuthenticationError, PermissionDenied
@@ -19,6 +16,7 @@ from app.core.security import (
 )
 from app.db.models.oauth import Users
 from app.services.token_blacklist import token_blacklist_service
+from fastapi import Depends, Header, Request
 
 # OAuth2 密码模式
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/oauth/token", auto_error=False)
@@ -26,8 +24,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/oauth/token", auto_error=Fal
 
 async def get_current_user(
     request: Request,
-    token: Optional[str] = Depends(oauth2_scheme),
-    authorization: Optional[str] = Header(None),
+    token: str | None = Depends(oauth2_scheme),
+    authorization: str | None = Header(None),
 ) -> Users:
     """
     获取当前用户

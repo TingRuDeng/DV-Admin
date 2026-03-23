@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
 """
 安全验证器模块测试
 测试 app/core/security_validator.py 的功能
 """
-import pytest
 import warnings
 
+import pytest
+
 from app.core.security_validator import (
-    SecurityValidator,
     SecurityValidationError,
+    SecurityValidator,
 )
 
 

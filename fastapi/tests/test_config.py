@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 配置模块测试
 测试 config 模块的功能
 """
-import pytest
 
 from app.core.config import settings
 
