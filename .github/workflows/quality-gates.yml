@@ -79,10 +79,10 @@ jobs:
           echo "EXTRA_INSTALLED_APPS=" >> .env.test
       - name: Run lint
         working-directory: backend
-        run: uv run ruff check .
+        run: .venv/bin/ruff check .
       - name: Run tests
         working-directory: backend
-        run: uv run pytest
+        run: .venv/bin/pytest
 
   fastapi:
     name: FastAPI Backend Quality
@@ -117,4 +117,8 @@ jobs:
           echo "APP_ENV=test" >> .env
       - name: Run quality gate
         working-directory: fastapi
-        run: make quality
+        run: |
+          .venv/bin/ruff check . --ignore I
+          .venv/bin/isort . --check-only
+          .venv/bin/mypy app/schemas
+          .venv/bin/pytest --cov=app --cov-report=term-missing --cov-fail-under=80
