@@ -2,6 +2,12 @@
 .idea
 frontend/node_modules
 frontend/.vscode
+frontend/logs
+frontend/*.pid
+backend/logs
+backend/*.pid
+fastapi/logs
+*.pid
 .eslintcache
 .stylelintcache
 frontend/dist

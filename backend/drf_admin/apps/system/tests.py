@@ -58,9 +58,14 @@ class UsersListTestCase(TestCase):
     def test_get_users_list(self):
         """测试获取用户列表"""
         response = self.client.get("/api/v1/system/users/")
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["code"], 20000)
+
+        # 验证分页格式（前端期望 list/total，后端返回 results/count）
+        data = response.data["data"]
+        self.assertIn("list", data, "分页响应应包含 list 字段")
+        self.assertIn("total", data, "分页响应应包含 total 字段")
 
     def test_get_users_list_with_params(self):
         """测试带参数的用户列表"""
