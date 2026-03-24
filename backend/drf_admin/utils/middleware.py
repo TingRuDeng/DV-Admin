@@ -2,80 +2,123 @@
 
 import json
 import logging
+import re
+from typing import Any
 
+from django.http import HttpRequest, HttpResponse
+from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.response import Response
 from django_redis import get_redis_connection
 from django.utils.deprecation import MiddlewareMixin
 
-# from drf_admin.apps.monitor.models import OnlineUsers
 from drf_admin.apps.oauth.utils import get_request_browser, get_request_os, get_request_ip
+
+
+SENSITIVE_KEYWORDS = ["password", "token", "secret", "key", "authorization"]
+MAX_LOG_LENGTH = 4096
+
+
+def mask_sensitive_data(data: Any, depth: int = 0) -> Any:
+    """
+    Recursively mask sensitive fields in data structure.
+    """
+    if depth > 10:
+        return "***MAX_DEPTH***"
+
+    if isinstance(data, dict):
+        masked = {}
+        for k, v in data.items():
+            if any(re.search(keyword, k, re.IGNORECASE) for keyword in SENSITIVE_KEYWORDS):
+                masked[k] = "******"
+            else:
+                masked[k] = mask_sensitive_data(v, depth + 1)
+        return masked
+    elif isinstance(data, (list, tuple)):
+        return [mask_sensitive_data(item, depth + 1) for item in data]
+    else:
+        return data
 
 
 class OperationLogMiddleware:
     """
-    操作日志Log记录
+    操作日志记录中间件
     """
 
     def __init__(self, get_response):
         self.get_response = get_response
-        self.operation_logger = logging.getLogger('operation')  # 记录非GET操作日志
-        self.query_logger = logging.getLogger('query')  # 记录GET查询操作日志
+        self.operation_logger = logging.getLogger("operation")
+        self.query_logger = logging.getLogger("query")
 
-    def __call__(self, request):
-        request_body = dict()
-        content_type = request.META.get('CONTENT_TYPE', '')
-        try:
-            if 'application/json' in content_type and request.body != b'':
-                request_body = json.loads(request.body)
-                if not isinstance(request_body, dict):
-                    request_body = dict()
-        except Exception as e:
-            logging.error(f'JSON解析请求体失败: {e}，请求url：{request.path}')
+    def __call__(self, request: HttpRequest) -> HttpResponse:
+        request_body = self._parse_request_body(request)
+
         if request.method == "GET":
             request_body.update(dict(request.GET))
             logger = self.query_logger
         else:
             request_body.update(dict(request.POST))
             logger = self.operation_logger
-        # 处理密码, log中密码已******替代真实密码
-        for key in request_body:
-            if 'password' in key:
-                request_body[key] = '******'
+
+        request_body = mask_sensitive_data(request_body)
+
         response = self.get_response(request)
+
         try:
-            # 修复: 首先检查response是否有data属性
-            if hasattr(response, 'data'):
-                response_body = response.data
-                # 处理token, log中token已******替代真实token值
-                if isinstance(response_body, dict) and 'data' in response_body:
-                    if isinstance(response_body['data'], dict):
-                        if response_body['data'].get('accessToken'):
-                            response_body['data']['accessToken'] = '******'
-                        if response_body['data'].get('refreshToken'):
-                            response_body['data']['refreshToken'] = '******'
-            else:
-                # 对于没有data属性的响应类型(如静态文件)
-                response_body = dict()
+            response_body = self._extract_response_body(response)
+            response_body = mask_sensitive_data(response_body)
         except Exception as e:
-            logging.error(f'日志敏感信息覆写失败: {e}, 请求URL：{request.path}')
-            response_body = dict()
+            logging.error(f"日志敏感信息覆写失败: {e}, 请求URL：{request.path}")
+            response_body = {}
 
         request_ip = get_request_ip(request)
-        log_info = f'[{request.user}@{request_ip} [Request: {request.method} {request.path} {request_body}] ' \
-                   f'[Response: {response.status_code} {response.reason_phrase} {response_body}]]'
+
+        log_info = (
+            f"[{request.user}@{request_ip} "
+            f"[Request: {request.method} {request.path} {self._truncate_log(request_body)}] "
+            f"[Response: {response.status_code} {response.reason_phrase} "
+            f"{self._truncate_log(response_body)}]]"
+        )
+
         if response.status_code >= 500:
             logger.error(log_info)
         elif response.status_code >= 400:
             logger.warning(log_info)
         else:
             logger.info(log_info)
+
         return response
+
+    def _parse_request_body(self, request: HttpRequest) -> dict:
+        """解析请求体"""
+        request_body = {}
+        content_type = request.META.get("CONTENT_TYPE", "")
+        try:
+            if "application/json" in content_type and request.body != b"":
+                request_body = json.loads(request.body)
+                if not isinstance(request_body, dict):
+                    request_body = {}
+        except Exception as e:
+            logging.error(f"JSON解析请求体失败: {e}，请求url：{request.path}")
+        return request_body
+
+    def _extract_response_body(self, response: HttpResponse) -> Any:
+        """提取响应体"""
+        if hasattr(response, "data"):
+            return response.data
+        return {}
+
+    def _truncate_log(self, data: Any) -> str:
+        """截断日志防止过大"""
+        log_str = str(data)
+        if len(log_str) > MAX_LOG_LENGTH:
+            return log_str[:MAX_LOG_LENGTH] + "...***TRUNCATED***"
+        return log_str
 
 
 class ResponseMiddleware(MiddlewareMixin):
     """
-    自定义响应数据格式
+    统一响应格式中间件
     """
 
     def process_request(self, request):
@@ -88,73 +131,40 @@ class ResponseMiddleware(MiddlewareMixin):
         pass
 
     def process_response(self, request, response):
-        if isinstance(response, Response) and response.get('content-type') == 'application/json':
-            if response.status_code >= 400:
-                msg = '请求失败'
-                detail = response.data.get('detail')
-                code = 40000
-                data = {}
-            elif response.status_code in [200, 201]:
-                msg = '成功'
-                detail = ''
-                code = 20000
-                data = response.data
-                # 转换分页数据格式：results -> list, count -> total
-                if isinstance(data, dict) and 'results' in data:
-                    data['list'] = data.pop('results')
-                    if 'count' in data:
-                        data['total'] = data.pop('count')
-            else:
+        if not isinstance(response, Response):
+            return response
+
+        content_type = response.get("content-type", "")
+        if "application/json" not in content_type:
+            return response
+
+        if response.status_code >= 400:
+            msg = _("请求失败")
+            code = 40000
+            detail = None
+            data = {}
+
+            if isinstance(response.data, dict):
+                detail = response.data.get("detail")
+                code = response.data.get("code") or 40000
+            elif isinstance(response.data, (str, list)):
+                detail = str(response.data)
+
+        elif response.status_code in [200, 201]:
+            data = response.data
+
+            if isinstance(data, dict) and set(data.keys()) == {"code", "msg", "errors", "data"}:
                 return response
-            response.data = {'msg': msg, 'errors': detail, 'code': code, 'data': data}
-            response.content = response.rendered_content
+
+            code = 20000
+            msg = _("成功")
+            detail = None
+        else:
+            return response
+
+        response.data = {"msg": msg, "errors": detail, "code": code, "data": data}
+        response.content = response.rendered_content
         return response
-
-
-# class OnlineUsersMiddleware(MiddlewareMixin):
-#     """
-#     在线用户监测, (采用类心跳机制,10分钟内无任何操作则认为该用户已下线)
-#     """
-#
-#     def process_response(self, request, response):
-#         if request.user.is_authenticated:
-#             from django.core.cache import cache
-#             from drf_admin.settings import REDIS_HOST, REDIS_PORT
-#
-#             last_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-#             request_ip = get_request_ip(request)
-#             cache_key = f'online_user_{request.user.id}_{request_ip}'
-#
-#             # 检查是否配置了Redis
-#             if REDIS_HOST and REDIS_PORT:
-#                 # 如果配置了Redis，使用get_redis_connection
-#                 conn = get_redis_connection('online_user')
-#                 # redis + django orm 实现在线用户监测
-#                 if conn.exists(cache_key):
-#                     conn.hset(cache_key, 'last_time', last_time)
-#                 else:
-#                     online_info = {'ip': request_ip, 'browser': get_request_browser(request),
-#                                    'os': get_request_os(request), 'last_time': last_time}
-#                     conn.hmset(cache_key, online_info)
-#                     if not OnlineUsers.objects.filter(user=request.user, ip=request_ip).exists():
-#                         OnlineUsers.objects.create(**{'user': request.user, 'ip': request_ip})
-#                 # key过期后, 使用redis空间通知, 使用户下线
-#                 conn.expire(cache_key, 10 * 60)
-#             else:
-#                 # 如果没有配置Redis，使用Django缓存API
-#                 online_info = cache.get(cache_key)
-#                 if online_info:
-#                     # 更新最后活跃时间
-#                     online_info['last_time'] = last_time
-#                     cache.set(cache_key, online_info, 10 * 60)
-#                 else:
-#                     # 创建新的在线用户记录
-#                     online_info = {'ip': request_ip, 'browser': get_request_browser(request),
-#                                    'os': get_request_os(request), 'last_time': last_time}
-#                     cache.set(cache_key, online_info, 10 * 60)
-#                     if not OnlineUsers.objects.filter(user=request.user, ip=request_ip).exists():
-#                         OnlineUsers.objects.create(**{'user': request.user, 'ip': request_ip})
-#         return response
 
 
 class IpBlackListMiddleware(MiddlewareMixin):
@@ -165,14 +175,19 @@ class IpBlackListMiddleware(MiddlewareMixin):
     def process_request(self, request):
         request_ip = get_request_ip(request)
         from django.core.cache import cache
-        from drf_admin.settings import REDIS_HOST, REDIS_PORT
+        from django.conf import settings
 
-        if REDIS_HOST and REDIS_PORT:
-            conn = get_redis_connection('user_info')
-            if conn.sismember('ip_black_list', request_ip):
-                from django.http import HttpResponse
-                return HttpResponse('IP已被拉入黑名单, 请联系管理员', status=status.HTTP_400_BAD_REQUEST)
+        redis_host = getattr(settings, "REDIS_HOST", None)
+        redis_port = getattr(settings, "REDIS_PORT", None)
+
+        if redis_host and redis_port:
+            conn = get_redis_connection("user_info")
+            if conn.sismember("ip_black_list", request_ip):
+                return HttpResponse(
+                    _("IP已被拉入黑名单, 请联系管理员"), status=status.HTTP_400_BAD_REQUEST
+                )
         else:
-            if cache.get(f'ip_black_list:{request_ip}'):
-                from django.http import HttpResponse
-                return HttpResponse('IP已被拉入黑名单, 请联系管理员', status=status.HTTP_400_BAD_REQUEST)
+            if cache.get(f"ip_black_list:{request_ip}"):
+                return HttpResponse(
+                    _("IP已被拉入黑名单, 请联系管理员"), status=status.HTTP_400_BAD_REQUEST
+                )
