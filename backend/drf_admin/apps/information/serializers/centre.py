@@ -33,6 +33,13 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('原密码错误')
         if attrs.get('confirm_password') != attrs.get('password'):
             raise serializers.ValidationError('两次输入密码不一致')
+        password = attrs.get('password')
+        if len(password) < 6:
+            raise serializers.ValidationError('密码长度不能少于6位')
+        if not any(c.isdigit() for c in password):
+            raise serializers.ValidationError('密码必须包含数字')
+        if not any(c.isalpha() for c in password):
+            raise serializers.ValidationError('密码必须包含字母')
         return attrs
 
     def update(self, instance, validated_data):

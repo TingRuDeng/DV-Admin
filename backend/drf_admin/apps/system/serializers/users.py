@@ -72,7 +72,6 @@ class ResetPasswordSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
-        # partial_update, 局部更新required验证无效, 手动验证数据
         password = attrs.get('password')
         confirm_password = attrs.get('confirm_password')
         if not password:
@@ -81,6 +80,12 @@ class ResetPasswordSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('字段confirm_password为必填项')
         if password != confirm_password:
             raise serializers.ValidationError('两次密码不一致')
+        if len(password) < 6:
+            raise serializers.ValidationError('密码长度不能少于6位')
+        if not any(c.isdigit() for c in password):
+            raise serializers.ValidationError('密码必须包含数字')
+        if not any(c.isalpha() for c in password):
+            raise serializers.ValidationError('密码必须包含字母')
         return attrs
 
     def save(self, **kwargs):
