@@ -46,6 +46,7 @@ frontend/dist
 fastapi/dv_admin_fastapi.egg-info
 find-skills
 .env
+.envrc
 dv_admin.db
 .coverage
 htmlcov/
