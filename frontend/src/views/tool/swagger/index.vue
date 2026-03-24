@@ -9,5 +9,7 @@ defineOptions({
   name: "Swagger",
 });
 
-const swaggerApi = import.meta.env.VITE_APP_API_URL + "/api/swagger/";
+const apiVersion = import.meta.env.VITE_APP_API_VERSION || "";
+const baseApi = apiVersion ? `/api/${apiVersion}/` : "/api/";
+const swaggerApi = import.meta.env.VITE_APP_API_URL + baseApi + "swagger/";
 </script>

@@ -1,6 +1,6 @@
 # DV-Admin FastAPI Backend
 
-基于 FastAPI + Tortoise ORM 的异步后端服务，兼容原有 Django 前端 API 接口。
+基于 FastAPI + Tortoise ORM 的异步后端服务。`fastapi/` 是项目的 FastAPI 后端实现，对应的替代实现见 `backend/`（Django）。两者面向同一套前端和业务域，日常开发/部署通常二选一，并保持共享 API 契约兼容。
 
 ## 技术栈
 
