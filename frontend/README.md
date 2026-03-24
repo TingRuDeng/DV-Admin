@@ -4,7 +4,26 @@
 
 ## 项目启动
 
-- **快速开始**
+- **快速开始（推荐使用脚本）**
+
+```bash
+# 切换目录
+cd frontend
+
+# 启动服务（后台运行，自动检测环境、安装依赖）
+./dev.sh start
+
+# 查看服务状态
+./dev.sh status
+
+# 停止服务
+./dev.sh stop
+
+# 重启服务
+./dev.sh restart
+```
+
+- **手动启动**
 
 ```bash
 # 切换目录
@@ -22,6 +41,16 @@ pnpm install
 # 启动运行
 pnpm run dev
 ```
+
+## 本地联调说明
+
+- 前端开发服务器默认运行在 `http://localhost:9527`
+- 开发环境下，前端会将 `/dev-api` 代理到 `http://127.0.0.1:8769`
+- 本地联调时，请在 Django `backend/` 和 FastAPI `fastapi/` 两套后端实现中选择一套启动即可
+- 如果你修改了后端端口，需要同步更新 [frontend/.env.development](/Users/dengtingru/Desktop/code/DV-Admin/frontend/.env.development) 中的 `VITE_APP_API_URL`
+- 默认可用账户：
+  - `admin/123456`
+  - `visitor/123456`
 
 ## 质量检查命令
 
