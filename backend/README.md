@@ -1,7 +1,16 @@
 ## 简介
-基于RBAC模型权限控制的中小型应用的基础开发平台,前后端分离,后端采用django+django-rest-framework,前端采用vue+ElementUI。
+基于RBAC模型权限控制的中小型应用的基础开发平台，前后端分离。`backend/` 是项目的 Django 后端实现，对应的替代实现见 `fastapi/`。两者面向同一套前端和业务域，日常开发/部署通常二选一。
 
-JWT认证,可使用simple_history实现审计功能,支持swagger
+JWT认证,可使用simple_history实现审计功能,支持 Swagger API 文档
+
+### Swagger API 文档
+
+启动服务后，可通过以下地址访问 API 文档：
+
+- Swagger UI: http://127.0.0.1:8769/api/v1/swagger/
+- ReDoc: http://127.0.0.1:8769/api/v1/redoc/
+
+> 注意：需要在 `.env.dev` 中设置 `ENABLE_SWAGGER=True` 启用 Swagger（默认关闭）
 
 -----
 
@@ -33,39 +42,69 @@ Redis (最新版，可选)
 # 1、切换到后端根目录
 cd backend
 
-# 安装python环境管理工具uv
+# 2、安装python环境管理工具uv
 ## windows下安装
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 
 ## Mac/Linux下安装uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# 3、Python虚拟环境及依赖包安装（根据 pyproject.toml 解析并安装相关依赖）
-uv sync
-
-# 4、复制 .env.example 为 .env.dev 并按实际需求更改文件配置参数
+# 3、复制 .env.example 为 .env.dev 并按实际需求更改文件配置参数
 cp .env.example .env.dev
 
-# 5、生成数据库迁移文件
+# 4、生成数据库迁移文件
 uv run python manage.py makemigrations oauth system --env dev
 
-# 6、迁移数据库，--env dev 表示使用 .env.dev 配置文件，默认使用该配置则后续命令都可不加
+# 5、迁移数据库，--env dev 表示使用 .env.dev 配置文件
 uv run python manage.py migrate --env dev
 
-# 7、导入初始数据
+# 6、导入初始数据
 uv run python manage.py loaddata init_data.json --env dev
   
-# 8、运行服务（如后端使用其他启动端口，则需修改前端配置文件 .env.development 中的端口值） 
-## 开发环境运行
+# 7、启动服务（推荐使用脚本，自动检测环境、安装依赖）
+./dev.sh start
+
+# 查看服务状态
+./dev.sh status
+
+# 查看实时日志
+./dev.sh logs
+
+# 停止服务
+./dev.sh stop
+```
+
+### 使用脚本管理服务（推荐）
+
+```bash
+# 启动服务（自动检测 uv、安装依赖、创建虚拟环境）
+./dev.sh start
+
+# 启动指定环境
+./dev.sh start --env=test
+
+# 查看服务状态
+./dev.sh status
+
+# 查看实时日志
+./dev.sh logs
+
+# 停止服务
+./dev.sh stop
+
+# 重启服务
+./dev.sh restart
+```
+
+### 手动启动（不推荐）
+
+```bash
+# 创建虚拟环境并安装依赖
+uv venv
+uv sync
+
+# 运行服务
 uv run python manage.py runserver 0.0.0.0:8769 --env dev
-
-## 测试/开发环境运行(启停服务)
-./service.sh start
-./service.sh stop
-./service.sh restart
-
-# 9、如需求读取其他环境配置文件如 .env.test，可在命令后添加 --env test
-uv run python manage.py runserver 0.0.0.0:8769 --env test
 ```
 
 ### 2、账户、角色、权限

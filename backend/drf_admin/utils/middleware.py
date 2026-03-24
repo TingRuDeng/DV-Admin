@@ -99,6 +99,11 @@ class ResponseMiddleware(MiddlewareMixin):
                 detail = ''
                 code = 20000
                 data = response.data
+                # 转换分页数据格式：results -> list, count -> total
+                if isinstance(data, dict) and 'results' in data:
+                    data['list'] = data.pop('results')
+                    if 'count' in data:
+                        data['total'] = data.pop('count')
             else:
                 return response
             response.data = {'msg': msg, 'errors': detail, 'code': code, 'data': data}

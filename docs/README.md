@@ -29,6 +29,79 @@ DV-Admin/
     └── README.md               # [模块] 前端说明
 ```
 
+**后端实现说明：**
+- `backend/`（Django）与 `fastapi/`（FastAPI）是同一产品后端的两套替代实现
+- 日常开发和部署通常二选一，不要求同时运行
+- 涉及共享 API / 数据契约时，仍需同步维护两套实现的兼容性
+
+---
+
+## 开发环境服务启动与使用
+
+### 服务角色与默认地址
+
+| 服务 | 默认地址 | 说明 |
+|------|----------|------|
+| 前端开发服务器 | `http://localhost:9527` | Vite 开发服务器，浏览器访问入口 |
+| Django 后端 | `http://localhost:8769` | `backend/` 实现，日常开发二选一 |
+| FastAPI 后端 | `http://localhost:8769` | `fastapi/` 实现，日常开发二选一 |
+
+- 前端当前会将 `/dev-api` 代理到 `http://127.0.0.1:8769`
+- Django 与 FastAPI 默认端口相同，因此本地联调通常只启动其中一个
+- 如果你需要切换后端实现，先停止当前后端，或显式修改其中一套后端端口并同步前端配置
+
+### 推荐启动顺序
+
+```text
+1. 先确定本次联调使用 Django 还是 FastAPI
+2. 启动选中的后端实现，并确认 http://localhost:8769 可访问
+3. 启动前端开发服务器，打开 http://localhost:9527
+4. 使用 admin/123456 或 visitor/123456 登录验证
+5. 如需切换后端实现，先停掉当前后端再切换
+```
+
+### 快速启动命令
+
+**前端：**
+
+```bash
+cd frontend
+pnpm install
+pnpm run dev
+```
+
+**后端（Django）：**
+
+```bash
+cd backend
+uv sync
+cp .env.example .env.dev
+uv run python manage.py migrate --env dev
+uv run python manage.py loaddata init_data.json --env dev
+uv run python manage.py runserver 0.0.0.0:8769 --env dev
+```
+
+**后端（FastAPI）：**
+
+```bash
+cd fastapi
+uv venv && source .venv/bin/activate
+uv sync
+cp .env.example .env
+./scripts/dev.sh
+```
+
+### 日常使用约定
+
+- 前端开发时始终连接“当前选中的那一套后端实现”，不是同时连接 Django 和 FastAPI
+- 共享 API / 数据契约修改时，需要考虑两套后端实现的兼容性，但不代表本地联调要双开
+- 如果后端端口不是 `8769`，请同步修改 [frontend/.env.development](/Users/dengtingru/Desktop/code/DV-Admin/frontend/.env.development) 中的 `VITE_APP_API_URL`
+- 更完整的启动细节分别见：
+  - [AGENTS.md](/Users/dengtingru/Desktop/code/DV-Admin/AGENTS.md)
+  - [frontend/README.md](/Users/dengtingru/Desktop/code/DV-Admin/frontend/README.md)
+  - [backend/README.md](/Users/dengtingru/Desktop/code/DV-Admin/backend/README.md)
+  - [fastapi/README.md](/Users/dengtingru/Desktop/code/DV-Admin/fastapi/README.md)
+
 ---
 
 ## 文档权威级别
@@ -67,6 +140,8 @@ DV-Admin/
 5. docs/DATABASE_SCHEMA.md      # 查阅数据模型
 ```
 
+**说明：** 仅在本次任务明确选择 Django 作为目标实现时进入这一路径。
+
 ### 后端开发任务（FastAPI）
 
 ```
@@ -76,6 +151,8 @@ DV-Admin/
 4. fastapi/app/api/v1/目标模块/  # 实际代码
 5. docs/DATABASE_SCHEMA.md      # 查阅数据模型
 ```
+
+**说明：** 仅在本次任务明确选择 FastAPI 作为目标实现时进入这一路径。
 
 ### API 修改任务
 
@@ -87,6 +164,8 @@ DV-Admin/
 5. 修改代码并测试
 6. 更新 docs/API_ENDPOINTS.md   # 同步文档
 ```
+
+**说明：** 如果本次 API 修改影响共享对外契约，需要同时评估 Django 与 FastAPI 两套替代实现。
 
 ### 权限相关任务
 
