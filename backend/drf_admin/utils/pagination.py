@@ -1,9 +1,22 @@
-
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 
 
 class GlobalPagination(PageNumberPagination):
-    page_query_param = 'page_num'  # 前端发送的页数关键字名，默认为page
-    page_size = 10  # 每页数目
-    page_size_query_param = 'page_size'  # 前端发送的每页数目关键字名，默认为None
-    max_page_size = 1000  # 前端最多能设置的每页数量
+    page_query_param = "page_num"
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 1000
+
+    def get_paginated_response(self, data):
+        return Response(
+            {
+                "code": 20000,
+                "msg": "成功",
+                "errors": None,
+                "data": {
+                    "list": data,
+                    "total": self.page.paginator.count,
+                },
+            }
+        )
