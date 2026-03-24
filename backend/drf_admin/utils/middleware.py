@@ -159,19 +159,15 @@ class IpBlackListMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         request_ip = get_request_ip(request)
-        # 在redis中判断IP是否在IP黑名单中/
         from django.core.cache import cache
         from drf_admin.settings import REDIS_HOST, REDIS_PORT
 
-        # 检查是否配置了Redis
         if REDIS_HOST and REDIS_PORT:
-            # 如果配置了Redis，使用get_redis_connection
             conn = get_redis_connection('user_info')
             if conn.sismember('ip_black_list', request_ip):
                 from django.http import HttpResponse
                 return HttpResponse('IP已被拉入黑名单, 请联系管理员', status=status.HTTP_400_BAD_REQUEST)
         else:
-            # 如果没有配置Redis，使用Django缓存API
             if cache.get(f'ip_black_list:{request_ip}'):
                 from django.http import HttpResponse
                 return HttpResponse('IP已被拉入黑名单, 请联系管理员', status=status.HTTP_400_BAD_REQUEST)

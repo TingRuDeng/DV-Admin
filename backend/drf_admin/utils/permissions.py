@@ -32,40 +32,31 @@ class RBACPermission(BasePermission):
         """获取用户拥有的所有权限（带缓存）"""
         conn = None
         user_perms = set()
-        # 统一使用user_info_前缀的缓存键
         cache_key = f'user_info_{user.id}_perms'
-        # 检查Redis配置是否存在
         if settings.REDIS_HOST and settings.REDIS_PORT:
             try:
                 conn = get_redis_connection('user_info')
-                if conn.exists(f'user_info_{user.id}'):
-                    cached_perms = conn.hget(f'user_info_{user.id}', 'perms')
-                    if cached_perms is not None:
-                        return json.loads(cached_perms.decode())
+                cached_perms = conn.hget(f'user_info_{user.id}', 'perms')
+                if cached_perms is not None:
+                    return json.loads(cached_perms.decode())
             except Exception as e:
                 logger.error(f"Redis connection error: {str(e)}")
         else:
-            # 尝试从Django缓存获取
             cached_perms = cache.get(cache_key)
             if cached_perms:
                 return cached_perms
 
-        # 从数据库查询用户权限（通过角色关联）
         for role in user.roles.all():
             user_perms.update(role.permissions.values_list("perm", flat=True))
 
-        # 转换为列表格式
         user_perms_list = list(user_perms)
 
-        # 根据Redis可用性选择缓存方式
         if settings.REDIS_HOST and settings.REDIS_PORT:
             try:
-                # 缓存到Redis，1小时
                 conn.hset(f'user_info_{user.id}', 'perms', json.dumps(user_perms_list))
             except Exception as e:
                 logger.error(f"Redis cache error: {str(e)}")
         else:
-            # 缓存到Django本地缓存，1小时
             cache.set(cache_key, user_perms_list, 60 * 60)
 
         return user_perms_list
