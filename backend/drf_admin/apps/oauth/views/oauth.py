@@ -139,4 +139,4 @@ class LogoutAPIView(APIView):
                 token.blacklist()
         except Exception as e:
             logger.warning(f"Token blacklist failed: {str(e)}")
-        return Response(status=status.HTTP_200_OK)
+        return Response({'code': 20000, 'msg': '退出成功'}, status=status.HTTP_200_OK)

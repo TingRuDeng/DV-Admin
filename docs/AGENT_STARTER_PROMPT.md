@@ -22,7 +22,8 @@
 - 前端：Vue 3 + TypeScript + Element Plus
 - 后端 A：Django 4.x + DRF + JWT
 - 后端 B：FastAPI + Tortoise ORM（异步）
-- 双后端 API 兼容
+- 两套后端是替代实现，日常开发/部署通常二选一
+- 共享 API 契约需保持 Django / FastAPI 兼容
 
 默认账户：admin/123456
 

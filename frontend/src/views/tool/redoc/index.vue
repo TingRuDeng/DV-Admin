@@ -10,5 +10,7 @@ defineOptions({
 });
 
 // 使用ref定义响应式数据
-const redocApi = ref(import.meta.env.VITE_APP_API_URL + "/api/redoc/");
+const apiVersion = import.meta.env.VITE_APP_API_VERSION || "";
+const baseApi = apiVersion ? `/api/${apiVersion}/` : "/api/";
+const redocApi = ref(import.meta.env.VITE_APP_API_URL + baseApi + "redoc/");
 </script>
