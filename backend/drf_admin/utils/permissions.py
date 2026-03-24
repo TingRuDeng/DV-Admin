@@ -30,6 +30,10 @@ class RBACPermission(BasePermission):
     @staticmethod
     def get_user_permissions(user):
         """获取用户拥有的所有权限（带缓存）"""
+        # 匿名用户没有权限
+        if not user.is_authenticated:
+            return []
+        
         conn = None
         user_perms = set()
         cache_key = f'user_info_{user.id}_perms'

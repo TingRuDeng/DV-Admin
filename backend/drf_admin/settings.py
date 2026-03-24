@@ -92,7 +92,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',  # 禁用，允许 iframe 嵌入
     # django_user_agents
     'django_user_agents.middleware.UserAgentMiddleware',
     # IP黑名单校验
