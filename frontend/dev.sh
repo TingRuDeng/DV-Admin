@@ -105,6 +105,12 @@ status() {
     fi
 }
 
+restart() {
+    stop
+    sleep 1
+    start "$@"
+}
+
 ##############################################################################
 
 case "$1" in
@@ -114,6 +120,10 @@ case "$1" in
         ;;
     stop)
         stop
+        ;;
+    restart)
+        shift
+        restart "$@"
         ;;
     status)
         status
@@ -125,6 +135,7 @@ case "$1" in
         echo "  ./dev.sh start           # 启动"
         echo "  ./dev.sh start --port=9528  # 指定端口"
         echo "  ./dev.sh stop            # 停止"
+        echo "  ./dev.sh restart         # 重启"
         echo "  ./dev.sh status          # 状态"
         exit 1
         ;;

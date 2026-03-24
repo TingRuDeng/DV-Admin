@@ -18,6 +18,9 @@ cd frontend
 
 # 停止服务
 ./dev.sh stop
+
+# 重启服务
+./dev.sh restart
 ```
 
 - **手动启动**
