@@ -51,8 +51,9 @@
 **响应格式：**
 ```json
 {
-  "code": 200,
-  "message": "success",
+  "code": 20000,
+  "msg": "成功",
+  "errors": null,
   "data": { ... }
 }
 ```
@@ -60,14 +61,22 @@
 **分页响应格式：**
 ```json
 {
-  "code": 200,
-  "message": "success",
+  "code": 20000,
+  "msg": "成功",
+  "errors": null,
   "data": {
     "list": [...],
     "total": 100
   }
 }
 ```
+
+**说明：**
+- `code`: 业务状态码（20000 表示成功，40000 表示失败）
+- `msg`: 响应消息
+- `errors`: 错误详情（成功时为 null）
+- `data`: 业务数据
+- 分页接口的 `data` 包含 `list`（数据列表）和 `total`（总记录数）
 
 ---
 
@@ -93,13 +102,12 @@ POST /api/v1/oauth/login/
 **响应：**
 ```json
 {
-  "code": 200,
+  "code": 20000,
+  "msg": "成功",
+  "errors": null,
   "data": {
     "accessToken": "eyJ...",
-    "refreshToken": "eyJ...",
-    "tokenType": "bearer",
-    "expiresIn": 7200,
-    "refreshExpiresIn": 604800
+    "refreshToken": "eyJ..."
   }
 }
 ```
@@ -162,7 +170,9 @@ GET /api/v1/oauth/captcha/
 **响应：**
 ```json
 {
-  "code": 200,
+  "code": 20000,
+  "msg": "成功",
+  "errors": null,
   "data": {
     "captchaKey": "xxx-xxx-xxx",
     "captchaBase64": "data:image/png;base64,..."
@@ -184,8 +194,13 @@ GET /api/v1/oauth/home/
 **响应：**
 ```json
 {
-  "visits": 100,
-  "users": 50
+  "code": 20000,
+  "msg": "成功",
+  "errors": null,
+  "data": {
+    "visits": 100,
+    "users": 50
+  }
 }
 ```
 
@@ -353,14 +368,26 @@ GET /api/redoc/         # ReDoc
 
 ## 错误码说明
 
-| 错误码 | 说明 |
+### HTTP 状态码
+| 状态码 | 说明 |
 |-------|------|
-| 200 | 成功 |
+| 200 | 请求成功 |
+| 201 | 创建成功 |
 | 400 | 请求参数错误 |
 | 401 | 未认证/Token 过期 |
 | 403 | 无权限 |
 | 404 | 资源不存在 |
 | 500 | 服务器内部错误 |
+
+### 业务状态码（响应体中的 code 字段）
+| 业务码 | 说明 |
+|-------|------|
+| 20000 | 业务成功 |
+| 40000 | 业务失败（通用） |
+| 40001 | 参数验证失败 |
+| 40100 | 未认证 |
+| 40300 | 无权限 |
+| 40400 | 资源不存在 |
 
 ---
 

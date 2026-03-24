@@ -123,8 +123,8 @@ backend/drf_admin/
 **核心中间件（按顺序）：**
 1. `CorsMiddleware` - CORS 跨域处理
 2. `IpBlackListMiddleware` - IP 黑名单
-3. `OperationLogMiddleware` - 操作日志
-4. `ResponseMiddleware` - 响应格式化
+3. `OperationLogMiddleware` - 操作日志（含敏感数据脱敏）
+4. `ResponseMiddleware` - 响应格式统一包装
 5. `CamelCaseMiddleWare` - 驼峰/蛇形命名转换
 
 ---
@@ -295,6 +295,21 @@ fastapi/app/
     │
     ▼
 ┌─────────────────────────────────┐
+│  DRF 视图层                      │
+│  - 业务逻辑处理                  │
+│  - 分页器（如适用）              │
+└─────────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────────┐
+│  GlobalPagination（分页接口）    │
+│  - 直接返回最终标准格式          │
+│  - {code, msg, errors, data}    │
+│  - data: {list, total}          │
+└─────────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────────┐
 │  DRF 序列化器                    │
 │  - 数据验证                      │
 │  - 数据转换                      │
@@ -310,13 +325,19 @@ fastapi/app/
     ▼
 ┌─────────────────────────────────┐
 │  ResponseMiddleware             │
-│  - 统一响应格式                  │
-│  - {code, message, data}        │
+│  - 检测已标准化响应，直接透传    │
+│  - 非标准响应包装为标准格式      │
+│  - {code, msg, errors, data}    │
 └─────────────────────────────────┘
     │
     ▼
 前端接收 (camelCase)
 ```
+
+**响应格式责任层：**
+- **分页接口**：`GlobalPagination` 直接返回最终标准格式
+- **非分页接口**：视图返回业务数据，`ResponseMiddleware` 统一包装
+- **中间件检测**：严格 key 集合匹配 `{code, msg, errors, data}`，避免重复包装
 
 ---
 
