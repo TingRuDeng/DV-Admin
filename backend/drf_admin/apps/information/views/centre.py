@@ -1,14 +1,22 @@
 # -*- coding: utf-8 -*-
 
+import logging
+
 from rest_framework import status, mixins
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 
 from drf_admin.apps.information.serializers.centre import (
-    ChangePasswordSerializer, ChangeInformationSerializer, ChangeAvatarSerializer, InformationSerializer
+    ChangePasswordSerializer,
+    ChangeInformationSerializer,
+    ChangeAvatarSerializer,
+    InformationSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class CentreAPIView(GenericAPIView):
@@ -18,6 +26,7 @@ class CentreAPIView(GenericAPIView):
 
     个人中心获取个人信息, status: 200(成功), return: 当前登录用户的个人信息
     """
+
     serializer_class = InformationSerializer
     permission_classes = [IsAuthenticated]
 
@@ -34,6 +43,7 @@ class ChangePasswordAPIView(mixins.UpdateModelMixin, GenericAPIView):
 
     个人中心修改密码, status: 200(成功), return: None
     """
+
     serializer_class = ChangePasswordSerializer
     permission_classes = [IsAuthenticated]
 
@@ -51,6 +61,7 @@ class ChangeInformationAPIView(mixins.UpdateModelMixin, GenericAPIView):
 
     个人中心修改个人信息, status: 200(成功), return: 修改后的个人信息
     """
+
     serializer_class = ChangeInformationSerializer
     permission_classes = [IsAuthenticated]
 
@@ -68,6 +79,7 @@ class ChangeAvatarAPIView(GenericAPIView):
 
     上传用户头像图片，将保存在media/avatar/目录下，status: 200(成功), return: 头像URL和上传成功信息
     """
+
     serializer_class = ChangeAvatarSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
@@ -77,20 +89,22 @@ class ChangeAvatarAPIView(GenericAPIView):
         user = request.user
 
         # 检查请求中是否包含图片文件
-        if 'image' not in request.data:
+        if "image" not in request.data:
             return Response(
-                {'detail': '请求中未包含图片文件', 'error_code': 'NO_IMAGE_PROVIDED'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"detail": "请求中未包含图片文件", "error_code": "NO_IMAGE_PROVIDED"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         # 检查image字段是否为文件对象
-        image_data = request.data.get('image')
+        image_data = request.data.get("image")
         if isinstance(image_data, str):
             # 如果是字符串，可能是前端传递了base64或者有其他问题
             return Response(
-                {'detail': '上传的图片数据格式不正确，请确保使用正确的multipart/form-data格式',
-                 'error_code': 'INVALID_IMAGE_FORMAT'},
-                status=status.HTTP_400_BAD_REQUEST
+                {
+                    "detail": "上传的图片数据格式不正确，请确保使用正确的multipart/form-data格式",
+                    "error_code": "INVALID_IMAGE_FORMAT",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
@@ -103,19 +117,21 @@ class ChangeAvatarAPIView(GenericAPIView):
             http_host = request.get_host()
             http_port = request.get_port()
             if http_port in http_host:
-                host_url = f'{request.scheme}://{http_host}'
+                host_url = f"{request.scheme}://{http_host}"
             else:
-                host_url = f'{request.scheme}://{http_host}:{http_port}'
-            avatar_url = f'{host_url}{serializer.data["image"]}'
+                host_url = f"{request.scheme}://{http_host}:{http_port}"
+            avatar_url = f"{host_url}{serializer.data['image']}"
 
-            return Response({
-                'detail': '头像更新成功',
-                'url': avatar_url,
-                'image': serializer.data['image']
-            }, status=status.HTTP_200_OK)
-        except Exception as e:
-            # 捕获并返回详细的错误信息
             return Response(
-                {'detail': f'头像上传失败: {str(e)}', 'error_code': 'UPLOAD_FAILED'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"detail": "头像更新成功", "url": avatar_url, "image": serializer.data["image"]},
+                status=status.HTTP_200_OK,
+            )
+        except ValidationError:
+            # DRF 的校验错误需要让上层正常处理
+            raise
+        except Exception:
+            logger.exception("头像上传失败")
+            return Response(
+                {"detail": "头像上传失败，请稍后重试", "error_code": "UPLOAD_FAILED"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
