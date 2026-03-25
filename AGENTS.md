@@ -54,6 +54,8 @@ cp .env.example .env
 
 > Django 和 FastAPI 是替代关系。开发环境通常只选择其中一种后端启动；除非你在做兼容性对比或双实现同步，否则不需要两套后端同时运行。
 
+> 本地开发环境默认数据库通常为 SQLite。当前仓库的 Django 开发库位于 [backend/drf_admin/db.sqlite3](/Users/dengtingru/Desktop/code/DV-Admin/backend/drf_admin/db.sqlite3)，代理在本地调试时可通过 SQLite MCP 连接该文件，但不要把本地 SQLite 的行为直接外推为生产 MySQL 行为。
+
 ### 2. 必读文件
 
 根据任务类型，按顺序阅读：
@@ -96,6 +98,7 @@ cp .env.example .env
    - Django：`uv run python manage.py makemigrations --env dev`
    - FastAPI：修改 `app/db/models/` 后重启服务自动同步（开发环境）
    - 生产环境必须手动管理迁移
+   - 如通过 MCP 访问本地 SQLite 数据库进行排查，默认仅用于查询与验证；执行写操作前要明确当前连接的是哪套后端实现对应的本地库
 
 3. **权限相关变更**
    - 修改权限逻辑前，必须阅读 `docs/ARCHITECTURE.md` 权限章节
