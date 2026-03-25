@@ -91,6 +91,7 @@ uv run python manage.py migrate --env dev
 1. 使用 Django 的 `dumpdata` 和 `loaddata` 导出导入数据
 2. 检查 SQL 兼容性
 3. 在 MySQL 环境下重新运行测试
+4. 如果通过 MCP 直连本地 SQLite 开发库排查问题，记得它只反映开发环境数据，不应直接据此判断生产 MySQL 的查询、锁或字段行为
 
 ---
 
