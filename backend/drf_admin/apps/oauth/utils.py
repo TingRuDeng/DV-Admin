@@ -1,4 +1,3 @@
-
 import re
 import json
 import requests
@@ -8,12 +7,12 @@ from django.contrib.auth.backends import ModelBackend
 
 
 class UsernameMobileAuthBackend(ModelBackend):
-    """"重写Django原有的验证方法"""
+    """ "重写Django原有的验证方法"""
 
     def authenticate(self, request, username=None, password=None, **kwargs):
         # 增加手机号登录
         try:
-            if re.match(r'^1[3-9]\d{9}$', username):
+            if re.match(r"^1[3-9]\d{9}$", username):
                 # 判断是手机号
                 user = Users.objects.get(mobile=username)
             else:
@@ -32,10 +31,10 @@ def get_request_ip(request):
     :param request: request请求对象
     :return: ip
     """
-    if request.META.get('HTTP_X_FORWARDED_FOR'):
-        ip = request.META['HTTP_X_FORWARDED_FOR']
+    if request.META.get("HTTP_X_FORWARDED_FOR"):
+        ip = request.META["HTTP_X_FORWARDED_FOR"]
     else:
-        ip = request.META['REMOTE_ADDR']
+        ip = request.META["REMOTE_ADDR"]
     return ip
 
 
@@ -45,15 +44,16 @@ def get_ip_address(ip):
     :param ip: ip地址
     :return: address位置信息
     """
-    res = requests.request('get', f'http://ip-api.com/json/{ip}')
-    if res.status_code == 200:
-        dict_data = json.loads(res.text)
-        country = dict_data.get('country')
-        region_name = dict_data.get('regionName')
-        city = dict_data.get('city')
-        address = country + ' ' + region_name + ' ' + city
-    else:
-        address = '未知'
+    try:
+        res = requests.get(f"http://ip-api.com/json/{ip}", timeout=3)
+        res.raise_for_status()
+        dict_data = res.json()
+        country = dict_data.get("country")
+        region_name = dict_data.get("regionName")
+        city = dict_data.get("city")
+        address = country + " " + region_name + " " + city
+    except Exception:
+        address = "未知"
     return address
 
 
@@ -65,7 +65,7 @@ def get_request_browser(request):
     """
     family = request.user_agent.browser.family
     version_string = request.user_agent.browser.version_string
-    return family + ' ' + version_string
+    return family + " " + version_string
 
 
 def get_request_os(request):
@@ -76,4 +76,4 @@ def get_request_os(request):
     """
     family = request.user_agent.os.family
     version_string = request.user_agent.os.version_string
-    return family + ' ' + version_string
+    return family + " " + version_string
