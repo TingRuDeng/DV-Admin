@@ -3,6 +3,7 @@
 import logging
 
 from rest_framework import status, mixins
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -125,6 +126,9 @@ class ChangeAvatarAPIView(GenericAPIView):
                 {"detail": "头像更新成功", "url": avatar_url, "image": serializer.data["image"]},
                 status=status.HTTP_200_OK,
             )
+        except ValidationError:
+            # DRF 的校验错误需要让上层正常处理
+            raise
         except Exception:
             logger.exception("头像上传失败")
             return Response(
