@@ -96,11 +96,36 @@ cp .env.example .env
 - 前端开发时始终连接“当前选中的那一套后端实现”，不是同时连接 Django 和 FastAPI
 - 共享 API / 数据契约修改时，需要考虑两套后端实现的兼容性，但不代表本地联调要双开
 - 如果后端端口不是 `8769`，请同步修改 [frontend/.env.development](/Users/dengtingru/Desktop/code/DV-Admin/frontend/.env.development) 中的 `VITE_APP_API_URL`
+- 本地开发环境默认数据库通常是 SQLite；当前仓库的 Django 开发库位于 [backend/drf_admin/db.sqlite3](/Users/dengtingru/Desktop/code/DV-Admin/backend/drf_admin/db.sqlite3)
+- 如需通过 MCP 查看本地开发数据，可为 SQLite MCP 指向该数据库文件；这类访问仅面向本地调试，不代表生产数据库类型或生产数据状态
 - 更完整的启动细节分别见：
   - [AGENTS.md](/Users/dengtingru/Desktop/code/DV-Admin/AGENTS.md)
   - [frontend/README.md](/Users/dengtingru/Desktop/code/DV-Admin/frontend/README.md)
   - [backend/README.md](/Users/dengtingru/Desktop/code/DV-Admin/backend/README.md)
   - [fastapi/README.md](/Users/dengtingru/Desktop/code/DV-Admin/fastapi/README.md)
+
+### SQLite MCP 示例
+
+如需让支持 MCP 的客户端直接查看 Django 本地开发库，可使用类似配置：
+
+```json
+{
+  "mcpServers": {
+    "sqlite": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-sqlite",
+        "/Users/dengtingru/Desktop/code/DV-Admin/backend/drf_admin/db.sqlite3"
+      ]
+    }
+  }
+}
+```
+
+- 上述配置连接的是 Django 本地开发数据库，不是生产库
+- 若切换到 FastAPI 本地库，需要单独修改为它对应的 SQLite 文件
+- 如果 MCP 客户端支持写操作，默认应以只读排查为主，谨慎执行写入
 
 ---
 
