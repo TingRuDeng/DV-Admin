@@ -1,0 +1,94 @@
+// ============================================
+// DV-Admin 设计系统 - 阴影系统
+// ============================================
+// 阴影层次定义
+// 创建日期：2026-04-09
+// ============================================
+
+// ============================================
+// 1. 阴影阶梯
+// ============================================
+$shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+$shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+$shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+// ============================================
+// 2. 内阴影
+// ============================================
+$shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+$shadow-inner-sm: inset 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+// ============================================
+// 3. 语义化阴影
+// ============================================
+// 卡片阴影
+$shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+$shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
+
+// 下拉菜单阴影
+$shadow-dropdown: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+// 模态框阴影
+$shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.2);
+
+// 主色调阴影（用于按钮等）
+$shadow-primary: 0 2px 8px rgba(99, 102, 241, 0.3);
+$shadow-primary-hover: 0 4px 12px rgba(99, 102, 241, 0.4);
+
+// ============================================
+// 4. CSS 变量定义
+// ============================================
+:root {
+  // 阴影阶梯
+  --shadow-xs: #{$shadow-xs};
+  --shadow-sm: #{$shadow-sm};
+  --shadow-base: #{$shadow-base};
+  --shadow-lg: #{$shadow-lg};
+  --shadow-xl: #{$shadow-xl};
+  --shadow-2xl: #{$shadow-2xl};
+
+  // 内阴影
+  --shadow-inner: #{$shadow-inner};
+  --shadow-inner-sm: #{$shadow-inner-sm};
+
+  // 语义化阴影
+  --shadow-card: #{$shadow-card};
+  --shadow-card-hover: #{$shadow-card-hover};
+  --shadow-dropdown: #{$shadow-dropdown};
+  --shadow-modal: #{$shadow-modal};
+  --shadow-primary: #{$shadow-primary};
+  --shadow-primary-hover: #{$shadow-primary-hover};
+}
+
+// ============================================
+// 5. 深色模式适配
+// ============================================
+html.dark {
+  // 深色模式下阴影更明显
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+  --shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+
+  // 语义化阴影
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-dropdown: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+// ============================================
+// 6. 阴影工具类
+// ============================================
+.shadow-xs { box-shadow: var(--shadow-xs); }
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-base { box-shadow: var(--shadow-base); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+.shadow-xl { box-shadow: var(--shadow-xl); }
+.shadow-2xl { box-shadow: var(--shadow-2xl); }
+.shadow-none { box-shadow: none; }
