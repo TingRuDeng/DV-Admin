@@ -5,14 +5,16 @@
 // 创建日期：2026-04-09
 // ============================================
 
+/* stylelint-disable no-descending-specificity */
+
 // ============================================
 // 1. 搜索容器样式增强
 // ============================================
 .search-container {
   padding: 20px 24px 4px;
   margin-bottom: 20px;
-  background: linear-gradient(135deg, var(--gray-50, #F9FAFB) 0%, #FFFFFF 100%);
-  border: 1px solid var(--border-light, #F3F4F6);
+  background: linear-gradient(135deg, var(--gray-50, #f9fafb) 0%, #ffffff 100%);
+  border: 1px solid var(--border-light, #f3f4f6);
   border-radius: 16px;
   box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.1));
   transition: all 0.2s ease;
@@ -42,20 +44,20 @@
 // ============================================
 .data-table {
   margin-bottom: 20px;
-  background: var(--bg-container, #FFFFFF);
-  border-radius: 16px;
-  border: 1px solid var(--border-light, #F3F4F6);
-  box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
   overflow: hidden;
+  background: var(--bg-container, #ffffff);
+  border: 1px solid var(--border-light, #f3f4f6);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
 
   // 表格工具栏区域
   &__toolbar {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     padding: 16px 20px;
-    border-bottom: 1px solid var(--border-light, #F3F4F6);
-    background: var(--gray-50, #F9FAFB);
+    background: var(--gray-50, #f9fafb);
+    border-bottom: 1px solid var(--border-light, #f3f4f6);
 
     &--actions,
     &--tools {
@@ -74,8 +76,8 @@
     margin: 8px 0;
 
     .el-table {
-      border-radius: 12px;
       margin: 0;
+      border-radius: 12px;
     }
   }
 
@@ -83,9 +85,9 @@
   .el-pagination {
     justify-content: flex-end;
     padding: 16px 20px;
-    border-top: 1px solid var(--border-light, #F3F4F6);
-    background: var(--gray-50, #F9FAFB);
     margin-top: 0;
+    background: var(--gray-50, #f9fafb);
+    border-top: 1px solid var(--border-light, #f3f4f6);
   }
 }
 
@@ -93,20 +95,20 @@
 // 3. 树形侧边栏
 // ============================================
 .tree-sidebar {
-  background: var(--bg-container, #FFFFFF);
-  border-radius: 16px;
-  border: 1px solid var(--border-light, #F3F4F6);
-  box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
-  padding: 20px;
   height: fit-content;
+  padding: 20px;
+  background: var(--bg-container, #ffffff);
+  border: 1px solid var(--border-light, #f3f4f6);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
 
   .tree-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    justify-content: space-between;
     padding-bottom: 12px;
-    border-bottom: 1px solid var(--border-light, #F3F4F6);
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border-light, #f3f4f6);
 
     .tree-title {
       font-size: 16px;
@@ -125,24 +127,28 @@
 
     .el-tree-node {
       &:focus > .el-tree-node__content {
-        background-color: var(--gray-100, #F3F4F6);
+        background-color: var(--gray-100, #f3f4f6);
       }
 
       .el-tree-node__content {
         height: 40px;
-        border-radius: 8px;
         margin-bottom: 4px;
+        border-radius: 8px;
         transition: all 0.2s ease;
 
         &:hover {
-          background-color: var(--gray-100, #F3F4F6);
+          background-color: var(--gray-100, #f3f4f6);
         }
       }
 
       &.is-current > .el-tree-node__content {
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%);
-        color: var(--color-primary, #6366F1);
         font-weight: 500;
+        color: var(--color-primary, #6366f1);
+        background: linear-gradient(
+          135deg,
+          rgba(99, 102, 241, 0.1) 0%,
+          rgba(99, 102, 241, 0.05) 100%
+        );
       }
     }
   }
@@ -154,8 +160,8 @@
 .table-operations {
   display: flex;
   gap: 8px;
-  justify-content: flex-start;
   align-items: center;
+  justify-content: flex-start;
 
   .el-button {
     padding: 6px 12px;
@@ -173,7 +179,7 @@
 // ============================================
 html.dark {
   .search-container {
-    background: linear-gradient(135deg, var(--gray-800, #1F2937) 0%, var(--gray-900, #111827) 100%);
+    background: linear-gradient(135deg, var(--gray-800, #1f2937) 0%, var(--gray-900, #111827) 100%);
     border-color: var(--border-base, #334155);
     box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.3));
 
@@ -183,13 +189,13 @@ html.dark {
   }
 
   .data-table {
-    background: var(--bg-container, #1E293B);
+    background: var(--bg-container, #1e293b);
     border-color: var(--border-base, #334155);
     box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.3));
 
     &__toolbar {
+      background: var(--gray-800, #1f2937);
       border-bottom-color: var(--border-base, #334155);
-      background: var(--gray-800, #1F2937);
     }
 
     &__content {
@@ -199,13 +205,13 @@ html.dark {
     }
 
     .el-pagination {
+      background: var(--gray-800, #1f2937);
       border-top-color: var(--border-base, #334155);
-      background: var(--gray-800, #1F2937);
     }
   }
 
   .tree-sidebar {
-    background: var(--bg-container, #1E293B);
+    background: var(--bg-container, #1e293b);
     border-color: var(--border-base, #334155);
     box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.3));
 
@@ -226,8 +232,12 @@ html.dark {
         }
 
         &.is-current > .el-tree-node__content {
-          background: linear-gradient(135deg, rgba(129, 140, 248, 0.15) 0%, rgba(129, 140, 248, 0.1) 100%);
-          color: var(--color-primary-light, #818CF8);
+          color: var(--color-primary-light, #818cf8);
+          background: linear-gradient(
+            135deg,
+            rgba(129, 140, 248, 0.15) 0%,
+            rgba(129, 140, 248, 0.1) 100%
+          );
         }
       }
     }
@@ -265,8 +275,8 @@ html.dark {
 
       &--actions,
       &--tools {
-        width: 100%;
         justify-content: flex-start;
+        width: 100%;
       }
     }
 
@@ -280,9 +290,9 @@ html.dark {
   }
 
   .tree-sidebar {
-    border-radius: 12px;
     padding: 16px;
     margin-bottom: 16px;
+    border-radius: 12px;
   }
 
   .table-operations {
