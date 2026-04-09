@@ -1,0 +1,153 @@
+// ============================================
+// DV-Admin 设计系统 - 色彩系统
+// ============================================
+// 主色调：蓝紫色系 (#6366F1) - 现代科技感
+// 创建日期：2026-04-09
+// ============================================
+
+// ============================================
+// 1. 主色调 - 蓝紫色系
+// ============================================
+$color-primary-base: #6366F1;      // 主色 - 蓝紫色
+$color-primary-light: #818CF8;     // 浅色
+$color-primary-lighter: #A5B4FC;   // 更浅
+$color-primary-lightest: #E0E7FF;  // 最浅
+$color-primary-dark: #4F46E5;      // 深色
+$color-primary-darker: #4338CA;    // 更深
+
+// ============================================
+// 2. 功能色 - 状态色
+// ============================================
+$color-success: #10B981;           // 成功 - 绿色
+$color-success-light: #34D399;
+$color-success-lighter: #6EE7B7;
+
+$color-warning: #F59E0B;           // 警告 - 橙色
+$color-warning-light: #FBBF24;
+$color-warning-lighter: #FCD34D;
+
+$color-danger: #EF4444;            // 危险 - 红色
+$color-danger-light: #F87171;
+$color-danger-lighter: #FCA5A5;
+
+$color-info: #3B82F6;              // 信息 - 蓝色
+$color-info-light: #60A5FA;
+$color-info-lighter: #93C5FD;
+
+// ============================================
+// 3. 中性色 - 灰色阶梯
+// ============================================
+$gray-50: #F9FAFB;
+$gray-100: #F3F4F6;
+$gray-200: #E5E7EB;
+$gray-300: #D1D5DB;
+$gray-400: #9CA3AF;
+$gray-500: #6B7280;
+$gray-600: #4B5563;
+$gray-700: #374151;
+$gray-800: #1F2937;
+$gray-900: #111827;
+
+// ============================================
+// 4. CSS 变量定义
+// ============================================
+:root {
+  // 主色调
+  --color-primary: #{$color-primary-base};
+  --color-primary-light: #{$color-primary-light};
+  --color-primary-lighter: #{$color-primary-lighter};
+  --color-primary-lightest: #{$color-primary-lightest};
+  --color-primary-dark: #{$color-primary-dark};
+  --color-primary-darker: #{$color-primary-darker};
+
+  // 功能色
+  --color-success: #{$color-success};
+  --color-success-light: #{$color-success-light};
+  --color-success-lighter: #{$color-success-lighter};
+
+  --color-warning: #{$color-warning};
+  --color-warning-light: #{$color-warning-light};
+  --color-warning-lighter: #{$color-warning-lighter};
+
+  --color-danger: #{$color-danger};
+  --color-danger-light: #{$color-danger-light};
+  --color-danger-lighter: #{$color-danger-lighter};
+
+  --color-info: #{$color-info};
+  --color-info-light: #{$color-info-light};
+  --color-info-lighter: #{$color-info-lighter};
+
+  // 中性色
+  --gray-50: #{$gray-50};
+  --gray-100: #{$gray-100};
+  --gray-200: #{$gray-200};
+  --gray-300: #{$gray-300};
+  --gray-400: #{$gray-400};
+  --gray-500: #{$gray-500};
+  --gray-600: #{$gray-600};
+  --gray-700: #{$gray-700};
+  --gray-800: #{$gray-800};
+  --gray-900: #{$gray-900};
+
+  // 文本色
+  --text-primary: #{$gray-900};
+  --text-regular: #{$gray-700};
+  --text-secondary: #{$gray-500};
+  --text-placeholder: #{$gray-400};
+
+  // 背景色
+  --bg-page: #{$gray-50};
+  --bg-container: #FFFFFF;
+  --bg-overlay: #FFFFFF;
+  --bg-hover: #{$gray-100};
+
+  // 边框色
+  --border-base: #{$gray-200};
+  --border-light: #{$gray-100};
+  --border-lighter: #{$gray-50};
+}
+
+// ============================================
+// 5. 深色模式适配
+// ============================================
+html.dark {
+  // 主色调 - 深色模式下使用浅色
+  --color-primary: #{$color-primary-light};
+  --color-primary-light: #{$color-primary-lighter};
+  --color-primary-lighter: #{$color-primary-lightest};
+
+  // 功能色 - 深色模式下使用浅色
+  --color-success: #{$color-success-light};
+  --color-warning: #{$color-warning-light};
+  --color-danger: #{$color-danger-light};
+  --color-info: #{$color-info-light};
+
+  // 中性色 - 反转
+  --gray-50: #{$gray-900};
+  --gray-100: #{$gray-800};
+  --gray-200: #{$gray-700};
+  --gray-300: #{$gray-600};
+  --gray-400: #{$gray-500};
+  --gray-500: #{$gray-400};
+  --gray-600: #{$gray-300};
+  --gray-700: #{$gray-200};
+  --gray-800: #{$gray-100};
+  --gray-900: #{$gray-50};
+
+  // 文本色 - 深色模式
+  --text-primary: #F9FAFB;
+  --text-regular: #E5E7EB;
+  --text-secondary: #9CA3AF;
+  --text-placeholder: #6B7280;
+
+  // 背景色 - 深色模式
+  --bg-page: #0F172A;
+  --bg-container: #1E293B;
+  --bg-overlay: #1E293B;
+  --bg-hover: #334155;
+
+  // 边框色 - 深色模式
+  --border-base: #334155;
+  --border-light: #1E293B;
+  --border-lighter: #0F172A;
+}

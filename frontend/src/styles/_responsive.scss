@@ -1,0 +1,275 @@
+// ============================================
+// DV-Admin 响应式设计
+// ============================================
+// 断点系统、媒体查询混入、响应式工具类
+// 创建日期：2026-04-09
+// ============================================
+
+// ============================================
+// 1. 断点定义
+// ============================================
+$breakpoint-xs: 480px;   // 超小屏幕（手机）
+$breakpoint-sm: 640px;   // 小屏幕（手机横屏）
+$breakpoint-md: 768px;   // 中等屏幕（平板）
+$breakpoint-lg: 1024px;  // 大屏幕（桌面）
+$breakpoint-xl: 1280px;  // 超大屏幕
+$breakpoint-2xl: 1536px; // 超超大屏幕
+
+// ============================================
+// 2. 媒体查询混入
+// ============================================
+
+// 超小屏幕
+@mixin xs {
+  @media (max-width: $breakpoint-xs) {
+    @content;
+  }
+}
+
+// 小屏幕及以上
+@mixin sm-up {
+  @media (min-width: $breakpoint-sm) {
+    @content;
+  }
+}
+
+// 中等屏幕及以上
+@mixin md-up {
+  @media (min-width: $breakpoint-md) {
+    @content;
+  }
+}
+
+// 大屏幕及以上
+@mixin lg-up {
+  @media (min-width: $breakpoint-lg) {
+    @content;
+  }
+}
+
+// 超大屏幕及以上
+@mixin xl-up {
+  @media (min-width: $breakpoint-xl) {
+    @content;
+  }
+}
+
+// 超超大屏幕及以上
+@mixin xxl-up {
+  @media (min-width: $breakpoint-2xl) {
+    @content;
+  }
+}
+
+// 小屏幕及以下
+@mixin sm-down {
+  @media (max-width: $breakpoint-sm - 1px) {
+    @content;
+  }
+}
+
+// 中等屏幕及以下
+@mixin md-down {
+  @media (max-width: $breakpoint-md - 1px) {
+    @content;
+  }
+}
+
+// 大屏幕及以下
+@mixin lg-down {
+  @media (max-width: $breakpoint-lg - 1px) {
+    @content;
+  }
+}
+
+// ============================================
+// 3. 响应式工具类
+// ============================================
+
+// 隐藏类
+.hide-xs {
+  @include xs {
+    display: none !important;
+  }
+}
+
+.hide-sm-up {
+  @include sm-up {
+    display: none !important;
+  }
+}
+
+.hide-md-up {
+  @include md-up {
+    display: none !important;
+  }
+}
+
+.hide-lg-up {
+  @include lg-up {
+    display: none !important;
+  }
+}
+
+// 显示类
+.show-xs {
+  display: none !important;
+
+  @include xs {
+    display: block !important;
+  }
+}
+
+.show-sm-up {
+  display: none !important;
+
+  @include sm-up {
+    display: block !important;
+  }
+}
+
+.show-md-up {
+  display: none !important;
+
+  @include md-up {
+    display: block !important;
+  }
+}
+
+.show-lg-up {
+  display: none !important;
+
+  @include lg-up {
+    display: block !important;
+  }
+}
+
+// ============================================
+// 4. 响应式容器
+// ============================================
+.container-fluid {
+  width: 100%;
+  padding-left: 16px;
+  padding-right: 16px;
+
+  @include sm-up {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  @include md-up {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
+.container {
+  width: 100%;
+  max-width: $breakpoint-xl;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+
+  @include sm-up {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  @include md-up {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
+// ============================================
+// 5. 响应式网格
+// ============================================
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -8px;
+  margin-right: -8px;
+
+  @include md-up {
+    margin-left: -12px;
+    margin-right: -12px;
+  }
+}
+
+.col {
+  flex: 1;
+  padding-left: 8px;
+  padding-right: 8px;
+
+  @include md-up {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+// ============================================
+// 6. 响应式字体
+// ============================================
+.text-responsive {
+  font-size: 14px;
+
+  @include sm-up {
+    font-size: 15px;
+  }
+
+  @include md-up {
+    font-size: 16px;
+  }
+}
+
+.heading-responsive {
+  font-size: 20px;
+
+  @include sm-up {
+    font-size: 24px;
+  }
+
+  @include md-up {
+    font-size: 28px;
+  }
+
+  @include lg-up {
+    font-size: 32px;
+  }
+}
+
+// ============================================
+// 7. 响应式间距
+// ============================================
+.section-spacing {
+  padding-top: 24px;
+  padding-bottom: 24px;
+
+  @include sm-up {
+    padding-top: 32px;
+    padding-bottom: 32px;
+  }
+
+  @include md-up {
+    padding-top: 48px;
+    padding-bottom: 48px;
+  }
+}
+
+// ============================================
+// 8. 触摸目标优化
+// ============================================
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+// 移动端按钮优化
+@include md-down {
+  .el-button {
+    min-height: 44px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
