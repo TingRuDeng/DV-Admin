@@ -616,38 +616,5 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.dashboard-container {
-  position: relative;
-  padding: 24px;
-
-  .github-corner {
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 1;
-    border: 0;
-  }
-
-  .version-item {
-    padding: 16px;
-    margin-bottom: 12px;
-    background: var(--el-fill-color-lighter);
-    border-radius: 8px;
-    transition: all 0.2s;
-
-    &.latest-item {
-      background: var(--el-color-primary-light-9);
-      border: 1px solid var(--el-color-primary-light-5);
-    }
-    &:hover {
-      transform: translateX(5px);
-    }
-    .version-content {
-      margin-bottom: 12px;
-      font-size: 13px;
-      line-height: 1.5;
-      color: var(--el-text-color-secondary);
-    }
-  }
-}
+@use "@/styles/pages/dashboard";
 </style>

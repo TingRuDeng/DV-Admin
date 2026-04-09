@@ -1,8 +1,41 @@
+// ============================================
+// DV-Admin 全局样式入口
+// ============================================
+
+// 设计系统
+@use "./design-system";
+
+// 重置样式
 @use "./reset";
+
+// Element Plus 定制
 @use "./element-plus";
+
+// Element Plus 组件深度定制
+@use "./element-plus-custom";
+
+// 页面样式
+@use "./pages/system";
+
+// 响应式设计
+@use "./responsive";
+
 // Vxe Table
 @use "./vxe-table";
 @import url("./vxe-table.css");
+
+// ============================================
+// 主题切换过渡
+// ============================================
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html *,
+html *::before,
+html *::after {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.2s ease, box-shadow 0.3s ease;
+}
 
 .app-container {
   padding: 15px;

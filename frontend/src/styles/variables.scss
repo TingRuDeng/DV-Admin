@@ -1,25 +1,26 @@
 @forward "element-plus/theme-chalk/src/common/var.scss" with (
   $colors: (
     "primary": (
-      // 默认主题色 - 修改此值时需同步修改 src/settings.ts 中的 themeColor
-      "base": #4080ff,
+      // 默认主题色 - 蓝紫色系 (#6366F1) - 现代科技感
+      // 修改此值时需同步修改 src/settings.ts 中的 themeColor
+      "base": #6366F1,
     ),
     "success": (
-      "base": #23c343,
+      "base": #10B981,
     ),
     "warning": (
-      "base": #ff9a2e,
+      "base": #F59E0B,
     ),
     "danger": (
-      "base": #f76560,
+      "base": #EF4444,
     ),
     "info": (
-      "base": #a9aeb8,
+      "base": #3B82F6,
     ),
   ),
 
   $bg-color: (
-    "page": #f5f8fd,
+    "page": #F9FAFB,
   )
 );
 
