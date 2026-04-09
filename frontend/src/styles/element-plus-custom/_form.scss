@@ -14,11 +14,11 @@
     transition: all var(--duration-base, 200ms) var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
 
     &:hover {
-      box-shadow: 0 0 0 1px var(--color-primary-light, #818CF8) inset;
+      box-shadow: 0 0 0 1px var(--color-primary-light, #818cf8) inset;
     }
 
     &.is-focus {
-      box-shadow: 0 0 0 2px var(--color-primary, #6366F1) inset;
+      box-shadow: 0 0 0 2px var(--color-primary, #6366f1) inset;
     }
   }
 }
@@ -32,11 +32,11 @@
     transition: all var(--duration-base, 200ms) var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
 
     &:hover {
-      box-shadow: 0 0 0 1px var(--color-primary-light, #818CF8) inset;
+      box-shadow: 0 0 0 1px var(--color-primary-light, #818cf8) inset;
     }
 
     &.is-focused {
-      box-shadow: 0 0 0 2px var(--color-primary, #6366F1) inset;
+      box-shadow: 0 0 0 2px var(--color-primary, #6366f1) inset;
     }
   }
 }
@@ -45,6 +45,7 @@
 // 3. 日期选择器样式
 // ============================================
 .el-date-editor {
+  // stylelint-disable-next-line no-descending-specificity
   .el-input__wrapper {
     border-radius: 8px;
   }
@@ -68,8 +69,8 @@
 .search-container {
   padding: 20px 20px 4px;
   margin-bottom: 20px;
-  background: linear-gradient(135deg, var(--gray-50, #F9FAFB) 0%, #FFFFFF 100%);
-  border: 1px solid var(--border-light, #F3F4F6);
+  background: linear-gradient(135deg, var(--gray-50, #f9fafb) 0%, #ffffff 100%);
+  border: 1px solid var(--border-light, #f3f4f6);
   border-radius: 12px;
   box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.1));
 
@@ -92,18 +93,18 @@
 // ============================================
 html.dark {
   .search-container {
-    background: linear-gradient(135deg, var(--gray-800, #1F2937) 0%, var(--gray-900, #111827) 100%);
+    background: linear-gradient(135deg, var(--gray-800, #1f2937) 0%, var(--gray-900, #111827) 100%);
     border-color: var(--border-base, #334155);
   }
 
   .el-input {
     .el-input__wrapper {
       &:hover {
-        box-shadow: 0 0 0 1px var(--color-primary-lighter, #A5B4FC) inset;
+        box-shadow: 0 0 0 1px var(--color-primary-lighter, #a5b4fc) inset;
       }
 
       &.is-focus {
-        box-shadow: 0 0 0 2px var(--color-primary-light, #818CF8) inset;
+        box-shadow: 0 0 0 2px var(--color-primary-light, #818cf8) inset;
       }
     }
   }
@@ -111,11 +112,11 @@ html.dark {
   .el-select {
     .el-select__wrapper {
       &:hover {
-        box-shadow: 0 0 0 1px var(--color-primary-lighter, #A5B4FC) inset;
+        box-shadow: 0 0 0 1px var(--color-primary-lighter, #a5b4fc) inset;
       }
 
       &.is-focused {
-        box-shadow: 0 0 0 2px var(--color-primary-light, #818CF8) inset;
+        box-shadow: 0 0 0 2px var(--color-primary-light, #818cf8) inset;
       }
     }
   }
