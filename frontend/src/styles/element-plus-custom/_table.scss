@@ -1,0 +1,146 @@
+// ============================================
+// Element Plus 表格定制
+// ============================================
+// 优化表格视觉清晰度和交互体验
+// 创建日期：2026-04-09
+// ============================================
+
+// ============================================
+// 1. 表格容器样式
+// ============================================
+.el-table {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
+
+  // 表格内部边框优化
+  --el-table-border-color: var(--border-base, #E5E7EB);
+}
+
+// ============================================
+// 2. 表头样式
+// ============================================
+.el-table__header-wrapper {
+  .el-table__header {
+    th {
+      background-color: var(--gray-50, #F9FAFB);
+      font-weight: 600;
+      color: var(--text-primary, #111827);
+
+      .cell {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// ============================================
+// 3. 表体行样式
+// ============================================
+.el-table__body-wrapper {
+  .el-table__body {
+    tr {
+      transition: background-color var(--duration-fast, 150ms) var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
+
+      // 悬停效果
+      &:hover > td {
+        background-color: var(--gray-50, #F9FAFB);
+      }
+
+      // 选中行
+      &.current-row > td {
+        background-color: rgba(99, 102, 241, 0.08);
+      }
+    }
+  }
+}
+
+// ============================================
+// 4. 斑马纹样式
+// ============================================
+.el-table--striped {
+  .el-table__body {
+    tr.el-table__row--striped {
+      td {
+        background-color: var(--gray-50, #F9FAFB);
+      }
+    }
+  }
+}
+
+// ============================================
+// 5. 空状态样式
+// ============================================
+.el-table__empty-block {
+  padding: 40px 0;
+
+  .el-table__empty-text {
+    color: var(--text-secondary, #6B7280);
+    font-size: 14px;
+  }
+}
+
+// ============================================
+// 6. 操作列样式
+// ============================================
+.table-operations {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+  align-items: center;
+
+  .el-button {
+    padding: 4px 8px;
+    font-size: 13px;
+  }
+}
+
+// ============================================
+// 7. 加载状态
+// ============================================
+.el-table__loading {
+  .el-loading-mask {
+    border-radius: 8px;
+  }
+}
+
+// ============================================
+// 8. 深色模式适配
+// ============================================
+html.dark {
+  .el-table {
+    box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.3));
+  }
+
+  .el-table__header-wrapper {
+    .el-table__header {
+      th {
+        background-color: var(--gray-800, #1F2937);
+      }
+    }
+  }
+
+  .el-table__body-wrapper {
+    .el-table__body {
+      tr {
+        &:hover > td {
+          background-color: var(--gray-800, #1F2937);
+        }
+
+        &.current-row > td {
+          background-color: rgba(129, 140, 248, 0.15);
+        }
+      }
+    }
+  }
+
+  .el-table--striped {
+    .el-table__body {
+      tr.el-table__row--striped {
+        td {
+          background-color: var(--gray-800, #1F2937);
+        }
+      }
+    }
+  }
+}

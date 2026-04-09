@@ -15,30 +15,27 @@
     </div>
     <!-- 登录页主体 -->
     <div flex-1 flex-center>
-      <div
-        class="p-4xl w-full h-auto sm:w-450px sm:h-700px shadow-[var(--el-box-shadow-light)] border-rd-2"
-      >
+      <div class="login-card">
         <div w-full flex flex-col items-center>
           <!-- logo -->
-          <el-image :src="logo" style="width: 84px" />
+          <el-image :src="logo" class="login-logo" />
 
           <!-- 标题 -->
-          <h2>
-            <el-badge :value="`v ${defaultSettings.version}`" type="success">
+          <h2 class="login-title">
+            <el-badge :value="`v ${defaultSettings.version}`" type="primary">
               {{ defaultSettings.title }}
             </el-badge>
           </h2>
 
           <!-- 组件切换 -->
           <transition name="fade-slide" mode="out-in">
-            <component :is="formComponents[component]" v-model="component" class="w-90%" />
+            <component :is="formComponents[component]" v-model="component" class="login-form" />
           </transition>
         </div>
       </div>
       <!-- 登录页底部版权 -->
-      <el-text size="small" class="py-2.5! fixed bottom-0 text-center">
+      <el-text size="small" class="login-footer">
         Copyright © 2021 - 2025 {{ defaultSettings.title }} All Rights Reserved.
-        <!--        <a href="" target="_blank">{{ defaultSettings.title }}</a>-->
       </el-text>
     </div>
   </div>
@@ -63,52 +60,7 @@ const formComponents = {
 </script>
 
 <style lang="scss" scoped>
-.login-container {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-// 添加伪元素作为背景层
-.login-container::before {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: -1;
-  width: 100%;
-  height: 100%;
-  content: "";
-  background: url("@/assets/images/login-bg.svg") center center;
-  background-size: cover;
-}
-
-.action-bar {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  z-index: 10;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.125rem;
-
-  @media (max-width: 480px) {
-    top: 10px;
-    right: auto;
-    left: 10px;
-  }
-
-  @media (min-width: 640px) {
-    top: 40px;
-    right: 40px;
-  }
-}
+@use "@/styles/pages/login";
 
 /* fade-slide */
 .fade-slide-leave-active,

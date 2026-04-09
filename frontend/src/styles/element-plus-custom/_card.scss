@@ -1,0 +1,118 @@
+// ============================================
+// Element Plus 卡片定制
+// ============================================
+// 优化卡片视觉层次和交互效果
+// 创建日期：2026-04-09
+// ============================================
+
+// ============================================
+// 1. 基础卡片样式
+// ============================================
+.el-card {
+  border-radius: 12px;
+  border: 1px solid var(--border-light, #F3F4F6);
+  box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
+  transition: all var(--duration-base, 200ms) var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
+
+  // 悬停效果
+  &:hover {
+    box-shadow: var(--shadow-card-hover, 0 4px 16px rgba(0, 0, 0, 0.12));
+    transform: translateY(-2px);
+  }
+}
+
+// ============================================
+// 2. 卡片头部
+// ============================================
+.el-card__header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light, #F3F4F6);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text-primary, #111827);
+}
+
+// ============================================
+// 3. 卡片内容
+// ============================================
+.el-card__body {
+  padding: 20px;
+}
+
+// ============================================
+// 4. 数据卡片样式
+// ============================================
+.data-card {
+  border-radius: 12px;
+  padding: 20px;
+  background: var(--bg-container, #FFFFFF);
+  border: 1px solid var(--border-light, #F3F4F6);
+  box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
+  transition: all var(--duration-base, 200ms) var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
+
+  &:hover {
+    box-shadow: var(--shadow-card-hover, 0 4px 16px rgba(0, 0, 0, 0.12));
+    transform: translateY(-2px);
+  }
+
+  &__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+
+  &__value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary, #111827);
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+
+  &__label {
+    font-size: 14px;
+    color: var(--text-secondary, #6B7280);
+  }
+}
+
+// ============================================
+// 5. 统计卡片网格
+// ============================================
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+// ============================================
+// 6. 深色模式适配
+// ============================================
+html.dark {
+  .el-card {
+    border-color: var(--border-base, #334155);
+    box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.3));
+
+    &:hover {
+      box-shadow: var(--shadow-card-hover, 0 4px 16px rgba(0, 0, 0, 0.4));
+    }
+  }
+
+  .el-card__header {
+    border-bottom-color: var(--border-base, #334155);
+  }
+
+  .data-card {
+    background: var(--bg-container, #1E293B);
+    border-color: var(--border-base, #334155);
+    box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.3));
+
+    &:hover {
+      box-shadow: var(--shadow-card-hover, 0 4px 16px rgba(0, 0, 0, 0.4));
+    }
+  }
+}

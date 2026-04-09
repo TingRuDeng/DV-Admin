@@ -1,0 +1,353 @@
+// ============================================
+// 登录页面样式优化
+// ============================================
+// 渐变背景、毛玻璃效果、现代视觉
+// 创建日期：2026-04-09
+// ============================================
+
+// ============================================
+// 1. 登录容器 - 渐变背景
+// ============================================
+.login-container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+// 渐变背景层
+.login-container::before {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  content: "";
+  // 蓝紫色渐变背景
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #6B8DD6 100%);
+  background-size: cover;
+}
+
+// 动态装饰层
+.login-container::after {
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  z-index: -1;
+  width: 200%;
+  height: 200%;
+  content: "";
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: rotate 30s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ============================================
+// 2. 登录卡片 - 毛玻璃效果
+// ============================================
+.login-card {
+  padding: 48px 40px;
+  width: 100%;
+  height: auto;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+  animation: slideInUp 0.5s ease-out;
+
+  @media (min-width: 640px) {
+    width: 450px;
+    min-height: 600px;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ============================================
+// 3. Logo 和标题区域
+// ============================================
+.login-logo {
+  width: 84px;
+  height: 84px;
+  margin-bottom: 16px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.login-title {
+  margin-bottom: 32px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1F2937;
+  text-align: center;
+
+  .el-badge__content {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+}
+
+// ============================================
+// 4. 登录表单样式
+// ============================================
+.login-form {
+  width: 100%;
+
+  .el-form-item {
+    margin-bottom: 24px;
+  }
+
+  .el-input {
+    .el-input__wrapper {
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: rgba(249, 250, 251, 0.8);
+      box-shadow: none;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba(249, 250, 251, 1);
+        border-color: #E5E7EB;
+      }
+
+      &.is-focus {
+        background: #FFFFFF;
+        border-color: #6366F1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+      }
+    }
+
+    .el-input__prefix {
+      color: #9CA3AF;
+      font-size: 18px;
+    }
+  }
+
+  // 登录按钮
+  .login-button {
+    width: 100%;
+    height: 48px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+    border: none;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    transition: all 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    }
+  }
+
+  // 记住密码和忘记密码
+  .login-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+
+    .el-checkbox {
+      .el-checkbox__label {
+        color: #6B7280;
+        font-size: 14px;
+      }
+    }
+
+    .forgot-password {
+      color: #6366F1;
+      font-size: 14px;
+      text-decoration: none;
+      transition: color 0.2s ease;
+
+      &:hover {
+        color: #4F46E5;
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+// ============================================
+// 5. 操作栏样式
+// ============================================
+.action-bar {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+
+  .action-button {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    color: #FFFFFF;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+  }
+
+  @media (max-width: 480px) {
+    top: 10px;
+    right: auto;
+    left: 10px;
+  }
+
+  @media (min-width: 640px) {
+    top: 40px;
+    right: 40px;
+  }
+}
+
+// ============================================
+// 6. 底部版权
+// ============================================
+.login-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px 0;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+}
+
+// ============================================
+// 7. 深色模式适配
+// ============================================
+html.dark {
+  .login-container::before {
+    background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #1E3A8A 100%);
+  }
+
+  .login-card {
+    background: rgba(30, 41, 59, 0.95);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+
+  .login-title {
+    color: #F9FAFB;
+  }
+
+  .login-form {
+    .el-input {
+      .el-input__wrapper {
+        background: rgba(30, 41, 59, 0.8);
+
+        &:hover {
+          background: rgba(30, 41, 59, 1);
+          border-color: #475569;
+        }
+
+        &.is-focus {
+          background: #1E293B;
+          border-color: #818CF8;
+          box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.15);
+        }
+      }
+    }
+  }
+
+  .action-bar {
+    .action-button {
+      background: rgba(255, 255, 255, 0.1);
+      color: #F9FAFB;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.15);
+      }
+    }
+  }
+
+  .login-footer {
+    color: rgba(249, 250, 251, 0.6);
+  }
+}
+
+// ============================================
+// 8. 移动端适配
+// ============================================
+@media (max-width: 640px) {
+  .login-card {
+    padding: 32px 24px;
+    margin: 16px;
+    border-radius: 20px;
+  }
+
+  .login-title {
+    font-size: 24px;
+    margin-bottom: 24px;
+  }
+
+  .login-form {
+    .el-input {
+      .el-input__wrapper {
+        padding: 10px 14px;
+      }
+    }
+
+    .login-button {
+      height: 44px;
+      font-size: 15px;
+    }
+  }
+}
