@@ -1,8 +1,14 @@
 # Quality Gates Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> ⚠️ **已归档**
+>
+> 本文档已于 2026-04-09 归档，内容可能已过时。
+> 当前权威文档请参考 `/AGENTS.md` 和 `/docs/README.md`。
+>
+> **归档原因**：已实施完成
 
-**Goal:** 将当前“文档要求为主”的质量要求落成仓库内可执行、可失败、可复现的强制门禁，覆盖 `frontend`、`backend`（Django）和 `fastapi`。
+> **For agentic workers:** ~~REQUIRED SUB-SKILL~~ **已实施完成**
+> **Goal:** 将当前"文档要求为主"的质量要求落成仓库内可执行、可失败、可复现的强制门禁，覆盖 `frontend`、`backend`（Django）和 `fastapi`。
 
 **Architecture:** 以仓库根目录 CI 作为唯一硬门禁；各子项目暴露稳定的一组本地检查命令；前端继续保留 Husky 作为本地便利层，但是否允许合并由 CI 决定。Django 后端补齐 `ruff + pytest` 的工程配置，FastAPI 后端保留现有测试/覆盖率能力并统一入口。
 
