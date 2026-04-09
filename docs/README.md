@@ -12,7 +12,6 @@ DV-Admin/
 ├── docs/
 │   ├── README.md               # [本文件] 文档导航入口
 │   ├── ARCHITECTURE.md         # [权威] 系统架构设计
-│   ├── QUALITY_GATES_IMPLEMENTATION_PLAN.md # [计划] 质量门禁补齐实施方案
 │   ├── API_ENDPOINTS.md        # [参考] API 端点文档
 │   ├── DATABASE_SCHEMA.md      # [参考] 数据库模型文档
 │   ├── KNOWN_PITFALLS.md       # [警告] 已知陷阱和常见错误
@@ -20,7 +19,10 @@ DV-Admin/
 │   ├── AGENT_STARTER_PROMPT.md # [工具] 代理启动提示词
 │   ├── DOC_SYNC_CHECKLIST.md   # [流程] 文档同步检查清单
 │   └── archive/                # [历史] 归档文档
-│       └── README.md
+│       ├── README.md
+│       ├── CODE_REVIEW_DJANGO_BACKEND.md
+│       ├── BACKEND_OPTIMIZATION_PLAN.md
+│       └── QUALITY_GATES_IMPLEMENTATION_PLAN.md
 ├── backend/
 │   └── README.md               # [模块] Django 后端说明
 ├── fastapi/
@@ -137,7 +139,6 @@ cp .env.example .env
 | **参考** | 从代码自动生成或同步，辅助理解 | `API_ENDPOINTS.md`, `DATABASE_SCHEMA.md` |
 | **警告** | 必须阅读，避免重复犯错 | `KNOWN_PITFALLS.md` |
 | **跟踪** | 记录待解决的问题 | `TECH_DEBT.md` |
-| **计划** | 面向实施的任务拆解和执行方案 | `QUALITY_GATES_IMPLEMENTATION_PLAN.md` |
 | **模块** | 模块级说明，模块内权威 | 各子目录 `README.md` |
 | **历史** | 归档文档，仅供参考 | `docs/archive/` |
 
@@ -440,5 +441,5 @@ cp .env.example .env
 
 ---
 
-**最后更新：** 2026-03-23
+**最后更新：** 2026-04-09
 **维护者：** DV-Admin Team
