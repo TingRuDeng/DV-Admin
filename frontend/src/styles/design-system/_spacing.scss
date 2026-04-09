@@ -1,0 +1,112 @@
+// ============================================
+// DV-Admin 设计系统 - 间距系统
+// ============================================
+// 基于 4px 的间距阶梯
+// 创建日期：2026-04-09
+// ============================================
+
+// ============================================
+// 1. 间距阶梯 (基于 4px)
+// ============================================
+$spacing-0: 0;
+$spacing-1: 4px;
+$spacing-2: 8px;
+$spacing-3: 12px;
+$spacing-4: 16px;
+$spacing-5: 20px;
+$spacing-6: 24px;
+$spacing-8: 32px;
+$spacing-10: 40px;
+$spacing-12: 48px;
+$spacing-16: 64px;
+
+// ============================================
+// 2. 语义化间距
+// ============================================
+// 页面级间距
+$spacing-page: 24px;
+
+// 区块级间距
+$spacing-section: 20px;
+
+// 组件级间距
+$spacing-component: 16px;
+
+// 元素级间距
+$spacing-element: 8px;
+
+// ============================================
+// 3. CSS 变量定义
+// ============================================
+:root {
+  // 间距阶梯
+  --spacing-0: #{$spacing-0};
+  --spacing-1: #{$spacing-1};
+  --spacing-2: #{$spacing-2};
+  --spacing-3: #{$spacing-3};
+  --spacing-4: #{$spacing-4};
+  --spacing-5: #{$spacing-5};
+  --spacing-6: #{$spacing-6};
+  --spacing-8: #{$spacing-8};
+  --spacing-10: #{$spacing-10};
+  --spacing-12: #{$spacing-12};
+  --spacing-16: #{$spacing-16};
+
+  // 语义化间距
+  --spacing-page: #{$spacing-page};
+  --spacing-section: #{$spacing-section};
+  --spacing-component: #{$spacing-component};
+  --spacing-element: #{$spacing-element};
+}
+
+// ============================================
+// 4. 响应式间距调整
+// ============================================
+@media (max-width: 768px) {
+  :root {
+    // 移动端减小间距
+    --spacing-page: 16px;
+    --spacing-section: 16px;
+    --spacing-component: 12px;
+    --spacing-element: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    // 小屏幕进一步减小间距
+    --spacing-page: 12px;
+    --spacing-section: 12px;
+    --spacing-component: 10px;
+    --spacing-element: 4px;
+  }
+}
+
+// ============================================
+// 5. 间距工具类
+// ============================================
+// Padding
+.p-0 { padding: var(--spacing-0); }
+.p-1 { padding: var(--spacing-1); }
+.p-2 { padding: var(--spacing-2); }
+.p-3 { padding: var(--spacing-3); }
+.p-4 { padding: var(--spacing-4); }
+.p-6 { padding: var(--spacing-6); }
+.p-8 { padding: var(--spacing-8); }
+
+// Margin
+.m-0 { margin: var(--spacing-0); }
+.m-1 { margin: var(--spacing-1); }
+.m-2 { margin: var(--spacing-2); }
+.m-3 { margin: var(--spacing-3); }
+.m-4 { margin: var(--spacing-4); }
+.m-6 { margin: var(--spacing-6); }
+.m-8 { margin: var(--spacing-8); }
+
+// Gap
+.gap-1 { gap: var(--spacing-1); }
+.gap-2 { gap: var(--spacing-2); }
+.gap-3 { gap: var(--spacing-3); }
+.gap-4 { gap: var(--spacing-4); }
+.gap-6 { gap: var(--spacing-6); }
+.gap-8 { gap: var(--spacing-8); }

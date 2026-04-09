@@ -24,8 +24,9 @@ export const defaultSettings: AppSettings = {
   size: ComponentSize.DEFAULT,
   // 语言
   language: LanguageEnum.ZH_CN,
-  // 主题颜色 - 修改此值时需同步修改 src/styles/variables.scss
-  themeColor: "#4080FF",
+  // 主题颜色 - 蓝紫色系 (#6366F1) - 现代科技感
+  // 修改此值时需同步修改 src/styles/variables.scss
+  themeColor: "#6366F1",
   // 是否显示水印
   showWatermark: false,
   // 水印内容
@@ -54,6 +55,7 @@ export const authConfig = {
 // 主题色预设 - 经典配色方案
 // 注意：修改默认主题色时，需要同步修改 src/styles/variables.scss 中的 primary.base 值
 export const themeColorPresets = [
+  "#6366F1", // 蓝紫色 - 现代科技感（默认）
   "#4080FF", // Arco Design 蓝 - 现代感强
   "#1890FF", // Ant Design 蓝 - 经典商务
   "#409EFF", // Element Plus 蓝 - 清新自然
@@ -63,5 +65,4 @@ export const themeColorPresets = [
   "#52C41A", // 成功绿 - 活力清新
   "#F5222D", // 警示红 - 醒目强烈
   "#2F54EB", // 深蓝 - 稳重专业
-  "#EB2F96", // 品红 - 时尚个性
 ];

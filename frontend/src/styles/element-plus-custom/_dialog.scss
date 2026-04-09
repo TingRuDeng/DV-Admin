@@ -1,0 +1,141 @@
+// ============================================
+// Element Plus 对话框和抽屉定制
+// ============================================
+// 优化对话框和抽屉的视觉风格
+// 创建日期：2026-04-09
+// ============================================
+
+// ============================================
+// 1. 对话框样式
+// ============================================
+.el-dialog {
+  border-radius: 16px;
+  box-shadow: var(--shadow-modal, 0 8px 32px rgba(0, 0, 0, 0.2));
+  overflow: hidden;
+
+  // 动画
+  animation: scaleIn var(--duration-slow, 300ms) var(--ease-out, cubic-bezier(0, 0, 0.2, 1));
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// ============================================
+// 2. 对话框头部
+// ============================================
+.el-dialog__header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-light, #F3F4F6);
+  background: linear-gradient(135deg, var(--gray-50, #F9FAFB) 0%, #FFFFFF 100%);
+
+  .el-dialog__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary, #111827);
+  }
+}
+
+// ============================================
+// 3. 对话框内容
+// ============================================
+.el-dialog__body {
+  padding: 24px;
+  color: var(--text-regular, #374151);
+}
+
+// ============================================
+// 4. 对话框底部
+// ============================================
+.el-dialog__footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-light, #F3F4F6);
+  background: var(--gray-50, #F9FAFB);
+
+  .dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+}
+
+// ============================================
+// 5. 抽屉样式
+// ============================================
+.el-drawer {
+  .el-drawer__header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-light, #F3F4F6);
+    background: linear-gradient(135deg, var(--gray-50, #F9FAFB) 0%, #FFFFFF 100%);
+
+    .el-drawer__title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary, #111827);
+    }
+  }
+
+  .el-drawer__body {
+    padding: 24px;
+  }
+
+  .el-drawer__footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-light, #F3F4F6);
+    background: var(--gray-50, #F9FAFB);
+  }
+}
+
+// ============================================
+// 6. 消息框样式
+// ============================================
+.el-message-box {
+  border-radius: 16px;
+  box-shadow: var(--shadow-modal, 0 8px 32px rgba(0, 0, 0, 0.2));
+
+  .el-message-box__header {
+    padding: 20px 24px 0;
+  }
+
+  .el-message-box__content {
+    padding: 20px 24px;
+  }
+
+  .el-message-box__btns {
+    padding: 16px 24px;
+  }
+}
+
+// ============================================
+// 7. 深色模式适配
+// ============================================
+html.dark {
+  .el-dialog__header {
+    border-bottom-color: var(--border-base, #334155);
+    background: linear-gradient(135deg, var(--gray-800, #1F2937) 0%, var(--gray-900, #111827) 100%);
+  }
+
+  .el-dialog__footer {
+    border-top-color: var(--border-base, #334155);
+    background: var(--gray-800, #1F2937);
+  }
+
+  .el-drawer {
+    .el-drawer__header {
+      border-bottom-color: var(--border-base, #334155);
+      background: linear-gradient(135deg, var(--gray-800, #1F2937) 0%, var(--gray-900, #111827) 100%);
+    }
+
+    .el-drawer__footer {
+      border-top-color: var(--border-base, #334155);
+      background: var(--gray-800, #1F2937);
+    }
+  }
+}
