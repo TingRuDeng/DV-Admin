@@ -1,0 +1,142 @@
+// ============================================
+// Element Plus 按钮定制
+// ============================================
+// 增强按钮视觉效果和交互反馈
+// 创建日期：2026-04-09
+// ============================================
+
+// ============================================
+// 1. 基础按钮样式增强
+// ============================================
+.el-button {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all var(--duration-base, 200ms) var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
+
+  // 悬停效果
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  // 点击效果
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// ============================================
+// 2. 主要按钮 - 渐变背景
+// ============================================
+.el-button--primary {
+  background: linear-gradient(135deg, var(--color-primary, #6366F1) 0%, var(--color-primary-dark, #4F46E5) 100%);
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+
+  &:hover,
+  &:focus {
+    background: linear-gradient(135deg, var(--color-primary-light, #818CF8) 0%, var(--color-primary, #6366F1) 100%);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+  }
+
+  &:active {
+    box-shadow: 0 1px 4px rgba(99, 102, 241, 0.2);
+  }
+}
+
+// ============================================
+// 3. 成功按钮
+// ============================================
+.el-button--success {
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+
+  &:hover,
+  &:focus {
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+}
+
+// ============================================
+// 4. 警告按钮
+// ============================================
+.el-button--warning {
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+
+  &:hover,
+  &:focus {
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  }
+}
+
+// ============================================
+// 5. 危险按钮
+// ============================================
+.el-button--danger {
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+
+  &:hover,
+  &:focus {
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+}
+
+// ============================================
+// 6. 信息按钮
+// ============================================
+.el-button--info {
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+
+  &:hover,
+  &:focus {
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+}
+
+// ============================================
+// 7. 文字按钮
+// ============================================
+.el-button--text {
+  &:hover {
+    transform: none;
+  }
+}
+
+// ============================================
+// 8. 链接按钮
+// ============================================
+.el-button--link {
+  &:hover {
+    transform: none;
+    text-decoration: underline;
+  }
+}
+
+// ============================================
+// 9. 按钮组圆角优化
+// ============================================
+.el-button-group {
+  .el-button {
+    &:first-child {
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+    }
+
+    &:last-child {
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+  }
+}
+
+// ============================================
+// 10. 深色模式适配
+// ============================================
+html.dark {
+  .el-button--primary {
+    box-shadow: 0 2px 8px rgba(129, 140, 248, 0.3);
+
+    &:hover,
+    &:focus {
+      box-shadow: 0 4px 12px rgba(129, 140, 248, 0.4);
+    }
+  }
+}
