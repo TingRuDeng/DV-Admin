@@ -20,13 +20,13 @@
 
 // 左上角主色流光球
 .login-container::before {
-  content: "";
   position: absolute;
   top: -10%;
   left: -10%;
   z-index: -1;
   width: 50vw;
   height: 50vw;
+  content: "";
   background: radial-gradient(circle, rgba(64, 128, 255, 0.12) 0%, transparent 60%);
   border-radius: 50%;
   filter: blur(60px);
@@ -35,13 +35,13 @@
 
 // 右下角辅助色流光球
 .login-container::after {
-  content: "";
   position: absolute;
-  bottom: -20%;
   right: -10%;
+  bottom: -20%;
   z-index: -1;
   width: 60vw;
   height: 60vw;
+  content: "";
   background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 60%);
   border-radius: 50%;
   filter: blur(60px);
@@ -49,26 +49,34 @@
 }
 
 @keyframes floatOrb1 {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(5%, 5%) scale(1.1); }
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(5%, 5%) scale(1.1);
+  }
 }
 @keyframes floatOrb2 {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(-5%, -10%) scale(1.05); }
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(-5%, -10%) scale(1.05);
+  }
 }
 
 // ============================================
 // 2. 登录卡片 - 高级毛玻璃悬浮态
 // ============================================
 .login-card {
-  padding: 48px 40px;
   width: 100%;
+  padding: 48px 40px;
   background: rgba(255, 255, 255, 0.6); /* 半透明白，透出底色的弥散光 */
-  backdrop-filter: blur(24px) saturate(120%);
-  -webkit-backdrop-filter: blur(24px) saturate(120%);
-  border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.8); /* 玻璃边缘高光 */
+  border-radius: 24px;
   box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.05);
+  -webkit-backdrop-filter: blur(24px) saturate(120%);
+  backdrop-filter: blur(24px) saturate(120%);
   animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 
   @media (min-width: 640px) {
@@ -77,8 +85,14 @@
 }
 
 @keyframes slideInUp {
-  from { opacity: 0; transform: translateY(40px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 // ============================================
@@ -86,12 +100,12 @@
 // ============================================
 .cyber-logo {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 80px;
   height: 80px;
   margin-bottom: 24px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 
   /* 底层发光弥散体 */
   .logo-glow {
@@ -101,54 +115,65 @@
     /* 科技蓝到电竞紫的渐变 */
     background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
     border-radius: 22px; /* 类似苹果图标的高级圆角 */
-    transform: rotate(-15deg);
-    filter: blur(12px);
     opacity: 0.8;
+    filter: blur(12px);
+    transform: rotate(-15deg);
     animation: pulseGlow 4s ease-in-out infinite alternate;
   }
 
   /* 顶层高光玻璃外壳 */
   .logo-glass {
     position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.05) 100%);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 22px;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0.05) 100%
+    );
     border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 22px;
     /* 内部反光和外部轻微投影 */
-    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.3), 
-                0 8px 24px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1;
+    box-shadow:
+      inset 0 0 20px rgba(255, 255, 255, 0.3),
+      0 8px 24px rgba(0, 0, 0, 0.1);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
 
     /* 内部悬浮文字 */
     .logo-letter {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: 42px;
       font-weight: 900;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       /* 金属白银渐变字 */
       background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
       -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
       filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+      -webkit-text-fill-color: transparent;
     }
   }
 }
 
 /* 呼吸旋转动效 */
 @keyframes pulseGlow {
-  0% { transform: rotate(-15deg) scale(0.95); opacity: 0.6; }
-  100% { transform: rotate(-5deg) scale(1.05); opacity: 1; }
+  0% {
+    opacity: 0.6;
+    transform: rotate(-15deg) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-5deg) scale(1.05);
+  }
 }
 
 .login-title {
   margin-bottom: 40px;
   text-align: center;
-  
+
   /* 爆改主标题文字：重金属/深邃蓝渐变 */
   :deep(.el-badge) {
     font-size: 34px; /* 字号再放大，撑起气场 */
@@ -162,31 +187,32 @@
 
   /* 爆改版本号：从"未读消息点"变成"极客悬浮标签" */
   :deep(.el-badge__content) {
-    -webkit-text-fill-color: #3b82f6 !important; /* 强制覆盖掉主标题的透明渐变属性 */
+    /* 完美对齐：推到右上角 */
+    top: 0 !important;
+    right: 0 !important;
+    height: auto;
+    padding: 4px 10px;
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important; /* 程序员专属等宽字体 */
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
     color: #3b82f6 !important; /* 科技蓝文字 */
     background: rgba(59, 130, 246, 0.1) !important; /* 抽干底色，换成 10% 透明度 */
     border: 1px solid rgba(59, 130, 246, 0.4) !important; /* 极细的发光边框 */
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important; /* 程序员专属等宽字体 */
-    font-weight: 700;
-    font-size: 13px;
-    padding: 4px 10px;
     border-radius: 12px;
-    height: auto;
-    line-height: 1;
-    backdrop-filter: blur(8px);
-    
-    /* 完美对齐：推到右上角 */
-    top: 0 !important; 
-    right: 0 !important;
-    transform: translate(110%, -15%) !important;
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    backdrop-filter: blur(8px);
+    transform: translate(110%, -15%) !important;
+    -webkit-text-fill-color: #3b82f6 !important; /* 强制覆盖掉主标题的透明渐变属性 */
   }
 }
 
 // ============================================
 // 4. 登录表单深度穿透与净化
 // ============================================
-:deep(.login-form), .login-form {
+:deep(.login-form),
+.login-form {
   width: 100%;
 
   .el-form-item {
@@ -196,8 +222,8 @@
   /* 输入框极简处理 */
   .el-input__wrapper {
     padding: 12px 16px;
-    border-radius: 12px !important;
     background: rgba(255, 255, 255, 0.7) !important;
+    border-radius: 12px !important;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06) inset !important;
     transition: all 0.2s ease !important;
 
@@ -207,18 +233,20 @@
 
     &.is-focus {
       background: #ffffff !important;
-      box-shadow: 0 0 0 1px var(--el-color-primary) inset, 0 0 0 3px rgba(64, 128, 255, 0.1) !important;
+      box-shadow:
+        0 0 0 1px var(--el-color-primary) inset,
+        0 0 0 3px rgba(64, 128, 255, 0.1) !important;
     }
   }
 
   .el-input__prefix {
-    color: #94a3b8;
     margin-right: 8px;
+    color: #94a3b8;
   }
 
   .el-input__inner {
-    color: #334155;
     font-weight: 500;
+    color: #334155;
     letter-spacing: 0.5px;
   }
 
@@ -230,42 +258,53 @@
     height: 50px;
     font-size: 16px;
     font-weight: 700;
-    letter-spacing: 4px; 
-    border-radius: 14px;
     color: #ffffff;
-    
+    letter-spacing: 4px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+
+    /* 基础底色与毛玻璃 */
+    background: linear-gradient(
+      135deg,
+      rgba(99, 102, 241, 0.8) 0%,
+      rgba(59, 130, 246, 0.6) 100%
+    ) !important;
+
     /* 晶体边框：保留顶部高光，维持玻璃质感 */
     border: 1px solid rgba(255, 255, 255, 0.3) !important;
     border-top-color: rgba(255, 255, 255, 0.7) !important;
-    
-    /* 基础底色与毛玻璃 */
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(59, 130, 246, 0.6) 100%) !important;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    
+    border-radius: 14px;
+
     /* 静态体积阴影：只托起按钮，不向外扩散发光 */
-    box-shadow: inset 0 4px 20px rgba(255, 255, 255, 0.25), 
-                0 4px 12px -4px rgba(59, 130, 246, 0.3) !important;
-                
+    box-shadow:
+      inset 0 4px 20px rgba(255, 255, 255, 0.25),
+      0 4px 12px -4px rgba(59, 130, 246, 0.3) !important;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+
     transition: all 0.3s ease;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 
     /* 悬浮交互：极度克制，只微微提亮和轻微上浮，坚决不发光 */
     &:hover {
-      transform: translateY(-1px); 
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.9) 0%, rgba(59, 130, 246, 0.75) 100%) !important;
+      background: linear-gradient(
+        135deg,
+        rgba(99, 102, 241, 0.9) 0%,
+        rgba(59, 130, 246, 0.75) 100%
+      ) !important;
       border-color: rgba(255, 255, 255, 0.5) !important;
-      
+
       /* 阴影几乎不扩大，维持稳定感 */
-      box-shadow: inset 0 4px 20px rgba(255, 255, 255, 0.3), 
-                  0 6px 16px -4px rgba(59, 130, 246, 0.4) !important;
+      box-shadow:
+        inset 0 4px 20px rgba(255, 255, 255, 0.3),
+        0 6px 16px -4px rgba(59, 130, 246, 0.4) !important;
+      transform: translateY(-1px);
     }
 
     /* 点击交互：扎实的物理下压感 */
     &:active {
-      transform: translateY(1px); 
-      box-shadow: inset 0 2px 10px rgba(255, 255, 255, 0.15), 
-                  0 2px 6px rgba(59, 130, 246, 0.2) !important;
+      box-shadow:
+        inset 0 2px 10px rgba(255, 255, 255, 0.15),
+        0 2px 6px rgba(59, 130, 246, 0.2) !important;
+      transform: translateY(1px);
       transition: all 0.1s;
     }
   }
@@ -282,38 +321,39 @@
   display: flex;
   gap: 12px;
 
-  .action-button, :deep(.el-icon) {
-    width: 40px;
-    height: 40px;
+  .action-button,
+  :deep(.el-icon) {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    color: #64748b;
+    cursor: pointer;
     background: rgba(255, 255, 255, 0.6);
     border: 1px solid rgba(0, 0, 0, 0.05);
-    backdrop-filter: blur(10px);
     border-radius: 12px;
-    color: #64748b;
-    font-size: 18px;
-    cursor: pointer;
+    backdrop-filter: blur(10px);
     transition: all 0.2s ease;
 
     &:hover {
-      background: #ffffff;
       color: var(--el-color-primary);
-      transform: translateY(-2px);
+      background: #ffffff;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transform: translateY(-2px);
     }
   }
 }
 
 .login-footer {
   position: fixed;
+  right: 0;
   bottom: 20px;
   left: 0;
-  right: 0;
-  text-align: center;
-  color: #94a3b8;
   font-size: 13px;
+  color: #94a3b8;
+  text-align: center;
   letter-spacing: 0.5px;
 }
 
@@ -345,14 +385,18 @@ html.dark {
       opacity: 0.6;
     }
     .logo-glass {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.02) 100%);
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.15) 0%,
+        rgba(255, 255, 255, 0.02) 100%
+      );
       border-color: rgba(255, 255, 255, 0.2);
     }
   }
 
   .login-title {
     color: #f8fafc;
-    
+
     /* 深色模式下的标题与版本号发光效果 */
     :deep(.el-badge) {
       /* 亮银色到亮蓝色的赛博渐变 */
@@ -360,41 +404,54 @@ html.dark {
       -webkit-background-clip: text;
     }
     :deep(.el-badge__content) {
+      color: #60a5fa !important;
       background: rgba(96, 165, 250, 0.15) !important;
       border-color: rgba(96, 165, 250, 0.4) !important;
-      color: #60a5fa !important;
       -webkit-text-fill-color: #60a5fa !important;
     }
   }
 
-  :deep(.login-form), .login-form {
+  :deep(.login-form),
+  .login-form {
     .el-input__wrapper {
       background: rgba(15, 23, 42, 0.6) !important;
       box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05) inset !important;
-      
-      &:hover { background: rgba(15, 23, 42, 0.9) !important; }
+
+      &:hover {
+        background: rgba(15, 23, 42, 0.9) !important;
+      }
       &.is-focus {
         background: rgba(15, 23, 42, 1) !important;
-        box-shadow: 0 0 0 1px var(--el-color-primary) inset, 0 0 0 3px rgba(64, 128, 255, 0.15) !important;
+        box-shadow:
+          0 0 0 1px var(--el-color-primary) inset,
+          0 0 0 3px rgba(64, 128, 255, 0.15) !important;
       }
     }
-    .el-input__inner { color: #f1f5f9; }
+    .el-input__inner {
+      color: #f1f5f9;
+    }
   }
 
-  .action-bar .action-button, .action-bar :deep(.el-icon) {
+  .action-bar .action-button,
+  .action-bar :deep(.el-icon) {
+    color: #cbd5e1;
     background: rgba(30, 41, 59, 0.6);
     border-color: rgba(255, 255, 255, 0.05);
-    color: #cbd5e1;
-    &:hover { background: rgba(30, 41, 59, 1); }
+    &:hover {
+      background: rgba(30, 41, 59, 1);
+    }
   }
 }
 
 // 移动端简单降级适配
 @media (max-width: 640px) {
   .login-card {
-    margin: 16px;
     padding: 40px 24px;
+    margin: 16px;
     backdrop-filter: blur(12px); /* 移动端降低性能消耗 */
   }
-  .action-bar { top: 16px; right: 16px; }
+  .action-bar {
+    top: 16px;
+    right: 16px;
+  }
 }
