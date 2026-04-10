@@ -1,13 +1,14 @@
 <template>
-  <div class="app-container">
+  <div class="app-container p-6 bg-[#f8fafc] min-h-screen flex flex-col gap-4">
     <!-- 搜索区域 -->
-    <div class="search-container">
-      <el-form ref="queryFormRef" :model="queryParams" :inline="true" label-suffix=":">
+    <div class="bg-white p-5 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-slate-100 transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
+      <el-form ref="queryFormRef" :model="queryParams" :inline="true" label-suffix=":" class="minimal-form">
         <el-form-item label="标题" prop="title">
           <el-input
             v-model="queryParams.title"
             placeholder="标题"
             clearable
+            class="minimal-input"
             @keyup.enter="handleQuery()"
           />
         </el-form-item>
@@ -17,6 +18,7 @@
             v-model="queryParams.publishStatus"
             clearable
             placeholder="全部"
+            class="minimal-input"
             style="width: 100px"
           >
             <el-option :value="0" label="未发布" />
@@ -25,20 +27,25 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item class="search-buttons">
-          <el-button type="primary" icon="search" @click="handleQuery()">搜索</el-button>
-          <el-button icon="refresh" @click="handleResetQuery()">重置</el-button>
+        <el-form-item class="ml-auto mb-0">
+          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery()">搜索</el-button>
+          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery()">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
 
-    <el-card shadow="hover" class="data-table">
-      <div class="data-table__toolbar">
-        <div class="data-table__toolbar--actions">
+    <div class="bg-white p-6 flex-1 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-slate-100 flex flex-col transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
+      <div class="flex justify-between items-center mb-5">
+        <div class="flex items-center gap-2">
+          <div class="w-1.5 h-4 bg-primary rounded-full"></div>
+          <span class="text-base font-semibold text-slate-700 tracking-wide">通知公告</span>
+        </div>
+        <div class="flex gap-2">
           <el-button
             v-hasPerm="['sys:notice:add']"
-            type="success"
+            type="primary"
             icon="plus"
+            class="minimal-btn"
             @click="handleOpenDialog()"
           >
             新增通知
@@ -46,124 +53,117 @@
           <el-button
             v-hasPerm="['sys:notice:delete']"
             type="danger"
+            plain
             :disabled="selectIds.length === 0"
             icon="delete"
+            class="minimal-btn-danger"
             @click="handleDelete()"
           >
-            删除
+            批量删除
           </el-button>
         </div>
       </div>
 
-      <el-table
-        ref="dataTableRef"
-        v-loading="loading"
-        :data="pageData"
-        highlight-current-row
-        class="data-table__content"
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="selection" width="55" align="center" />
-        <el-table-column type="index" label="序号" width="60" />
-        <el-table-column label="通知标题" prop="title" min-width="200" />
-        <el-table-column align="center" label="通知类型" width="150">
-          <template #default="scope">
-            <DictLabel v-model="scope.row.type" :code="'notice_type'" />
-          </template>
-        </el-table-column>
-        <el-table-column align="center" label="发布人" prop="publisherName" width="150" />
-        <el-table-column align="center" label="通知等级" width="100">
-          <template #default="scope">
-            <DictLabel v-model="scope.row.level" code="notice_level" />
-          </template>
-        </el-table-column>
-        <el-table-column align="center" label="通告目标类型" prop="targetType" min-width="100">
-          <template #default="scope">
-            <el-tag v-if="scope.row.targetType == 1" type="warning">全体</el-tag>
-            <el-tag v-if="scope.row.targetType == 2" type="success">指定</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" label="发布状态" min-width="100">
-          <template #default="scope">
-            <el-tag v-if="scope.row.publishStatus == 0" type="info">未发布</el-tag>
-            <el-tag v-if="scope.row.publishStatus == 1" type="success">已发布</el-tag>
-            <el-tag v-if="scope.row.publishStatus == -1" type="warning">已撤回</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作时间" width="250">
-          <template #default="scope">
-            <div class="flex-x-start">
-              <span>创建时间：</span>
-              <span>{{ scope.row.createTime || "-" }}</span>
-            </div>
+      <div class="flex-1 overflow-hidden border border-slate-100/50 rounded-xl bg-white/20">
+        <el-table
+          ref="dataTableRef"
+          v-loading="loading"
+          :data="pageData"
+          highlight-current-row
+          class="minimal-table"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55" align="center" />
+          <el-table-column type="index" label="序号" width="60" align="center" />
+          <el-table-column label="通知标题" prop="title" min-width="200" />
+          <el-table-column align="center" label="通知类型" width="150">
+            <template #default="scope">
+              <DictLabel v-model="scope.row.type" :code="'notice_type'" />
+            </template>
+          </el-table-column>
+          <el-table-column align="center" label="发布人" prop="publisherName" width="150" />
+          <el-table-column align="center" label="通知等级" width="100">
+            <template #default="scope">
+              <DictLabel v-model="scope.row.level" code="notice_level" />
+            </template>
+          </el-table-column>
+          <el-table-column align="center" label="通告目标类型" prop="targetType" width="120">
+            <template #default="scope">
+              <el-tag v-if="scope.row.targetType == 1" type="warning" effect="light" class="minimal-tag warning">全体</el-tag>
+              <el-tag v-if="scope.row.targetType == 2" type="success" effect="light" class="minimal-tag success">指定</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column align="center" label="发布状态" width="100">
+            <template #default="scope">
+              <el-tag v-if="scope.row.publishStatus == 0" type="info" effect="light" class="minimal-tag info">未发布</el-tag>
+              <el-tag v-if="scope.row.publishStatus == 1" type="success" effect="light" class="minimal-tag success">已发布</el-tag>
+              <el-tag v-if="scope.row.publishStatus == -1" type="warning" effect="light" class="minimal-tag warning">已撤回</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作时间" width="250">
+            <template #default="scope">
+              <div class="flex items-center gap-1 text-sm">
+                <span class="text-slate-400">创建：</span>
+                <span>{{ scope.row.createTime || "-" }}</span>
+              </div>
 
-            <div v-if="scope.row.publishStatus === 1" class="flex-x-start">
-              <span>发布时间：</span>
-              <span>{{ scope.row.publishTime || "-" }}</span>
-            </div>
-            <div v-else-if="scope.row.publishStatus === -1" class="flex-x-start">
-              <span>撤回时间：</span>
-              <span>{{ scope.row.revokeTime || "-" }}</span>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" fixed="right" label="操作" width="150">
-          <template #default="scope">
-            <el-button type="primary" size="small" link @click="openDetailDialog(scope.row.id)">
-              查看
-            </el-button>
-            <el-button
-              v-if="scope.row.publishStatus != 1"
-              v-hasPerm="['sys:notice:publish']"
-              type="primary"
-              size="small"
-              link
-              @click="handlePublish(scope.row.id)"
-            >
-              发布
-            </el-button>
-            <el-button
-              v-if="scope.row.publishStatus == 1"
-              v-hasPerm="['sys:notice:revoke']"
-              type="primary"
-              size="small"
-              link
-              @click="handleRevoke(scope.row.id)"
-            >
-              撤回
-            </el-button>
-            <el-button
-              v-if="scope.row.publishStatus != 1"
-              v-hasPerm="['sys:notice:edit']"
-              type="primary"
-              size="small"
-              link
-              @click="handleOpenDialog(scope.row.id)"
-            >
-              编辑
-            </el-button>
-            <el-button
-              v-if="scope.row.publishStatus != 1"
-              v-hasPerm="['sys:notice:delete']"
-              type="danger"
-              size="small"
-              link
-              @click="handleDelete(scope.row.id)"
-            >
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+              <div v-if="scope.row.publishStatus === 1" class="flex items-center gap-1 text-sm">
+                <span class="text-slate-400">发布：</span>
+                <span>{{ scope.row.publishTime || "-" }}</span>
+              </div>
+              <div v-else-if="scope.row.publishStatus === -1" class="flex items-center gap-1 text-sm">
+                <span class="text-slate-400">撤回：</span>
+                <span>{{ scope.row.revokeTime || "-" }}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column align="center" fixed="right" label="操作" width="200">
+            <template #default="scope">
+              <el-button type="primary" link @click="openDetailDialog(scope.row.id)">查看</el-button>
+              <el-button
+                v-if="scope.row.publishStatus != 1"
+                v-hasPerm="['sys:notice:publish']"
+                type="primary"
+                link
+                @click="handlePublish(scope.row.id)"
+              >发布</el-button>
+              <el-button
+                v-if="scope.row.publishStatus == 1"
+                v-hasPerm="['sys:notice:revoke']"
+                type="primary"
+                link
+                @click="handleRevoke(scope.row.id)"
+              >撤回</el-button>
+              <el-button
+                v-if="scope.row.publishStatus != 1"
+                v-hasPerm="['sys:notice:edit']"
+                type="primary"
+                link
+                icon="edit"
+                @click="handleOpenDialog(scope.row.id)"
+              >编辑</el-button>
+              <el-button
+                v-if="scope.row.publishStatus != 1"
+                v-hasPerm="['sys:notice:delete']"
+                type="danger"
+                link
+                icon="delete"
+                @click="handleDelete(scope.row.id)"
+              >删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
 
       <pagination
         v-if="total > 0"
         v-model:total="total"
         v-model:page="queryParams.pageNum"
         v-model:limit="queryParams.pageSize"
+        class="minimal-pagination mt-4"
         @pagination="fetchData()"
       />
-    </el-card>
+    </div>
 
     <!-- 通知公告表单弹窗 -->
     <el-dialog
@@ -171,11 +171,12 @@
       :title="dialog.title"
       top="3vh"
       width="80%"
+      class="minimal-dialog"
       @close="handleCloseDialog"
     >
-      <el-form ref="dataFormRef" :model="formData" :rules="rules" label-width="100px">
+      <el-form ref="dataFormRef" :model="formData" :rules="rules" label-width="100px" class="minimal-form pt-4">
         <el-form-item label="通知标题" prop="title">
-          <el-input v-model="formData.title" placeholder="通知标题" clearable />
+          <el-input v-model="formData.title" placeholder="通知标题" clearable class="minimal-input" />
         </el-form-item>
 
         <el-form-item label="通知类型" prop="type">
@@ -191,7 +192,7 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item v-if="formData.targetType == 2" label="指定用户" prop="targetUserIds">
-          <el-select v-model="formData.targetUserIds" multiple search placeholder="请选择指定用户">
+          <el-select v-model="formData.targetUserIds" multiple search placeholder="请选择指定用户" class="minimal-input w-full">
             <el-option
               v-for="item in userOptions"
               :key="item.id"
@@ -205,9 +206,9 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="handleSubmit()">确定</el-button>
-          <el-button @click="handleCloseDialog()">取消</el-button>
+        <div class="dialog-footer flex justify-end gap-2">
+          <el-button class="minimal-btn-plain" @click="handleCloseDialog()">取消</el-button>
+          <el-button type="primary" class="minimal-btn" @click="handleSubmit()">确定</el-button>
         </div>
       </template>
     </el-dialog>
@@ -217,11 +218,12 @@
       :show-close="false"
       width="50%"
       append-to-body
+      class="minimal-dialog"
       @close="closeDetailDialog"
     >
       <template #header>
-        <div class="flex-x-between">
-          <span>通知公告详情</span>
+        <div class="flex justify-between items-center">
+          <span class="font-semibold text-slate-700">通知公告详情</span>
           <div class="dialog-toolbar">
             <el-button circle @click="closeDetailDialog">
               <template #icon>
@@ -236,9 +238,9 @@
           {{ currentNotice.title }}
         </el-descriptions-item>
         <el-descriptions-item label="发布状态：">
-          <el-tag v-if="currentNotice.publishStatus == 0" type="info">未发布</el-tag>
-          <el-tag v-else-if="currentNotice.publishStatus == 1" type="success">已发布</el-tag>
-          <el-tag v-else-if="currentNotice.publishStatus == -1" type="warning">已撤回</el-tag>
+          <el-tag v-if="currentNotice.publishStatus == 0" type="info" effect="light" class="minimal-tag info">未发布</el-tag>
+          <el-tag v-else-if="currentNotice.publishStatus == 1" type="success" effect="light" class="minimal-tag success">已发布</el-tag>
+          <el-tag v-else-if="currentNotice.publishStatus == -1" type="warning" effect="light" class="minimal-tag warning">已撤回</el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="发布人：">
           {{ currentNotice.publisherName }}

@@ -1,40 +1,47 @@
 <!-- 系统配置 -->
 <template>
-  <div class="app-container">
+  <div class="app-container p-6 bg-[#f8fafc] min-h-screen flex flex-col gap-4">
     <!-- 搜索区域 -->
-    <div class="search-container">
-      <el-form ref="queryFormRef" :model="queryParams" :inline="true">
+    <div class="bg-white p-5 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-slate-100 transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
+      <el-form ref="queryFormRef" :model="queryParams" :inline="true" class="minimal-form">
         <el-form-item label="关键字" prop="keywords">
           <el-input
             v-model="queryParams.keywords"
             placeholder="请输入配置键\配置名称"
             clearable
+            class="minimal-input"
             @keyup.enter="handleQuery"
           />
         </el-form-item>
 
-        <el-form-item class="search-buttons">
-          <el-button type="primary" icon="search" @click="handleQuery">搜索</el-button>
-          <el-button icon="refresh" @click="handleResetQuery">重置</el-button>
+        <el-form-item class="ml-auto mb-0">
+          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">搜索</el-button>
+          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
 
-    <el-card shadow="hover" class="data-table">
-      <div class="data-table__toolbar">
-        <div class="data-table__toolbar--actions">
+    <div class="bg-white p-6 flex-1 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-slate-100 flex flex-col transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
+      <div class="flex justify-between items-center mb-5">
+        <div class="flex items-center gap-2">
+          <div class="w-1.5 h-4 bg-primary rounded-full"></div>
+          <span class="text-base font-semibold text-slate-700 tracking-wide">系统配置</span>
+        </div>
+        <div class="flex gap-2">
           <el-button
             v-hasPerm="['sys:config:add']"
-            type="success"
+            type="primary"
             icon="plus"
+            class="minimal-btn"
             @click="handleOpenDialog()"
           >
-            新增
+            新增配置
           </el-button>
           <el-button
             v-hasPerm="['sys:config:refresh']"
             color="#626aef"
             icon="RefreshLeft"
+            class="minimal-btn"
             @click="handleRefreshCache"
           >
             刷新缓存
@@ -42,60 +49,57 @@
         </div>
       </div>
 
-      <el-table
-        ref="dataTableRef"
-        v-loading="loading"
-        :data="pageData"
-        highlight-current-row
-        class="data-table__content"
-        border
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="index" label="序号" width="60" />
-        <el-table-column key="configName" label="配置名称" prop="configName" min-width="100" />
-        <el-table-column key="configKey" label="配置键" prop="configKey" min-width="100" />
-        <el-table-column key="configValue" label="配置值" prop="configValue" min-width="100" />
-        <el-table-column key="remark" label="描述" prop="remark" min-width="100" />
-        <el-table-column fixed="right" label="操作" width="220">
-          <template #default="scope">
-            <el-button
-              v-hasPerm="['sys:config:update']"
-              type="primary"
-              size="small"
-              link
-              icon="edit"
-              @click="handleOpenDialog(scope.row.id)"
-            >
-              编辑
-            </el-button>
-            <el-button
-              v-hasPerm="['sys:config:delete']"
-              type="danger"
-              size="small"
-              link
-              icon="delete"
-              @click="handleDelete(scope.row.id)"
-            >
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <div class="flex-1 overflow-hidden border border-slate-100/50 rounded-xl bg-white/20">
+        <el-table
+          ref="dataTableRef"
+          v-loading="loading"
+          :data="pageData"
+          highlight-current-row
+          class="minimal-table"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="index" label="序号" width="60" align="center" />
+          <el-table-column key="configName" label="配置名称" prop="configName" min-width="100" />
+          <el-table-column key="configKey" label="配置键" prop="configKey" min-width="100" />
+          <el-table-column key="configValue" label="配置值" prop="configValue" min-width="100" />
+          <el-table-column key="remark" label="描述" prop="remark" min-width="100" />
+          <el-table-column fixed="right" label="操作" width="150" align="center">
+            <template #default="scope">
+              <el-button
+                v-hasPerm="['sys:config:update']"
+                type="primary"
+                link
+                icon="edit"
+                @click="handleOpenDialog(scope.row.id)"
+              >编辑</el-button>
+              <el-button
+                v-hasPerm="['sys:config:delete']"
+                type="danger"
+                link
+                icon="delete"
+                @click="handleDelete(scope.row.id)"
+              >删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
 
       <pagination
         v-if="total > 0"
         v-model:total="total"
         v-model:page="queryParams.pageNum"
         v-model:limit="queryParams.pageSize"
+        class="minimal-pagination mt-4"
         @pagination="fetchData"
       />
-    </el-card>
+    </div>
 
     <!-- 系统配置表单弹窗 -->
     <el-dialog
       v-model="dialog.visible"
       :title="dialog.title"
       width="500px"
+      class="minimal-dialog"
       @close="handleCloseDialog"
     >
       <el-form
@@ -104,15 +108,16 @@
         :rules="rules"
         label-suffix=":"
         label-width="100px"
+        class="minimal-form pt-4"
       >
         <el-form-item label="配置名称" prop="configName">
-          <el-input v-model="formData.configName" placeholder="请输入配置名称" :maxlength="50" />
+          <el-input v-model="formData.configName" placeholder="请输入配置名称" :maxlength="50" class="minimal-input" />
         </el-form-item>
         <el-form-item label="配置键" prop="configKey">
-          <el-input v-model="formData.configKey" placeholder="请输入配置键" :maxlength="50" />
+          <el-input v-model="formData.configKey" placeholder="请输入配置键" :maxlength="50" class="minimal-input" />
         </el-form-item>
         <el-form-item label="配置值" prop="configValue">
-          <el-input v-model="formData.configValue" placeholder="请输入配置值" :maxlength="100" />
+          <el-input v-model="formData.configValue" placeholder="请输入配置值" :maxlength="100" class="minimal-input" />
         </el-form-item>
         <el-form-item label="描述" prop="remark">
           <el-input
@@ -122,13 +127,14 @@
             show-word-limit
             type="textarea"
             placeholder="请输入描述"
+            class="minimal-input"
           />
         </el-form-item>
       </el-form>
       <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="handleSubmit">确定</el-button>
-          <el-button @click="handleCloseDialog">取消</el-button>
+        <div class="dialog-footer flex justify-end gap-2">
+          <el-button class="minimal-btn-plain" @click="handleCloseDialog">取消</el-button>
+          <el-button type="primary" class="minimal-btn" @click="handleSubmit">确定</el-button>
         </div>
       </template>
     </el-dialog>
