@@ -1,18 +1,19 @@
 <!-- 字典项 -->
 <template>
-  <div class="app-container">
-    <div class="search-container">
-      <el-form ref="queryFormRef" :model="queryParams" :inline="true">
+  <div class="app-container p-6 bg-[#f8fafc] min-h-screen flex flex-col gap-4">
+    <div class="bg-white p-5 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-slate-100 transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
+      <el-form ref="queryFormRef" :model="queryParams" :inline="true" class="minimal-form">
         <el-form-item label="关键字" prop="search">
           <el-input
             v-model="queryParams.search"
             placeholder="字典项标签/字典项值"
             clearable
+            class="minimal-input"
             @keyup.enter="handleQuery"
           />
         </el-form-item>
         <el-form-item label="归属字典" prop="dictSelect">
-          <el-select v-model="queryParams.dict" placeholder="请选择归属字典" clearable filterable>
+          <el-select v-model="queryParams.dict" placeholder="请选择归属字典" clearable filterable class="minimal-input">
             <el-option
               v-for="item in dictList"
               :key="item.id"
@@ -22,153 +23,151 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item class="search-buttons">
-          <el-button type="primary" icon="search" @click="handleQuery">搜索</el-button>
-          <el-button icon="refresh" @click="handleResetQuery">重置</el-button>
+        <el-form-item class="ml-auto mb-0">
+          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">搜索</el-button>
+          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
 
-    <el-card shadow="never" class="data-table">
-      <div class="data-table__toolbar">
-        <div class="data-table__toolbar--actions">
+    <div class="bg-white p-6 flex-1 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-slate-100 flex flex-col transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
+      <div class="flex justify-between items-center mb-5">
+        <div class="flex items-center gap-2">
+          <div class="w-1.5 h-4 bg-primary rounded-full"></div>
+          <span class="text-base font-semibold text-slate-700 tracking-wide">字典项数据</span>
+        </div>
+        <div class="flex gap-2">
           <el-button
             v-hasPerm="['system:dictitems:add']"
-            type="success"
+            type="primary"
             icon="plus"
+            class="minimal-btn"
             @click="handleOpenDialog()"
           >
-            新增
+            新增字典项
           </el-button>
           <el-button
             v-hasPerm="['system:dictitems:delete']"
             type="danger"
+            plain
             :disabled="ids.length === 0"
             icon="delete"
+            class="minimal-btn-danger"
             @click="handleDelete()"
           >
-            删除
+            批量删除
           </el-button>
         </div>
       </div>
 
-      <el-table
-        v-loading="loading"
-        highlight-current-row
-        :data="tableData"
-        border
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="归属字典" prop="dictName" />
-        <el-table-column label="字典项标签" prop="label" />
-        <el-table-column label="字典项值" prop="value" />
-        <el-table-column label="标签类型">
-          <template #default="scope">
-            <el-tag v-if="scope.row.tagType" :type="scope.row.tagType">
-              {{ scope.row.tagType }}
-            </el-tag>
-            <span v-else>无</span>
-          </template>
-        </el-table-column>
-        <!--        <el-table-column label="排序" prop="sort" />-->
-        <el-table-column label="状态">
-          <template #default="scope">
-            <el-tag :type="scope.row.status === 1 ? 'success' : 'info'">
-              {{ scope.row.status === 1 ? "启用" : "禁用" }}
-            </el-tag>
-          </template>
-        </el-table-column>
+      <div class="flex-1 overflow-hidden border border-slate-100/50 rounded-xl bg-white/20">
+        <el-table
+          v-loading="loading"
+          highlight-current-row
+          :data="tableData"
+          class="minimal-table"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55" align="center" />
+          <el-table-column label="归属字典" prop="dictName" min-width="120" />
+          <el-table-column label="字典项标签" prop="label" min-width="120" />
+          <el-table-column label="字典项值" prop="value" min-width="100" />
+          <el-table-column label="标签类型" width="100" align="center">
+            <template #default="scope">
+              <el-tag v-if="scope.row.tagType" :type="scope.row.tagType" effect="light" class="minimal-tag">
+                {{ scope.row.tagType }}
+              </el-tag>
+              <span v-else class="text-slate-400">无</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="状态" width="100" align="center">
+            <template #default="scope">
+              <el-tag v-if="scope.row.status === 1" type="success" effect="light" class="minimal-tag success">启用</el-tag>
+              <el-tag v-else type="info" effect="light" class="minimal-tag info">禁用</el-tag>
+            </template>
+          </el-table-column>
 
-        <el-table-column fixed="right" label="操作" align="center" width="220">
-          <template #default="scope">
-            <el-button
-              v-hasPerm="['system:dictitems:edit']"
-              type="primary"
-              link
-              size="small"
-              icon="edit"
-              @click.stop="handleOpenDialog(scope.row.id)"
-            >
-              编辑
-            </el-button>
-            <el-button
-              v-hasPerm="['system:dictitems:delete']"
-              type="danger"
-              link
-              size="small"
-              icon="delete"
-              @click.stop="handleDelete(scope.row.id)"
-            >
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+          <el-table-column fixed="right" label="操作" width="200">
+            <template #default="scope">
+              <el-button
+                v-hasPerm="['system:dictitems:edit']"
+                type="primary"
+                link
+                icon="edit"
+                @click.stop="handleOpenDialog(scope.row.id)"
+              >编辑</el-button>
+              <el-button
+                v-hasPerm="['system:dictitems:delete']"
+                type="danger"
+                link
+                icon="delete"
+                @click.stop="handleDelete(scope.row.id)"
+              >删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
 
       <pagination
         v-if="total > 0"
         v-model:total="total"
         v-model:page="queryParams.pageNum"
         v-model:limit="queryParams.pageSize"
+        class="minimal-pagination mt-4"
         @pagination="fetchData"
       />
-    </el-card>
+    </div>
 
     <!--字典项弹窗-->
     <el-dialog
       v-model="dialog.visible"
       :title="dialog.title"
-      width="820px"
+      width="600px"
+      class="minimal-dialog"
       @close="handleCloseDialog"
     >
-      <el-form ref="dataFormRef" :model="formData" :rules="computedRules" label-width="100px">
-        <el-card shadow="never">
-          <el-form-item label="归属字典" prop="dict">
-            <el-select v-model="formData.dict" placeholder="请选择归属字典" filterable>
-              <el-option
-                v-for="item in dictList"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-              />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="字典项标签" prop="label">
-            <el-input v-model="formData.label" placeholder="请输入字典标签" />
-          </el-form-item>
-          <el-form-item label="字典项值" prop="value">
-            <el-input v-model="formData.value" placeholder="请输入字典值" />
-          </el-form-item>
-          <el-form-item label="状态">
-            <el-radio-group v-model="formData.status">
-              <el-radio :value="1">启用</el-radio>
-              <el-radio :value="0">禁用</el-radio>
-            </el-radio-group>
-          </el-form-item>
-          <!--          <el-form-item label="排序">-->
-          <!--            <el-input-number v-model="formData.sort" controls-position="right" />-->
-          <!--          </el-form-item>-->
-          <el-form-item label="标签类型">
-            <el-tag v-if="formData.tagType" :type="formData.tagType" class="mr-2">
-              {{ formData.label }}
-            </el-tag>
-            <el-radio-group v-model="formData.tagType">
-              <el-radio value="success" border size="small">success</el-radio>
-              <el-radio value="warning" border size="small">warning</el-radio>
-              <el-radio value="info" border size="small">info</el-radio>
-              <el-radio value="primary" border size="small">primary</el-radio>
-              <el-radio value="danger" border size="small">danger</el-radio>
-              <el-radio value="" border size="small">清空</el-radio>
-            </el-radio-group>
-          </el-form-item>
-        </el-card>
+      <el-form ref="dataFormRef" :model="formData" :rules="computedRules" label-width="100px" class="minimal-form pt-4">
+        <el-form-item label="归属字典" prop="dict">
+          <el-select v-model="formData.dict" placeholder="请选择归属字典" filterable class="minimal-input w-full">
+            <el-option
+              v-for="item in dictList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="字典项标签" prop="label">
+          <el-input v-model="formData.label" placeholder="请输入字典标签" class="minimal-input" />
+        </el-form-item>
+        <el-form-item label="字典项值" prop="value">
+          <el-input v-model="formData.value" placeholder="请输入字典值" class="minimal-input" />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-radio-group v-model="formData.status">
+            <el-radio :value="1">启用</el-radio>
+            <el-radio :value="0">禁用</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="标签类型">
+          <el-tag v-if="formData.tagType" :type="formData.tagType" class="mr-2">
+            {{ formData.label }}
+          </el-tag>
+          <el-radio-group v-model="formData.tagType">
+            <el-radio value="success" border size="small">success</el-radio>
+            <el-radio value="warning" border size="small">warning</el-radio>
+            <el-radio value="info" border size="small">info</el-radio>
+            <el-radio value="primary" border size="small">primary</el-radio>
+            <el-radio value="danger" border size="small">danger</el-radio>
+            <el-radio value="" border size="small">清空</el-radio>
+          </el-radio-group>
+        </el-form-item>
       </el-form>
 
       <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="handleSubmitClick">确 定</el-button>
-          <el-button @click="handleCloseDialog">取 消</el-button>
+        <div class="dialog-footer flex justify-end gap-2">
+          <el-button class="minimal-btn-plain" @click="handleCloseDialog">取 消</el-button>
+          <el-button type="primary" class="minimal-btn" @click="handleSubmitClick">确 定</el-button>
         </div>
       </template>
     </el-dialog>
@@ -293,7 +292,6 @@ function handleCloseDialog() {
   dataFormRef.value.clearValidate();
 
   formData.id = undefined;
-  // formData.sort = 1;
   formData.status = 1;
   formData.tagType = "";
 
