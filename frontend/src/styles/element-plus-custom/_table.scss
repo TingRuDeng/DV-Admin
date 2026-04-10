@@ -145,3 +145,59 @@ html.dark {
     }
   }
 }
+
+// ============================================
+// 9. 极简 SaaS 风格表格 (minimal-table)
+// ============================================
+/* stylelint-disable no-descending-specificity */
+.minimal-table {
+  background: transparent !important;
+  --el-table-border-color: rgba(0, 0, 0, 0.04);
+  --el-table-header-bg-color: rgba(0, 0, 0, 0.02);
+  --el-table-header-text-color: #475569;
+  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.6);
+  --el-table-tr-bg-color: transparent;
+}
+
+.minimal-table .el-table__header-wrapper th.el-table__cell {
+  font-weight: 600;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.minimal-table .el-table__body-wrapper td.el-table__cell {
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.04) !important;
+}
+
+.minimal-table .el-table__inner-wrapper::before {
+  display: none; /* 隐藏底部死黑边线 */
+}
+
+/* 表格内操作按钮"软徽章化" */
+.minimal-table .el-button.is-link {
+  height: auto !important;
+  padding: 6px 10px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease;
+}
+
+.minimal-table .el-button.is-link.el-button--primary {
+  color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.08) !important;
+}
+
+.minimal-table .el-button.is-link.el-button--primary:hover {
+  color: #ffffff !important;
+  background: #3b82f6 !important;
+}
+
+.minimal-table .el-button.is-link.el-button--danger {
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.08) !important;
+}
+
+.minimal-table .el-button.is-link.el-button--danger:hover {
+  color: #ffffff !important;
+  background: #ef4444 !important;
+}
+/* stylelint-enable no-descending-specificity */
