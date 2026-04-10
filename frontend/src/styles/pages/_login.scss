@@ -82,13 +82,67 @@
 }
 
 // ============================================
-// 3. Logo 和标题区域 (极致科技感重构)
+// 纯 CSS 全息玻璃态 Logo
 // ============================================
-.login-logo {
-  width: 76px;
-  height: 76px;
-  margin-bottom: 16px;
-  filter: drop-shadow(0 8px 20px rgba(64, 128, 255, 0.3));
+.cyber-logo {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* 底层发光弥散体 */
+  .logo-glow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    /* 科技蓝到电竞紫的渐变 */
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    border-radius: 22px; /* 类似苹果图标的高级圆角 */
+    transform: rotate(-15deg);
+    filter: blur(12px);
+    opacity: 0.8;
+    animation: pulseGlow 4s ease-in-out infinite alternate;
+  }
+
+  /* 顶层高光玻璃外壳 */
+  .logo-glass {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.05) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    /* 内部反光和外部轻微投影 */
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.3), 
+                0 8px 24px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+
+    /* 内部悬浮文字 */
+    .logo-letter {
+      font-size: 42px;
+      font-weight: 900;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      /* 金属白银渐变字 */
+      background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    }
+  }
+}
+
+/* 呼吸旋转动效 */
+@keyframes pulseGlow {
+  0% { transform: rotate(-15deg) scale(0.95); opacity: 0.6; }
+  100% { transform: rotate(-5deg) scale(1.05); opacity: 1; }
 }
 
 .login-title {
@@ -286,6 +340,17 @@ html.dark {
     background: rgba(30, 41, 59, 0.6);
     border-color: rgba(255, 255, 255, 0.08);
     box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.3);
+  }
+
+  .cyber-logo {
+    .logo-glow {
+      background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+      opacity: 0.6;
+    }
+    .logo-glass {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.02) 100%);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
   }
 
   .login-title {
