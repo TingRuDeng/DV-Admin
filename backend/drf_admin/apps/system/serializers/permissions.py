@@ -54,3 +54,12 @@ class MenusTreeSerializer(TreeSerializer):
     class Meta:
         model = Permissions
         fields = '__all__'
+
+
+class MenusOptionsSerializer(TreeSerializer):
+    """
+    菜单选项序列化器(下拉框)
+    """
+    class Meta:
+        model = Permissions
+        fields = ['id', 'label', 'parent']

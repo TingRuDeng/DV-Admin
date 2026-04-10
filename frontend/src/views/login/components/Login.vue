@@ -49,18 +49,20 @@
               <div class="i-svg:captcha" />
             </template>
           </el-input>
-          <div cursor-pointer h-40px w-120px flex-center @click="getCaptcha">
+          <div cursor-pointer h-48px w-120px flex-center @click="getCaptcha">
             <el-icon v-if="codeLoading" class="is-loading" size="20"><Loading /></el-icon>
 
             <img
               v-else-if="captchaBase64"
-              border-rd-4px
+              border-rd-12px
+              w-full
+              h-full
               object-cover
-              shadow="[0_0_0_1px_var(--el-border-color)_inset]"
+              shadow="[0_0_0_1px_rgba(0,0,0,0.06)_inset]"
               :src="captchaBase64"
               alt="captchaCode"
             />
-            <el-text v-else type="info" size="small">点击获取验证码</el-text>
+            <el-text v-else type="info" size="small">点击获取</el-text>
           </div>
         </div>
       </el-form-item>

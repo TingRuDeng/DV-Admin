@@ -1,12 +1,9 @@
 // ============================================
-// 登录页面样式优化
-// ============================================
-// 渐变背景、毛玻璃效果、现代视觉
-// 创建日期：2026-04-09
+// 极简 SaaS 浮岛风 - 登录页面样式重构
 // ============================================
 
 // ============================================
-// 1. 登录容器 - 渐变背景
+// 1. 登录容器 - 弥散流光背景 (Mesh Gradient)
 // ============================================
 .login-container {
   position: relative;
@@ -16,338 +13,388 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 100%;
+  height: 100vh;
   overflow: hidden;
+  background-color: #f8fafc; /* 呼应系统内部的极简浅灰底色 */
 }
 
-// 渐变背景层
+// 左上角主色流光球
 .login-container::before {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: -2;
-  width: 100%;
-  height: 100%;
   content: "";
-  // 蓝紫色渐变背景
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #6B8DD6 100%);
-  background-size: cover;
-}
-
-// 动态装饰层
-.login-container::after {
-  position: fixed;
-  top: -50%;
-  left: -50%;
+  position: absolute;
+  top: -10%;
+  left: -10%;
   z-index: -1;
-  width: 200%;
-  height: 200%;
-  content: "";
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-  animation: rotate 30s linear infinite;
+  width: 50vw;
+  height: 50vw;
+  background: radial-gradient(circle, rgba(64, 128, 255, 0.12) 0%, transparent 60%);
+  border-radius: 50%;
+  filter: blur(60px);
+  animation: floatOrb1 15s ease-in-out infinite alternate;
 }
 
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+// 右下角辅助色流光球
+.login-container::after {
+  content: "";
+  position: absolute;
+  bottom: -20%;
+  right: -10%;
+  z-index: -1;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 60%);
+  border-radius: 50%;
+  filter: blur(60px);
+  animation: floatOrb2 20s ease-in-out infinite alternate;
+}
+
+@keyframes floatOrb1 {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(5%, 5%) scale(1.1); }
+}
+@keyframes floatOrb2 {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-5%, -10%) scale(1.05); }
 }
 
 // ============================================
-// 2. 登录卡片 - 毛玻璃效果
+// 2. 登录卡片 - 高级毛玻璃悬浮态
 // ============================================
 .login-card {
   padding: 48px 40px;
   width: 100%;
-  height: auto;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.6); /* 半透明白，透出底色的弥散光 */
+  backdrop-filter: blur(24px) saturate(120%);
+  -webkit-backdrop-filter: blur(24px) saturate(120%);
   border-radius: 24px;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(255, 255, 255, 0.2);
-  animation: slideInUp 0.5s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.8); /* 玻璃边缘高光 */
+  box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.05);
+  animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 
   @media (min-width: 640px) {
-    width: 450px;
-    min-height: 600px;
+    width: 440px;
   }
 }
 
 @keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 // ============================================
-// 3. Logo 和标题区域
+// 纯 CSS 全息玻璃态 Logo
 // ============================================
-.login-logo {
-  width: 84px;
-  height: 84px;
-  margin-bottom: 16px;
-  animation: pulse 2s ease-in-out infinite;
+.cyber-logo {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* 底层发光弥散体 */
+  .logo-glow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    /* 科技蓝到电竞紫的渐变 */
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    border-radius: 22px; /* 类似苹果图标的高级圆角 */
+    transform: rotate(-15deg);
+    filter: blur(12px);
+    opacity: 0.8;
+    animation: pulseGlow 4s ease-in-out infinite alternate;
+  }
+
+  /* 顶层高光玻璃外壳 */
+  .logo-glass {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.05) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    /* 内部反光和外部轻微投影 */
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.3), 
+                0 8px 24px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+
+    /* 内部悬浮文字 */
+    .logo-letter {
+      font-size: 42px;
+      font-weight: 900;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      /* 金属白银渐变字 */
+      background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    }
+  }
 }
 
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
+/* 呼吸旋转动效 */
+@keyframes pulseGlow {
+  0% { transform: rotate(-15deg) scale(0.95); opacity: 0.6; }
+  100% { transform: rotate(-5deg) scale(1.05); opacity: 1; }
 }
 
 .login-title {
-  margin-bottom: 32px;
-  font-size: 28px;
-  font-weight: 700;
-  color: #1F2937;
+  margin-bottom: 40px;
   text-align: center;
+  
+  /* 爆改主标题文字：重金属/深邃蓝渐变 */
+  :deep(.el-badge) {
+    font-size: 34px; /* 字号再放大，撑起气场 */
+    font-weight: 900; /* 字重拉到极限 */
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, #0f172a 0%, #334155 40%, #2563eb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 4px 12px rgba(37, 99, 235, 0.15));
+  }
 
-  .el-badge__content {
-    font-size: 12px;
-    padding: 2px 8px;
+  /* 爆改版本号：从"未读消息点"变成"极客悬浮标签" */
+  :deep(.el-badge__content) {
+    -webkit-text-fill-color: #3b82f6 !important; /* 强制覆盖掉主标题的透明渐变属性 */
+    color: #3b82f6 !important; /* 科技蓝文字 */
+    background: rgba(59, 130, 246, 0.1) !important; /* 抽干底色，换成 10% 透明度 */
+    border: 1px solid rgba(59, 130, 246, 0.4) !important; /* 极细的发光边框 */
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important; /* 程序员专属等宽字体 */
+    font-weight: 700;
+    font-size: 13px;
+    padding: 4px 10px;
     border-radius: 12px;
+    height: auto;
+    line-height: 1;
+    backdrop-filter: blur(8px);
+    
+    /* 完美对齐：推到右上角 */
+    top: 0 !important; 
+    right: 0 !important;
+    transform: translate(110%, -15%) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
   }
 }
 
 // ============================================
-// 4. 登录表单样式
+// 4. 登录表单深度穿透与净化
 // ============================================
-.login-form {
+:deep(.login-form), .login-form {
   width: 100%;
 
   .el-form-item {
     margin-bottom: 24px;
   }
 
-  .el-input {
-    .el-input__wrapper {
-      padding: 12px 16px;
-      border-radius: 12px;
-      background: rgba(249, 250, 251, 0.8);
-      box-shadow: none;
-      border: 2px solid transparent;
-      transition: all 0.2s ease;
-
-      &:hover {
-        background: rgba(249, 250, 251, 1);
-        border-color: #E5E7EB;
-      }
-
-      &.is-focus {
-        background: #FFFFFF;
-        border-color: #6366F1;
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-      }
-    }
-
-    .el-input__prefix {
-      color: #9CA3AF;
-      font-size: 18px;
-    }
-  }
-
-  // 登录按钮
-  .login-button {
-    width: 100%;
-    height: 48px;
-    font-size: 16px;
-    font-weight: 600;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
-    border: none;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    transition: all 0.2s ease;
+  /* 输入框极简处理 */
+  .el-input__wrapper {
+    padding: 12px 16px;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.7) !important;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06) inset !important;
+    transition: all 0.2s ease !important;
 
     &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+      background: #ffffff !important;
     }
 
-    &:active {
-      transform: translateY(0);
-      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    &.is-focus {
+      background: #ffffff !important;
+      box-shadow: 0 0 0 1px var(--el-color-primary) inset, 0 0 0 3px rgba(64, 128, 255, 0.1) !important;
     }
   }
 
-  // 记住密码和忘记密码
-  .login-options {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
+  .el-input__prefix {
+    color: #94a3b8;
+    margin-right: 8px;
+  }
 
-    .el-checkbox {
-      .el-checkbox__label {
-        color: #6B7280;
-        font-size: 14px;
-      }
+  .el-input__inner {
+    color: #334155;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  /* ============================================
+       登录按钮：纯粹晶体态 (去除呼吸动效，极致克制)
+       ============================================ */
+  .el-button--primary {
+    width: 100%;
+    height: 50px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 4px; 
+    border-radius: 14px;
+    color: #ffffff;
+    
+    /* 晶体边框：保留顶部高光，维持玻璃质感 */
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-top-color: rgba(255, 255, 255, 0.7) !important;
+    
+    /* 基础底色与毛玻璃 */
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(59, 130, 246, 0.6) 100%) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    
+    /* 静态体积阴影：只托起按钮，不向外扩散发光 */
+    box-shadow: inset 0 4px 20px rgba(255, 255, 255, 0.25), 
+                0 4px 12px -4px rgba(59, 130, 246, 0.3) !important;
+                
+    transition: all 0.3s ease;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+
+    /* 悬浮交互：极度克制，只微微提亮和轻微上浮，坚决不发光 */
+    &:hover {
+      transform: translateY(-1px); 
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.9) 0%, rgba(59, 130, 246, 0.75) 100%) !important;
+      border-color: rgba(255, 255, 255, 0.5) !important;
+      
+      /* 阴影几乎不扩大，维持稳定感 */
+      box-shadow: inset 0 4px 20px rgba(255, 255, 255, 0.3), 
+                  0 6px 16px -4px rgba(59, 130, 246, 0.4) !important;
     }
 
-    .forgot-password {
-      color: #6366F1;
-      font-size: 14px;
-      text-decoration: none;
-      transition: color 0.2s ease;
-
-      &:hover {
-        color: #4F46E5;
-        text-decoration: underline;
-      }
+    /* 点击交互：扎实的物理下压感 */
+    &:active {
+      transform: translateY(1px); 
+      box-shadow: inset 0 2px 10px rgba(255, 255, 255, 0.15), 
+                  0 2px 6px rgba(59, 130, 246, 0.2) !important;
+      transition: all 0.1s;
     }
   }
 }
 
 // ============================================
-// 5. 操作栏样式
+// 5. 操作栏与底部
 // ============================================
 .action-bar {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 24px;
+  right: 24px;
   z-index: 10;
   display: flex;
   gap: 12px;
-  align-items: center;
-  justify-content: center;
 
-  .action-button {
-    width: 44px;
-    height: 44px;
+  .action-button, :deep(.el-icon) {
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(0, 0, 0, 0.05);
     backdrop-filter: blur(10px);
-    border-radius: 50%;
-    color: #FFFFFF;
-    font-size: 20px;
+    border-radius: 12px;
+    color: #64748b;
+    font-size: 18px;
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.3);
-      transform: scale(1.1);
+      background: #ffffff;
+      color: var(--el-color-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
-  }
-
-  @media (max-width: 480px) {
-    top: 10px;
-    right: auto;
-    left: 10px;
-  }
-
-  @media (min-width: 640px) {
-    top: 40px;
-    right: 40px;
   }
 }
 
-// ============================================
-// 6. 底部版权
-// ============================================
 .login-footer {
   position: fixed;
-  bottom: 0;
+  bottom: 20px;
   left: 0;
   right: 0;
-  padding: 20px 0;
   text-align: center;
-  color: rgba(255, 255, 255, 0.8);
+  color: #94a3b8;
   font-size: 13px;
+  letter-spacing: 0.5px;
 }
 
 // ============================================
-// 7. 深色模式适配
+// 6. 深色模式完美适配
 // ============================================
 html.dark {
+  .login-container {
+    background-color: #0f172a; /* 深邃蓝灰 */
+  }
+
   .login-container::before {
-    background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #1E3A8A 100%);
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 60%);
+  }
+
+  .login-container::after {
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 60%);
   }
 
   .login-card {
-    background: rgba(30, 41, 59, 0.95);
-    box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.3),
-      0 0 0 1px rgba(255, 255, 255, 0.1);
+    background: rgba(30, 41, 59, 0.6);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.3);
+  }
+
+  .cyber-logo {
+    .logo-glow {
+      background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+      opacity: 0.6;
+    }
+    .logo-glass {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.02) 100%);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
   }
 
   .login-title {
-    color: #F9FAFB;
-  }
-
-  .login-form {
-    .el-input {
-      .el-input__wrapper {
-        background: rgba(30, 41, 59, 0.8);
-
-        &:hover {
-          background: rgba(30, 41, 59, 1);
-          border-color: #475569;
-        }
-
-        &.is-focus {
-          background: #1E293B;
-          border-color: #818CF8;
-          box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.15);
-        }
-      }
+    color: #f8fafc;
+    
+    /* 深色模式下的标题与版本号发光效果 */
+    :deep(.el-badge) {
+      /* 亮银色到亮蓝色的赛博渐变 */
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 40%, #60a5fa 100%);
+      -webkit-background-clip: text;
+    }
+    :deep(.el-badge__content) {
+      background: rgba(96, 165, 250, 0.15) !important;
+      border-color: rgba(96, 165, 250, 0.4) !important;
+      color: #60a5fa !important;
+      -webkit-text-fill-color: #60a5fa !important;
     }
   }
 
-  .action-bar {
-    .action-button {
-      background: rgba(255, 255, 255, 0.1);
-      color: #F9FAFB;
-
-      &:hover {
-        background: rgba(255, 255, 255, 0.15);
+  :deep(.login-form), .login-form {
+    .el-input__wrapper {
+      background: rgba(15, 23, 42, 0.6) !important;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05) inset !important;
+      
+      &:hover { background: rgba(15, 23, 42, 0.9) !important; }
+      &.is-focus {
+        background: rgba(15, 23, 42, 1) !important;
+        box-shadow: 0 0 0 1px var(--el-color-primary) inset, 0 0 0 3px rgba(64, 128, 255, 0.15) !important;
       }
     }
+    .el-input__inner { color: #f1f5f9; }
   }
 
-  .login-footer {
-    color: rgba(249, 250, 251, 0.6);
+  .action-bar .action-button, .action-bar :deep(.el-icon) {
+    background: rgba(30, 41, 59, 0.6);
+    border-color: rgba(255, 255, 255, 0.05);
+    color: #cbd5e1;
+    &:hover { background: rgba(30, 41, 59, 1); }
   }
 }
 
-// ============================================
-// 8. 移动端适配
-// ============================================
+// 移动端简单降级适配
 @media (max-width: 640px) {
   .login-card {
-    padding: 32px 24px;
     margin: 16px;
-    border-radius: 20px;
+    padding: 40px 24px;
+    backdrop-filter: blur(12px); /* 移动端降低性能消耗 */
   }
-
-  .login-title {
-    font-size: 24px;
-    margin-bottom: 24px;
-  }
-
-  .login-form {
-    .el-input {
-      .el-input__wrapper {
-        padding: 10px 14px;
-      }
-    }
-
-    .login-button {
-      height: 44px;
-      font-size: 15px;
-    }
-  }
+  .action-bar { top: 16px; right: 16px; }
 }
