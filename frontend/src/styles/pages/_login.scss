@@ -82,30 +82,50 @@
 }
 
 // ============================================
-// 3. Logo 和标题区域
+// 3. Logo 和标题区域 (极致科技感重构)
 // ============================================
 .login-logo {
-  width: 72px;
-  height: 72px;
-  margin-bottom: 20px;
-  filter: drop-shadow(0 8px 16px rgba(64, 128, 255, 0.2));
+  width: 76px;
+  height: 76px;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 8px 20px rgba(64, 128, 255, 0.3));
 }
 
 .login-title {
-  margin-bottom: 32px;
-  font-size: 28px; /* 稍微再大一点点 */
-  font-weight: 800; /* 加粗到极限，更有分量 */
+  margin-bottom: 40px;
   text-align: center;
-  letter-spacing: 0.5px;
-  color: #1e293b; /* 默认颜色作为后备 */
+  
+  /* 爆改主标题文字：重金属/深邃蓝渐变 */
+  :deep(.el-badge) {
+    font-size: 34px; /* 字号再放大，撑起气场 */
+    font-weight: 900; /* 字重拉到极限 */
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, #0f172a 0%, #334155 40%, #2563eb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 4px 12px rgba(37, 99, 235, 0.15));
+  }
 
-  /* 保持小 badge 的样式不变 */
-  .el-badge__content {
-    font-size: 11px;
-    padding: 2px 6px;
-    border-radius: 8px;
-    transform: translateY(-10px) translateX(4px);
-    box-shadow: 0 2px 4px rgba(64, 128, 255, 0.2);
+  /* 爆改版本号：从"未读消息点"变成"极客悬浮标签" */
+  :deep(.el-badge__content) {
+    -webkit-text-fill-color: #3b82f6 !important; /* 强制覆盖掉主标题的透明渐变属性 */
+    color: #3b82f6 !important; /* 科技蓝文字 */
+    background: rgba(59, 130, 246, 0.1) !important; /* 抽干底色，换成 10% 透明度 */
+    border: 1px solid rgba(59, 130, 246, 0.4) !important; /* 极细的发光边框 */
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important; /* 程序员专属等宽字体 */
+    font-weight: 700;
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    height: auto;
+    line-height: 1;
+    backdrop-filter: blur(8px);
+    
+    /* 完美对齐：推到右上角 */
+    top: 0 !important; 
+    right: 0 !important;
+    transform: translate(110%, -15%) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
   }
 }
 
@@ -270,6 +290,19 @@ html.dark {
 
   .login-title {
     color: #f8fafc;
+    
+    /* 深色模式下的标题与版本号发光效果 */
+    :deep(.el-badge) {
+      /* 亮银色到亮蓝色的赛博渐变 */
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 40%, #60a5fa 100%);
+      -webkit-background-clip: text;
+    }
+    :deep(.el-badge__content) {
+      background: rgba(96, 165, 250, 0.15) !important;
+      border-color: rgba(96, 165, 250, 0.4) !important;
+      color: #60a5fa !important;
+      -webkit-text-fill-color: #60a5fa !important;
+    }
   }
 
   :deep(.login-form), .login-form {
