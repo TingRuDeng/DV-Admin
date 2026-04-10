@@ -1,9 +1,9 @@
 <template>
-  <div class="profile-container">
+  <div class="app-container p-4 md:p-6">
     <el-row :gutter="20">
       <!-- 左侧个人信息卡片 -->
       <el-col :span="8">
-        <el-card class="user-card">
+        <div class="glass-panel p-5">
           <div class="user-info">
             <div class="avatar-wrapper">
               <el-avatar :src="userStore.userInfo.avatar" :size="100" />
@@ -31,32 +31,16 @@
             </div>
             <div class="user-role">{{ userProfile.roleNames }}</div>
           </div>
-          <el-divider />
-          <!--          <div class="user-stats">-->
-          <!--            <div class="stat-item">-->
-          <!--              <div class="stat-value">0</div>-->
-          <!--              <div class="stat-label">待办</div>-->
-          <!--            </div>-->
-          <!--            <div class="stat-item">-->
-          <!--              <div class="stat-value">0</div>-->
-          <!--              <div class="stat-label">消息</div>-->
-          <!--            </div>-->
-          <!--            <div class="stat-item">-->
-          <!--              <div class="stat-value">0</div>-->
-          <!--              <div class="stat-label">通知</div>-->
-          <!--            </div>-->
-          <!--          </div>-->
-        </el-card>
+        </div>
       </el-col>
 
       <!-- 右侧信息卡片 -->
       <el-col :span="16">
-        <el-card class="info-card">
-          <template #header>
-            <div class="card-header">
-              <span>账号信息</span>
-            </div>
-          </template>
+        <div class="glass-panel p-5 mb-5">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-1.5 h-4 bg-primary rounded-full"></div>
+            <span class="text-base font-semibold text-slate-700 tracking-wide">账号信息</span>
+          </div>
           <el-descriptions :column="1" border>
             <el-descriptions-item label="用户名">
               {{ userProfile.username }}
@@ -69,57 +53,21 @@
             </el-descriptions-item>
             <el-descriptions-item label="手机号码">
               {{ userProfile.mobile || "未绑定" }}
-              <!--              <el-button-->
-              <!--                v-if="userProfile.mobile"-->
-              <!--                type="primary"-->
-              <!--                link-->
-              <!--                @click="() => handleOpenDialog(DialogType.MOBILE)"-->
-              <!--              >-->
-              <!--                更换-->
-              <!--              </el-button>-->
-              <!--              <el-button-->
-              <!--                v-else-->
-              <!--                type="primary"-->
-              <!--                link-->
-              <!--                @click="() => handleOpenDialog(DialogType.MOBILE)"-->
-              <!--              >-->
-              <!--                绑定-->
-              <!--              </el-button>-->
             </el-descriptions-item>
             <el-descriptions-item label="邮箱">
               {{ userProfile.email || "未绑定" }}
-              <!--              <el-button-->
-              <!--                v-if="userProfile.email"-->
-              <!--                type="primary"-->
-              <!--                link-->
-              <!--                @click="() => handleOpenDialog(DialogType.EMAIL)"-->
-              <!--              >-->
-              <!--                更换-->
-              <!--              </el-button>-->
-              <!--              <el-button-->
-              <!--                v-else-->
-              <!--                type="primary"-->
-              <!--                link-->
-              <!--                @click="() => handleOpenDialog(DialogType.EMAIL)"-->
-              <!--              >-->
-              <!--                绑定-->
-              <!--              </el-button>-->
             </el-descriptions-item>
             <el-descriptions-item label="部门">
               {{ userProfile.deptName }}
             </el-descriptions-item>
-            <!--            <el-descriptions-item label="创建时间">-->
-            <!--              {{ userProfile.createTime }}-->
-            <!--            </el-descriptions-item>-->
           </el-descriptions>
-        </el-card>
+        </div>
 
-        <el-card class="security-card">
-          <template #header>
-            <div class="card-header">
-              <span>安全设置</span>
-            </div>
-          </template>
+        <div class="glass-panel p-5">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-1.5 h-4 bg-primary rounded-full"></div>
+            <span class="text-base font-semibold text-slate-700 tracking-wide">安全设置</span>
+          </div>
           <div class="security-item">
             <div class="security-info">
               <div class="security-title">账户密码</div>
@@ -129,7 +77,7 @@
               修改
             </el-button>
           </div>
-        </el-card>
+        </div>
       </el-col>
     </el-row>
 
@@ -477,94 +425,53 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-.profile-container {
-  min-height: calc(100vh - 84px);
-  padding: 20px;
-  background: var(--el-fill-color-blank);
-}
+.user-info {
+  padding: 20px 0;
+  text-align: center;
 
-.user-card {
-  .user-info {
-    padding: 20px 0;
-    text-align: center;
+  .avatar-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 16px;
 
-    .avatar-wrapper {
-      position: relative;
-      display: inline-block;
-      margin-bottom: 16px;
+    .avatar-edit-btn {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      border: none;
+      transition: all 0.3s ease;
 
-      .avatar-edit-btn {
-        position: absolute;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        border: none;
-        transition: all 0.3s ease;
-
-        &:hover {
-          background: rgba(0, 0, 0, 0.7);
-        }
+      &:hover {
+        background: rgba(0, 0, 0, 0.7);
       }
     }
+  }
 
-    .user-name {
-      margin-bottom: 8px;
+  .user-name {
+    margin-bottom: 8px;
 
-      .name {
-        font-size: 18px;
-        font-weight: 600;
-        color: var(--el-text-color-primary);
-      }
-
-      .edit-icon {
-        margin-left: 8px;
-        color: var(--el-text-color-secondary);
-        cursor: pointer;
-        transition: all 0.3s ease;
-
-        &:hover {
-          color: var(--el-color-primary);
-        }
-      }
+    .name {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--el-text-color-primary);
     }
 
-    .user-role {
-      font-size: 14px;
+    .edit-icon {
+      margin-left: 8px;
       color: var(--el-text-color-secondary);
-    }
-  }
+      cursor: pointer;
+      transition: all 0.3s ease;
 
-  .user-stats {
-    display: flex;
-    justify-content: space-around;
-    padding: 16px 0;
-
-    .stat-item {
-      text-align: center;
-
-      .stat-value {
-        font-size: 20px;
-        font-weight: 600;
-        color: var(--el-text-color-primary);
-      }
-
-      .stat-label {
-        margin-top: 4px;
-        font-size: 12px;
-        color: var(--el-text-color-secondary);
+      &:hover {
+        color: var(--el-color-primary);
       }
     }
   }
-}
 
-.info-card,
-.security-card {
-  margin-bottom: 20px;
-
-  .card-header {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--el-text-color-primary);
+  .user-role {
+    font-size: 14px;
+    color: var(--el-text-color-secondary);
   }
 }
 
@@ -613,29 +520,8 @@ onMounted(async () => {
   }
 }
 
-.el-dialog {
-  .el-dialog__header {
-    padding: 20px;
-    margin: 0;
-    border-bottom: 1px solid var(--el-border-color-light);
-  }
-
-  .el-dialog__body {
-    padding: 30px 20px;
-  }
-
-  .el-dialog__footer {
-    padding: 20px;
-    border-top: 1px solid var(--el-border-color-light);
-  }
-}
-
 // 响应式适配
 @media (max-width: 768px) {
-  .profile-container {
-    padding: 10px;
-  }
-
   .el-col {
     width: 100%;
   }

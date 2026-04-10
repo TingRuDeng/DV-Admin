@@ -1,46 +1,24 @@
 <template>
-  <div class="dashboard-container">
+  <div class="app-container p-4 md:p-6">
     <!-- github 角标 -->
     <github-corner class="github-corner" />
 
-    <el-card shadow="never" class="mt-2">
+    <div class="glass-panel p-5">
       <div class="flex flex-wrap">
         <!-- 左侧问候语区域 -->
         <div class="flex-1 flex items-start">
           <img
-            class="w80px h80px rounded-full"
+            class="w-20 h-20 rounded-full"
             :src="userStore.userInfo.avatar + '?imageView2/1/w/80/h/80'"
           />
           <div class="ml-5">
-            <p>{{ greetings }}</p>
-            <!--             <p class="text-sm text-gray">今日天气晴朗，气温在15℃至25℃之间，东南风。</p>-->
+            <p class="text-lg font-medium text-slate-700">{{ greetings }}</p>
           </div>
         </div>
 
         <!-- 右侧图标区域 - PC端 -->
         <div class="hidden sm:block">
           <div class="flex items-end space-x-6">
-            <!-- 仓库 -->
-            <!--            <div>-->
-            <!--              <div class="font-bold color-#ff9a2e text-sm flex items-center">-->
-            <!--                <el-icon class="mr-2px"><Folder /></el-icon>-->
-            <!--                仓库-->
-            <!--              </div>-->
-            <!--              <div class="mt-3 whitespace-nowrap">-->
-            <!--                <el-link href="" target="_blank">-->
-            <!--                  <div class="i-svg:gitee text-lg color-#F76560" />-->
-            <!--                </el-link>-->
-            <!--                <el-divider direction="vertical" />-->
-            <!--                <el-link href="" target="_blank">-->
-            <!--                  <div class="i-svg:github text-lg color-#4080FF" />-->
-            <!--                </el-link>-->
-            <!--                <el-divider direction="vertical" />-->
-            <!--                <el-link href="" target="_blank">-->
-            <!--                  <div class="i-svg:gitcode text-lg color-#FF9A2E" />-->
-            <!--                </el-link>-->
-            <!--              </div>-->
-            <!--            </div>-->
-
             <!-- 文档 -->
             <div>
               <div class="font-bold color-#4080ff text-sm flex items-center">
@@ -80,17 +58,6 @@
         <!-- 移动端图标区域 -->
         <div class="w-full sm:hidden mt-3">
           <div class="flex justify-end space-x-4 overflow-x-auto">
-            <!-- 仓库图标 -->
-            <el-link href="" target="_blank">
-              <div class="i-svg:gitee text-lg color-#F76560" />
-            </el-link>
-            <el-link href="" target="_blank">
-              <div class="i-svg:github text-lg color-#4080FF" />
-            </el-link>
-            <el-link href="" target="_blank">
-              <div class="i-svg:gitcode text-lg color-#FF9A2E" />
-            </el-link>
-
             <!-- 文档图标 -->
             <el-link href="" target="_blank">
               <div class="i-svg:juejin text-lg" />
@@ -109,238 +76,7 @@
           </div>
         </div>
       </div>
-    </el-card>
-
-    <!-- 数据统计 -->
-    <el-row :gutter="10" class="mt-5">
-      <!-- 在线用户数量 -->
-      <!--      <el-col :span="8" :xs="24" class="mb-xs-3">-->
-      <!--        <el-card shadow="never" class="h-full flex flex-col">-->
-      <!--          <template #header>-->
-      <!--            <div class="flex-x-between">-->
-      <!--              <span class="text-gray">在线用户</span>-->
-      <!--              <el-tag type="danger" size="small">实时</el-tag>-->
-      <!--            </div>-->
-      <!--          </template>-->
-
-      <!--          <div class="flex-x-between mt-2 flex-1">-->
-      <!--            <div class="flex-y-center">-->
-      <!--              <span class="text-lg transition-all duration-300 hover:scale-110">-->
-      <!--                {{ onlineUserCount }}-->
-      <!--              </span>-->
-      <!--              <span v-if="isConnected" class="ml-2 text-xs text-[#67c23a]">-->
-      <!--                <el-icon><Connection /></el-icon>-->
-      <!--                已连接-->
-      <!--              </span>-->
-      <!--              <span v-else class="ml-2 text-xs text-[#f56c6c]">-->
-      <!--                <el-icon><Failed /></el-icon>-->
-      <!--                未连接-->
-      <!--              </span>-->
-      <!--            </div>-->
-      <!--            <div class="i-svg:people w-8 h-8 animate-[pulse_2s_infinite]" />-->
-      <!--          </div>-->
-
-      <!--          <div class="flex-x-between mt-2 text-sm text-gray">-->
-      <!--            <span>更新时间</span>-->
-      <!--            <span>{{ formattedTime }}</span>-->
-      <!--          </div>-->
-      <!--        </el-card>-->
-      <!--      </el-col>-->
-
-      <!-- 访客数(UV) -->
-      <!--      <el-col :span="8" :xs="24" class="mb-xs-3">-->
-      <!--        <el-skeleton :loading="visitStatsLoading" :rows="5" animated>-->
-      <!--          <template #template>-->
-      <!--            <el-card>-->
-      <!--              <template #header>-->
-      <!--                <div>-->
-      <!--                  <el-skeleton-item variant="h3" style="width: 40%" />-->
-      <!--                  <el-skeleton-item variant="rect" style="float: right; width: 1em; height: 1em" />-->
-      <!--                </div>-->
-      <!--              </template>-->
-
-      <!--              <div class="flex-x-between">-->
-      <!--                <el-skeleton-item variant="text" style="width: 30%" />-->
-      <!--                <el-skeleton-item variant="circle" style="width: 2em; height: 2em" />-->
-      <!--              </div>-->
-      <!--              <div class="mt-5 flex-x-between">-->
-      <!--                <el-skeleton-item variant="text" style="width: 50%" />-->
-      <!--                <el-skeleton-item variant="text" style="width: 1em" />-->
-      <!--              </div>-->
-      <!--            </el-card>-->
-      <!--          </template>-->
-      <!--          <template v-if="!visitStatsLoading">-->
-      <!--            <el-card shadow="never" class="h-full flex flex-col">-->
-      <!--              <template #header>-->
-      <!--                <div class="flex-x-between">-->
-      <!--                  <span class="text-gray">访客数(UV)</span>-->
-      <!--                  <el-tag type="success" size="small">日</el-tag>-->
-      <!--                </div>-->
-      <!--              </template>-->
-
-      <!--              <div class="flex-x-between mt-2 flex-1">-->
-      <!--                <div class="flex-y-center">-->
-      <!--                  <span class="text-lg">{{ Math.round(transitionUvCount) }}</span>-->
-      <!--                  <span-->
-      <!--                    :class="[-->
-      <!--                      'text-xs',-->
-      <!--                      'ml-2',-->
-      <!--                      computeGrowthRateClass(visitStatsData.uvGrowthRate),-->
-      <!--                    ]"-->
-      <!--                  >-->
-      <!--                    <el-icon>-->
-      <!--                      <Top v-if="visitStatsData.uvGrowthRate > 0" />-->
-      <!--                      <Bottom v-else-if="visitStatsData.uvGrowthRate < 0" />-->
-      <!--                    </el-icon>-->
-      <!--                    {{ formatGrowthRate(visitStatsData.uvGrowthRate) }}-->
-      <!--                  </span>-->
-      <!--                </div>-->
-      <!--                <div class="i-svg:visitor w-8 h-8" />-->
-      <!--              </div>-->
-
-      <!--              <div class="flex-x-between mt-2 text-sm text-gray">-->
-      <!--                <span>总访客数</span>-->
-      <!--                <span>{{ Math.round(transitionTotalUvCount) }}</span>-->
-      <!--              </div>-->
-      <!--            </el-card>-->
-      <!--          </template>-->
-      <!--        </el-skeleton>-->
-      <!--      </el-col>-->
-
-      <!-- 浏览量(PV) -->
-      <!--      <el-col :span="8" :xs="24">-->
-      <!--        <el-skeleton :loading="visitStatsLoading" :rows="5" animated>-->
-      <!--          <template #template>-->
-      <!--            <el-card>-->
-      <!--              <template #header>-->
-      <!--                <div>-->
-      <!--                  <el-skeleton-item variant="h3" style="width: 40%" />-->
-      <!--                  <el-skeleton-item variant="rect" style="float: right; width: 1em; height: 1em" />-->
-      <!--                </div>-->
-      <!--              </template>-->
-
-      <!--              <div class="flex-x-between">-->
-      <!--                <el-skeleton-item variant="text" style="width: 30%" />-->
-      <!--                <el-skeleton-item variant="circle" style="width: 2em; height: 2em" />-->
-      <!--              </div>-->
-      <!--              <div class="mt-5 flex-x-between">-->
-      <!--                <el-skeleton-item variant="text" style="width: 50%" />-->
-      <!--                <el-skeleton-item variant="text" style="width: 1em" />-->
-      <!--              </div>-->
-      <!--            </el-card>-->
-      <!--          </template>-->
-      <!--          <template v-if="!visitStatsLoading">-->
-      <!--            <el-card shadow="never" class="h-full flex flex-col">-->
-      <!--              <template #header>-->
-      <!--                <div class="flex-x-between">-->
-      <!--                  <span class="text-gray">浏览量(PV)</span>-->
-      <!--                  <el-tag type="primary" size="small">日</el-tag>-->
-      <!--                </div>-->
-      <!--              </template>-->
-
-      <!--              <div class="flex-x-between mt-2 flex-1">-->
-      <!--                <div class="flex-y-center">-->
-      <!--                  <span class="text-lg">{{ Math.round(transitionPvCount) }}</span>-->
-      <!--                  <span-->
-      <!--                    :class="[-->
-      <!--                      'text-xs',-->
-      <!--                      'ml-2',-->
-      <!--                      computeGrowthRateClass(visitStatsData.pvGrowthRate),-->
-      <!--                    ]"-->
-      <!--                  >-->
-      <!--                    <el-icon>-->
-      <!--                      <Top v-if="visitStatsData.pvGrowthRate > 0" />-->
-      <!--                      <Bottom v-else-if="visitStatsData.pvGrowthRate < 0" />-->
-      <!--                    </el-icon>-->
-      <!--                    {{ formatGrowthRate(visitStatsData.pvGrowthRate) }}-->
-      <!--                  </span>-->
-      <!--                </div>-->
-      <!--                <div class="i-svg:browser w-8 h-8" />-->
-      <!--              </div>-->
-
-      <!--              <div class="flex-x-between mt-2 text-sm text-gray">-->
-      <!--                <span>总浏览量</span>-->
-      <!--                <span>{{ Math.round(transitionTotalPvCount) }}</span>-->
-      <!--              </div>-->
-      <!--            </el-card>-->
-      <!--          </template>-->
-      <!--        </el-skeleton>-->
-      <!--      </el-col>-->
-    </el-row>
-
-    <!--    <el-row :gutter="10" class="mt-5">-->
-    <!--      &lt;!&ndash; 访问趋势统计图 &ndash;&gt;-->
-    <!--      <el-col :xs="24" :span="16">-->
-    <!--        <el-card>-->
-    <!--          <template #header>-->
-    <!--            <div class="flex-x-between">-->
-    <!--              <span>访问趋势</span>-->
-    <!--              <el-radio-group v-model="visitTrendDateRange" size="small">-->
-    <!--                <el-radio-button :value="7">近7天</el-radio-button>-->
-    <!--                <el-radio-button :value="30">近30天</el-radio-button>-->
-    <!--              </el-radio-group>-->
-    <!--            </div>-->
-    <!--          </template>-->
-    <!--          <ECharts :options="visitTrendChartOptions" height="400px" />-->
-    <!--        </el-card>-->
-    <!--      </el-col>-->
-    <!--      &lt;!&ndash; 最新动态 &ndash;&gt;-->
-    <!--      <el-col :xs="24" :span="8">-->
-    <!--        <el-card>-->
-    <!--          <template #header>-->
-    <!--            <div class="flex-x-between">-->
-    <!--              <span class="header-title">最新动态</span>-->
-    <!--              <el-link-->
-    <!--                type="primary"-->
-    <!--                underline="never"-->
-    <!--                href=""-->
-    <!--                target="_blank"-->
-    <!--              >-->
-    <!--                完整记录-->
-    <!--                <el-icon class="link-icon"><TopRight /></el-icon>-->
-    <!--              </el-link>-->
-    <!--            </div>-->
-    <!--          </template>-->
-
-    <!--          <el-scrollbar height="400px">-->
-    <!--            <el-timeline class="p-3">-->
-    <!--              <el-timeline-item-->
-    <!--                v-for="(item, index) in vesionList"-->
-    <!--                :key="index"-->
-    <!--                :timestamp="item.date"-->
-    <!--                placement="top"-->
-    <!--                :color="index === 0 ? '#67C23A' : '#909399'"-->
-    <!--                :hollow="index !== 0"-->
-    <!--                size="large"-->
-    <!--              >-->
-    <!--                <div class="version-item" :class="{ 'latest-item': index === 0 }">-->
-    <!--                  <div>-->
-    <!--                    <el-text tag="strong">{{ item.title }}</el-text>-->
-    <!--                    <el-tag v-if="item.tag" :type="index === 0 ? 'success' : 'info'" size="small">-->
-    <!--                      {{ item.tag }}-->
-    <!--                    </el-tag>-->
-    <!--                  </div>-->
-
-    <!--                  <el-text class="version-content">{{ item.content }}</el-text>-->
-
-    <!--                  <div v-if="item.link">-->
-    <!--                    <el-link-->
-    <!--                      :type="index === 0 ? 'primary' : 'info'"-->
-    <!--                      :href="item.link"-->
-    <!--                      target="_blank"-->
-    <!--                      underline="never"-->
-    <!--                    >-->
-    <!--                      详情-->
-    <!--                      <el-icon class="link-icon"><TopRight /></el-icon>-->
-    <!--                    </el-link>-->
-    <!--                  </div>-->
-    <!--                </div>-->
-    <!--              </el-timeline-item>-->
-    <!--            </el-timeline>-->
-    <!--          </el-scrollbar>-->
-    <!--        </el-card>-->
-    <!--      </el-col>-->
-    <!--    </el-row>-->
+    </div>
   </div>
 </template>
 

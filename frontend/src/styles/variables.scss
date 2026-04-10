@@ -3,25 +3,46 @@
     "primary": (
       // 默认主题色 - 蓝紫色系 (#6366F1) - 现代科技感
       // 修改此值时需同步修改 src/settings.ts 中的 themeColor
-      "base": #6366F1,
+      "base": #6366f1,
     ),
     "success": (
-      "base": #10B981,
+      "base": #10b981,
     ),
     "warning": (
-      "base": #F59E0B,
+      "base": #f59e0b,
     ),
     "danger": (
-      "base": #EF4444,
+      "base": #ef4444,
     ),
     "info": (
-      "base": #3B82F6,
+      "base": #3b82f6,
     ),
   ),
 
   $bg-color: (
-    "page": #F9FAFB,
-  )
+    "page": #f9fafb,
+  ),
+
+  // 统一圆角设置
+  $button: (
+    "border-radius": 8px,
+  ),
+
+  $input: (
+    "border-radius": 8px,
+  ),
+
+  $tag: (
+    "border-radius": 6px,
+  ),
+
+  $card: (
+    "border-radius": 12px,
+  ),
+
+  $dialog: (
+    "border-radius": 16px,
+  ),
 );
 
 /** 全局SCSS变量 */
