@@ -66,12 +66,18 @@ export function hasPerm(value: string | string[], type: "button" | "role" = "but
  */
 export async function redirectToLogin(message: string = "请重新登录"): Promise<void> {
   try {
+    // 先显示提示，确保用户能看到
     ElNotification({
-      title: "提示",
-      message,
-      type: "warning",
-      duration: 3000,
+      title: "登录状态已失效",
+      message: `${message}，即将跳转到登录页面...`,
+      type: "error",
+      duration: 5000,
+      showClose: true,
+      position: "top-right",
     });
+
+    // 延迟跳转，让用户有时间看到提示
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     await useUserStoreHook().resetAllState();
 
