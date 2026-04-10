@@ -18,7 +18,12 @@
       <div class="login-card">
         <div w-full flex flex-col items-center>
           <!-- logo -->
-          <el-image :src="logo" class="login-logo" />
+          <div class="cyber-logo">
+            <div class="logo-glow"></div>
+            <div class="logo-glass">
+              <span class="logo-letter">DV</span>
+            </div>
+          </div>
 
           <!-- 标题 -->
           <h2 class="login-title">
@@ -42,7 +47,6 @@
 </template>
 
 <script setup lang="ts">
-import logo from "@/assets/logo.png";
 import { defaultSettings } from "@/settings";
 import CommonWrapper from "@/components/CommonWrapper/index.vue";
 import DarkModeSwitch from "@/components/DarkModeSwitch/index.vue";

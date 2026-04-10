@@ -14,6 +14,7 @@ router.register(r'departments', departments.DepartmentsViewSet, basename="depart
 urlpatterns = [
     path('users/options/', users.UsersOptionsViewSet.as_view()),  # 用户下拉框列表
     path('roles/options/', roles.RolesOptionsViewSet.as_view()),  # 角色下拉框列表
+    path('menus/options/', menus.MenusOptionsViewSet.as_view()),  # 菜单下拉框列表
 
     path('users/reset-password/<int:pk>/', users.ResetPasswordAPIView.as_view()),  # 重置密码
     path('users/<int:pk>/permissions/', users.PermissionsAPIView.as_view()),  # 用户权限ID列表

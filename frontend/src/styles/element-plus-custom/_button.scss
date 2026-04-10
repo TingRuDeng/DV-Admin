@@ -9,8 +9,8 @@
 // 1. 基础按钮样式增强
 // ============================================
 .el-button {
-  border-radius: 8px;
   font-weight: 500;
+  border-radius: 8px;
   transition: all var(--duration-base, 200ms) var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
 
   // 悬停效果
@@ -28,13 +28,21 @@
 // 2. 主要按钮 - 渐变背景
 // ============================================
 .el-button--primary {
-  background: linear-gradient(135deg, var(--color-primary, #6366F1) 0%, var(--color-primary-dark, #4F46E5) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary, #6366f1) 0%,
+    var(--color-primary-dark, #4f46e5) 100%
+  );
   border-color: transparent;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
 
   &:hover,
   &:focus {
-    background: linear-gradient(135deg, var(--color-primary-light, #818CF8) 0%, var(--color-primary, #6366F1) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-light, #818cf8) 0%,
+      var(--color-primary, #6366f1) 100%
+    );
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
   }
 
@@ -105,8 +113,8 @@
 // ============================================
 .el-button--link {
   &:hover {
-    transform: none;
     text-decoration: underline;
+    transform: none;
   }
 }
 

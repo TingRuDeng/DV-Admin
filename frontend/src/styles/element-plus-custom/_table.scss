@@ -9,12 +9,12 @@
 // 1. 表格容器样式
 // ============================================
 .el-table {
-  border-radius: 8px;
   overflow: hidden;
+  border-radius: 8px;
   box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
 
   // 表格内部边框优化
-  --el-table-border-color: var(--border-base, #E5E7EB);
+  --el-table-border-color: var(--border-base, #e5e7eb);
 }
 
 // ============================================
@@ -23,9 +23,9 @@
 .el-table__header-wrapper {
   .el-table__header {
     th {
-      background-color: var(--gray-50, #F9FAFB);
       font-weight: 600;
       color: var(--text-primary, #111827);
+      background-color: var(--gray-50, #f9fafb);
 
       .cell {
         font-size: 14px;
@@ -40,11 +40,12 @@
 .el-table__body-wrapper {
   .el-table__body {
     tr {
-      transition: background-color var(--duration-fast, 150ms) var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
+      transition: background-color var(--duration-fast, 150ms)
+        var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
 
       // 悬停效果
       &:hover > td {
-        background-color: var(--gray-50, #F9FAFB);
+        background-color: var(--gray-50, #f9fafb);
       }
 
       // 选中行
@@ -62,7 +63,7 @@
   .el-table__body {
     tr.el-table__row--striped {
       td {
-        background-color: var(--gray-50, #F9FAFB);
+        background-color: var(--gray-50, #f9fafb);
       }
     }
   }
@@ -75,8 +76,8 @@
   padding: 40px 0;
 
   .el-table__empty-text {
-    color: var(--text-secondary, #6B7280);
     font-size: 14px;
+    color: var(--text-secondary, #6b7280);
   }
 }
 
@@ -86,8 +87,8 @@
 .table-operations {
   display: flex;
   gap: 8px;
-  justify-content: flex-start;
   align-items: center;
+  justify-content: flex-start;
 
   .el-button {
     padding: 4px 8px;
@@ -115,7 +116,7 @@ html.dark {
   .el-table__header-wrapper {
     .el-table__header {
       th {
-        background-color: var(--gray-800, #1F2937);
+        background-color: var(--gray-800, #1f2937);
       }
     }
   }
@@ -124,7 +125,7 @@ html.dark {
     .el-table__body {
       tr {
         &:hover > td {
-          background-color: var(--gray-800, #1F2937);
+          background-color: var(--gray-800, #1f2937);
         }
 
         &.current-row > td {
@@ -138,7 +139,7 @@ html.dark {
     .el-table__body {
       tr.el-table__row--striped {
         td {
-          background-color: var(--gray-800, #1F2937);
+          background-color: var(--gray-800, #1f2937);
         }
       }
     }
