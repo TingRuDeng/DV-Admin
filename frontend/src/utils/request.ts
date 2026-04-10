@@ -96,13 +96,13 @@ httpRequest.interceptors.response.use(
           return refreshTokenAndRetry(config, httpRequest);
         } else {
           // 未启用token刷新，直接跳转登录页
-          await redirectToLogin("登录已过期，请重新登录");
+          await redirectToLogin("登录已过期");
           return Promise.reject(new Error(errors || "Access Token Invalid"));
         }
 
       case ApiCodeEnum.REFRESH_TOKEN_INVALID:
         // Refresh Token 过期，跳转登录页
-        await redirectToLogin("登录已过期，请重新登录");
+        await redirectToLogin("登录已过期");
         return Promise.reject(new Error(errors || "Refresh Token Invalid"));
 
       default:
