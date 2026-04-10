@@ -49,6 +49,7 @@ $border: 1px solid var(--el-border-color-light);
    ============================================ */
 
 /* 1. 暴力抽干标签栏容器的所有底色和边框（覆盖主流模板的常见类名） */
+.tags-container,
 .tags-view-container,
 .tags-view,
 .layout-tags-container,
@@ -61,6 +62,9 @@ $border: 1px solid var(--el-border-color-light);
 }
 
 /* 2. 清除 Element Plus 滚动条内部容器的默认白底 */
+.tags-container .el-scrollbar,
+.tags-container .el-scrollbar__wrap,
+.tags-container .el-scrollbar__view,
 .tags-view-container .el-scrollbar,
 .tags-view-container .el-scrollbar__wrap,
 .tags-view-container .el-scrollbar__view {
