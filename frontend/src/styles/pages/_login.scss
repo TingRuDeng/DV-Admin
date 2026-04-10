@@ -222,53 +222,77 @@
     letter-spacing: 0.5px;
   }
 
-  /* 登录按钮：高奢科技感重构 */
+  /* ============================================
+       登录按钮：全息晶体态重构 (Holographic Crystal)
+       ============================================ */
   .el-button--primary {
     width: 100%;
-    height: 50px; /* 稍微加高一点，更有分量 */
+    height: 50px;
     font-size: 16px;
-    font-weight: 600;
-    border-radius: 14px; /* 弧度与输入框呼应 */
-    border: none;
+    font-weight: 700;
+    letter-spacing: 4px; /* 拉大字间距，增加呼吸感和高级感 */
+    border-radius: 14px;
     position: relative;
     overflow: hidden;
+    color: #ffffff;
     
-    /* 1. 核心背景：更深邃的科技渐变 */
-    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%) !important;
+    /* 1. 晶体边框：模拟玻璃的高光边缘，顶部最亮 */
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-top-color: rgba(255, 255, 255, 0.7) !important;
     
-    /* 2. 初始阴影：深层弥散阴影 */
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3), 
-                0 0 0 1px rgba(255, 255, 255, 0.1) inset; /* 内部细边框线 */
+    /* 2. 半透明渐变底色：不再是实心色，透出底层的质感 */
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(59, 130, 246, 0.6) 100%) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 弹性曲线 */
+    /* 3. 晶体体积光：用 inset 内阴影撑起内部的立体感，外阴影做环境发光 */
+    box-shadow: inset 0 4px 20px rgba(255, 255, 255, 0.25), 
+                0 8px 24px -6px rgba(59, 130, 246, 0.3) !important;
+                
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); /* 文字轻微投影，防变灰 */
 
-    /* 3. 内部高光层 (伪元素模拟) */
-    &::before {
+    /* 4. 内部流光扫光层 (静止时隐藏) */
+    &::after {
       content: "";
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 50%;
-      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.15) 0%, transparent 100%);
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.4), transparent);
+      transform: rotate(45deg) translate(-50%, -50%);
+      transition: all 0.6s ease;
+      opacity: 0;
       pointer-events: none;
     }
 
+    /* 悬浮交互：激活晶体能量 */
     &:hover {
-      /* 1. 取消 scale，将上浮高度从 -3px 减弱到 -1px（克制的高级感） */
       transform: translateY(-1px); 
       
-      /* 2. 靠光晕来展现交互，而不是形变 */
-      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4), 
-                  0 0 12px rgba(99, 102, 241, 0.3);
+      /* 颜色变亮，边框高光加强 */
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.95) 0%, rgba(59, 130, 246, 0.85) 100%) !important;
+      border-color: rgba(255, 255, 255, 0.6) !important;
+      border-top-color: rgba(255, 255, 255, 0.9) !important;
       
-      filter: brightness(1.05); /* 微微提亮一点点即可 */
+      /* 爆发光晕 */
+      box-shadow: inset 0 4px 30px rgba(255, 255, 255, 0.4), 
+                  0 12px 30px -4px rgba(59, 130, 246, 0.5), 
+                  0 0 20px rgba(99, 102, 241, 0.4) !important;
+      
+      /* 触发流光扫过 */
+      &::after {
+        opacity: 1;
+        transform: rotate(45deg) translate(50%, 50%);
+      }
     }
 
+    /* 点击交互：扎实的物理反馈 */
     &:active {
-      /* 点击时不再缩小，而是产生一个真实的"按下"物理下沉反馈 */
       transform: translateY(1px); 
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+      box-shadow: inset 0 2px 10px rgba(255, 255, 255, 0.15), 
+                  0 2px 8px rgba(59, 130, 246, 0.2) !important;
       transition: all 0.1s;
     }
   }
