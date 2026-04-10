@@ -97,16 +97,7 @@
   font-weight: 800; /* 加粗到极限，更有分量 */
   text-align: center;
   letter-spacing: 0.5px;
-  
-  /* 给文字加上深邃的冷岩灰到科技蓝的渐变 */
-  background: linear-gradient(135deg, #1e293b 0%, #3b82f6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-
-  /* el-badge 容器需要重置文字填充 */
-  .el-badge {
-    -webkit-text-fill-color: transparent;
-  }
+  color: #1e293b; /* 默认颜色作为后备 */
 
   /* 保持小 badge 的样式不变 */
   .el-badge__content {
@@ -115,8 +106,6 @@
     border-radius: 8px;
     transform: translateY(-10px) translateX(4px);
     box-shadow: 0 2px 4px rgba(64, 128, 255, 0.2);
-    /* 强行覆盖透明文字，防止 badge 也变成透明渐变 */
-    -webkit-text-fill-color: #ffffff; 
   }
 }
 
