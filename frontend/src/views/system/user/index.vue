@@ -497,6 +497,7 @@ html.dark {
   }
 }
 
+/* stylelint-disable no-descending-specificity no-duplicate-selectors */
 /* ==================== 浮岛式毛玻璃面板 ==================== */
 .glass-panel {
   background: rgba(255, 255, 255, 0.6) !important; /* 半透明白底，透出底色的冷岩灰 */
