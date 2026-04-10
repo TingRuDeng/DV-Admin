@@ -6,21 +6,31 @@
           <el-input
             v-model="queryParams.search"
             placeholder="输入部门名称"
-            @keyup.enter="handleQuery"
             class="minimal-input"
+            @keyup.enter="handleQuery"
           />
         </el-form-item>
 
         <el-form-item label="部门状态" prop="status" class="mb-0">
-          <el-select v-model="queryParams.status" placeholder="全部" clearable class="minimal-input" style="width: 120px">
+          <el-select
+            v-model="queryParams.status"
+            placeholder="全部"
+            clearable
+            class="minimal-input"
+            style="width: 120px"
+          >
             <el-option :value="1" label="正常" />
             <el-option :value="0" label="禁用" />
           </el-select>
         </el-form-item>
 
         <el-form-item class="search-buttons mb-0 ml-auto">
-          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">搜索</el-button>
-          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">重置</el-button>
+          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">
+            搜索
+          </el-button>
+          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">
+            重置
+          </el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -32,8 +42,26 @@
           <span class="text-base font-semibold text-slate-700 tracking-wide">部门数据</span>
         </div>
         <div class="flex gap-2">
-          <el-button v-hasPerm="['system:departments:add']" type="primary" icon="plus" class="minimal-btn" @click="handleOpenDialog()">新增部门</el-button>
-          <el-button v-hasPerm="['system:departments:delete']" type="danger" plain :disabled="selectIds.length === 0" icon="delete" class="minimal-btn-danger" @click="handleDelete()">批量删除</el-button>
+          <el-button
+            v-hasPerm="['system:departments:add']"
+            type="primary"
+            icon="plus"
+            class="minimal-btn"
+            @click="handleOpenDialog()"
+          >
+            新增部门
+          </el-button>
+          <el-button
+            v-hasPerm="['system:departments:delete']"
+            type="danger"
+            plain
+            :disabled="selectIds.length === 0"
+            icon="delete"
+            class="minimal-btn-danger"
+            @click="handleDelete()"
+          >
+            批量删除
+          </el-button>
         </div>
       </div>
 
@@ -51,22 +79,55 @@
           <el-table-column type="selection" width="55" align="center" />
           <el-table-column prop="sort" label="排序" width="100" align="center">
             <template #default="{ row }">
-              <span class="text-slate-400 font-mono bg-slate-50 px-2 py-0.5 rounded-md">{{ row.sort }}</span>
+              <span class="text-slate-400 font-mono bg-slate-50 px-2 py-0.5 rounded-md">
+                {{ row.sort }}
+              </span>
             </template>
           </el-table-column>
           <el-table-column prop="name" label="部门名称" min-width="200" />
           <el-table-column prop="status" label="状态" width="120" align="center">
             <template #default="scope">
-              <el-tag :type="scope.row.status == 1 ? 'success' : 'info'" class="minimal-tag" :class="scope.row.status == 1 ? 'success' : 'info'">
-                {{ scope.row.status == 1 ? '正常' : '禁用' }}
+              <el-tag
+                :type="scope.row.status == 1 ? 'success' : 'info'"
+                class="minimal-tag"
+                :class="scope.row.status == 1 ? 'success' : 'info'"
+              >
+                {{ scope.row.status == 1 ? "正常" : "禁用" }}
               </el-tag>
             </template>
           </el-table-column>
           <el-table-column label="操作" fixed="right" width="280">
             <template #default="scope">
-              <el-button v-hasPerm="['system:departments:add']" type="primary" link icon="plus" size="small" @click.stop="handleOpenDialog(scope.row.id, undefined)">新增</el-button>
-              <el-button v-hasPerm="['system:departments:edit']" type="primary" link icon="edit" size="small" @click.stop="handleOpenDialog(scope.row.parentId, scope.row.id)">编辑</el-button>
-              <el-button v-hasPerm="['system:departments:delete']" type="danger" link icon="delete" size="small" @click.stop="handleDelete(scope.row.id)">删除</el-button>
+              <el-button
+                v-hasPerm="['system:departments:add']"
+                type="primary"
+                link
+                icon="plus"
+                size="small"
+                @click.stop="handleOpenDialog(scope.row.id, undefined)"
+              >
+                新增
+              </el-button>
+              <el-button
+                v-hasPerm="['system:departments:edit']"
+                type="primary"
+                link
+                icon="edit"
+                size="small"
+                @click.stop="handleOpenDialog(scope.row.parentId, scope.row.id)"
+              >
+                编辑
+              </el-button>
+              <el-button
+                v-hasPerm="['system:departments:delete']"
+                type="danger"
+                link
+                icon="delete"
+                size="small"
+                @click.stop="handleDelete(scope.row.id)"
+              >
+                删除
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -80,7 +141,13 @@
       class="minimal-dialog"
       @closed="handleCloseDialog"
     >
-      <el-form ref="deptFormRef" :model="formData" :rules="rules" label-width="80px" class="minimal-form pt-4">
+      <el-form
+        ref="deptFormRef"
+        :model="formData"
+        :rules="rules"
+        label-width="80px"
+        class="minimal-form pt-4"
+      >
         <el-form-item label="上级部门" prop="parentId">
           <el-tree-select
             v-model="formData.parentId"
@@ -97,7 +164,13 @@
           <el-input v-model="formData.name" placeholder="请输入部门名称" class="minimal-input" />
         </el-form-item>
         <el-form-item label="显示排序" prop="sort">
-          <el-input-number v-model="formData.sort" controls-position="right" style="width: 120px" :min="0" class="minimal-input" />
+          <el-input-number
+            v-model="formData.sort"
+            controls-position="right"
+            style="width: 120px"
+            :min="0"
+            class="minimal-input"
+          />
         </el-form-item>
         <el-form-item label="部门状态">
           <el-radio-group v-model="formData.status">
@@ -258,11 +331,11 @@ onMounted(() => {
 /* 玻璃面板样式 */
 .glass-panel {
   background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(12px) saturate(110%);
-  -webkit-backdrop-filter: blur(12px) saturate(110%);
   border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: 16px;
   box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.06);
+  -webkit-backdrop-filter: blur(12px) saturate(110%);
+  backdrop-filter: blur(12px) saturate(110%);
   transition: all 0.3s ease;
 }
 

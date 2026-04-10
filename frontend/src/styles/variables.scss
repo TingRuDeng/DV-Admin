@@ -25,8 +25,8 @@
 
   // 统一圆角设置
   $button: (
-    "border-radius": 8px,
-  ),
+      "border-radius": 8px,
+    ),
 
   $input: (
     "border-radius": 8px,
@@ -42,7 +42,7 @@
 
   $dialog: (
     "border-radius": 16px,
-  ),
+  )
 );
 
 /** 全局SCSS变量 */

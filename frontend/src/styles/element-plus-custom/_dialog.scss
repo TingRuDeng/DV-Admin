@@ -9,9 +9,9 @@
 // 1. 对话框样式
 // ============================================
 .el-dialog {
+  overflow: hidden;
   border-radius: 16px;
   box-shadow: var(--shadow-modal, 0 8px 32px rgba(0, 0, 0, 0.2));
-  overflow: hidden;
 
   // 动画
   animation: scaleIn var(--duration-slow, 300ms) var(--ease-out, cubic-bezier(0, 0, 0.2, 1));
@@ -33,8 +33,8 @@
 // ============================================
 .el-dialog__header {
   padding: 20px 24px;
-  border-bottom: 1px solid var(--border-light, #F3F4F6);
-  background: linear-gradient(135deg, var(--gray-50, #F9FAFB) 0%, #FFFFFF 100%);
+  background: linear-gradient(135deg, var(--gray-50, #f9fafb) 0%, #ffffff 100%);
+  border-bottom: 1px solid var(--border-light, #f3f4f6);
 
   .el-dialog__title {
     font-size: 18px;
@@ -56,13 +56,13 @@
 // ============================================
 .el-dialog__footer {
   padding: 16px 24px;
-  border-top: 1px solid var(--border-light, #F3F4F6);
-  background: var(--gray-50, #F9FAFB);
+  background: var(--gray-50, #f9fafb);
+  border-top: 1px solid var(--border-light, #f3f4f6);
 
   .dialog-footer {
     display: flex;
-    justify-content: flex-end;
     gap: 12px;
+    justify-content: flex-end;
   }
 }
 
@@ -72,8 +72,8 @@
 .el-drawer {
   .el-drawer__header {
     padding: 20px 24px;
-    border-bottom: 1px solid var(--border-light, #F3F4F6);
-    background: linear-gradient(135deg, var(--gray-50, #F9FAFB) 0%, #FFFFFF 100%);
+    background: linear-gradient(135deg, var(--gray-50, #f9fafb) 0%, #ffffff 100%);
+    border-bottom: 1px solid var(--border-light, #f3f4f6);
 
     .el-drawer__title {
       font-size: 18px;
@@ -88,8 +88,8 @@
 
   .el-drawer__footer {
     padding: 16px 24px;
-    border-top: 1px solid var(--border-light, #F3F4F6);
-    background: var(--gray-50, #F9FAFB);
+    background: var(--gray-50, #f9fafb);
+    border-top: 1px solid var(--border-light, #f3f4f6);
   }
 }
 
@@ -118,24 +118,28 @@
 // ============================================
 html.dark {
   .el-dialog__header {
+    background: linear-gradient(135deg, var(--gray-800, #1f2937) 0%, var(--gray-900, #111827) 100%);
     border-bottom-color: var(--border-base, #334155);
-    background: linear-gradient(135deg, var(--gray-800, #1F2937) 0%, var(--gray-900, #111827) 100%);
   }
 
   .el-dialog__footer {
+    background: var(--gray-800, #1f2937);
     border-top-color: var(--border-base, #334155);
-    background: var(--gray-800, #1F2937);
   }
 
   .el-drawer {
     .el-drawer__header {
+      background: linear-gradient(
+        135deg,
+        var(--gray-800, #1f2937) 0%,
+        var(--gray-900, #111827) 100%
+      );
       border-bottom-color: var(--border-base, #334155);
-      background: linear-gradient(135deg, var(--gray-800, #1F2937) 0%, var(--gray-900, #111827) 100%);
     }
 
     .el-drawer__footer {
+      background: var(--gray-800, #1f2937);
       border-top-color: var(--border-base, #334155);
-      background: var(--gray-800, #1F2937);
     }
   }
 }
