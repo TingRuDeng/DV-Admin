@@ -2,7 +2,13 @@
   <div class="app-container p-4 md:p-6 flex flex-col gap-4">
     <!-- 搜索区域 -->
     <div class="glass-panel p-5">
-      <el-form ref="queryFormRef" :model="queryParams" :inline="true" class="minimal-form mb-0" @submit.prevent>
+      <el-form
+        ref="queryFormRef"
+        :model="queryParams"
+        :inline="true"
+        class="minimal-form mb-0"
+        @submit.prevent
+      >
         <el-form-item label="关键字" prop="search" class="mb-0">
           <el-input
             v-model="queryParams.search"
@@ -14,8 +20,12 @@
         </el-form-item>
 
         <el-form-item class="search-buttons mb-0 ml-auto">
-          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">搜索</el-button>
-          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">重置</el-button>
+          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">
+            搜索
+          </el-button>
+          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">
+            重置
+          </el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -27,7 +37,15 @@
           <span class="text-base font-semibold text-slate-700 tracking-wide">菜单数据</span>
         </div>
         <div class="flex gap-2">
-          <el-button v-hasPerm="['system:permissions:add']" type="primary" icon="plus" class="minimal-btn" @click="handleOpenDialog('0')">新增菜单</el-button>
+          <el-button
+            v-hasPerm="['system:permissions:add']"
+            type="primary"
+            icon="plus"
+            class="minimal-btn"
+            @click="handleOpenDialog('0')"
+          >
+            新增菜单
+          </el-button>
         </div>
       </div>
 
@@ -79,7 +97,9 @@
           </el-table-column>
           <el-table-column label="排序" align="center" width="80" prop="sort">
             <template #default="{ row }">
-              <span class="text-slate-400 font-mono bg-slate-50 px-2 py-0.5 rounded-md">{{ row.sort }}</span>
+              <span class="text-slate-400 font-mono bg-slate-50 px-2 py-0.5 rounded-md">
+                {{ row.sort }}
+              </span>
             </template>
           </el-table-column>
           <el-table-column fixed="right" label="操作" width="280">
@@ -92,7 +112,9 @@
                 icon="plus"
                 size="small"
                 @click.stop="handleOpenDialog(scope.row.id)"
-              >新增</el-button>
+              >
+                新增
+              </el-button>
 
               <el-button
                 v-hasPerm="['system:permissions:edit']"
@@ -100,14 +122,18 @@
                 link
                 icon="edit"
                 @click.stop="handleOpenDialog(undefined, scope.row.id)"
-              >编辑</el-button>
+              >
+                编辑
+              </el-button>
               <el-button
                 v-hasPerm="['system:permissions:delete']"
                 type="danger"
                 link
                 icon="delete"
                 @click.stop="handleDelete(scope.row.id)"
-              >删除</el-button>
+              >
+                删除
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -121,7 +147,13 @@
       class="minimal-drawer"
       @close="handleCloseDialog"
     >
-      <el-form ref="menuFormRef" :model="formData" :rules="rules" label-width="100px" class="minimal-form pt-4">
+      <el-form
+        ref="menuFormRef"
+        :model="formData"
+        :rules="rules"
+        label-width="100px"
+        class="minimal-form pt-4"
+      >
         <el-form-item label="父级菜单" prop="parent">
           <el-tree-select
             v-model="formData.parent"
@@ -149,7 +181,11 @@
         </el-form-item>
 
         <el-form-item v-if="formData.type === 'EXTLINK'" label="外链地址" prop="path">
-          <el-input v-model="formData.routePath" placeholder="请输入外链完整路径" class="minimal-input" />
+          <el-input
+            v-model="formData.routePath"
+            placeholder="请输入外链完整路径"
+            class="minimal-input"
+          />
         </el-form-item>
 
         <el-form-item v-if="formData.type === 'MENU'" prop="routeName">
@@ -211,7 +247,11 @@
             </div>
           </template>
 
-          <el-input v-model="formData.component" placeholder="system/user/index" class="minimal-input">
+          <el-input
+            v-model="formData.component"
+            placeholder="system/user/index"
+            class="minimal-input"
+          >
             <template v-if="formData.type === 'MENU'" #prepend>src/views/</template>
             <template v-if="formData.type === 'MENU'" #append>.vue</template>
           </el-input>
@@ -233,18 +273,37 @@
           </template>
 
           <div v-if="!formData.params || formData.params.length === 0">
-            <el-button type="success" plain class="minimal-btn" @click="formData.params = [{ key: '', value: '' }]">
+            <el-button
+              type="success"
+              plain
+              class="minimal-btn"
+              @click="formData.params = [{ key: '', value: '' }]"
+            >
               添加路由参数
             </el-button>
           </div>
 
           <div v-else>
-            <div v-for="(item, index) in formData.params" :key="index" class="flex items-center gap-2 mb-2">
-              <el-input v-model="item.key" placeholder="参数名" style="width: 100px" class="minimal-input" />
+            <div
+              v-for="(item, index) in formData.params"
+              :key="index"
+              class="flex items-center gap-2 mb-2"
+            >
+              <el-input
+                v-model="item.key"
+                placeholder="参数名"
+                style="width: 100px"
+                class="minimal-input"
+              />
 
               <span class="text-slate-400">=</span>
 
-              <el-input v-model="item.value" placeholder="参数值" style="width: 100px" class="minimal-input" />
+              <el-input
+                v-model="item.value"
+                placeholder="参数值"
+                style="width: 100px"
+                class="minimal-input"
+              />
 
               <el-icon
                 v-if="formData.params.indexOf(item) === formData.params.length - 1"
@@ -560,9 +619,9 @@ onMounted(() => {
 /* 抽屉样式优化 */
 :deep(.minimal-drawer) {
   .el-drawer__header {
-    border-bottom: 1px solid #f1f5f9;
-    margin-bottom: 0;
     padding: 16px 20px;
+    margin-bottom: 0;
+    border-bottom: 1px solid #f1f5f9;
   }
 
   .el-drawer__title {
@@ -575,8 +634,8 @@ onMounted(() => {
   }
 
   .el-drawer__footer {
-    border-top: 1px solid #f1f5f9;
     padding: 16px 20px;
+    border-top: 1px solid #f1f5f9;
   }
 }
 

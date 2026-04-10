@@ -148,7 +148,8 @@ $ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
 // 脉冲
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -158,7 +159,8 @@ $ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
 // 弹跳
 @keyframes bounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -221,9 +223,10 @@ $ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .transition-colors {
-  transition: color var(--duration-base) var(--ease-in-out),
-              background-color var(--duration-base) var(--ease-in-out),
-              border-color var(--duration-base) var(--ease-in-out);
+  transition:
+    color var(--duration-base) var(--ease-in-out),
+    background-color var(--duration-base) var(--ease-in-out),
+    border-color var(--duration-base) var(--ease-in-out);
 }
 
 .transition-transform {
@@ -241,8 +244,8 @@ $ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
   *,
   *::before,
   *::after {
+    transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
   }
 }

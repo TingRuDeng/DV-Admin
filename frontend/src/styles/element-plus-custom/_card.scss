@@ -9,8 +9,8 @@
 // 1. 基础卡片样式
 // ============================================
 .el-card {
+  border: 1px solid var(--border-light, #f3f4f6);
   border-radius: 12px;
-  border: 1px solid var(--border-light, #F3F4F6);
   box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
   transition: all var(--duration-base, 200ms) var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
 
@@ -26,10 +26,10 @@
 // ============================================
 .el-card__header {
   padding: 16px 20px;
-  border-bottom: 1px solid var(--border-light, #F3F4F6);
-  font-weight: 600;
   font-size: 16px;
+  font-weight: 600;
   color: var(--text-primary, #111827);
+  border-bottom: 1px solid var(--border-light, #f3f4f6);
 }
 
 // ============================================
@@ -43,10 +43,10 @@
 // 4. 数据卡片样式
 // ============================================
 .data-card {
-  border-radius: 12px;
   padding: 20px;
-  background: var(--bg-container, #FFFFFF);
-  border: 1px solid var(--border-light, #F3F4F6);
+  background: var(--bg-container, #ffffff);
+  border: 1px solid var(--border-light, #f3f4f6);
+  border-radius: 12px;
   box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
   transition: all var(--duration-base, 200ms) var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
 
@@ -56,27 +56,27 @@
   }
 
   &__icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    width: 48px;
+    height: 48px;
     margin-bottom: 12px;
+    font-size: 24px;
+    border-radius: 12px;
   }
 
   &__value {
+    margin-bottom: 4px;
     font-size: 28px;
     font-weight: 700;
-    color: var(--text-primary, #111827);
     line-height: 1.2;
-    margin-bottom: 4px;
+    color: var(--text-primary, #111827);
   }
 
   &__label {
     font-size: 14px;
-    color: var(--text-secondary, #6B7280);
+    color: var(--text-secondary, #6b7280);
   }
 }
 
@@ -107,7 +107,7 @@ html.dark {
   }
 
   .data-card {
-    background: var(--bg-container, #1E293B);
+    background: var(--bg-container, #1e293b);
     border-color: var(--border-base, #334155);
     box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.3));
 

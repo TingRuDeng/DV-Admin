@@ -8,11 +8,11 @@
 // ============================================
 // 1. 断点定义
 // ============================================
-$breakpoint-xs: 480px;   // 超小屏幕（手机）
-$breakpoint-sm: 640px;   // 小屏幕（手机横屏）
-$breakpoint-md: 768px;   // 中等屏幕（平板）
-$breakpoint-lg: 1024px;  // 大屏幕（桌面）
-$breakpoint-xl: 1280px;  // 超大屏幕
+$breakpoint-xs: 480px; // 超小屏幕（手机）
+$breakpoint-sm: 640px; // 小屏幕（手机横屏）
+$breakpoint-md: 768px; // 中等屏幕（平板）
+$breakpoint-lg: 1024px; // 大屏幕（桌面）
+$breakpoint-xl: 1280px; // 超大屏幕
 $breakpoint-2xl: 1536px; // 超超大屏幕
 
 // ============================================
@@ -149,36 +149,36 @@ $breakpoint-2xl: 1536px; // 超超大屏幕
 // ============================================
 .container-fluid {
   width: 100%;
-  padding-left: 16px;
   padding-right: 16px;
+  padding-left: 16px;
 
   @include sm-up {
-    padding-left: 24px;
     padding-right: 24px;
+    padding-left: 24px;
   }
 
   @include md-up {
-    padding-left: 32px;
     padding-right: 32px;
+    padding-left: 32px;
   }
 }
 
 .container {
   width: 100%;
   max-width: $breakpoint-xl;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 16px;
   padding-right: 16px;
+  padding-left: 16px;
+  margin-right: auto;
+  margin-left: auto;
 
   @include sm-up {
-    padding-left: 24px;
     padding-right: 24px;
+    padding-left: 24px;
   }
 
   @include md-up {
-    padding-left: 32px;
     padding-right: 32px;
+    padding-left: 32px;
   }
 }
 
@@ -188,23 +188,23 @@ $breakpoint-2xl: 1536px; // 超超大屏幕
 .row {
   display: flex;
   flex-wrap: wrap;
-  margin-left: -8px;
   margin-right: -8px;
+  margin-left: -8px;
 
   @include md-up {
-    margin-left: -12px;
     margin-right: -12px;
+    margin-left: -12px;
   }
 }
 
 .col {
   flex: 1;
-  padding-left: 8px;
   padding-right: 8px;
+  padding-left: 8px;
 
   @include md-up {
-    padding-left: 12px;
     padding-right: 12px;
+    padding-left: 12px;
   }
 }
 
