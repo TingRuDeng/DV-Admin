@@ -181,17 +181,20 @@
     }
 
     &:hover {
-      transform: translateY(-3px) scale(1.02); /* 向上浮起并轻微放大 */
+      /* 1. 取消 scale，将上浮高度从 -3px 减弱到 -1px（克制的高级感） */
+      transform: translateY(-1px); 
       
-      /* 4. 悬浮时激发"霓虹感"光晕 */
-      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5), 
-                  0 0 15px rgba(99, 102, 241, 0.4);
+      /* 2. 靠光晕来展现交互，而不是形变 */
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4), 
+                  0 0 12px rgba(99, 102, 241, 0.3);
       
-      filter: brightness(1.1); /* 整体提亮 */
+      filter: brightness(1.05); /* 微微提亮一点点即可 */
     }
 
     &:active {
-      transform: translateY(0) scale(0.97); /* 点击时物理下压 */
+      /* 点击时不再缩小，而是产生一个真实的"按下"物理下沉反馈 */
+      transform: translateY(1px); 
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
       transition: all 0.1s;
     }
   }
