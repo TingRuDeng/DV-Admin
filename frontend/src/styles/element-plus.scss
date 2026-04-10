@@ -43,3 +43,43 @@ $border: 1px solid var(--el-border-color-light);
   gap: 8px;
   justify-content: flex-end;
 }
+
+/* ============================================
+   修复：彻底清除 TagsView 的白色底条
+   ============================================ */
+
+/* 1. 暴力抽干标签栏容器的所有底色和边框（覆盖主流模板的常见类名） */
+.tags-view-container,
+.tags-view,
+.layout-tags-container,
+.tags-wrapper {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+/* 2. 清除 Element Plus 滚动条内部容器的默认白底 */
+.tags-view-container .el-scrollbar,
+.tags-view-container .el-scrollbar__wrap,
+.tags-view-container .el-scrollbar__view {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* 3. 如果顶部有固定的外层包裹容器（Fixed Header），强行透明化 */
+.fixed-header {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  /* 如果 fixed-header 导致 Navbar 被贴边，可以在这里给点 padding，但通常不需要 */
+}
+
+/* 4. 微调胶囊标签的位置，让它看起来是悬浮在底色上的 */
+.tags-view-item {
+  margin-top: 6px !important;
+  margin-bottom: 6px !important;
+  /* 确保标签有一点点阴影，凸显悬浮感 */
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05) !important;
+}
