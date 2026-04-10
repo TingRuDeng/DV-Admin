@@ -398,4 +398,40 @@ onMounted(() => {
   color: #64748b !important;
   background-color: #f1f5f9 !important;
 }
+
+/* ============================================
+   表格内操作按钮"软徽章化"
+   ============================================ */
+:deep(.minimal-table .el-button.is-link) {
+  height: auto !important;
+  padding: 6px 10px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Primary 按钮（编辑）的悬浮效果 */
+:deep(.minimal-table .el-button--primary.is-link) {
+  color: #64748b !important;
+}
+:deep(.minimal-table .el-button--primary.is-link:hover) {
+  color: var(--el-color-primary) !important;
+  background-color: rgba(64, 128, 255, 0.1) !important;
+}
+
+/* Danger 按钮（删除）的悬浮效果 */
+:deep(.minimal-table .el-button--danger.is-link) {
+  color: #94a3b8 !important;
+}
+:deep(.minimal-table .el-button--danger.is-link:hover) {
+  color: #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+/* 调整按钮之间的间距 */
+:deep(.minimal-table .el-table__cell .cell) {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
 </style>
