@@ -345,6 +345,28 @@ onMounted(() => {
 }
 
 /* ============================================
+   表格净化
+   ============================================ */
+:deep(.minimal-table) {
+  background: transparent !important;
+  --el-table-border-color: rgba(0, 0, 0, 0.04);
+  --el-table-header-bg-color: rgba(0, 0, 0, 0.02);
+  --el-table-header-text-color: #475569;
+  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.6);
+  --el-table-tr-bg-color: transparent;
+}
+:deep(.minimal-table th.el-table__cell) {
+  font-weight: 600;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.06) !important;
+}
+:deep(.minimal-table td.el-table__cell) {
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.04) !important;
+}
+:deep(.minimal-table .el-table__inner-wrapper::before) {
+  display: none; /* 隐藏底部死黑边线 */
+}
+
+/* ============================================
    表单输入框与状态标签极简圆润化
    ============================================ */
 :deep(.minimal-input .el-input__wrapper),
