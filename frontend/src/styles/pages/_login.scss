@@ -103,6 +103,11 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 
+  /* el-badge 容器需要重置文字填充 */
+  .el-badge {
+    -webkit-text-fill-color: transparent;
+  }
+
   /* 保持小 badge 的样式不变 */
   .el-badge__content {
     font-size: 11px;
