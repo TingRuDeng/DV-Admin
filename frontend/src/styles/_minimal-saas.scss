@@ -1,0 +1,1070 @@
+// ============================================
+// DV-Admin 极简 SaaS 风格全局样式
+// ============================================
+// 表格、表单、按钮、弹窗、标签等组件的统一风格
+// 创建日期：2026-04-10
+// ============================================
+
+// ============================================
+// 1. 表格净化
+// ============================================
+.minimal-table {
+  --el-table-border-color: #f1f5f9; /* 极浅的边框色 */
+  --el-table-header-bg-color: #f8fafc; /* 表头软灰底色 */
+  --el-table-header-text-color: #64748b; /* 表头深灰文字 */
+  --el-table-row-hover-bg-color: #f8fafc; /* 悬浮时使用极浅灰色 */
+}
+
+/* 隐藏表格底部不需要的外边线 */
+.minimal-table .el-table__inner-wrapper::before {
+  display: none;
+}
+
+/* 加粗表头，使其更清晰 */
+.minimal-table th.el-table__cell {
+  font-weight: 600;
+  border-bottom: 2px solid #e2e8f0 !important; /* 表头下划线加重 */
+}
+
+/* 虚化普通行的边框线 */
+.minimal-table td.el-table__cell {
+  border-bottom: 1px dashed #f1f5f9 !important; /* 使用虚线让表格呼吸感更强 */
+}
+
+// ============================================
+// 2. 表单输入框圆润化
+// ============================================
+.minimal-input {
+  .el-input__wrapper {
+    box-shadow: 0 0 0 1px #e2e8f0 inset !important;
+    border-radius: 8px; /* 加大圆角 */
+    background-color: #f8fafc; /* 内部给极浅的底色 */
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #ffffff;
+      box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
+    }
+
+    &.is-focus {
+      background-color: #ffffff;
+      box-shadow: 0 0 0 1px var(--el-color-primary) inset, 0 0 0 3px rgba(64, 128, 255, 0.1) !important;
+    }
+  }
+}
+
+/* Select 选择器 */
+.minimal-input.el-select {
+  .el-select__wrapper {
+    box-shadow: 0 0 0 1px #e2e8f0 inset !important;
+    border-radius: 8px;
+    background-color: #f8fafc;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #ffffff;
+      box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
+    }
+
+    &.is-focused {
+      background-color: #ffffff;
+      box-shadow: 0 0 0 1px var(--el-color-primary) inset, 0 0 0 3px rgba(64, 128, 255, 0.1) !important;
+    }
+  }
+}
+
+/* Tree-Select 树形选择器 */
+.minimal-input.el-tree-select {
+  .el-select__wrapper {
+    box-shadow: 0 0 0 1px #e2e8f0 inset !important;
+    border-radius: 8px;
+    background-color: #f8fafc;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #ffffff;
+      box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
+    }
+
+    &.is-focused {
+      background-color: #ffffff;
+      box-shadow: 0 0 0 1px var(--el-color-primary) inset, 0 0 0 3px rgba(64, 128, 255, 0.1) !important;
+    }
+  }
+}
+
+/* InputNumber 数字输入框 */
+.minimal-input.el-input-number {
+  .el-input__wrapper {
+    box-shadow: 0 0 0 1px #e2e8f0 inset !important;
+    border-radius: 8px;
+    background-color: #f8fafc;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #ffffff;
+      box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
+    }
+
+    &.is-focus {
+      background-color: #ffffff;
+      box-shadow: 0 0 0 1px var(--el-color-primary) inset, 0 0 0 3px rgba(64, 128, 255, 0.1) !important;
+    }
+  }
+}
+
+// ============================================
+// 3. 按钮高级感
+// ============================================
+.minimal-btn {
+  border-radius: 8px;
+  font-weight: 500;
+  border: none;
+  box-shadow: 0 2px 4px rgba(64, 128, 255, 0.2);
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(64, 128, 255, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(64, 128, 255, 0.2);
+  }
+}
+
+.minimal-btn-plain {
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  background: white;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--el-color-primary);
+    color: var(--el-color-primary);
+    background: #f8fafc;
+  }
+}
+
+.minimal-btn-danger {
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.minimal-btn-success {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+// ============================================
+// 4. 弹窗重构
+// ============================================
+.minimal-dialog {
+  border-radius: 16px;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+
+  .el-dialog__header {
+    border-bottom: 1px solid #f1f5f9;
+    margin-right: 0;
+    padding-bottom: 16px;
+  }
+
+  .el-dialog__title {
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  .el-dialog__body {
+    padding: 24px 20px;
+  }
+
+  .el-dialog__footer {
+    padding: 16px 20px;
+    border-top: 1px solid #f1f5f9;
+  }
+}
+
+// ============================================
+// 5. 状态标签柔和化
+// ============================================
+.minimal-tag {
+  border: none !important;
+  border-radius: 6px;
+  padding: 0 12px;
+  font-weight: 500;
+
+  &.success {
+    background-color: #dcfce7 !important;
+    color: #16a34a !important;
+  }
+
+  &.info {
+    background-color: #f1f5f9 !important;
+    color: #64748b !important;
+  }
+
+  &.warning {
+    background-color: #fef3c7 !important;
+    color: #d97706 !important;
+  }
+
+  &.danger {
+    background-color: #fee2e2 !important;
+    color: #dc2626 !important;
+  }
+}
+
+// ============================================
+// 6. 表单容器
+// ============================================
+.minimal-form {
+  .el-form-item {
+    margin-bottom: 18px;
+
+    .el-form-item__label {
+      font-weight: 500;
+      color: #475569;
+    }
+  }
+}
+
+// ============================================
+// 7. 搜索容器
+// ============================================
+.minimal-search-container {
+  background: white;
+  padding: 20px 24px;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  margin-bottom: 16px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  }
+}
+
+// ============================================
+// 8. 数据容器
+// ============================================
+.minimal-data-container {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  }
+}
+
+// ============================================
+// 9. 深色模式适配
+// ============================================
+html.dark {
+  .minimal-table {
+    --el-table-border-color: #334155;
+    --el-table-header-bg-color: #1e293b;
+    --el-table-header-text-color: #94a3b8;
+    --el-table-row-hover-bg-color: #1e293b;
+  }
+
+  .minimal-table th.el-table__cell {
+    border-bottom: 2px solid #475569 !important;
+  }
+
+  .minimal-table td.el-table__cell {
+    border-bottom: 1px dashed #334155 !important;
+  }
+
+  .minimal-input {
+    .el-input__wrapper {
+      box-shadow: 0 0 0 1px #475569 inset !important;
+      background-color: #1e293b;
+
+      &:hover {
+        background-color: #0f172a;
+        box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
+      }
+
+      &.is-focus {
+        background-color: #0f172a;
+        box-shadow: 0 0 0 1px var(--el-color-primary) inset, 0 0 0 3px rgba(129, 140, 248, 0.2) !important;
+      }
+    }
+  }
+
+  .minimal-input.el-select,
+  .minimal-input.el-tree-select {
+    .el-select__wrapper {
+      box-shadow: 0 0 0 1px #475569 inset !important;
+      background-color: #1e293b;
+
+      &:hover {
+        background-color: #0f172a;
+        box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
+      }
+
+      &.is-focused {
+        background-color: #0f172a;
+        box-shadow: 0 0 0 1px var(--el-color-primary) inset, 0 0 0 3px rgba(129, 140, 248, 0.2) !important;
+      }
+    }
+  }
+
+  .minimal-btn-plain {
+    border-color: #475569;
+    color: #94a3b8;
+    background: #1e293b;
+
+    &:hover {
+      background: #0f172a;
+    }
+  }
+
+  .minimal-dialog {
+    background: #1e293b;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
+
+    .el-dialog__header {
+      border-bottom-color: #334155;
+    }
+
+    .el-dialog__title {
+      color: #f1f5f9;
+    }
+
+    .el-dialog__footer {
+      border-top-color: #334155;
+    }
+  }
+
+  .minimal-tag {
+    &.success {
+      background-color: rgba(34, 197, 94, 0.2) !important;
+      color: #4ade80 !important;
+    }
+
+    &.info {
+      background-color: rgba(100, 116, 139, 0.2) !important;
+      color: #94a3b8 !important;
+    }
+
+    &.warning {
+      background-color: rgba(245, 158, 11, 0.2) !important;
+      color: #fbbf24 !important;
+    }
+
+    &.danger {
+      background-color: rgba(239, 68, 68, 0.2) !important;
+      color: #f87171 !important;
+    }
+  }
+
+  .minimal-search-container,
+  .minimal-data-container {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+    &:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+  }
+}
+
+// ============================================
+// 10. 侧边栏 (Sidebar) 悬浮胶囊定制
+// ============================================
+
+/* 1. 移除生硬的右侧边框，改为干脆的留白或极浅分割 */
+.el-menu {
+  border-right: none !important;
+  background-color: #ffffff !important;
+}
+
+/* 2. 菜单项：改成"悬浮胶囊"形状 */
+.el-menu-item,
+.el-sub-menu__title {
+  margin: 4px 12px !important; /* 左右增加留白，让长条变成独立的胶囊块 */
+  border-radius: 8px !important; /* 圆角配合全局风格 */
+  height: 44px !important;
+  line-height: 44px !important;
+  color: #64748b !important; /* 默认使用低饱和度蓝灰，降低视觉干扰 */
+  transition: all 0.2s ease !important;
+}
+
+/* 3. 悬浮状态 (Hover)：给予极浅的底色反馈 */
+.el-menu-item:hover,
+.el-sub-menu__title:hover {
+  background-color: #f8fafc !important;
+  color: #0f172a !important; /* 文字加深变黑，突出焦点 */
+}
+
+/* 4. 选中状态 (Active)：核心高级感，主色的 10% 透明度背景 */
+.el-menu-item.is-active {
+  background-color: rgba(99, 102, 241, 0.1) !important; /* Primary 颜色 RGB */
+  color: var(--el-color-primary) !important;
+  font-weight: 600 !important;
+}
+
+/* 5. 调整内层子菜单的缩进，保持胶囊形状 */
+.el-sub-menu .el-menu {
+  background-color: #ffffff !important;
+}
+.el-sub-menu .el-menu-item {
+  margin: 4px 12px 4px 20px !important; /* 子菜单左侧多留白 */
+  height: 40px !important;
+  line-height: 40px !important;
+}
+
+// ============================================
+// 11. 顶部导航栏 (Navbar) 定制
+// ============================================
+
+/* 1. 顶部栏去线，加弥散阴影 */
+.navbar,
+.layout-header {
+  background-color: #ffffff !important;
+  border-bottom: none !important; /* 杀掉那条生硬的 1px 灰线 */
+  box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.04) !important; /* 非常非常微弱的弥散阴影 */
+  z-index: 10; /* 确保阴影能盖住下方的内容区 */
+}
+
+/* 2. 面包屑 (Breadcrumb) 文字柔和化 */
+.el-breadcrumb__inner {
+  color: #64748b !important;
+  font-weight: 500 !important;
+}
+.el-breadcrumb__item:last-child .el-breadcrumb__inner {
+  color: #0f172a !important; /* 当前页面标题加深 */
+  font-weight: 600 !important;
+}
+.el-breadcrumb__inner a:hover,
+.el-breadcrumb__inner.is-link:hover {
+  color: var(--el-color-primary) !important;
+}
+
+/* 3. 顶部右侧操作区图标（全屏、搜索、通知）的 Hover 统一为圆角方块 */
+.right-menu-item {
+  border-radius: 8px !important;
+  padding: 6px 8px !important;
+  transition: all 0.2s !important;
+  cursor: pointer;
+}
+.right-menu-item:hover {
+  background-color: #f8fafc !important;
+}
+
+// ============================================
+// 12. 侧边栏和顶部栏深色模式适配
+// ============================================
+html.dark {
+  /* 侧边栏深色模式 */
+  .el-menu {
+    background-color: #1e293b !important;
+  }
+
+  .el-menu-item,
+  .el-sub-menu__title {
+    color: #94a3b8 !important;
+  }
+
+  .el-menu-item:hover,
+  .el-sub-menu__title:hover {
+    background-color: #334155 !important;
+    color: #f1f5f9 !important;
+  }
+
+  .el-menu-item.is-active {
+    background-color: rgba(129, 140, 248, 0.15) !important;
+    color: #818cf8 !important;
+  }
+
+  .el-sub-menu .el-menu {
+    background-color: #1e293b !important;
+  }
+
+  /* 顶部栏深色模式 */
+  .navbar,
+  .layout-header {
+    background-color: #1e293b !important;
+    box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* 面包屑深色模式 */
+  .el-breadcrumb__inner {
+    color: #94a3b8 !important;
+  }
+  .el-breadcrumb__item:last-child .el-breadcrumb__inner {
+    color: #f1f5f9 !important;
+  }
+
+  /* 顶部操作区深色模式 */
+  .right-menu-item:hover {
+    background-color: #334155 !important;
+  }
+}
+
+// ============================================
+// 13. 顶部全区域 (NavBar + TagsView) 极简科技风
+// ============================================
+
+/* 1. 彻底打破方正感：让 Navbar 变成悬浮胶囊 */
+.navbar {
+  margin: 12px 16px 0 16px !important; /* 顶部和左右留白，不贴合屏幕边缘 */
+  border-radius: 16px !important; /* 大圆角，呼应侧边栏菜单 */
+  height: 60px !important;
+
+  /* 调低玻璃的"白度"，让底层的冷色透上来 */
+  background: rgba(255, 255, 255, 0.45) !important; /* 45% 的白底，让护眼渐变透出来 */
+  backdrop-filter: blur(20px) saturate(110%);
+  -webkit-backdrop-filter: blur(20px) saturate(110%);
+
+  /* 补偿性增强边缘的玻璃反光，防止透明度降低后组件融进背景里 */
+  border: 1px solid rgba(255, 255, 255, 0.9) !important;
+
+  /* 阴影稍微加深，把悬浮面板更有力地"托"起来 */
+  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* 2. Logo 区域的圆润化处理 */
+.sidebar-logo-container {
+  background: transparent !important; /* 抽干原本死板的底色 */
+  padding: 12px !important; /* 增加内边距 */
+  box-shadow: none !important;
+  border-bottom: none !important;
+}
+
+.sidebar-logo-link {
+  height: 100% !important;
+  border-radius: 12px !important; /* Logo 容器自己变成一个小胶囊 */
+  background: rgba(99, 102, 241, 0.05) !important; /* 极淡的主题色背景 */
+  transition: all 0.3s ease;
+}
+.sidebar-logo-link:hover {
+  background: rgba(99, 102, 241, 0.1) !important;
+}
+
+/* 3. 标签栏 (TagsView) 紧跟 Navbar 下方悬浮 */
+.tags-view-container {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  margin: 4px 16px 0 16px !important; /* 与 Navbar 左侧对齐 */
+}
+
+/* 标签样式优化 */
+.tags-view-item {
+  border-radius: 8px !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.tags-view-item.active {
+  background: var(--el-color-primary) !important;
+  border-color: var(--el-color-primary) !important;
+  box-shadow: 0 4px 12px -2px rgba(99, 102, 241, 0.3) !important;
+}
+
+// ============================================
+// 14. NavBar + TagsView 深色模式适配
+// ============================================
+html.dark {
+  /* NavBar 深色模式 */
+  .navbar {
+    background: rgba(30, 41, 59, 0.75) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* Logo 深色模式 */
+  .sidebar-logo-link {
+    background: rgba(129, 140, 248, 0.1) !important;
+  }
+  .sidebar-logo-link:hover {
+    background: rgba(129, 140, 248, 0.15) !important;
+  }
+
+  /* TagsView 标签深色模式 */
+  .tags-view-item {
+    background: rgba(51, 65, 85, 0.5) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+
+    &.active {
+      background: var(--el-color-primary) !important;
+      border-color: var(--el-color-primary) !important;
+      box-shadow: 0 4px 12px -2px rgba(129, 140, 248, 0.4) !important;
+    }
+  }
+}
+
+// ============================================
+// 15. 浮岛式侧边栏 (Floating Sidebar)
+// ============================================
+
+/* 1. 外层容器：打破直角，让侧边栏悬浮 */
+.layout__sidebar {
+  margin: 12px 0 12px 12px !important; /* 增加左、上、下的留白，不贴合屏幕 */
+  height: calc(100vh - 24px) !important; /* 高度减去上下的留白，使其完全悬浮 */
+  border-radius: 16px !important; /* 统一大圆角 */
+  overflow: hidden !important; /* 关键：防止内部菜单滚动条溢出破坏圆角 */
+  z-index: 1001 !important;
+
+  /* 调低玻璃的"白度"，让底层的冷色透上来 */
+  background: rgba(255, 255, 255, 0.45) !important;
+  backdrop-filter: blur(20px) saturate(110%);
+  -webkit-backdrop-filter: blur(20px) saturate(110%);
+
+  /* 补偿性增强边缘的玻璃反光 */
+  border: 1px solid rgba(255, 255, 255, 0.9) !important;
+
+  /* 阴影稍微加深 */
+  box-shadow: 4px 8px 32px -8px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* 2. 内层容器：透明化 */
+.layout-sidebar {
+  background-color: transparent !important;
+}
+
+/* 3. Logo 区域：透明化，融入毛玻璃 */
+.logo {
+  background-color: transparent !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+/* Logo 链接悬浮效果 */
+.logo a,
+.logo .wh-full {
+  border-radius: 8px !important;
+  transition: all 0.2s ease;
+}
+
+.logo a:hover,
+.logo .wh-full:hover {
+  background: rgba(99, 102, 241, 0.05) !important;
+}
+
+/* 3. 强制抽干内部组件的默认底色，让毛玻璃完全透出来 */
+.layout__sidebar .el-menu,
+.layout__sidebar .el-scrollbar,
+.layout__sidebar .el-scrollbar__wrap,
+.layout-sidebar .el-menu,
+.layout-sidebar .el-scrollbar,
+.layout-sidebar .el-scrollbar__wrap {
+  background-color: transparent !important;
+  border-right: none !important;
+}
+
+/* 4. 兼容旧类名 sidebar-container */
+.sidebar-container {
+  margin: 12px 0 12px 12px !important;
+  height: calc(100vh - 24px) !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  z-index: 1001 !important;
+
+  /* 调低玻璃的"白度"，让底层的冷色透上来 */
+  background: rgba(255, 255, 255, 0.45) !important;
+  backdrop-filter: blur(20px) saturate(110%);
+  -webkit-backdrop-filter: blur(20px) saturate(110%);
+  border: 1px solid rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 4px 8px 32px -8px rgba(0, 0, 0, 0.08) !important;
+}
+
+.sidebar-container .el-menu,
+.sidebar-container .el-scrollbar,
+.sidebar-container .el-scrollbar__wrap {
+  background-color: transparent !important;
+  border-right: none !important;
+}
+
+/* 5. 给右侧主区域稍微推开一点，增加呼吸感 */
+.main-container,
+.layout__main {
+  padding-left: 8px !important; /* 给浮岛之间增加一点呼吸感 */
+}
+
+// ============================================
+// 16. 浮岛式侧边栏深色模式适配
+// ============================================
+html.dark {
+  .layout__sidebar,
+  .sidebar-container {
+    background: rgba(30, 41, 59, 0.75) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 4px 8px 32px -8px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* Logo 深色模式 */
+  .logo {
+    background-color: transparent !important;
+  }
+
+  .logo a:hover,
+  .logo .wh-full:hover {
+    background: rgba(129, 140, 248, 0.1) !important;
+  }
+}
+
+// ============================================
+// 17. 通用玻璃面板样式 (Glass Panel)
+// ============================================
+.glass-panel {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px) saturate(110%);
+  -webkit-backdrop-filter: blur(12px) saturate(110%);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  margin-bottom: 16px; /* 增加底部间距 */
+}
+
+.glass-panel:last-child {
+  margin-bottom: 0; /* 最后一个不需要底部间距 */
+}
+
+.glass-panel:hover {
+  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.08);
+}
+
+// ============================================
+// 18. 透明树组件样式
+// ============================================
+.transparent-tree,
+.transparent-tree .el-tree,
+.transparent-tree .el-card {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.transparent-tree .el-tree-node__content {
+  border-radius: 8px;
+  margin-bottom: 2px;
+  transition: all 0.2s;
+}
+
+.transparent-tree .el-tree-node__content:hover {
+  background-color: rgba(64, 128, 255, 0.08) !important;
+}
+
+.transparent-tree .el-tree-node.is-current > .el-tree-node__content {
+  background-color: rgba(64, 128, 255, 0.15) !important;
+  color: var(--el-color-primary);
+  font-weight: 600;
+}
+
+// ============================================
+// 19. 极简表格深度定制
+// ============================================
+.minimal-table {
+  background: transparent !important;
+  --el-table-border-color: rgba(0, 0, 0, 0.04);
+  --el-table-header-bg-color: rgba(0, 0, 0, 0.02);
+  --el-table-header-text-color: #475569;
+  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.6);
+  --el-table-tr-bg-color: transparent;
+}
+
+.minimal-table th.el-table__cell {
+  font-weight: 600;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.minimal-table td.el-table__cell {
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.04) !important;
+}
+
+.minimal-table .el-table__inner-wrapper::before {
+  display: none; /* 隐藏底部死黑边线 */
+}
+
+// ============================================
+// 20. 极简输入框深度定制
+// ============================================
+.minimal-input .el-input__wrapper,
+.minimal-input.el-select .el-select__wrapper,
+.minimal-input.el-tree-select .el-select__wrapper {
+  box-shadow: 0 0 0 1px #cbd5e1 inset !important;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.6);
+  transition: all 0.2s ease;
+}
+
+.minimal-input .el-input__wrapper:hover,
+.minimal-input.el-select .el-select__wrapper:hover,
+.minimal-input.el-tree-select .el-select__wrapper:hover {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+.minimal-input .el-input__wrapper.is-focus,
+.minimal-input.el-select .el-select__wrapper.is-focused,
+.minimal-input.el-tree-select .el-select__wrapper.is-focused {
+  background-color: #ffffff;
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset, 0 0 0 3px rgba(64, 128, 255, 0.1) !important;
+}
+
+// ============================================
+// 21. 极简按钮深度定制
+// ============================================
+.minimal-btn {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(64, 128, 255, 0.2) !important;
+  transition: all 0.2s ease !important;
+}
+
+.minimal-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(64, 128, 255, 0.3) !important;
+}
+
+.minimal-btn:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 1px 2px rgba(64, 128, 255, 0.2) !important;
+}
+
+.minimal-btn-plain {
+  border-radius: 8px !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #64748b !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  transition: all 0.2s ease !important;
+}
+
+.minimal-btn-plain:hover {
+  border-color: var(--el-color-primary) !important;
+  color: var(--el-color-primary) !important;
+  background: #ffffff !important;
+}
+
+.minimal-btn-danger {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+.minimal-btn-danger:hover {
+  transform: translateY(-1px) !important;
+}
+
+.minimal-btn-danger:active {
+  transform: translateY(0) !important;
+}
+
+// ============================================
+// 22. 极简标签深度定制
+// ============================================
+.minimal-tag {
+  border: none !important;
+  border-radius: 6px;
+  padding: 0 12px;
+  font-weight: 500;
+}
+
+.minimal-tag.success {
+  background-color: #dcfce7 !important;
+  color: #16a34a !important;
+}
+
+.minimal-tag.info {
+  background-color: #f1f5f9 !important;
+  color: #64748b !important;
+}
+
+.minimal-tag.warning {
+  background-color: #fef3c7 !important;
+  color: #d97706 !important;
+}
+
+.minimal-tag.danger {
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+
+// ============================================
+// 23. 极简分页深度定制
+// ============================================
+.minimal-pagination {
+  justify-content: flex-end;
+}
+
+.minimal-pagination button,
+.minimal-pagination li {
+  background: transparent !important;
+}
+
+.minimal-pagination li.is-active {
+  background: var(--el-color-primary) !important;
+  color: white !important;
+  border-radius: 6px;
+}
+
+// ============================================
+// 24. 表格内操作按钮"软徽章化"
+// ============================================
+.minimal-table .el-button.is-link {
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  height: auto !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Primary 按钮（编辑、重置密码）的悬浮效果 */
+.minimal-table .el-button--primary.is-link {
+  color: #64748b !important;
+}
+
+.minimal-table .el-button--primary.is-link:hover {
+  background-color: rgba(64, 128, 255, 0.1) !important;
+  color: var(--el-color-primary) !important;
+}
+
+/* Danger 按钮（删除）的悬浮效果 */
+.minimal-table .el-button--danger.is-link {
+  color: #94a3b8 !important;
+}
+
+.minimal-table .el-button--danger.is-link:hover {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  color: #ef4444 !important;
+}
+
+/* 调整按钮之间的间距 */
+.minimal-table .el-table__cell .cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+// ============================================
+// 24. 深色模式适配
+// ============================================
+html.dark {
+  /* 玻璃面板深色模式 */
+  .glass-panel {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.3);
+  }
+
+  /* 透明树深色模式 */
+  .transparent-tree .el-tree-node__content:hover {
+    background-color: rgba(129, 140, 248, 0.1) !important;
+  }
+
+  .transparent-tree .el-tree-node.is-current > .el-tree-node__content {
+    background-color: rgba(129, 140, 248, 0.15) !important;
+    color: #818cf8;
+  }
+
+  /* 表格深色模式 */
+  .minimal-table {
+    --el-table-border-color: rgba(255, 255, 255, 0.1);
+    --el-table-header-bg-color: rgba(255, 255, 255, 0.05);
+    --el-table-header-text-color: #94a3b8;
+    --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .minimal-table th.el-table__cell {
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .minimal-table td.el-table__cell {
+    border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  /* 输入框深色模式 */
+  .minimal-input .el-input__wrapper,
+  .minimal-input.el-select .el-select__wrapper,
+  .minimal-input.el-tree-select .el-select__wrapper {
+    box-shadow: 0 0 0 1px #475569 inset !important;
+    background-color: rgba(30, 41, 59, 0.6);
+  }
+
+  .minimal-input .el-input__wrapper:hover,
+  .minimal-input.el-select .el-select__wrapper:hover,
+  .minimal-input.el-tree-select .el-select__wrapper:hover {
+    background-color: rgba(30, 41, 59, 0.8);
+  }
+
+  .minimal-input .el-input__wrapper.is-focus,
+  .minimal-input.el-select .el-select__wrapper.is-focused,
+  .minimal-input.el-tree-select .el-select__wrapper.is-focused {
+    background-color: #1e293b;
+    box-shadow: 0 0 0 1px var(--el-color-primary) inset, 0 0 0 3px rgba(129, 140, 248, 0.2) !important;
+  }
+
+  /* 按钮深色模式 */
+  .minimal-btn-plain {
+    border-color: #475569;
+    color: #94a3b8;
+    background: rgba(30, 41, 59, 0.6);
+  }
+
+  .minimal-btn-plain:hover {
+    background: #1e293b;
+  }
+
+  /* 标签深色模式 */
+  .minimal-tag.success {
+    background-color: rgba(34, 197, 94, 0.2) !important;
+    color: #4ade80 !important;
+  }
+
+  .minimal-tag.info {
+    background-color: rgba(100, 116, 139, 0.2) !important;
+    color: #94a3b8 !important;
+  }
+
+  .minimal-tag.warning {
+    background-color: rgba(245, 158, 11, 0.2) !important;
+    color: #fbbf24 !important;
+  }
+
+  .minimal-tag.danger {
+    background-color: rgba(239, 68, 68, 0.2) !important;
+    color: #f87171 !important;
+  }
+
+  /* 表格操作按钮深色模式 */
+  .minimal-table .el-button--primary.is-link {
+    color: #94a3b8 !important;
+  }
+
+  .minimal-table .el-button--primary.is-link:hover {
+    background-color: rgba(129, 140, 248, 0.15) !important;
+    color: #818cf8 !important;
+  }
+
+  .minimal-table .el-button--danger.is-link {
+    color: #64748b !important;
+  }
+
+  .minimal-table .el-button--danger.is-link:hover {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    color: #f87171 !important;
+  }
+}
