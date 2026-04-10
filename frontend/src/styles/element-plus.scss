@@ -87,3 +87,76 @@ $border: 1px solid var(--el-border-color-light);
   /* 确保标签有一点点阴影，凸显悬浮感 */
   box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05) !important;
 }
+
+/* ============================================
+   表格底部：分页器晶体悬浮化 (Pagination)
+   ============================================ */
+.el-pagination {
+  padding: 16px 0 0 0 !important;
+  font-weight: 500;
+
+  /* 1. 暴力抽干所有默认的灰色底块 */
+  button, 
+  .el-pager li, 
+  .el-pagination__editor.el-input .el-input__wrapper {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  /* 2. 普通页码和翻页按钮 (未选中态) - 极简透明 */
+  button, 
+  .el-pager li {
+    min-width: 32px !important;
+    height: 32px !important;
+    line-height: 32px !important;
+    border-radius: 8px !important; /* 呼应全局圆角 */
+    margin: 0 4px !important;
+    color: #64748b !important;
+    border: 1px solid transparent !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* 悬浮时的白玻效果 */
+    &:hover:not(:disabled):not(.is-active) {
+      background: rgba(255, 255, 255, 0.6) !important;
+      border-color: rgba(255, 255, 255, 0.9) !important;
+      color: var(--el-color-primary) !important;
+      box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+      transform: translateY(-1px);
+    }
+
+    &:disabled {
+      color: #cbd5e1 !important;
+      background: transparent !important;
+    }
+  }
+
+  /* 3. 当前激活的页码 - 微晶体蓝宝石 (核心！) */
+  .el-pager li.is-active {
+    /* 与搜索按钮同款的渐变晶体底色 */
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.9) 0%, rgba(59, 130, 246, 0.8) 100%) !important;
+    color: #ffffff !important;
+    
+    /* 玻璃高光边框 */
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    border-top-color: rgba(255, 255, 255, 0.8) !important;
+    
+    /* 内发光与外弥散阴影 */
+    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.3),
+                0 4px 10px -2px rgba(59, 130, 246, 0.4) !important;
+    font-weight: 700 !important;
+    transform: translateY(-1px); /* 默认保持微微浮起 */
+  }
+
+  /* 4. 分页器内部的输入框和选择器 (条数/跳页) */
+  .el-input__wrapper, 
+  .el-select .el-input__wrapper {
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06) inset !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.4) !important;
+    
+    &.is-focus, &:hover {
+      background: rgba(255, 255, 255, 0.8) !important;
+      box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
+    }
+  }
+}
