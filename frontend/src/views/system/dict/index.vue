@@ -15,8 +15,12 @@
         </el-form-item>
 
         <el-form-item class="search-buttons mb-0 ml-auto">
-          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">搜索</el-button>
-          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">重置</el-button>
+          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">
+            搜索
+          </el-button>
+          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">
+            重置
+          </el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -28,8 +32,26 @@
           <span class="text-base font-semibold text-slate-700 tracking-wide">字典数据</span>
         </div>
         <div class="flex gap-2">
-          <el-button v-hasPerm="['system:dicts:add']" type="primary" icon="plus" class="minimal-btn" @click="handleAddClick()">新增字典</el-button>
-          <el-button v-hasPerm="['system:dicts:delete']" type="danger" plain :disabled="ids.length === 0" icon="delete" class="minimal-btn-danger" @click="handleDelete()">批量删除</el-button>
+          <el-button
+            v-hasPerm="['system:dicts:add']"
+            type="primary"
+            icon="plus"
+            class="minimal-btn"
+            @click="handleAddClick()"
+          >
+            新增字典
+          </el-button>
+          <el-button
+            v-hasPerm="['system:dicts:delete']"
+            type="danger"
+            plain
+            :disabled="ids.length === 0"
+            icon="delete"
+            class="minimal-btn-danger"
+            @click="handleDelete()"
+          >
+            批量删除
+          </el-button>
         </div>
       </div>
 
@@ -46,19 +68,47 @@
           <el-table-column label="字典编码" prop="dictCode" min-width="150" />
           <el-table-column label="状态" prop="status" width="100" align="center">
             <template #default="scope">
-              <el-tag :type="scope.row.status === 1 ? 'success' : 'info'" class="minimal-tag" :class="scope.row.status === 1 ? 'success' : 'info'">
-                {{ scope.row.status === 1 ? '启用' : '禁用' }}
+              <el-tag
+                :type="scope.row.status === 1 ? 'success' : 'info'"
+                class="minimal-tag"
+                :class="scope.row.status === 1 ? 'success' : 'info'"
+              >
+                {{ scope.row.status === 1 ? "启用" : "禁用" }}
               </el-tag>
             </template>
           </el-table-column>
           <el-table-column fixed="right" label="操作" width="280">
             <template #default="scope">
-              <el-button v-hasPerm="['system:dictitems:query']" type="primary" link size="small" @click.stop="handleOpenDictData(scope.row)">
+              <el-button
+                v-hasPerm="['system:dictitems:query']"
+                type="primary"
+                link
+                size="small"
+                @click.stop="handleOpenDictData(scope.row)"
+              >
                 <template #icon><Collection /></template>
                 字典数据
               </el-button>
-              <el-button v-hasPerm="['system:dicts:edit']" type="primary" link icon="edit" size="small" @click.stop="handleEditClick(scope.row.id)">编辑</el-button>
-              <el-button v-hasPerm="['system:dicts:delete']" type="danger" link icon="delete" size="small" @click.stop="handleDelete(scope.row.id)">删除</el-button>
+              <el-button
+                v-hasPerm="['system:dicts:edit']"
+                type="primary"
+                link
+                icon="edit"
+                size="small"
+                @click.stop="handleEditClick(scope.row.id)"
+              >
+                编辑
+              </el-button>
+              <el-button
+                v-hasPerm="['system:dicts:delete']"
+                type="danger"
+                link
+                icon="delete"
+                size="small"
+                @click.stop="handleDelete(scope.row.id)"
+              >
+                删除
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -82,13 +132,23 @@
       class="minimal-dialog"
       @close="handleCloseDialog"
     >
-      <el-form ref="dataFormRef" :model="formData" :rules="computedRules" label-width="80px" class="minimal-form pt-4">
+      <el-form
+        ref="dataFormRef"
+        :model="formData"
+        :rules="computedRules"
+        label-width="80px"
+        class="minimal-form pt-4"
+      >
         <el-form-item label="字典名称" prop="name">
           <el-input v-model="formData.name" placeholder="请输入字典名称" class="minimal-input" />
         </el-form-item>
 
         <el-form-item label="字典编码" prop="dictCode">
-          <el-input v-model="formData.dictCode" placeholder="请输入字典编码" class="minimal-input" />
+          <el-input
+            v-model="formData.dictCode"
+            placeholder="请输入字典编码"
+            class="minimal-input"
+          />
         </el-form-item>
 
         <el-form-item label="状态">
@@ -99,7 +159,12 @@
         </el-form-item>
 
         <el-form-item label="备注">
-          <el-input v-model="formData.remark" type="textarea" placeholder="请输入备注" class="minimal-input" />
+          <el-input
+            v-model="formData.remark"
+            type="textarea"
+            placeholder="请输入备注"
+            class="minimal-input"
+          />
         </el-form-item>
       </el-form>
 

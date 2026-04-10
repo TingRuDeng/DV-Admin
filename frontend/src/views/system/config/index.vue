@@ -2,7 +2,9 @@
 <template>
   <div class="app-container p-6 bg-[#f8fafc] min-h-screen flex flex-col gap-4">
     <!-- 搜索区域 -->
-    <div class="bg-white p-5 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-slate-100 transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
+    <div
+      class="bg-white p-5 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-slate-100 transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)]"
+    >
       <el-form ref="queryFormRef" :model="queryParams" :inline="true" class="minimal-form">
         <el-form-item label="关键字" prop="keywords">
           <el-input
@@ -15,13 +17,19 @@
         </el-form-item>
 
         <el-form-item class="ml-auto mb-0">
-          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">搜索</el-button>
-          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">重置</el-button>
+          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">
+            搜索
+          </el-button>
+          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">
+            重置
+          </el-button>
         </el-form-item>
       </el-form>
     </div>
 
-    <div class="bg-white p-6 flex-1 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-slate-100 flex flex-col transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
+    <div
+      class="bg-white p-6 flex-1 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-slate-100 flex flex-col transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)]"
+    >
       <div class="flex justify-between items-center mb-5">
         <div class="flex items-center gap-2">
           <div class="w-1.5 h-4 bg-primary rounded-full"></div>
@@ -71,14 +79,18 @@
                 link
                 icon="edit"
                 @click="handleOpenDialog(scope.row.id)"
-              >编辑</el-button>
+              >
+                编辑
+              </el-button>
               <el-button
                 v-hasPerm="['sys:config:delete']"
                 type="danger"
                 link
                 icon="delete"
                 @click="handleDelete(scope.row.id)"
-              >删除</el-button>
+              >
+                删除
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -111,13 +123,28 @@
         class="minimal-form pt-4"
       >
         <el-form-item label="配置名称" prop="configName">
-          <el-input v-model="formData.configName" placeholder="请输入配置名称" :maxlength="50" class="minimal-input" />
+          <el-input
+            v-model="formData.configName"
+            placeholder="请输入配置名称"
+            :maxlength="50"
+            class="minimal-input"
+          />
         </el-form-item>
         <el-form-item label="配置键" prop="configKey">
-          <el-input v-model="formData.configKey" placeholder="请输入配置键" :maxlength="50" class="minimal-input" />
+          <el-input
+            v-model="formData.configKey"
+            placeholder="请输入配置键"
+            :maxlength="50"
+            class="minimal-input"
+          />
         </el-form-item>
         <el-form-item label="配置值" prop="configValue">
-          <el-input v-model="formData.configValue" placeholder="请输入配置值" :maxlength="100" class="minimal-input" />
+          <el-input
+            v-model="formData.configValue"
+            placeholder="请输入配置值"
+            :maxlength="100"
+            class="minimal-input"
+          />
         </el-form-item>
         <el-form-item label="描述" prop="remark">
           <el-input
