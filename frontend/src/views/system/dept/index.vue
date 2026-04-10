@@ -328,27 +328,52 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-/* 玻璃面板样式 */
+/* ============================================
+   核心容器：浮岛毛玻璃面板 (Glass Panel)
+   ============================================ */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
   border-radius: 16px;
-  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.06);
-  -webkit-backdrop-filter: blur(12px) saturate(110%);
-  backdrop-filter: blur(12px) saturate(110%);
+  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.05) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  backdrop-filter: blur(16px) saturate(120%);
   transition: all 0.3s ease;
 }
-
 .glass-panel:hover {
-  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 48px -12px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* 深色模式 */
-html.dark {
-  .glass-panel {
-    background: rgba(30, 41, 59, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.3);
-  }
+/* ============================================
+   表单输入框与状态标签极简圆润化
+   ============================================ */
+:deep(.minimal-input .el-input__wrapper),
+:deep(.minimal-input.el-select .el-select__wrapper) {
+  background-color: rgba(255, 255, 255, 0.6) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 0 1px #cbd5e1 inset !important;
+  transition: all 0.2s ease;
+}
+:deep(.minimal-input .el-input__wrapper.is-focus),
+:deep(.minimal-input.el-select .el-select__wrapper.is-focus) {
+  background-color: #ffffff !important;
+  box-shadow:
+    0 0 0 1px var(--el-color-primary) inset,
+    0 0 0 3px rgba(64, 128, 255, 0.1) !important;
+}
+
+:deep(.minimal-tag) {
+  padding: 0 12px !important;
+  font-weight: 500 !important;
+  border: none !important;
+  border-radius: 6px !important;
+}
+:deep(.minimal-tag.success) {
+  color: #16a34a !important;
+  background-color: #dcfce7 !important;
+}
+:deep(.minimal-tag.info) {
+  color: #64748b !important;
+  background-color: #f1f5f9 !important;
 }
 </style>
