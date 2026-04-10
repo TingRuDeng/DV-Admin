@@ -146,7 +146,13 @@ class ResponseMiddleware(MiddlewareMixin):
 
             if isinstance(response.data, dict):
                 detail = response.data.get("detail")
-                code = response.data.get("code") or 40000
+                error_code = response.data.get("code")
+                
+                # 检查是否是 token 无效错误，使用 40001 错误码
+                if error_code == "token_not_valid":
+                    code = 40001
+                else:
+                    code = error_code or 40000
             elif isinstance(response.data, (str, list)):
                 detail = str(response.data)
 
