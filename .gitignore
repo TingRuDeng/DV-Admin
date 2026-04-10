@@ -60,3 +60,9 @@ dv_admin.db-shm
 dv_admin.db-wal
 !frontend/package.json
 !frontend/pnpm-lock.yaml
+
+# IDE and tool configs
+.arts/
+.codeartsdoer/
+node_modules/
+package-lock.json

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.generics import ListAPIView
 
 from drf_admin.apps.system.models import Permissions
-from drf_admin.utils.views import AdminViewSet, TreeAPIView
-from drf_admin.apps.system.serializers.permissions import MenusSerializer, MenusTreeSerializer
+from drf_admin.utils.views import AdminViewSet, TreeAPIView, AutoPermissionAPIView
+from drf_admin.apps.system.serializers.permissions import MenusSerializer, MenusTreeSerializer, MenusOptionsSerializer
 
 
 class MenusViewSet(AdminViewSet, TreeAPIView):
@@ -50,6 +51,16 @@ class MenusViewSet(AdminViewSet, TreeAPIView):
             return MenusTreeSerializer
         else:
             return MenusSerializer
+
+
+class MenusOptionsViewSet(AutoPermissionAPIView, TreeAPIView):
+    """
+    list:
+    菜单--获取选项列表
+    """
+    queryset = Permissions.objects.all()
+    serializer_class = MenusOptionsSerializer
+    pagination_class = None
 
 
 class MenusTreeViewSet(TreeAPIView):

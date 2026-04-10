@@ -373,37 +373,150 @@ useContextMenuManager();
 .tags-container {
   width: 100%;
   height: $tags-view-height;
-  padding: 0 15px;
-  border-top: 1px solid var(--el-border-color-light);
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 
   .scroll-container {
     white-space: nowrap;
   }
+
+  /* 标签样式优化 */
+  :deep(.el-tag) {
+    height: 28px;
+    padding: 0 12px;
+    margin: 0 4px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+
+    /* 默认状态 */
+    &.el-tag--info {
+      background: rgba(255, 255, 255, 0.8);
+      border-color: rgba(0, 0, 0, 0.06);
+      color: #64748b;
+
+      &:hover {
+        background: rgba(255, 255, 255, 1);
+        border-color: rgba(59, 130, 246, 0.3);
+        color: #3b82f6;
+      }
+    }
+
+    /* 激活状态 */
+    &.el-tag--primary {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+      border-color: rgba(59, 130, 246, 0.3);
+      color: #3b82f6;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+
+      &:hover {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%);
+        border-color: rgba(59, 130, 246, 0.5);
+      }
+    }
+
+    /* 关闭按钮 */
+    .el-tag__close {
+      margin-left: 6px;
+      font-size: 12px;
+      color: inherit;
+      opacity: 0.6;
+
+      &:hover {
+        opacity: 1;
+        background: transparent;
+      }
+    }
+  }
 }
+
+/* 右键菜单优化 */
 .contextmenu {
   position: absolute;
   z-index: 3000;
-  padding: 5px 0;
+  padding: 8px 0;
   margin: 0;
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--el-text-color-primary);
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
   list-style-type: none;
-  background: var(--el-bg-color);
-  border-radius: 4px;
-  box-shadow: var(--el-box-shadow-light);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 
   li {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
-    padding: 7px 16px;
+    padding: 10px 16px;
     margin: 0;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
 
     &:hover {
-      background: var(--el-fill-color-light);
+      background: rgba(59, 130, 246, 0.08);
+      color: #3b82f6;
+    }
+
+    &:first-child {
+      border-radius: 12px 12px 0 0;
+    }
+
+    &:last-child {
+      border-radius: 0 0 12px 12px;
+    }
+  }
+}
+
+/* 深色模式适配 */
+html.dark {
+  .tags-container {
+    background: rgba(30, 41, 59, 0.6);
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+
+    :deep(.el-tag) {
+      &.el-tag--info {
+        background: rgba(30, 41, 59, 0.8);
+        border-color: rgba(255, 255, 255, 0.08);
+        color: #cbd5e1;
+
+        &:hover {
+          background: rgba(30, 41, 59, 1);
+          border-color: rgba(96, 165, 250, 0.3);
+          color: #60a5fa;
+        }
+      }
+
+      &.el-tag--primary {
+        background: linear-gradient(135deg, rgba(96, 165, 250, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+        border-color: rgba(96, 165, 250, 0.3);
+        color: #60a5fa;
+        box-shadow: 0 2px 8px rgba(96, 165, 250, 0.2);
+
+        &:hover {
+          background: linear-gradient(135deg, rgba(96, 165, 250, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+          border-color: rgba(96, 165, 250, 0.5);
+        }
+      }
+    }
+  }
+
+  .contextmenu {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+
+    li:hover {
+      background: rgba(96, 165, 250, 0.15);
+      color: #60a5fa;
     }
   }
 }

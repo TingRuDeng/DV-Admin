@@ -93,52 +93,88 @@
 }
 
 // ============================================
-// 3. 按钮高级感
+// 3. 按钮高级感 - 微晶体态 (Micro-Crystal)
 // ============================================
+
+/* 1. 主操作按钮 (搜索、新增用户、确认等) */
 .minimal-btn {
-  font-weight: 500 !important;
-  border: none !important;
-  border-radius: 8px !important;
-  box-shadow: 0 2px 4px rgba(64, 128, 255, 0.2) !important;
-  transition: all 0.2s ease !important;
+  border-radius: 8px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  /* 晶体高光边框 */
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-top-color: rgba(255, 255, 255, 0.7) !important;
+  
+  /* 半透明微晶体底色 */
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(59, 130, 246, 0.7) 100%) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  
+  /* 内部微光与外部柔和投影 */
+  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.2), 
+              0 4px 10px -4px rgba(59, 130, 246, 0.3) !important;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.95) 0%, rgba(59, 130, 246, 0.85) 100%) !important;
+    box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.3), 
+                0 6px 14px -4px rgba(59, 130, 246, 0.4) !important;
+  }
+  
+  &:active {
+    transform: translateY(1px);
+    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.1), 
+                0 2px 4px rgba(59, 130, 246, 0.2) !important;
+  }
 }
 
-.minimal-btn:hover {
-  box-shadow: 0 4px 8px rgba(64, 128, 255, 0.3) !important;
-  transform: translateY(-1px) !important;
-}
-
-.minimal-btn:active {
-  box-shadow: 0 1px 2px rgba(64, 128, 255, 0.2) !important;
-  transform: translateY(0) !important;
-}
-
+/* 2. 次要/取消按钮 (重置、取消等) - 纯净磨砂玻璃 */
 .minimal-btn-plain {
-  color: #64748b !important;
-  background: rgba(255, 255, 255, 0.6) !important;
-  border: 1px solid #cbd5e1 !important;
-  border-radius: 8px !important;
-  transition: all 0.2s ease !important;
+  border-radius: 8px;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  
+  /* 提取环境底色的白玻材质 */
+  background: rgba(255, 255, 255, 0.4) !important;
+  color: #475569 !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border-color: rgba(255, 255, 255, 0.9) !important;
+    color: var(--el-color-primary) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08) !important;
+  }
 }
 
-.minimal-btn-plain:hover {
-  color: var(--el-color-primary) !important;
-  background: #ffffff !important;
-  border-color: var(--el-color-primary) !important;
-}
-
+/* 3. 危险操作按钮 (批量删除等) - 警示玻璃 */
 .minimal-btn-danger {
-  font-weight: 500 !important;
-  border-radius: 8px !important;
-  transition: all 0.2s ease !important;
-}
+  border-radius: 8px;
+  font-weight: 500;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  
+  /* 默认状态下保持克制，只给一层极淡的红色预警 */
+  background: rgba(239, 68, 68, 0.08) !important;
+  color: #ef4444 !important;
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
 
-.minimal-btn-danger:hover {
-  transform: translateY(-1px) !important;
-}
-
-.minimal-btn-danger:active {
-  transform: translateY(0) !important;
+  /* 悬浮时爆发出晶体红色警告 */
+  &:not(.is-disabled):hover {
+    background: linear-gradient(135deg, rgba(248, 113, 113, 0.9) 0%, rgba(239, 68, 68, 0.8) 100%) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    border-top-color: rgba(255, 255, 255, 0.8) !important;
+    box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.2), 
+                0 4px 12px -4px rgba(239, 68, 68, 0.4) !important;
+    transform: translateY(-1px);
+  }
 }
 
 .minimal-btn-success {
