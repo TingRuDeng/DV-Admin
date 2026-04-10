@@ -93,18 +93,25 @@
 
 .login-title {
   margin-bottom: 32px;
-  font-size: 26px;
-  font-weight: 700;
-  color: #1e293b; /* 极深灰，比纯黑更高级 */
+  font-size: 28px; /* 稍微再大一点点 */
+  font-weight: 800; /* 加粗到极限，更有分量 */
   text-align: center;
   letter-spacing: 0.5px;
+  
+  /* 给文字加上深邃的冷岩灰到科技蓝的渐变 */
+  background: linear-gradient(135deg, #1e293b 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 
+  /* 保持小 badge 的样式不变 */
   .el-badge__content {
     font-size: 11px;
     padding: 2px 6px;
     border-radius: 8px;
-    transform: translateY(-8px) translateX(4px);
+    transform: translateY(-10px) translateX(4px);
     box-shadow: 0 2px 4px rgba(64, 128, 255, 0.2);
+    /* 强行覆盖透明文字，防止 badge 也变成透明渐变 */
+    -webkit-text-fill-color: #ffffff; 
   }
 }
 
