@@ -145,3 +145,70 @@ html.dark {
     }
   }
 }
+
+/* ============================================
+   极简 SaaS 浮岛风 - 表格透明化与软徽章
+   只要给 el-table 加上 class="minimal-table" 即可生效
+   ============================================ */
+/* stylelint-disable no-descending-specificity */
+.minimal-table {
+  background: transparent !important;
+  --el-table-border-color: rgba(0, 0, 0, 0.04);
+  --el-table-header-bg-color: rgba(0, 0, 0, 0.02);
+  --el-table-header-text-color: #475569;
+  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.6);
+  --el-table-tr-bg-color: transparent;
+
+  /* 表头与单元格边框弱化 */
+  th.el-table__cell {
+    font-weight: 600;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.06) !important;
+  }
+
+  td.el-table__cell {
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.04) !important;
+  }
+
+  /* 隐藏 Element Plus 原生自带的底部死黑边线 */
+  .el-table__inner-wrapper::before {
+    display: none;
+  }
+
+  /* ------------------------------------------
+     操作列按钮："软徽章化" (Soft Hover Badge)
+     ------------------------------------------ */
+  .el-button.is-link {
+    height: auto !important;
+    padding: 6px 10px !important;
+    font-weight: 500 !important;
+    border-radius: 8px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+    /* 基础操作按钮 (编辑、新增) */
+    &.el-button--primary {
+      color: #64748b !important;
+
+      &:hover {
+        color: var(--el-color-primary) !important;
+        background-color: rgba(64, 128, 255, 0.1) !important;
+      }
+    }
+
+    /* 危险操作按钮 (删除) */
+    &.el-button--danger {
+      color: #94a3b8 !important;
+
+      &:hover {
+        color: #ef4444 !important;
+        background-color: rgba(239, 68, 68, 0.1) !important;
+      }
+    }
+  }
+
+  /* 让操作列的按钮保持均匀的呼吸缝隙 */
+  .el-table__cell .cell {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+}
