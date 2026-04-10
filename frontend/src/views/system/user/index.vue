@@ -4,7 +4,11 @@
     <el-row :gutter="16" class="flex-1 h-full">
       <el-col :lg="4" :xs="24" class="mb-4 lg:mb-0">
         <div class="glass-panel h-full p-4">
-          <DeptTree v-model="queryParams.deptId" @node-click="handleQuery" class="transparent-tree" />
+          <DeptTree
+            v-model="queryParams.deptId"
+            class="transparent-tree"
+            @node-click="handleQuery"
+          />
         </div>
       </el-col>
 
@@ -35,8 +39,12 @@
             </el-form-item>
 
             <el-form-item class="search-buttons mb-0 ml-auto">
-              <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">搜索</el-button>
-              <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">重置</el-button>
+              <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">
+                搜索
+              </el-button>
+              <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">
+                重置
+              </el-button>
             </el-form-item>
           </el-form>
         </div>
@@ -54,7 +62,9 @@
                 icon="plus"
                 class="minimal-btn"
                 @click="handleOpenDialog()"
-              >新增用户</el-button>
+              >
+                新增用户
+              </el-button>
               <el-button
                 v-hasPerm="['system:users:delete']"
                 type="danger"
@@ -63,7 +73,9 @@
                 class="minimal-btn-danger"
                 :disabled="selectIds.length === 0"
                 @click="handleDelete()"
-              >批量删除</el-button>
+              >
+                批量删除
+              </el-button>
             </div>
           </div>
 
@@ -83,16 +95,47 @@
               <el-table-column label="邮箱" align="center" prop="email" min-width="160" />
               <el-table-column label="状态" align="center" prop="isActive" width="80">
                 <template #default="scope">
-                  <el-tag :type="scope.row.isActive === 1 ? 'success' : 'info'" class="minimal-tag" :class="scope.row.isActive === 1 ? 'success' : 'info'">
+                  <el-tag
+                    :type="scope.row.isActive === 1 ? 'success' : 'info'"
+                    class="minimal-tag"
+                    :class="scope.row.isActive === 1 ? 'success' : 'info'"
+                  >
                     {{ scope.row.isActive === 1 ? "正常" : "禁用" }}
                   </el-tag>
                 </template>
               </el-table-column>
               <el-table-column label="操作" fixed="right" width="280">
                 <template #default="scope">
-                  <el-button v-hasPerm="'system:users:password:reset'" type="primary" icon="RefreshLeft" size="small" link @click="hancleResetPassword(scope.row)">重置密码</el-button>
-                  <el-button v-hasPerm="'system:users:edit'" type="primary" icon="edit" link size="small" @click="handleOpenDialog(scope.row.id)">编辑</el-button>
-                  <el-button v-hasPerm="'system:users:delete'" type="danger" icon="delete" link size="small" @click="handleDelete(scope.row.id)">删除</el-button>
+                  <el-button
+                    v-hasPerm="'system:users:password:reset'"
+                    type="primary"
+                    icon="RefreshLeft"
+                    size="small"
+                    link
+                    @click="hancleResetPassword(scope.row)"
+                  >
+                    重置密码
+                  </el-button>
+                  <el-button
+                    v-hasPerm="'system:users:edit'"
+                    type="primary"
+                    icon="edit"
+                    link
+                    size="small"
+                    @click="handleOpenDialog(scope.row.id)"
+                  >
+                    编辑
+                  </el-button>
+                  <el-button
+                    v-hasPerm="'system:users:delete'"
+                    type="danger"
+                    icon="delete"
+                    link
+                    size="small"
+                    @click="handleDelete(scope.row.id)"
+                  >
+                    删除
+                  </el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -118,9 +161,20 @@
       :size="drawerSize"
       @close="handleCloseDialog"
     >
-      <el-form ref="userFormRef" v-loading="formLoading" :model="formData" :rules="rules" label-width="80px">
+      <el-form
+        ref="userFormRef"
+        v-loading="formLoading"
+        :model="formData"
+        :rules="rules"
+        label-width="80px"
+      >
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="formData.username" :readonly="!!formData.id" placeholder="请输入用户名" class="minimal-input" />
+          <el-input
+            v-model="formData.username"
+            :readonly="!!formData.id"
+            placeholder="请输入用户名"
+            class="minimal-input"
+          />
         </el-form-item>
         <el-form-item label="用户昵称" prop="name">
           <el-input v-model="formData.name" placeholder="请输入用户昵称" class="minimal-input" />
@@ -138,25 +192,59 @@
           />
         </el-form-item>
         <el-form-item label="角色" prop="roles">
-          <el-select v-model="formData.roles" multiple placeholder="请选择" class="minimal-input w-full">
-            <el-option v-for="item in roleOptions" :key="item.id" :label="item.label" :value="item.id" />
+          <el-select
+            v-model="formData.roles"
+            multiple
+            placeholder="请选择"
+            class="minimal-input w-full"
+          >
+            <el-option
+              v-for="item in roleOptions"
+              :key="item.id"
+              :label="item.label"
+              :value="item.id"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="手机号码" prop="mobile">
-          <el-input v-model="formData.mobile" placeholder="请输入手机号码" maxlength="11" class="minimal-input" />
+          <el-input
+            v-model="formData.mobile"
+            placeholder="请输入手机号码"
+            maxlength="11"
+            class="minimal-input"
+          />
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
-          <el-input v-model="formData.email" placeholder="请输入邮箱" maxlength="50" class="minimal-input" />
+          <el-input
+            v-model="formData.email"
+            placeholder="请输入邮箱"
+            maxlength="50"
+            class="minimal-input"
+          />
         </el-form-item>
         <el-form-item label="状态" prop="isActive">
-          <el-switch v-model="formData.isActive" inline-prompt active-text="正常" inactive-text="禁用" :active-value="1" :inactive-value="0" />
+          <el-switch
+            v-model="formData.isActive"
+            inline-prompt
+            active-text="正常"
+            inactive-text="禁用"
+            :active-value="1"
+            :inactive-value="0"
+          />
         </el-form-item>
       </el-form>
 
       <template #footer>
         <div class="dialog-footer flex justify-end gap-2">
           <el-button class="minimal-btn-plain" @click="handleCloseDialog">取 消</el-button>
-          <el-button type="primary" class="minimal-btn" :loading="formLoading" @click="handleSubmitWrapper">确 定</el-button>
+          <el-button
+            type="primary"
+            class="minimal-btn"
+            :loading="formLoading"
+            @click="handleSubmitWrapper"
+          >
+            确 定
+          </el-button>
         </div>
       </template>
     </el-drawer>
@@ -433,11 +521,11 @@ onMounted(() => {
 /* 玻璃面板样式 */
 .glass-panel {
   background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(12px) saturate(110%);
-  -webkit-backdrop-filter: blur(12px) saturate(110%);
   border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: 16px;
   box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.06);
+  -webkit-backdrop-filter: blur(12px) saturate(110%);
+  backdrop-filter: blur(12px) saturate(110%);
   transition: all 0.3s ease;
 }
 
@@ -455,9 +543,9 @@ onMounted(() => {
 /* 玻璃抽屉样式 */
 :deep(.glass-drawer) {
   .el-drawer__header {
-    border-bottom: 1px solid #f1f5f9;
-    margin-bottom: 0;
     padding: 16px 20px;
+    margin-bottom: 0;
+    border-bottom: 1px solid #f1f5f9;
   }
 
   .el-drawer__title {
@@ -470,8 +558,8 @@ onMounted(() => {
   }
 
   .el-drawer__footer {
-    border-top: 1px solid #f1f5f9;
     padding: 16px 20px;
+    border-top: 1px solid #f1f5f9;
   }
 }
 
@@ -498,20 +586,6 @@ html.dark {
   }
 }
 
-/* ==================== 浮岛式毛玻璃面板 ==================== */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.6) !important; /* 半透明白底，透出底色的冷岩灰 */
-  backdrop-filter: blur(16px) saturate(120%);
-  -webkit-backdrop-filter: blur(16px) saturate(120%);
-  border: 1px solid rgba(255, 255, 255, 0.8) !important; /* 玻璃高光边缘 */
-  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.05) !important;
-  border-radius: 16px;
-  transition: all 0.3s ease;
-}
-.glass-panel:hover {
-  box-shadow: 0 12px 48px -12px rgba(0, 0, 0, 0.08) !important;
-}
-
 /* ==================== 强行穿透左侧部门树 ==================== */
 /* 去除原生 el-card / el-tree 的自带白底，让它融入毛玻璃 */
 :deep(.transparent-tree),
@@ -522,35 +596,35 @@ html.dark {
   box-shadow: none !important;
 }
 :deep(.transparent-tree .el-tree-node__content) {
-  border-radius: 8px;
   margin-bottom: 2px;
+  border-radius: 8px;
   transition: all 0.2s;
 }
 :deep(.transparent-tree .el-tree-node__content:hover) {
   background-color: rgba(64, 128, 255, 0.08) !important;
 }
 :deep(.transparent-tree .el-tree-node.is-current > .el-tree-node__content) {
-  background-color: rgba(64, 128, 255, 0.15) !important;
-  color: var(--el-color-primary);
   font-weight: 600;
+  color: var(--el-color-primary);
+  background-color: rgba(64, 128, 255, 0.15) !important;
 }
 
 /* ==================== 极简 SaaS 风深度定制 ==================== */
 /* 1. 表格净化 */
 :deep(.minimal-table) {
   background: transparent !important;
-  --el-table-border-color: rgba(0,0,0,0.04);
-  --el-table-header-bg-color: rgba(0,0,0,0.02);
+  --el-table-border-color: rgba(0, 0, 0, 0.04);
+  --el-table-header-bg-color: rgba(0, 0, 0, 0.02);
   --el-table-header-text-color: #475569;
-  --el-table-row-hover-bg-color: rgba(255,255,255,0.6);
+  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.6);
   --el-table-tr-bg-color: transparent;
 }
 :deep(.minimal-table th.el-table__cell) {
   font-weight: 600;
-  border-bottom: 2px solid rgba(0,0,0,0.06) !important;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.06) !important;
 }
 :deep(.minimal-table td.el-table__cell) {
-  border-bottom: 1px dashed rgba(0,0,0,0.04) !important;
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.04) !important;
 }
 :deep(.minimal-table .el-table__inner-wrapper::before) {
   display: none; /* 隐藏底部死黑边线 */
@@ -559,69 +633,78 @@ html.dark {
 /* 2. 表单输入框圆润化 */
 :deep(.minimal-input .el-input__wrapper),
 :deep(.minimal-input.el-select .el-select__wrapper) {
-  box-shadow: 0 0 0 1px #cbd5e1 inset !important;
-  border-radius: 8px;
   background-color: rgba(255, 255, 255, 0.6); /* 搜索框也做半透明 */
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px #cbd5e1 inset !important;
   transition: all 0.2s ease;
 }
 :deep(.minimal-input .el-input__wrapper.is-focus),
 :deep(.minimal-input.el-select .el-select__wrapper.is-focus) {
   background-color: #ffffff;
-  box-shadow: 0 0 0 1px var(--el-color-primary) inset, 0 0 0 3px rgba(64, 128, 255, 0.1) !important;
+  box-shadow:
+    0 0 0 1px var(--el-color-primary) inset,
+    0 0 0 3px rgba(64, 128, 255, 0.1) !important;
 }
 
 /* 3. 按钮与标签高级感 */
 .minimal-btn {
-  border-radius: 8px;
   font-weight: 500;
   border: none;
+  border-radius: 8px;
   box-shadow: 0 2px 4px rgba(64, 128, 255, 0.2);
   transition: all 0.2s ease;
 }
 .minimal-btn:hover {
-  transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(64, 128, 255, 0.3);
+  transform: translateY(-1px);
 }
 .minimal-btn-plain {
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
   color: #64748b;
   background: rgba(255, 255, 255, 0.6);
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
 }
 .minimal-btn-plain:hover {
-  border-color: var(--el-color-primary);
   color: var(--el-color-primary);
   background: #ffffff;
+  border-color: var(--el-color-primary);
 }
 
 .minimal-tag {
-  border: none !important;
-  border-radius: 6px;
   padding: 0 12px;
   font-weight: 500;
+  border: none !important;
+  border-radius: 6px;
 }
-.minimal-tag.success { background-color: #dcfce7 !important; color: #16a34a !important; }
-.minimal-tag.info { background-color: #f1f5f9 !important; color: #64748b !important; }
+.minimal-tag.success {
+  color: #16a34a !important;
+  background-color: #dcfce7 !important;
+}
+.minimal-tag.info {
+  color: #64748b !important;
+  background-color: #f1f5f9 !important;
+}
 
 /* 4. 分页组件融化 */
 :deep(.minimal-pagination) {
   justify-content: flex-end;
 }
-:deep(.minimal-pagination button), :deep(.minimal-pagination li) {
+:deep(.minimal-pagination button),
+:deep(.minimal-pagination li) {
   background: transparent !important;
 }
 :deep(.minimal-pagination li.is-active) {
-  background: var(--el-color-primary) !important;
   color: white !important;
+  background: var(--el-color-primary) !important;
   border-radius: 6px;
 }
 
 /* ==================== 5. 表格内操作按钮"软徽章化" ==================== */
 :deep(.minimal-table .el-button.is-link) {
-  padding: 6px 10px !important; /* 撑开点击热区，操作更舒服 */
-  border-radius: 8px !important; /* 呼应全局的胶囊圆角 */
-  font-weight: 500 !important;
   height: auto !important;
+  padding: 6px 10px !important; /* 撑开点击热区，操作更舒服 */
+  font-weight: 500 !important;
+  border-radius: 8px !important; /* 呼应全局的胶囊圆角 */
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
@@ -630,8 +713,8 @@ html.dark {
   color: #64748b !important; /* 默认状态下稍微降低一点存在感，用深蓝灰色 */
 }
 :deep(.minimal-table .el-button--primary.is-link:hover) {
-  background-color: rgba(64, 128, 255, 0.1) !important; /* 浮现极淡的主题色底色 */
   color: var(--el-color-primary) !important; /* 文字亮起 */
+  background-color: rgba(64, 128, 255, 0.1) !important; /* 浮现极淡的主题色底色 */
 }
 
 /* Danger 按钮（删除）的悬浮效果 */
@@ -639,14 +722,14 @@ html.dark {
   color: #94a3b8 !important; /* 默认状态下隐藏杀机 */
 }
 :deep(.minimal-table .el-button--danger.is-link:hover) {
-  background-color: rgba(239, 68, 68, 0.1) !important; /* 浮现极淡的危险红底色 */
   color: #ef4444 !important; /* 文字变红警示 */
+  background-color: rgba(239, 68, 68, 0.1) !important; /* 浮现极淡的危险红底色 */
 }
 
 /* 调整按钮之间的间距 */
 :deep(.minimal-table .el-table__cell .cell) {
   display: flex;
-  align-items: center;
   gap: 4px; /* 让按钮之间有均匀的呼吸缝隙 */
+  align-items: center;
 }
 </style>
