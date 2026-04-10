@@ -375,9 +375,9 @@ useContextMenuManager();
   height: $tags-view-height;
   padding: 0 16px;
   background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
 
   .scroll-container {
     white-space: nowrap;
@@ -390,32 +390,36 @@ useContextMenuManager();
     margin: 0 4px;
     font-size: 13px;
     font-weight: 500;
-    border-radius: 8px;
     border: 1px solid transparent;
+    border-radius: 8px;
     transition: all 0.2s ease;
 
     /* 默认状态 */
     &.el-tag--info {
+      color: #64748b;
       background: rgba(255, 255, 255, 0.8);
       border-color: rgba(0, 0, 0, 0.06);
-      color: #64748b;
 
       &:hover {
+        color: #3b82f6;
         background: rgba(255, 255, 255, 1);
         border-color: rgba(59, 130, 246, 0.3);
-        color: #3b82f6;
       }
     }
 
     /* 激活状态 */
     &.el-tag--primary {
+      color: #3b82f6;
       background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
       border-color: rgba(59, 130, 246, 0.3);
-      color: #3b82f6;
       box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
 
       &:hover {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%);
+        background: linear-gradient(
+          135deg,
+          rgba(59, 130, 246, 0.15) 0%,
+          rgba(99, 102, 241, 0.15) 100%
+        );
         border-color: rgba(59, 130, 246, 0.5);
       }
     }
@@ -428,8 +432,8 @@ useContextMenuManager();
       opacity: 0.6;
 
       &:hover {
-        opacity: 1;
         background: transparent;
+        opacity: 1;
       }
     }
   }
@@ -446,11 +450,11 @@ useContextMenuManager();
   color: #334155;
   list-style-type: none;
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
 
   li {
     display: flex;
@@ -462,8 +466,8 @@ useContextMenuManager();
     transition: all 0.2s ease;
 
     &:hover {
-      background: rgba(59, 130, 246, 0.08);
       color: #3b82f6;
+      background: rgba(59, 130, 246, 0.08);
     }
 
     &:first-child {
@@ -484,25 +488,33 @@ html.dark {
 
     :deep(.el-tag) {
       &.el-tag--info {
+        color: #cbd5e1;
         background: rgba(30, 41, 59, 0.8);
         border-color: rgba(255, 255, 255, 0.08);
-        color: #cbd5e1;
 
         &:hover {
+          color: #60a5fa;
           background: rgba(30, 41, 59, 1);
           border-color: rgba(96, 165, 250, 0.3);
-          color: #60a5fa;
         }
       }
 
       &.el-tag--primary {
-        background: linear-gradient(135deg, rgba(96, 165, 250, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
-        border-color: rgba(96, 165, 250, 0.3);
         color: #60a5fa;
+        background: linear-gradient(
+          135deg,
+          rgba(96, 165, 250, 0.15) 0%,
+          rgba(139, 92, 246, 0.15) 100%
+        );
+        border-color: rgba(96, 165, 250, 0.3);
         box-shadow: 0 2px 8px rgba(96, 165, 250, 0.2);
 
         &:hover {
-          background: linear-gradient(135deg, rgba(96, 165, 250, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+          background: linear-gradient(
+            135deg,
+            rgba(96, 165, 250, 0.2) 0%,
+            rgba(139, 92, 246, 0.2) 100%
+          );
           border-color: rgba(96, 165, 250, 0.5);
         }
       }
@@ -510,13 +522,13 @@ html.dark {
   }
 
   .contextmenu {
+    color: #e2e8f0;
     background: rgba(30, 41, 59, 0.95);
     border-color: rgba(255, 255, 255, 0.08);
-    color: #e2e8f0;
 
     li:hover {
-      background: rgba(96, 165, 250, 0.15);
       color: #60a5fa;
+      background: rgba(96, 165, 250, 0.15);
     }
   }
 }
