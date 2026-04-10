@@ -20,21 +20,60 @@
 // 响应式设计
 @use "./responsive";
 
+// 极简 SaaS 风格全局样式
+@use "./minimal-saas";
+
 // Vxe Table
 @use "./vxe-table";
 @import url("./vxe-table.css");
 
 // ============================================
+// 护眼与层次优化 (解决整体过白、辣眼睛的问题)
+// ============================================
+
+/* 1. 降低底色亮度和色温（极度关键！） */
+html:not(.dark) {
+  body,
+  #app,
+  .app-wrapper {
+    /* 换成一种带有极其轻微"冷岩灰/雾霾蓝"的高级护眼渐变 */
+    /* 这能像戴了偏光镜一样，立刻吸收掉屏幕上多余的刺眼白光 */
+    background: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%) !important;
+  }
+}
+
+/* 2. 深色模式底色 */
+html.dark {
+  body,
+  #app,
+  .app-wrapper {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+  }
+}
+
+/* 3. 抽干主工作区的残余底色，确保右侧业务页面直接暴露在护眼渐变上 */
+.main-container,
+.app-main {
+  background: transparent !important;
+}
+
+// ============================================
 // 主题切换过渡
 // ============================================
 html {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 html *,
 html *::before,
 html *::after {
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.2s ease, box-shadow 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.2s ease,
+    box-shadow 0.3s ease;
 }
 
 .app-container {

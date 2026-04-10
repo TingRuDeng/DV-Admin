@@ -1,128 +1,94 @@
 <!-- 字典 -->
 <template>
-  <div class="app-container">
+  <div class="app-container p-4 md:p-6 flex flex-col gap-4">
     <!-- 搜索区域 -->
-    <div class="search-container">
-      <el-form ref="queryFormRef" :model="queryParams" :inline="true">
-        <el-form-item label="关键字" prop="search">
+    <div class="glass-panel p-5">
+      <el-form ref="queryFormRef" :model="queryParams" :inline="true" class="minimal-form mb-0">
+        <el-form-item label="关键字" prop="search" class="mb-0">
           <el-input
             v-model="queryParams.search"
             placeholder="字典名称/编码"
             clearable
+            class="minimal-input"
             @keyup.enter="handleQuery"
           />
         </el-form-item>
 
-        <el-form-item class="search-buttons">
-          <el-button type="primary" icon="search" @click="handleQuery">搜索</el-button>
-          <el-button icon="refresh" @click="handleResetQuery">重置</el-button>
+        <el-form-item class="search-buttons mb-0 ml-auto">
+          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">搜索</el-button>
+          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
 
-    <el-card shadow="hover" class="data-table">
-      <div class="data-table__toolbar">
-        <div class="data-table__toolbar--actions">
-          <el-button
-            v-hasPerm="['system:dicts:add']"
-            type="success"
-            icon="plus"
-            @click="handleAddClick()"
-          >
-            新增
-          </el-button>
-          <el-button
-            v-hasPerm="['system:dicts:delete']"
-            type="danger"
-            :disabled="ids.length === 0"
-            icon="delete"
-            @click="handleDelete()"
-          >
-            删除
-          </el-button>
+    <div class="glass-panel p-5 flex-1 flex flex-col overflow-hidden">
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center gap-2">
+          <div class="w-1.5 h-4 bg-primary rounded-full"></div>
+          <span class="text-base font-semibold text-slate-700 tracking-wide">字典数据</span>
+        </div>
+        <div class="flex gap-2">
+          <el-button v-hasPerm="['system:dicts:add']" type="primary" icon="plus" class="minimal-btn" @click="handleAddClick()">新增字典</el-button>
+          <el-button v-hasPerm="['system:dicts:delete']" type="danger" plain :disabled="ids.length === 0" icon="delete" class="minimal-btn-danger" @click="handleDelete()">批量删除</el-button>
         </div>
       </div>
 
-      <el-table
-        v-loading="loading"
-        highlight-current-row
-        :data="tableData"
-        border
-        class="data-table__content"
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="字典名称" prop="name" />
-        <el-table-column label="字典编码" prop="dictCode" />
-        <el-table-column label="状态" prop="status">
-          <template #default="scope">
-            <el-tag :type="scope.row.status === 1 ? 'success' : 'info'">
-              {{ scope.row.status === 1 ? "启用" : "禁用" }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column fixed="right" label="操作" align="center" width="220">
-          <template #default="scope">
-            <el-button
-              v-hasPerm="['system:dictitems:query']"
-              type="primary"
-              link
-              size="small"
-              @click.stop="handleOpenDictData(scope.row)"
-            >
-              <template #icon>
-                <Collection />
-              </template>
-              字典数据
-            </el-button>
-
-            <el-button
-              v-hasPerm="['system:dicts:edit']"
-              type="primary"
-              link
-              size="small"
-              icon="edit"
-              @click.stop="handleEditClick(scope.row.id)"
-            >
-              编辑
-            </el-button>
-            <el-button
-              v-hasPerm="['system:dicts:delete']"
-              type="danger"
-              link
-              size="small"
-              icon="delete"
-              @click.stop="handleDelete(scope.row.id)"
-            >
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <div class="flex-1 overflow-hidden border border-slate-100/50 rounded-xl bg-white/20">
+        <el-table
+          v-loading="loading"
+          highlight-current-row
+          :data="tableData"
+          class="minimal-table"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55" align="center" />
+          <el-table-column label="字典名称" prop="name" min-width="150" />
+          <el-table-column label="字典编码" prop="dictCode" min-width="150" />
+          <el-table-column label="状态" prop="status" width="100" align="center">
+            <template #default="scope">
+              <el-tag :type="scope.row.status === 1 ? 'success' : 'info'" class="minimal-tag" :class="scope.row.status === 1 ? 'success' : 'info'">
+                {{ scope.row.status === 1 ? '启用' : '禁用' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column fixed="right" label="操作" width="280">
+            <template #default="scope">
+              <el-button v-hasPerm="['system:dictitems:query']" type="primary" link size="small" @click.stop="handleOpenDictData(scope.row)">
+                <template #icon><Collection /></template>
+                字典数据
+              </el-button>
+              <el-button v-hasPerm="['system:dicts:edit']" type="primary" link icon="edit" size="small" @click.stop="handleEditClick(scope.row.id)">编辑</el-button>
+              <el-button v-hasPerm="['system:dicts:delete']" type="danger" link icon="delete" size="small" @click.stop="handleDelete(scope.row.id)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
 
       <pagination
         v-if="total > 0"
         v-model:total="total"
         v-model:page="queryParams.pageNum"
         v-model:limit="queryParams.pageSize"
+        class="minimal-pagination mt-4"
         @pagination="fetchData"
       />
-    </el-card>
+    </div>
 
     <!--字典弹窗-->
     <el-dialog
       v-model="dialog.visible"
       :title="dialog.title"
       width="500px"
+      class="minimal-dialog"
       @close="handleCloseDialog"
     >
-      <el-form ref="dataFormRef" :model="formData" :rules="computedRules" label-width="80px">
+      <el-form ref="dataFormRef" :model="formData" :rules="computedRules" label-width="80px" class="minimal-form pt-4">
         <el-form-item label="字典名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入字典名称" />
+          <el-input v-model="formData.name" placeholder="请输入字典名称" class="minimal-input" />
         </el-form-item>
 
         <el-form-item label="字典编码" prop="dictCode">
-          <el-input v-model="formData.dictCode" placeholder="请输入字典编码" />
+          <el-input v-model="formData.dictCode" placeholder="请输入字典编码" class="minimal-input" />
         </el-form-item>
 
         <el-form-item label="状态">
@@ -133,14 +99,14 @@
         </el-form-item>
 
         <el-form-item label="备注">
-          <el-input v-model="formData.remark" type="textarea" placeholder="请输入备注" />
+          <el-input v-model="formData.remark" type="textarea" placeholder="请输入备注" class="minimal-input" />
         </el-form-item>
       </el-form>
 
       <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="handleSubmitClick">确 定</el-button>
-          <el-button @click="handleCloseDialog">取 消</el-button>
+        <div class="dialog-footer flex justify-end gap-2">
+          <el-button class="minimal-btn-plain" @click="handleCloseDialog">取 消</el-button>
+          <el-button type="primary" class="minimal-btn" @click="handleSubmitClick">确 定</el-button>
         </div>
       </template>
     </el-dialog>
