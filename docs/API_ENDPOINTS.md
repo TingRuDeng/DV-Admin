@@ -117,18 +117,29 @@ POST /api/v1/oauth/logout/
 
 ### 刷新 Token
 
-**⚠️ 路径差异：**
+**Django & FastAPI：**
+```
+POST /api/v1/oauth/refresh-token/
+```
 
-| 后端 | 端点路径 |
-|------|---------|
-| Django | `POST /api/v1/oauth/refresh/` |
-| FastAPI | `POST /api/v1/oauth/refresh-token/` |
+**请求方式：**
+- 查询参数：`?refreshToken=token`
+- 请求体：`{ "refreshToken": "token" }` 或 `{ "refresh": "token" }`
 
-**前端调用：** `frontend/src/api/auth-api.ts` 使用 `/refresh-token/`
+**响应：**
+```json
+{
+  "code": 20000,
+  "data": {
+    "accessToken": "eyJ...",
+    "refreshToken": "eyJ...",
+    "tokenType": "bearer",
+    "expiresIn": 3600
+  }
+}
+```
 
-**请求方式差异：**
-- Django：请求体 `{ "refresh": "token" }`
-- FastAPI：查询参数 `?refreshToken=token`
+**注意：** Django 后端已统一使用 `/refresh-token/` 接口，与 FastAPI 保持一致。
 
 ---
 
@@ -346,6 +357,7 @@ GET /api/redoc/         # ReDoc
 以下 API 无需认证即可访问（具体以代码为准）：
 
 - `POST /api/v1/oauth/login/`
+- `POST /api/v1/oauth/refresh-token/`
 - `GET /api/v1/oauth/captcha/`（仅 FastAPI）
 - `GET /api/v1/system/dict-items/`
 
@@ -355,9 +367,11 @@ GET /api/redoc/         # ReDoc
 
 | 错误码 | 说明 |
 |-------|------|
-| 200 | 成功 |
-| 400 | 请求参数错误 |
-| 401 | 未认证/Token 过期 |
+| 20000 | 成功 |
+| 40000 | 通用错误 |
+| 40001 | Token 无效或过期 |
+| 40002 | Refresh Token 无效或过期 |
+| 401 | 未认证 |
 | 403 | 无权限 |
 | 404 | 资源不存在 |
 | 500 | 服务器内部错误 |
@@ -381,7 +395,7 @@ GET /api/redoc/         # ReDoc
 
 ---
 
-**最后更新：** 2026-03-23
+**最后更新：** 2026-04-11
 **维护者：** DV-Admin Team
 
 **重要提醒：** 本文档不保证完整性，实际开发请以代码为准。
