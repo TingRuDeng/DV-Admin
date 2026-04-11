@@ -21,7 +21,7 @@
           <div class="cyber-logo">
             <div class="logo-glow"></div>
             <div class="logo-glass">
-              <span class="logo-letter">DV</span>
+              <span class="logo-letter">{{ logoText }}</span>
             </div>
           </div>
 
@@ -61,6 +61,9 @@ const formComponents = {
   register: defineAsyncComponent(() => import("./components/Register.vue")),
   resetPwd: defineAsyncComponent(() => import("./components/ResetPwd.vue")),
 };
+
+// 从环境变量读取 Logo 文字
+const logoText = import.meta.env.VITE_APP_LOGO_TEXT || 'DV';
 </script>
 
 <style lang="scss" scoped>
