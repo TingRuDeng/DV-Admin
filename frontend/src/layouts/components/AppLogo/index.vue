@@ -30,7 +30,8 @@ defineProps({
 // 从环境变量读取配置，提供默认值
 const logoText = import.meta.env.VITE_APP_LOGO_TEXT || 'D';
 const logoTextFull = import.meta.env.VITE_APP_LOGO_TEXT_FULL || 'DV';
-const platformName = import.meta.env.VITE_APP_PLATFORM_NAME || 'DV Admin';
+// 平台名称使用 VITE_APP_TITLE，与页面标题统一
+const platformName = import.meta.env.VITE_APP_TITLE || 'DV-Admin';
 </script>
 
 <style lang="scss" scoped>
