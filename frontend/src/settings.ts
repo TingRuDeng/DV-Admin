@@ -13,7 +13,7 @@ export const defaultSettings: AppSettings = {
   // 是否显示设置
   showSettings: true,
   // 是否显示标签视图
-  showTagsView: true,
+  showTagsView: false,
   // 是否显示应用Logo
   showAppLogo: true,
   // 布局方式，默认为左侧布局
