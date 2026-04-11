@@ -110,27 +110,6 @@ class OAuthLoginTestCase(TestCase):
         self.assertIn(response.status_code, [200, 400])
 
 
-class OAuthRefreshTokenTestCase(TestCase):
-    """刷新 Token 接口测试"""
-
-    def setUp(self):
-        self.client = APIClient()
-        self.user = Users.objects.create_user(
-            username="testuser", password="testpass123", name="测试用户", is_active=1
-        )
-
-    def test_refresh_token(self):
-        """测试刷新 Token"""
-        response = self.client.post(
-            "/api/v1/oauth/refresh/", {"refresh": "test-refresh-token"}, format="json"
-        )
-
-        self.assertIn(
-            response.status_code,
-            [status.HTTP_200_OK, status.HTTP_401_UNAUTHORIZED, status.HTTP_400_BAD_REQUEST],
-        )
-
-
 class OAuthRefreshTokenAPITestCase(TestCase):
     """刷新 Token 接口测试 (FastAPI 兼容格式)"""
 
