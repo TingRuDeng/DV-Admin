@@ -4,16 +4,16 @@
       <router-link v-if="collapse" key="collapse" class="sidebar-logo-link" to="/">
         <div class="cyber-logo-mini">
           <div class="logo-glow"></div>
-          <div class="logo-glass"><span class="logo-letter">D</span></div>
+          <div class="logo-glass"><span class="logo-letter">{{ logoText }}</span></div>
         </div>
       </router-link>
 
       <router-link v-else key="expand" class="sidebar-logo-link" to="/">
         <div class="cyber-logo-mini">
           <div class="logo-glow"></div>
-          <div class="logo-glass"><span class="logo-letter">DV</span></div>
+          <div class="logo-glass"><span class="logo-letter">{{ logoTextFull }}</span></div>
         </div>
-        <h1 class="sidebar-title">DV Admin</h1>
+        <h1 class="sidebar-title">{{ platformName }}</h1>
       </router-link>
     </transition>
   </div>
@@ -26,6 +26,11 @@ defineProps({
     required: true,
   },
 });
+
+// 从环境变量读取配置，提供默认值
+const logoText = import.meta.env.VITE_APP_LOGO_TEXT || 'D';
+const logoTextFull = import.meta.env.VITE_APP_LOGO_TEXT_FULL || 'DV';
+const platformName = import.meta.env.VITE_APP_PLATFORM_NAME || 'DV Admin';
 </script>
 
 <style lang="scss" scoped>
