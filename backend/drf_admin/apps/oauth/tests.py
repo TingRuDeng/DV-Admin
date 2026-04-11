@@ -110,25 +110,83 @@ class OAuthLoginTestCase(TestCase):
         self.assertIn(response.status_code, [200, 400])
 
 
-class OAuthRefreshTokenTestCase(TestCase):
-    """刷新 Token 接口测试"""
+class OAuthRefreshTokenAPITestCase(TestCase):
+    """刷新 Token 接口测试 (FastAPI 兼容格式)"""
 
     def setUp(self):
         self.client = APIClient()
         self.user = Users.objects.create_user(
             username="testuser", password="testpass123", name="测试用户", is_active=1
         )
-
-    def test_refresh_token(self):
-        """测试刷新 Token"""
+        # 先登录获取 token
         response = self.client.post(
-            "/api/v1/oauth/refresh/", {"refresh": "test-refresh-token"}, format="json"
+            "/api/v1/oauth/login/",
+            {"username": "testuser", "password": "testpass123"},
+            format="json",
+        )
+        self.access_token = response.data["data"].get("accessToken")
+        self.refresh_token = response.data["data"].get("refreshToken")
+
+    def test_refresh_token_with_query_param(self):
+        """测试使用 query parameter 刷新 Token"""
+        if not self.refresh_token:
+            self.skipTest("No refresh token available")
+
+        response = self.client.post(
+            f"/api/v1/oauth/refresh-token/?refreshToken={self.refresh_token}"
         )
 
-        self.assertIn(
-            response.status_code,
-            [status.HTTP_200_OK, status.HTTP_401_UNAUTHORIZED, status.HTTP_400_BAD_REQUEST],
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["code"], 20000)
+        self.assertIn("accessToken", response.data["data"])
+        self.assertIn("refreshToken", response.data["data"])
+        self.assertIn("tokenType", response.data["data"])
+        self.assertEqual(response.data["data"]["tokenType"], "bearer")
+
+    def test_refresh_token_with_body(self):
+        """测试使用 body 刷新 Token"""
+        if not self.refresh_token:
+            self.skipTest("No refresh token available")
+
+        response = self.client.post(
+            "/api/v1/oauth/refresh-token/",
+            {"refreshToken": self.refresh_token},
+            format="json",
         )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["code"], 20000)
+        self.assertIn("accessToken", response.data["data"])
+
+    def test_refresh_token_with_refresh_key(self):
+        """测试使用 refresh key 刷新 Token"""
+        if not self.refresh_token:
+            self.skipTest("No refresh token available")
+
+        response = self.client.post(
+            "/api/v1/oauth/refresh-token/",
+            {"refresh": self.refresh_token},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["code"], 20000)
+
+    def test_refresh_token_missing(self):
+        """测试缺少 refresh token"""
+        response = self.client.post("/api/v1/oauth/refresh-token/")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data["code"], 40000)
+
+    def test_refresh_token_invalid(self):
+        """测试无效的 refresh token"""
+        response = self.client.post(
+            "/api/v1/oauth/refresh-token/?refreshToken=invalid_token"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data["code"], 40001)
 
 
 class OAuthInfoTestCase(TestCase):

@@ -7,7 +7,7 @@
           <div class="logo-glass"><span class="logo-letter">D</span></div>
         </div>
       </router-link>
-      
+
       <router-link v-else key="expand" class="sidebar-logo-link" to="/">
         <div class="cyber-logo-mini">
           <div class="logo-glow"></div>
@@ -34,12 +34,12 @@ defineProps({
    ============================================ */
 .cyber-logo-mini {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 32px;
   height: 32px;
   margin-right: 12px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 
   /* 底层呼吸光晕 */
   .logo-glow {
@@ -48,33 +48,39 @@ defineProps({
     height: 100%;
     background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
     border-radius: 10px; /* 柔和的小圆角 */
-    transform: rotate(-15deg);
-    filter: blur(6px);
     opacity: 0.8;
+    filter: blur(6px);
+    transform: rotate(-15deg);
     animation: pulseGlowMini 4s ease-in-out infinite alternate;
   }
 
   /* 顶层玻璃晶体 */
   .logo-glass {
     position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.05) 100%);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    border-radius: 10px;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0.05) 100%
+    );
     border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.3), 0 4px 12px rgba(0, 0, 0, 0.05);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1;
+    border-radius: 10px;
+    box-shadow:
+      inset 0 0 8px rgba(255, 255, 255, 0.3),
+      0 4px 12px rgba(0, 0, 0, 0.05);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
 
     /* 内部金属白字 */
     .logo-letter {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: 14px;
       font-weight: 900;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -83,39 +89,45 @@ defineProps({
 }
 
 @keyframes pulseGlowMini {
-  0% { transform: rotate(-15deg) scale(0.95); opacity: 0.6; }
-  100% { transform: rotate(-5deg) scale(1.05); opacity: 1; }
+  0% {
+    opacity: 0.6;
+    transform: rotate(-15deg) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-5deg) scale(1.05);
+  }
 }
 
 /* ============================================
    赛博渐变平台标题
    ============================================ */
 .sidebar-title {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: 18px; /* 根据实际视觉微调 */
   font-weight: 800;
-  margin: 0;
   letter-spacing: 0.5px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  
+
+  /* 防止在折叠动画时闪烁 */
+  white-space: nowrap;
+
   /* 类似钛金属的冷蓝灰渐变 */
   background: linear-gradient(135deg, #0f172a 0%, #3b82f6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  
-  /* 防止在折叠动画时闪烁 */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* ============================================
    Logo 容器和链接样式
    ============================================ */
 .sidebar-logo-container {
-  width: 100%;
-  height: $navbar-height;
   display: flex;
   align-items: center;
+  width: 100%;
+  height: $navbar-height;
   padding: 0 16px;
   background-color: $sidebar-logo-background;
   transition: all 0.3s ease;
@@ -129,9 +141,9 @@ defineProps({
 .sidebar-logo-link {
   display: flex;
   align-items: center;
-  text-decoration: none;
   width: 100%;
   height: 100%;
+  text-decoration: none;
 }
 
 /* 过渡动画 */

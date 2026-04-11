@@ -145,3 +145,66 @@ html.dark {
     }
   }
 }
+
+// ============================================
+// 9. 极简 SaaS 风格表格 (minimal-table)
+// ============================================
+/* stylelint-disable no-descending-specificity */
+.minimal-table {
+  background: transparent !important;
+  --el-table-border-color: rgba(0, 0, 0, 0.04);
+  --el-table-header-bg-color: rgba(0, 0, 0, 0.02);
+  --el-table-header-text-color: #475569;
+  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.6);
+  --el-table-tr-bg-color: transparent;
+}
+
+.minimal-table .el-table__header-wrapper th.el-table__cell {
+  font-weight: 600;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.minimal-table .el-table__body-wrapper td.el-table__cell {
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.04) !important;
+}
+
+.minimal-table .el-table__inner-wrapper::before {
+  display: none; /* 隐藏底部死黑边线 */
+}
+
+/* 表格内操作按钮"软徽章化" */
+.minimal-table .el-button.is-link {
+  height: auto !important;
+  padding: 6px 10px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Primary 按钮（编辑、重置密码）的悬浮效果 */
+.minimal-table .el-button--primary.is-link {
+  color: #64748b !important; /* 默认状态下稍微降低一点存在感，用深蓝灰色 */
+}
+
+.minimal-table .el-button--primary.is-link:hover {
+  color: var(--el-color-primary) !important; /* 文字亮起 */
+  background-color: rgba(64, 128, 255, 0.1) !important; /* 浮现极淡的主题色底色 */
+}
+
+/* Danger 按钮（删除）的悬浮效果 */
+.minimal-table .el-button--danger.is-link {
+  color: #94a3b8 !important; /* 默认状态下隐藏杀机 */
+}
+
+.minimal-table .el-button--danger.is-link:hover {
+  color: #ef4444 !important; /* 文字变红警示 */
+  background-color: rgba(239, 68, 68, 0.1) !important; /* 浮现极淡的危险红底色 */
+}
+
+/* 调整按钮之间的间距 */
+.minimal-table .el-table__cell .cell {
+  display: flex;
+  gap: 4px; /* 让按钮之间有均匀的呼吸缝隙 */
+  align-items: center;
+}
+/* stylelint-enable no-descending-specificity */

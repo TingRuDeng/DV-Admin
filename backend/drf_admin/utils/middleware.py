@@ -145,8 +145,28 @@ class ResponseMiddleware(MiddlewareMixin):
             data = {}
 
             if isinstance(response.data, dict):
-                detail = response.data.get("detail")
-                code = response.data.get("code") or 40000
+                # 检查 response.data 的结构
+                # 可能是 {'detail': {'code': 'token_not_valid', ...}} 或 {'code': 'token_not_valid', ...}
+                detail_data = response.data.get("detail")
+                
+                if isinstance(detail_data, dict):
+                    # 结构是 {'detail': {'code': 'token_not_valid', ...}}
+                    error_code = detail_data.get("code")
+                else:
+                    # 结构是 {'code': 'token_not_valid', ...}
+                    error_code = response.data.get("code")
+                
+                # 将 ErrorDetail 转换为字符串进行比较
+                error_code_str = str(error_code) if error_code else None
+                
+                # 检查是否是 token 无效错误，使用 40001 错误码
+                if error_code_str == "token_not_valid":
+                    code = 40001
+                    # 直接使用 detail_data 作为 errors，避免多一层嵌套
+                    detail = detail_data if isinstance(detail_data, dict) else response.data
+                else:
+                    code = 40000
+                    detail = response.data.get("detail")
             elif isinstance(response.data, (str, list)):
                 detail = str(response.data)
 

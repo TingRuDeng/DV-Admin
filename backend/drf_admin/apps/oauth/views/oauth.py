@@ -160,3 +160,58 @@ class LogoutAPIView(APIView):
         except Exception as e:
             logger.warning(f"Token blacklist failed: {str(e)}")
         return Response({"message": "退出成功"}, status=status.HTTP_200_OK)
+
+
+class RefreshTokenAPIView(APIView):
+    """
+    post:
+    刷新访问令牌
+
+    使用刷新令牌获取新的访问令牌, status: 200(成功), return: Token信息
+    """
+
+    # 不需要认证和权限检查
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        # 支持两种参数格式：
+        # 1. query parameter: refreshToken (会被 CamelCaseMiddleWare 转换为 refresh_token)
+        # 2. body: {"refresh": "xxx"} 或 {"refreshToken": "xxx"}
+        
+        refresh_token = (
+            request.query_params.get("refresh_token")  # CamelCaseMiddleWare 转换后
+            or request.query_params.get("refreshToken")  # 原始参数
+            or request.data.get("refresh")
+            or request.data.get("refreshToken")
+            or request.data.get("refresh_token")  # CamelCaseMiddleWare 转换后
+        )
+
+        if not refresh_token:
+            return Response(
+                {"detail": "缺少刷新令牌"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # 验证并解码刷新令牌
+            token = RefreshToken(refresh_token)
+
+            # 生成新的访问令牌
+            access_token = token.access_token
+
+            # 返回新的令牌（兼容 FastAPI 格式）
+            data = {
+                "accessToken": str(access_token),
+                "refreshToken": str(token),
+                "tokenType": "bearer",
+                "expiresIn": settings.SIMPLE_JWT.get("ACCESS_TOKEN_LIFETIME", 300).total_seconds(),
+            }
+            return Response(data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.warning(f"Token refresh failed: {str(e)}")
+            return Response(
+                {"detail": "无效的刷新令牌", "code": "token_not_valid"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )

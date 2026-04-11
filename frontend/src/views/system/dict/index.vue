@@ -360,3 +360,167 @@ onMounted(() => {
   handleQuery();
 });
 </script>
+
+<!-- 页面特定样式 (scoped) -->
+<style scoped lang="scss">
+/* 页面特定样式 - 无 */
+</style>
+
+<!-- 全局穿透样式 (非 scoped，用于覆盖 Element Plus) -->
+<style lang="scss">
+/* stylelint-disable no-descending-specificity */
+/* 玻璃面板样式 */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.05) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  backdrop-filter: blur(16px) saturate(120%);
+  transition: all 0.3s ease;
+}
+
+.glass-panel:hover {
+  box-shadow: 0 12px 48px -12px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* 表格净化 */
+.minimal-table {
+  background: transparent !important;
+  --el-table-border-color: rgba(0, 0, 0, 0.04);
+  --el-table-header-bg-color: rgba(0, 0, 0, 0.02);
+  --el-table-header-text-color: #475569;
+  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.6);
+  --el-table-tr-bg-color: transparent;
+}
+
+.minimal-table th.el-table__cell {
+  font-weight: 600;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.minimal-table td.el-table__cell {
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.04) !important;
+}
+
+.minimal-table .el-table__inner-wrapper::before {
+  display: none;
+}
+
+/* 表单输入框圆润化 */
+.minimal-input .el-input__wrapper,
+.minimal-input.el-select .el-select__wrapper {
+  background-color: rgba(255, 255, 255, 0.6) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 0 1px #cbd5e1 inset !important;
+  transition: all 0.2s ease;
+}
+
+.minimal-input .el-input__wrapper.is-focus,
+.minimal-input.el-select .el-select__wrapper.is-focus {
+  background-color: #ffffff !important;
+  box-shadow:
+    0 0 0 1px var(--el-color-primary) inset,
+    0 0 0 3px rgba(64, 128, 255, 0.1) !important;
+}
+
+/* 按钮与标签高级感 */
+.minimal-btn {
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(64, 128, 255, 0.2);
+  transition: all 0.2s ease;
+}
+
+.minimal-btn:hover {
+  box-shadow: 0 4px 8px rgba(64, 128, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.minimal-btn-plain {
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+}
+
+.minimal-btn-plain:hover {
+  color: var(--el-color-primary);
+  background: #ffffff;
+  border-color: var(--el-color-primary);
+}
+
+.minimal-tag {
+  padding: 0 12px !important;
+  font-weight: 500 !important;
+  border: none !important;
+  border-radius: 6px !important;
+}
+
+.minimal-tag.success {
+  color: #16a34a !important;
+  background-color: #dcfce7 !important;
+}
+
+.minimal-tag.info {
+  color: #64748b !important;
+  background-color: #f1f5f9 !important;
+}
+
+/* 分页组件融化 */
+.minimal-pagination {
+  justify-content: flex-end;
+}
+
+.minimal-pagination button,
+.minimal-pagination li {
+  background: transparent !important;
+}
+
+.minimal-pagination li.is-active {
+  color: white !important;
+  background: var(--el-color-primary) !important;
+  border-radius: 6px;
+}
+
+/* 表格内操作按钮"软徽章化" */
+.minimal-table .el-button.is-link {
+  height: auto !important;
+  padding: 6px 10px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.minimal-table .el-button--primary.is-link {
+  color: #64748b !important;
+}
+
+.minimal-table .el-button--primary.is-link:hover {
+  color: var(--el-color-primary) !important;
+  background-color: rgba(64, 128, 255, 0.1) !important;
+}
+
+.minimal-table .el-button--danger.is-link {
+  color: #94a3b8 !important;
+}
+
+.minimal-table .el-button--danger.is-link:hover {
+  color: #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+.minimal-table .el-table__cell .cell {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+/* 深色模式 */
+html.dark .glass-panel {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.3);
+}
+</style>

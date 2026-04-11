@@ -329,6 +329,7 @@ WHITE_LIST = [
     f"/{BASE_API}oauth/logout/",
     f"/{BASE_API}oauth/info/",
     f"/{BASE_API}oauth/menus/routes/",
+    f"/{BASE_API}oauth/refresh-token/",  # 刷新令牌接口
     f"/{BASE_API}system/users/profile/",
     f"/{BASE_API}system/notices/my-page/",
     f"/{BASE_API}system/dict-items/",
