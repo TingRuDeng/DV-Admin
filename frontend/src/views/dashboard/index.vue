@@ -1,9 +1,9 @@
 <template>
   <div class="app-container p-4 md:p-6">
-    <!-- github 角标 -->
-    <github-corner class="github-corner" />
-
     <div class="glass-panel p-5">
+      <!-- github 角标 -->
+      <github-corner class="github-corner" />
+
       <div class="flex flex-wrap">
         <!-- 左侧问候语区域 -->
         <div class="flex-1 flex items-start">
