@@ -28,8 +28,9 @@ defineProps({
 });
 
 // 从环境变量读取配置，提供默认值
-const logoText = import.meta.env.VITE_APP_LOGO_TEXT || 'D';
-const logoTextFull = import.meta.env.VITE_APP_LOGO_TEXT_FULL || 'DV';
+const logoTextFull = import.meta.env.VITE_APP_LOGO_TEXT || 'DV';
+// 折叠时自动取首字母
+const logoText = logoTextFull.charAt(0);
 // 平台名称使用 VITE_APP_TITLE，与页面标题统一
 const platformName = import.meta.env.VITE_APP_TITLE || 'DV-Admin';
 </script>
