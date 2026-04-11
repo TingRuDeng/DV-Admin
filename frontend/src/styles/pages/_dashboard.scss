@@ -23,14 +23,11 @@
 .github-corner {
   position: absolute !important;
   top: 0 !important;
-  left: 0 !important;
+  right: 0 !important;
   z-index: 10 !important;
   border: 0 !important;
-  
-  // 水平翻转，让三角形指向左上角
-  svg {
-    transform: scaleX(-1);
-  }
+
+  // 不需要翻转，默认三角形指向右上角
 }
 
 // ============================================
