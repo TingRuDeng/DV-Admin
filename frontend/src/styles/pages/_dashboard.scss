@@ -13,14 +13,21 @@
   min-height: 100vh;
   padding: 24px;
   background: var(--bg-page, #f9fafb);
+}
 
-  .github-corner {
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 1;
-    border: 0;
-  }
+// GitHub Corner 样式（相对于 glass-panel 定位）
+.glass-panel {
+  position: relative;
+}
+
+.github-corner {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  z-index: 10 !important;
+  border: 0 !important;
+
+  // 不需要翻转，默认三角形指向右上角
 }
 
 // ============================================
