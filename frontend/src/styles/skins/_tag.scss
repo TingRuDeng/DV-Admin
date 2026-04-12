@@ -1,0 +1,26 @@
+.ff-status-tag {
+  padding: 0 12px;
+  font-weight: 500;
+  border: none !important;
+  border-radius: 6px;
+}
+
+.ff-status-tag.success {
+  color: #16a34a !important;
+  background-color: #dcfce7 !important;
+}
+
+.ff-status-tag.info {
+  color: var(--el-text-color-regular) !important;
+  background-color: #f1f5f9 !important;
+}
+
+.ff-status-tag.warning {
+  color: #d97706 !important;
+  background-color: #fef3c7 !important;
+}
+
+.ff-status-tag.danger {
+  color: #dc2626 !important;
+  background-color: #fee2e2 !important;
+}

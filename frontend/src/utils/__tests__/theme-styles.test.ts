@@ -129,4 +129,27 @@ describe("dark theme utility overrides", () => {
     expect(getComputedStyle(item).getPropertyValue("-webkit-text-fill-color")).toBe("currentColor");
     expect(getComputedStyle(dividedItem).borderTopColor).toBe("rgba(255, 255, 255, 0.08)");
   });
+
+  it("styles shared shell panels and tables through ff semantic hooks", () => {
+    const indexScssPath = resolve(process.cwd(), "src/styles/index.scss");
+    const css = compile(indexScssPath).css;
+
+    injectStyle(css);
+    document.body.innerHTML = `
+      <section class="ff-page-shell">
+        <section class="ff-filter-panel"></section>
+        <section class="ff-data-panel">
+          <div class="ff-data-panel__body">
+            <table class="ff-table"></table>
+          </div>
+        </section>
+      </section>
+    `;
+
+    const filterPanel = document.querySelector(".ff-filter-panel") as HTMLElement;
+    const dataPanel = document.querySelector(".ff-data-panel") as HTMLElement;
+
+    expect(getComputedStyle(filterPanel).borderRadius).toBe("16px");
+    expect(getComputedStyle(dataPanel).backgroundColor).not.toBe("");
+  });
 });

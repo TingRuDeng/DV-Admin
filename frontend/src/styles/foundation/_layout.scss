@@ -1,0 +1,13 @@
+.ff-page-shell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-page-gap);
+  min-height: 100%;
+  padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .ff-page-shell {
+    padding: 1.5rem;
+  }
+}
