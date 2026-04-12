@@ -1,12 +1,11 @@
 <template>
-  <div class="app-container p-4 md:p-6 flex flex-col gap-4">
-    <!-- 搜索区域 -->
-    <div class="glass-panel p-5">
+  <PageShell class="ff-menu-page">
+    <FilterPanel>
       <el-form
         ref="queryFormRef"
         :model="queryParams"
         :inline="true"
-        class="minimal-form mb-0"
+        class="ff-form ff-toolbar"
         @submit.prevent
       >
         <el-form-item label="关键字" prop="search" class="mb-0">
@@ -14,42 +13,37 @@
             v-model="queryParams.search"
             placeholder="菜单名称"
             clearable
-            class="minimal-input"
             @keyup.enter="handleQuery"
           />
         </el-form-item>
 
-        <el-form-item class="search-buttons mb-0 ml-auto">
-          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">
+        <el-form-item class="ff-toolbar__actions">
+          <el-button type="primary" icon="search" class="ff-button-primary" @click="handleQuery">
             搜索
           </el-button>
-          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">
+          <el-button icon="refresh" class="ff-button-secondary" @click="handleResetQuery">
             重置
           </el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </FilterPanel>
 
-    <div class="glass-panel p-5 flex-1 flex flex-col overflow-hidden">
-      <div class="flex justify-between items-center mb-4">
-        <div class="flex items-center gap-2">
-          <div class="w-1.5 h-4 bg-primary rounded-full"></div>
-          <span class="text-base font-semibold text-slate-700 tracking-wide">菜单数据</span>
-        </div>
-        <div class="flex gap-2">
+    <DataPanel title="菜单数据">
+      <template #actions>
+        <div class="ff-button-group">
           <el-button
             v-hasPerm="['system:permissions:add']"
             type="primary"
             icon="plus"
-            class="minimal-btn"
+            class="ff-button-primary"
             @click="handleOpenDialog('0')"
           >
             新增菜单
           </el-button>
         </div>
-      </div>
+      </template>
 
-      <div class="flex-1 overflow-hidden border border-slate-100/50 rounded-xl bg-white/20">
+      <div class="ff-table-wrap">
         <el-table
           ref="dataTableRef"
           v-loading="loading"
@@ -60,7 +54,7 @@
             children: 'children',
             hasChildren: 'hasChildren',
           }"
-          class="minimal-table"
+          class="ff-table"
           @row-click="handleRowClick"
         >
           <el-table-column label="菜单名称" min-width="200">
@@ -79,10 +73,12 @@
 
           <el-table-column label="类型" align="center" width="100">
             <template #default="scope">
-              <el-tag v-if="scope.row.type === 'CATALOG'" class="minimal-tag warning">目录</el-tag>
-              <el-tag v-if="scope.row.type === 'MENU'" class="minimal-tag success">菜单</el-tag>
-              <el-tag v-if="scope.row.type === 'BUTTON'" class="minimal-tag danger">按钮</el-tag>
-              <el-tag v-if="scope.row.type === 'EXTLINK'" class="minimal-tag info">外链</el-tag>
+              <el-tag v-if="scope.row.type === 'CATALOG'" class="ff-status-tag warning">
+                目录
+              </el-tag>
+              <el-tag v-if="scope.row.type === 'MENU'" class="ff-status-tag success">菜单</el-tag>
+              <el-tag v-if="scope.row.type === 'BUTTON'" class="ff-status-tag danger">按钮</el-tag>
+              <el-tag v-if="scope.row.type === 'EXTLINK'" class="ff-status-tag info">外链</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="路由名称" align="left" width="150" prop="routeName" />
@@ -91,8 +87,8 @@
           <el-table-column label="权限标识" align="center" width="200" prop="perm" />
           <el-table-column label="状态" align="center" width="80">
             <template #default="scope">
-              <el-tag v-if="scope.row.visible === 1" class="minimal-tag success">显示</el-tag>
-              <el-tag v-else class="minimal-tag info">隐藏</el-tag>
+              <el-tag v-if="scope.row.visible === 1" class="ff-status-tag success">显示</el-tag>
+              <el-tag v-else class="ff-status-tag info">隐藏</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="排序" align="center" width="80" prop="sort">
@@ -138,13 +134,13 @@
           </el-table-column>
         </el-table>
       </div>
-    </div>
+    </DataPanel>
 
     <el-drawer
       v-model="dialog.visible"
       :title="dialog.title"
       :size="drawerSize"
-      class="minimal-drawer"
+      class="ff-drawer ff-menu-drawer"
       @close="handleCloseDialog"
     >
       <el-form
@@ -152,7 +148,7 @@
         :model="formData"
         :rules="rules"
         label-width="100px"
-        class="minimal-form pt-4"
+        class="ff-form pt-4"
       >
         <el-form-item label="父级菜单" prop="parent">
           <el-tree-select
@@ -163,12 +159,12 @@
             filterable
             check-strictly
             :render-after-expand="false"
-            class="minimal-input w-full"
+            class="w-full"
           />
         </el-form-item>
 
         <el-form-item label="菜单名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入菜单名称" class="minimal-input" />
+          <el-input v-model="formData.name" placeholder="请输入菜单名称" />
         </el-form-item>
 
         <el-form-item label="菜单类型" prop="type">
@@ -181,11 +177,7 @@
         </el-form-item>
 
         <el-form-item v-if="formData.type === 'EXTLINK'" label="外链地址" prop="path">
-          <el-input
-            v-model="formData.routePath"
-            placeholder="请输入外链完整路径"
-            class="minimal-input"
-          />
+          <el-input v-model="formData.routePath" placeholder="请输入外链完整路径" />
         </el-form-item>
 
         <el-form-item v-if="formData.type === 'MENU'" prop="routeName">
@@ -202,7 +194,7 @@
               </el-tooltip>
             </div>
           </template>
-          <el-input v-model="formData.routeName" placeholder="User" class="minimal-input" />
+          <el-input v-model="formData.routeName" placeholder="User" />
         </el-form-item>
 
         <el-form-item
@@ -227,9 +219,8 @@
             v-if="formData.type === 'CATALOG'"
             v-model="formData.routePath"
             placeholder="system"
-            class="minimal-input"
           />
-          <el-input v-else v-model="formData.routePath" placeholder="user" class="minimal-input" />
+          <el-input v-else v-model="formData.routePath" placeholder="user" />
         </el-form-item>
 
         <el-form-item v-if="formData.type === 'MENU'" prop="component">
@@ -247,11 +238,7 @@
             </div>
           </template>
 
-          <el-input
-            v-model="formData.component"
-            placeholder="system/user/index"
-            class="minimal-input"
-          >
+          <el-input v-model="formData.component" placeholder="system/user/index">
             <template v-if="formData.type === 'MENU'" #prepend>src/views/</template>
             <template v-if="formData.type === 'MENU'" #append>.vue</template>
           </el-input>
@@ -276,7 +263,7 @@
             <el-button
               type="success"
               plain
-              class="minimal-btn"
+              class="ff-button-success"
               @click="formData.params = [{ key: '', value: '' }]"
             >
               添加路由参数
@@ -289,21 +276,11 @@
               :key="index"
               class="flex items-center gap-2 mb-2"
             >
-              <el-input
-                v-model="item.key"
-                placeholder="参数名"
-                style="width: 100px"
-                class="minimal-input"
-              />
+              <el-input v-model="item.key" placeholder="参数名" style="width: 100px" />
 
               <span class="text-slate-400">=</span>
 
-              <el-input
-                v-model="item.value"
-                placeholder="参数值"
-                style="width: 100px"
-                class="minimal-input"
-              />
+              <el-input v-model="item.value" placeholder="参数值" style="width: 100px" />
 
               <el-icon
                 v-if="formData.params.indexOf(item) === formData.params.length - 1"
@@ -369,13 +346,12 @@
             style="width: 100px"
             controls-position="right"
             :min="0"
-            class="minimal-input"
           />
         </el-form-item>
 
         <!-- 权限标识 -->
         <el-form-item v-if="formData.type === 'BUTTON'" label="权限标识" prop="perm">
-          <el-input v-model="formData.perm" placeholder="sys:user:add" class="minimal-input" />
+          <el-input v-model="formData.perm" placeholder="sys:user:add" />
         </el-form-item>
 
         <el-form-item v-if="formData.type !== 'BUTTON'" label="图标" prop="icon">
@@ -384,18 +360,20 @@
         </el-form-item>
 
         <el-form-item v-if="formData.type === 'CATALOG'" label="跳转路由">
-          <el-input v-model="formData.redirect" placeholder="跳转路由" class="minimal-input" />
+          <el-input v-model="formData.redirect" placeholder="跳转路由" />
         </el-form-item>
       </el-form>
 
       <template #footer>
         <div class="dialog-footer flex justify-end gap-2">
-          <el-button class="minimal-btn-plain" @click="handleCloseDialog">取 消</el-button>
-          <el-button type="primary" class="minimal-btn" @click="handleSubmit">确 定</el-button>
+          <el-button class="ff-button-secondary" @click="handleCloseDialog">取 消</el-button>
+          <el-button type="primary" class="ff-button-primary" @click="handleSubmit">
+            确 定
+          </el-button>
         </div>
       </template>
     </el-drawer>
-  </div>
+  </PageShell>
 </template>
 
 <script setup lang="ts">
@@ -614,42 +592,3 @@ onMounted(() => {
   handleQuery();
 });
 </script>
-
-<!-- 页面特定样式 (scoped) -->
-<style scoped lang="scss">
-/* 抽屉样式优化 */
-:deep(.minimal-drawer .el-drawer__header) {
-  padding: 16px 20px;
-  margin-bottom: 0;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-:deep(.minimal-drawer .el-drawer__title) {
-  font-weight: 600;
-  color: #1e293b;
-}
-
-:deep(.minimal-drawer .el-drawer__body) {
-  padding: 20px;
-}
-
-:deep(.minimal-drawer .el-drawer__footer) {
-  padding: 16px 20px;
-  border-top: 1px solid #f1f5f9;
-}
-
-/* 深色模式 */
-html.dark :deep(.minimal-drawer .el-drawer__header) {
-  border-bottom-color: #334155;
-}
-
-html.dark :deep(.minimal-drawer .el-drawer__title) {
-  color: #f1f5f9;
-}
-
-html.dark :deep(.minimal-drawer .el-drawer__footer) {
-  border-top-color: #334155;
-}
-</style>
-
-<!-- 全局穿透样式已统一至 @/styles/_minimal-saas.scss，此处不再重复定义 -->

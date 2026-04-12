@@ -9,3 +9,7 @@
 .ff-drawer.el-drawer .el-drawer__footer {
   border-top: 1px solid #f1f5f9;
 }
+
+html.dark .el-drawer__title {
+  color: #f1f5f9 !important;
+}

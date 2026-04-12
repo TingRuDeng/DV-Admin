@@ -1,25 +1,24 @@
 <!-- 字典项 -->
 <template>
-  <div class="app-container p-4 md:p-6 flex flex-col gap-4">
-    <div class="glass-panel p-5">
-      <el-form ref="queryFormRef" :model="queryParams" :inline="true" class="minimal-form mb-0">
+  <PageShell class="ff-dict-item-page">
+    <FilterPanel>
+      <el-form
+        ref="queryFormRef"
+        :model="queryParams"
+        :inline="true"
+        class="ff-form ff-toolbar"
+        @submit.prevent
+      >
         <el-form-item label="关键字" prop="search" class="mb-0">
           <el-input
             v-model="queryParams.search"
             placeholder="字典项标签/字典项值"
             clearable
-            class="minimal-input"
             @keyup.enter="handleQuery"
           />
         </el-form-item>
         <el-form-item label="归属字典" prop="dictSelect" class="mb-0">
-          <el-select
-            v-model="queryParams.dict"
-            placeholder="请选择归属字典"
-            clearable
-            filterable
-            class="minimal-input"
-          >
+          <el-select v-model="queryParams.dict" placeholder="请选择归属字典" clearable filterable>
             <el-option
               v-for="item in dictList"
               :key="item.id"
@@ -29,29 +28,25 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item class="search-buttons mb-0 ml-auto">
-          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">
+        <el-form-item class="ff-toolbar__actions">
+          <el-button type="primary" icon="search" class="ff-button-primary" @click="handleQuery">
             搜索
           </el-button>
-          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">
+          <el-button icon="refresh" class="ff-button-secondary" @click="handleResetQuery">
             重置
           </el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </FilterPanel>
 
-    <div class="glass-panel p-5 flex-1 flex flex-col overflow-hidden">
-      <div class="flex justify-between items-center mb-4">
-        <div class="flex items-center gap-2">
-          <div class="w-1.5 h-4 bg-primary rounded-full"></div>
-          <span class="text-base font-semibold text-slate-700 tracking-wide">字典项数据</span>
-        </div>
-        <div class="flex gap-2">
+    <DataPanel title="字典项数据">
+      <template #actions>
+        <div class="ff-button-group">
           <el-button
             v-hasPerm="['system:dictitems:add']"
             type="primary"
             icon="plus"
-            class="minimal-btn"
+            class="ff-button-primary"
             @click="handleOpenDialog()"
           >
             新增字典项
@@ -62,20 +57,20 @@
             plain
             :disabled="ids.length === 0"
             icon="delete"
-            class="minimal-btn-danger"
+            class="ff-button-danger"
             @click="handleDelete()"
           >
             批量删除
           </el-button>
         </div>
-      </div>
+      </template>
 
-      <div class="flex-1 overflow-hidden border border-slate-100/50 rounded-xl bg-white/20">
+      <div class="ff-table-wrap">
         <el-table
           v-loading="loading"
           highlight-current-row
           :data="tableData"
-          class="minimal-table"
+          class="ff-table"
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="55" align="center" />
@@ -84,12 +79,7 @@
           <el-table-column label="字典项值" prop="value" min-width="100" />
           <el-table-column label="标签类型" width="100" align="center">
             <template #default="scope">
-              <el-tag
-                v-if="scope.row.tagType"
-                :type="scope.row.tagType"
-                effect="light"
-                class="minimal-tag"
-              >
+              <el-tag v-if="scope.row.tagType" :type="scope.row.tagType" effect="light">
                 {{ scope.row.tagType }}
               </el-tag>
               <span v-else class="text-slate-400">无</span>
@@ -101,11 +91,11 @@
                 v-if="scope.row.status === 1"
                 type="success"
                 effect="light"
-                class="minimal-tag success"
+                class="ff-status-tag success"
               >
                 启用
               </el-tag>
-              <el-tag v-else type="info" effect="light" class="minimal-tag info">禁用</el-tag>
+              <el-tag v-else type="info" effect="light" class="ff-status-tag info">禁用</el-tag>
             </template>
           </el-table-column>
 
@@ -134,22 +124,24 @@
         </el-table>
       </div>
 
-      <pagination
-        v-if="total > 0"
-        v-model:total="total"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
-        class="minimal-pagination mt-4"
-        @pagination="fetchData"
-      />
-    </div>
+      <template #footer>
+        <pagination
+          v-if="total > 0"
+          v-model:total="total"
+          v-model:page="queryParams.pageNum"
+          v-model:limit="queryParams.pageSize"
+          class="mt-4"
+          @pagination="fetchData"
+        />
+      </template>
+    </DataPanel>
 
     <!--字典项弹窗-->
     <el-dialog
       v-model="dialog.visible"
       :title="dialog.title"
       width="600px"
-      class="minimal-dialog"
+      class="ff-dialog"
       @close="handleCloseDialog"
     >
       <el-form
@@ -157,15 +149,10 @@
         :model="formData"
         :rules="computedRules"
         label-width="100px"
-        class="minimal-form pt-4"
+        class="ff-form pt-4"
       >
         <el-form-item label="归属字典" prop="dict">
-          <el-select
-            v-model="formData.dict"
-            placeholder="请选择归属字典"
-            filterable
-            class="minimal-input w-full"
-          >
+          <el-select v-model="formData.dict" placeholder="请选择归属字典" filterable class="w-full">
             <el-option
               v-for="item in dictList"
               :key="item.id"
@@ -175,10 +162,10 @@
           </el-select>
         </el-form-item>
         <el-form-item label="字典项标签" prop="label">
-          <el-input v-model="formData.label" placeholder="请输入字典标签" class="minimal-input" />
+          <el-input v-model="formData.label" placeholder="请输入字典标签" />
         </el-form-item>
         <el-form-item label="字典项值" prop="value">
-          <el-input v-model="formData.value" placeholder="请输入字典值" class="minimal-input" />
+          <el-input v-model="formData.value" placeholder="请输入字典值" />
         </el-form-item>
         <el-form-item label="状态">
           <el-radio-group v-model="formData.status">
@@ -203,12 +190,14 @@
 
       <template #footer>
         <div class="dialog-footer flex justify-end gap-2">
-          <el-button class="minimal-btn-plain" @click="handleCloseDialog">取 消</el-button>
-          <el-button type="primary" class="minimal-btn" @click="handleSubmitClick">确 定</el-button>
+          <el-button class="ff-button-secondary" @click="handleCloseDialog">取 消</el-button>
+          <el-button type="primary" class="ff-button-primary" @click="handleSubmitClick">
+            确 定
+          </el-button>
         </div>
       </template>
     </el-dialog>
-  </div>
+  </PageShell>
 </template>
 
 <script setup lang="ts">
@@ -373,10 +362,3 @@ onMounted(() => {
   handleQuery();
 });
 </script>
-
-<!-- 页面特定样式 (scoped) -->
-<style scoped lang="scss">
-/* 页面特定样式 - 无 */
-</style>
-
-<!-- 全局穿透样式已统一至 @/styles/_minimal-saas.scss，此处不再重复定义 -->
