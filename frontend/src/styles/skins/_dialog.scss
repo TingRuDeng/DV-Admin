@@ -1,10 +1,13 @@
+/* stylelint-disable no-descending-specificity */
 .ff-dialog,
+.minimal-dialog,
 .ff-dialog.el-dialog {
   border-radius: var(--ff-radius-panel);
   box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
 }
 
 .ff-dialog .el-dialog__header,
+.minimal-dialog .el-dialog__header,
 .ff-dialog.el-dialog .el-dialog__header {
   padding-bottom: 1rem;
   margin-right: 0;
@@ -12,7 +15,42 @@
 }
 
 .ff-dialog .el-dialog__title,
+.minimal-dialog .el-dialog__title,
 .ff-dialog.el-dialog .el-dialog__title {
   font-weight: 600;
   color: var(--el-text-color-primary);
+}
+
+.ff-dialog .el-dialog__body,
+.minimal-dialog .el-dialog__body {
+  padding: 24px 20px;
+}
+
+.ff-dialog .el-dialog__footer,
+.minimal-dialog .el-dialog__footer {
+  padding: 16px 20px;
+  border-top: 1px solid #f1f5f9;
+}
+
+html.dark {
+  .el-dialog__title {
+    color: #f1f5f9 !important;
+  }
+
+  .minimal-dialog {
+    background: #1e293b;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
+  }
+
+  .minimal-dialog .el-dialog__header {
+    border-bottom-color: #334155;
+  }
+
+  .minimal-dialog .el-dialog__title {
+    color: #f1f5f9;
+  }
+
+  .minimal-dialog .el-dialog__footer {
+    border-top-color: #334155;
+  }
 }

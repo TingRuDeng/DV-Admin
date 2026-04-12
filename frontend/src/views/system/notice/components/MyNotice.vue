@@ -1,8 +1,13 @@
 <template>
-  <div class="app-container">
-    <!-- 搜索区域 -->
-    <div class="search-container">
-      <el-form ref="queryFormRef" :model="queryParams" :inline="true">
+  <PageShell class="ff-my-notice-page">
+    <FilterPanel>
+      <el-form
+        ref="queryFormRef"
+        :model="queryParams"
+        :inline="true"
+        class="ff-form ff-toolbar"
+        @submit.prevent
+      >
         <el-form-item label="通知标题" prop="title">
           <el-input
             v-model="queryParams.title"
@@ -12,14 +17,14 @@
           />
         </el-form-item>
 
-        <el-form-item class="search-buttons">
-          <el-button type="primary" @click="handleQuery()">
+        <el-form-item class="ff-toolbar__actions">
+          <el-button type="primary" class="ff-button-primary" @click="handleQuery()">
             <template #icon>
               <Search />
             </template>
             搜索
           </el-button>
-          <el-button @click="handleResetQuery()">
+          <el-button class="ff-button-secondary" @click="handleResetQuery()">
             <template #icon>
               <Refresh />
             </template>
@@ -27,70 +32,77 @@
           </el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </FilterPanel>
 
-    <el-card shadow="hover" class="data-table">
-      <el-table
-        ref="dataTableRef"
-        v-loading="loading"
-        :data="pageData"
-        highlight-current-row
-        class="data-table__content"
-      >
-        <el-table-column type="index" label="序号" width="60" />
-        <el-table-column label="通知标题" prop="title" min-width="200" />
-        <el-table-column align="center" label="通知类型" width="150">
-          <template #default="scope">
-            <DictLabel v-model="scope.row.type" code="notice_type" />
-          </template>
-        </el-table-column>
-        <el-table-column align="center" label="发布人" prop="publisherName" width="100" />
-        <el-table-column align="center" label="通知等级" width="100">
-          <template #default="scope">
-            <DictLabel v-model="scope.row.level" code="notice_level" />
-          </template>
-        </el-table-column>
-        <el-table-column
-          key="releaseTime"
-          align="center"
-          label="发布时间"
-          prop="publishTime"
-          width="150"
+    <DataPanel title="我的通知">
+      <div class="ff-table-wrap">
+        <el-table
+          ref="dataTableRef"
+          v-loading="loading"
+          :data="pageData"
+          highlight-current-row
+          class="ff-table"
+        >
+          <el-table-column type="index" label="序号" width="60" />
+          <el-table-column label="通知标题" prop="title" min-width="200" />
+          <el-table-column align="center" label="通知类型" width="150">
+            <template #default="scope">
+              <DictLabel v-model="scope.row.type" code="notice_type" />
+            </template>
+          </el-table-column>
+          <el-table-column align="center" label="发布人" prop="publisherName" width="100" />
+          <el-table-column align="center" label="通知等级" width="100">
+            <template #default="scope">
+              <DictLabel v-model="scope.row.level" code="notice_level" />
+            </template>
+          </el-table-column>
+          <el-table-column
+            key="releaseTime"
+            align="center"
+            label="发布时间"
+            prop="publishTime"
+            width="150"
+          />
+
+          <el-table-column align="center" label="发布人" prop="publisherName" width="150" />
+          <el-table-column align="center" label="状态" width="100">
+            <template #default="scope">
+              <el-tag v-if="scope.row.isRead == 1" type="success" class="ff-status-tag success">
+                已读
+              </el-tag>
+              <el-tag v-else type="info" class="ff-status-tag info">未读</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column align="center" fixed="right" label="操作" width="80">
+            <template #default="scope">
+              <el-button type="primary" size="small" link @click="handleReadNotice(scope.row.id)">
+                查看
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+
+      <template #footer>
+        <pagination
+          v-if="total > 0"
+          v-model:total="total"
+          v-model:page="queryParams.pageNum"
+          v-model:limit="queryParams.pageSize"
+          class="mt-4"
+          @pagination="handleQuery()"
         />
-
-        <el-table-column align="center" label="发布人" prop="publisherName" width="150" />
-        <el-table-column align="center" label="状态" width="100">
-          <template #default="scope">
-            <el-tag v-if="scope.row.isRead == 1" type="success">已读</el-tag>
-            <el-tag v-else type="info">未读</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" fixed="right" label="操作" width="80">
-          <template #default="scope">
-            <el-button type="primary" size="small" link @click="handleReadNotice(scope.row.id)">
-              查看
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <pagination
-        v-if="total > 0"
-        v-model:total="total"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
-        @pagination="handleQuery()"
-      />
-    </el-card>
+      </template>
+    </DataPanel>
 
     <el-dialog
       v-model="noticeDialogVisible"
       :title="noticeDetail?.title ?? '通知详情'"
       width="800px"
-      custom-class="notice-detail"
+      class="ff-dialog ff-my-notice-detail-dialog"
     >
-      <div v-if="noticeDetail" class="notice-detail__wrapper">
-        <div class="notice-detail__meta">
+      <div v-if="noticeDetail" class="ff-my-notice-detail__wrapper">
+        <div class="ff-my-notice-detail__meta">
           <span>
             <el-icon><User /></el-icon>
             {{ noticeDetail.publisherName }}
@@ -101,12 +113,12 @@
           </span>
         </div>
 
-        <div class="notice-detail__content">
+        <div class="ff-my-notice-detail__content">
           <div v-html="noticeDetail.content"></div>
         </div>
       </div>
     </el-dialog>
-  </div>
+  </PageShell>
 </template>
 
 <script setup lang="ts">
@@ -163,42 +175,3 @@ onMounted(() => {
   handleQuery();
 });
 </script>
-
-<style lang="scss" scoped>
-:deep(.el-dialog__header) {
-  text-align: center;
-}
-.notice-detail {
-  &__wrapper {
-    padding: 0 20px;
-  }
-
-  &__meta {
-    display: flex;
-    align-items: center;
-    margin-bottom: 16px;
-    font-size: 13px;
-    color: var(--el-text-color-secondary);
-  }
-
-  &__publisher {
-    margin-right: 24px;
-
-    i {
-      margin-right: 4px;
-    }
-  }
-
-  &__content {
-    max-height: 60vh;
-    padding-top: 16px;
-    margin-bottom: 24px;
-    overflow-y: auto;
-    border-top: 1px solid var(--el-border-color);
-
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
-  }
-}
-</style>

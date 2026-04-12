@@ -1,20 +1,19 @@
 <template>
-  <div class="app-container p-4 md:p-6 flex flex-col gap-4">
-    <!-- 搜索区域 -->
-    <div class="glass-panel p-5">
+  <PageShell class="ff-notice-page">
+    <FilterPanel>
       <el-form
         ref="queryFormRef"
         :model="queryParams"
         :inline="true"
         label-suffix=":"
-        class="minimal-form mb-0"
+        class="ff-form ff-toolbar"
+        @submit.prevent
       >
         <el-form-item label="标题" prop="title" class="mb-0">
           <el-input
             v-model="queryParams.title"
             placeholder="标题"
             clearable
-            class="minimal-input"
             @keyup.enter="handleQuery()"
           />
         </el-form-item>
@@ -24,7 +23,6 @@
             v-model="queryParams.publishStatus"
             clearable
             placeholder="全部"
-            class="minimal-input"
             style="width: 100px"
           >
             <el-option :value="0" label="未发布" />
@@ -33,29 +31,25 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item class="search-buttons mb-0 ml-auto">
-          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery()">
+        <el-form-item class="ff-toolbar__actions">
+          <el-button type="primary" icon="search" class="ff-button-primary" @click="handleQuery()">
             搜索
           </el-button>
-          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery()">
+          <el-button icon="refresh" class="ff-button-secondary" @click="handleResetQuery()">
             重置
           </el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </FilterPanel>
 
-    <div class="glass-panel p-5 flex-1 flex flex-col overflow-hidden">
-      <div class="flex justify-between items-center mb-4">
-        <div class="flex items-center gap-2">
-          <div class="w-1.5 h-4 bg-primary rounded-full"></div>
-          <span class="text-base font-semibold text-slate-700 tracking-wide">通知公告</span>
-        </div>
-        <div class="flex gap-2">
+    <DataPanel title="通知公告">
+      <template #actions>
+        <div class="ff-button-group">
           <el-button
             v-hasPerm="['sys:notice:add']"
             type="primary"
             icon="plus"
-            class="minimal-btn"
+            class="ff-button-primary"
             @click="handleOpenDialog()"
           >
             新增通知
@@ -66,21 +60,21 @@
             plain
             :disabled="selectIds.length === 0"
             icon="delete"
-            class="minimal-btn-danger"
+            class="ff-button-danger"
             @click="handleDelete()"
           >
             批量删除
           </el-button>
         </div>
-      </div>
+      </template>
 
-      <div class="flex-1 overflow-hidden border border-slate-100/50 rounded-xl bg-white/20">
+      <div class="ff-table-wrap">
         <el-table
           ref="dataTableRef"
           v-loading="loading"
           :data="pageData"
           highlight-current-row
-          class="minimal-table"
+          class="ff-table"
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="55" align="center" />
@@ -103,7 +97,7 @@
                 v-if="scope.row.targetType == 1"
                 type="warning"
                 effect="light"
-                class="minimal-tag warning"
+                class="ff-status-tag warning"
               >
                 全体
               </el-tag>
@@ -111,7 +105,7 @@
                 v-if="scope.row.targetType == 2"
                 type="success"
                 effect="light"
-                class="minimal-tag success"
+                class="ff-status-tag success"
               >
                 指定
               </el-tag>
@@ -123,7 +117,7 @@
                 v-if="scope.row.publishStatus == 0"
                 type="info"
                 effect="light"
-                class="minimal-tag info"
+                class="ff-status-tag info"
               >
                 未发布
               </el-tag>
@@ -131,7 +125,7 @@
                 v-if="scope.row.publishStatus == 1"
                 type="success"
                 effect="light"
-                class="minimal-tag success"
+                class="ff-status-tag success"
               >
                 已发布
               </el-tag>
@@ -139,7 +133,7 @@
                 v-if="scope.row.publishStatus == -1"
                 type="warning"
                 effect="light"
-                class="minimal-tag warning"
+                class="ff-status-tag warning"
               >
                 已撤回
               </el-tag>
@@ -213,15 +207,17 @@
         </el-table>
       </div>
 
-      <pagination
-        v-if="total > 0"
-        v-model:total="total"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
-        class="minimal-pagination mt-4"
-        @pagination="fetchData()"
-      />
-    </div>
+      <template #footer>
+        <pagination
+          v-if="total > 0"
+          v-model:total="total"
+          v-model:page="queryParams.pageNum"
+          v-model:limit="queryParams.pageSize"
+          class="mt-4"
+          @pagination="fetchData()"
+        />
+      </template>
+    </DataPanel>
 
     <!-- 通知公告表单弹窗 -->
     <el-dialog
@@ -229,7 +225,7 @@
       :title="dialog.title"
       top="3vh"
       width="80%"
-      class="minimal-dialog"
+      class="ff-dialog"
       @close="handleCloseDialog"
     >
       <el-form
@@ -237,15 +233,10 @@
         :model="formData"
         :rules="rules"
         label-width="100px"
-        class="minimal-form pt-4"
+        class="ff-form pt-4"
       >
         <el-form-item label="通知标题" prop="title">
-          <el-input
-            v-model="formData.title"
-            placeholder="通知标题"
-            clearable
-            class="minimal-input"
-          />
+          <el-input v-model="formData.title" placeholder="通知标题" clearable />
         </el-form-item>
 
         <el-form-item label="通知类型" prop="type">
@@ -266,7 +257,7 @@
             multiple
             search
             placeholder="请选择指定用户"
-            class="minimal-input w-full"
+            class="w-full"
           >
             <el-option
               v-for="item in userOptions"
@@ -282,8 +273,10 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer flex justify-end gap-2">
-          <el-button class="minimal-btn-plain" @click="handleCloseDialog()">取消</el-button>
-          <el-button type="primary" class="minimal-btn" @click="handleSubmit()">确定</el-button>
+          <el-button class="ff-button-secondary" @click="handleCloseDialog()">取消</el-button>
+          <el-button type="primary" class="ff-button-primary" @click="handleSubmit()">
+            确定
+          </el-button>
         </div>
       </template>
     </el-dialog>
@@ -293,7 +286,7 @@
       :show-close="false"
       width="50%"
       append-to-body
-      class="minimal-dialog"
+      class="ff-dialog ff-notice-detail-dialog"
       @close="closeDetailDialog"
     >
       <template #header>
@@ -317,7 +310,7 @@
             v-if="currentNotice.publishStatus == 0"
             type="info"
             effect="light"
-            class="minimal-tag info"
+            class="ff-status-tag info"
           >
             未发布
           </el-tag>
@@ -325,7 +318,7 @@
             v-else-if="currentNotice.publishStatus == 1"
             type="success"
             effect="light"
-            class="minimal-tag success"
+            class="ff-status-tag success"
           >
             已发布
           </el-tag>
@@ -333,7 +326,7 @@
             v-else-if="currentNotice.publishStatus == -1"
             type="warning"
             effect="light"
-            class="minimal-tag warning"
+            class="ff-status-tag warning"
           >
             已撤回
           </el-tag>
@@ -345,11 +338,11 @@
           {{ currentNotice.publishTime }}
         </el-descriptions-item>
         <el-descriptions-item label="公告内容：">
-          <div class="notice-content" v-html="currentNotice.content" />
+          <div class="ff-notice-content" v-html="currentNotice.content" />
         </el-descriptions-item>
       </el-descriptions>
     </el-dialog>
-  </div>
+  </PageShell>
 </template>
 
 <script setup lang="ts">
