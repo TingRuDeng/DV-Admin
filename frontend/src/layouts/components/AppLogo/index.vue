@@ -4,14 +4,18 @@
       <router-link v-if="collapse" key="collapse" class="sidebar-logo-link" to="/">
         <div class="cyber-logo-mini">
           <div class="logo-glow"></div>
-          <div class="logo-glass"><span class="logo-letter">{{ logoText }}</span></div>
+          <div class="logo-glass">
+            <span class="logo-letter">{{ logoText }}</span>
+          </div>
         </div>
       </router-link>
 
       <router-link v-else key="expand" class="sidebar-logo-link" to="/">
         <div class="cyber-logo-mini">
           <div class="logo-glow"></div>
-          <div class="logo-glass"><span class="logo-letter">{{ logoTextFull }}</span></div>
+          <div class="logo-glass">
+            <span class="logo-letter">{{ logoTextFull }}</span>
+          </div>
         </div>
         <h1 class="sidebar-title">{{ platformName }}</h1>
       </router-link>
@@ -28,11 +32,11 @@ defineProps({
 });
 
 // 从环境变量读取配置，提供默认值
-const logoTextFull = import.meta.env.VITE_APP_LOGO_TEXT || 'DV';
+const logoTextFull = import.meta.env.VITE_APP_LOGO_TEXT || "DV";
 // 折叠时自动取首字母
 const logoText = logoTextFull.charAt(0);
 // 平台名称使用 VITE_APP_TITLE，与页面标题统一
-const platformName = import.meta.env.VITE_APP_TITLE || 'DV-Admin';
+const platformName = import.meta.env.VITE_APP_TITLE || "DV-Admin";
 </script>
 
 <style lang="scss" scoped>

@@ -1,11 +1,9 @@
 <template>
-  <div class="app-container p-6 bg-[#f8fafc] min-h-screen flex flex-col gap-4">
+  <div class="app-container p-4 md:p-6 flex flex-col gap-4">
     <!-- 搜索区域 -->
-    <div
-      class="bg-white p-5 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-slate-100 transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)]"
-    >
-      <el-form ref="queryFormRef" :model="queryParams" :inline="true" class="minimal-form">
-        <el-form-item prop="keywords" label="关键字">
+    <div class="glass-panel p-5">
+      <el-form ref="queryFormRef" :model="queryParams" :inline="true" class="minimal-form mb-0">
+        <el-form-item prop="keywords" label="关键字" class="mb-0">
           <el-input
             v-model="queryParams.keywords"
             placeholder="日志内容"
@@ -15,7 +13,7 @@
           />
         </el-form-item>
 
-        <el-form-item prop="createTime" label="操作时间">
+        <el-form-item prop="createTime" label="操作时间" class="mb-0">
           <el-date-picker
             v-model="queryParams.createTime"
             :editable="false"
@@ -29,7 +27,7 @@
           />
         </el-form-item>
 
-        <el-form-item class="ml-auto mb-0">
+        <el-form-item class="search-buttons mb-0 ml-auto">
           <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">
             搜索
           </el-button>
@@ -40,10 +38,8 @@
       </el-form>
     </div>
 
-    <div
-      class="bg-white p-6 flex-1 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-slate-100 flex flex-col transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)]"
-    >
-      <div class="flex justify-between items-center mb-5">
+    <div class="glass-panel p-5 flex-1 flex flex-col overflow-hidden">
+      <div class="flex justify-between items-center mb-4">
         <div class="flex items-center gap-2">
           <div class="w-1.5 h-4 bg-primary rounded-full"></div>
           <span class="text-base font-semibold text-slate-700 tracking-wide">操作日志</span>
