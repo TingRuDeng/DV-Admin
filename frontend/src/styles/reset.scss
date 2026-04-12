@@ -10,6 +10,8 @@
 #app {
   width: 100%;
   height: 100%;
+  color: var(--el-text-color-primary);
+  background-color: var(--el-bg-color-page);
 }
 
 html {
@@ -17,7 +19,9 @@ html {
   width: 100%;
   height: 100%;
   line-height: 1.5;
+  color: var(--el-text-color-primary);
   tab-size: 4;
+  background-color: var(--el-bg-color-page);
   text-size-adjust: 100%;
 }
 
@@ -29,6 +33,8 @@ body {
     "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑",
     Arial, sans-serif;
   line-height: inherit;
+  color: var(--el-text-color-primary);
+  background-color: var(--el-bg-color-page);
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizelegibility;
