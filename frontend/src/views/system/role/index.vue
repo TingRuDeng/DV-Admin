@@ -1,43 +1,42 @@
 <template>
-  <div class="app-container p-4 md:p-6 flex flex-col gap-4">
-    <!-- 搜索区域 -->
-    <div class="glass-panel p-5">
+  <PageShell class="ff-role-page">
+    <FilterPanel>
       <el-form
         ref="queryFormRef"
         :model="queryParams"
         :inline="true"
-        class="minimal-form mb-0"
+        class="ff-form ff-toolbar"
         @submit.prevent
       >
-        <el-form-item prop="search" label="关键字" class="mb-0">
+        <el-form-item prop="search" label="关键字">
           <el-input
             v-model="queryParams.search"
             placeholder="角色名称"
             clearable
-            class="minimal-input"
             @keyup.enter="handleQuery"
           />
         </el-form-item>
 
-        <el-form-item class="search-buttons mb-0 ml-auto">
-          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">
+        <el-form-item class="ff-toolbar__actions">
+          <el-button type="primary" icon="search" class="ff-button-primary" @click="handleQuery">
             搜索
           </el-button>
-          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">
+          <el-button icon="refresh" class="ff-button-secondary" @click="handleResetQuery">
             重置
           </el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </FilterPanel>
 
-    <div class="glass-panel p-5 flex-1 flex flex-col overflow-hidden">
-      <div class="flex justify-between items-center mb-4">
-        <div class="flex items-center gap-2">
-          <div class="w-1.5 h-4 bg-primary rounded-full"></div>
-          <span class="text-base font-semibold text-slate-700 tracking-wide">角色数据</span>
-        </div>
-        <div class="flex gap-2">
-          <el-button type="primary" icon="plus" class="minimal-btn" @click="handleOpenDialog()">
+    <DataPanel title="角色数据">
+      <template #actions>
+        <div class="ff-button-group">
+          <el-button
+            type="primary"
+            icon="plus"
+            class="ff-button-primary"
+            @click="handleOpenDialog()"
+          >
             新增角色
           </el-button>
           <el-button
@@ -45,21 +44,21 @@
             plain
             :disabled="ids.length === 0"
             icon="delete"
-            class="minimal-btn-danger"
+            class="ff-button-danger"
             @click="handleDelete()"
           >
             批量删除
           </el-button>
         </div>
-      </div>
+      </template>
 
-      <div class="flex-1 overflow-hidden border border-slate-100/50 rounded-xl bg-white/20">
+      <div class="ff-table-wrap">
         <el-table
           ref="dataTableRef"
           v-loading="loading"
           :data="roleList"
           highlight-current-row
-          class="minimal-table"
+          class="ff-table"
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="55" align="center" />
@@ -75,7 +74,7 @@
             <template #default="scope">
               <el-tag
                 :type="scope.row.status === 1 ? 'success' : 'info'"
-                class="minimal-tag"
+                class="ff-status-tag"
                 :class="scope.row.status === 1 ? 'success' : 'info'"
               >
                 {{ scope.row.status === 1 ? "正常" : "禁用" }}
@@ -86,7 +85,7 @@
             <template #default="scope">
               <el-tag
                 :type="scope.row.isDefault ? 'success' : 'info'"
-                class="minimal-tag"
+                class="ff-status-tag"
                 :class="scope.row.isDefault ? 'success' : 'info'"
               >
                 {{ scope.row.isDefault ? "是" : "否" }}
@@ -128,22 +127,23 @@
         </el-table>
       </div>
 
-      <pagination
-        v-if="total > 0"
-        v-model:total="total"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
-        class="minimal-pagination mt-4"
-        @pagination="fetchData"
-      />
-    </div>
+      <template #footer>
+        <Pagination
+          v-if="total > 0"
+          v-model:total="total"
+          v-model:page="queryParams.pageNum"
+          v-model:limit="queryParams.pageSize"
+          class="mt-4"
+          @pagination="fetchData"
+        />
+      </template>
+    </DataPanel>
 
-    <!-- 角色表单弹窗 -->
     <el-dialog
       v-model="dialog.visible"
       :title="dialog.title"
       width="500px"
-      class="minimal-dialog"
+      class="ff-dialog"
       @close="handleCloseDialog"
     >
       <el-form
@@ -151,10 +151,10 @@
         :model="formData"
         :rules="rules"
         label-width="100px"
-        class="minimal-form pt-4"
+        class="ff-form pt-4"
       >
         <el-form-item label="角色名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入角色名称" class="minimal-input" />
+          <el-input v-model="formData.name" placeholder="请输入角色名称" />
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="formData.status">
@@ -174,7 +174,6 @@
             controls-position="right"
             :min="0"
             style="width: 100px"
-            class="minimal-input"
           />
         </el-form-item>
         <el-form-item label="备注" prop="desc">
@@ -183,40 +182,41 @@
             placeholder="请输入角色备注"
             type="textarea"
             :rows="2"
-            class="minimal-input"
           />
         </el-form-item>
       </el-form>
 
       <template #footer>
         <div class="dialog-footer flex justify-end gap-2">
-          <el-button class="minimal-btn-plain" @click="handleCloseDialog">取 消</el-button>
-          <el-button type="primary" class="minimal-btn" @click="handleSubmit">确 定</el-button>
+          <el-button class="ff-button-secondary" @click="handleCloseDialog">取 消</el-button>
+          <el-button type="primary" class="ff-button-primary" @click="handleSubmit">
+            确 定
+          </el-button>
         </div>
       </template>
     </el-dialog>
 
-    <!-- 分配权限弹窗 -->
     <el-drawer
       v-model="assignPermDialogVisible"
       :title="'【' + checkedRole.name + '】权限分配'"
       :size="drawerSize"
-      class="glass-drawer"
+      class="ff-drawer"
     >
       <div class="flex justify-between items-center mb-5">
-        <el-input
-          v-model="permKeywords"
-          clearable
-          class="minimal-input w-[150px]"
-          placeholder="菜单权限名称"
-        >
+        <el-input v-model="permKeywords" clearable class="w-[150px]" placeholder="菜单权限名称">
           <template #prefix>
             <Search />
           </template>
         </el-input>
 
         <div class="flex items-center gap-3">
-          <el-button type="primary" size="small" plain class="minimal-btn" @click="togglePermTree">
+          <el-button
+            type="primary"
+            size="small"
+            plain
+            class="ff-button-primary"
+            @click="togglePermTree"
+          >
             <template #icon>
               <Switch />
             </template>
@@ -252,19 +252,22 @@
       </el-tree>
       <template #footer>
         <div class="dialog-footer flex justify-end gap-2">
-          <el-button class="minimal-btn-plain" @click="assignPermDialogVisible = false">
+          <el-button class="ff-button-secondary" @click="assignPermDialogVisible = false">
             取 消
           </el-button>
-          <el-button type="primary" class="minimal-btn" @click="handleAssignPermSubmit">
+          <el-button type="primary" class="ff-button-primary" @click="handleAssignPermSubmit">
             确 定
           </el-button>
         </div>
       </template>
     </el-drawer>
-  </div>
+  </PageShell>
 </template>
 
 <script setup lang="ts">
+import DataPanel from "@/components/DataPanel/index.vue";
+import FilterPanel from "@/components/FilterPanel/index.vue";
+import PageShell from "@/components/PageShell/index.vue";
 import { useAppStore } from "@/store/modules/app-store";
 import { DeviceEnum } from "@/enums/settings/device-enum";
 
@@ -526,110 +529,3 @@ onMounted(() => {
   handleQuery();
 });
 </script>
-
-<style scoped lang="scss">
-/* stylelint-disable no-descending-specificity */
-/* 玻璃面板样式 */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.6) !important;
-  border: 1px solid rgba(255, 255, 255, 0.8) !important;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.05) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(120%);
-  backdrop-filter: blur(16px) saturate(120%);
-  transition: all 0.3s ease;
-}
-
-.glass-panel:hover {
-  box-shadow: 0 12px 48px -12px rgba(0, 0, 0, 0.08) !important;
-}
-
-/* 权限树样式 */
-.permission-tree {
-  padding: 16px;
-  background: #f8fafc;
-  border: 1px solid #f1f5f9;
-  border-radius: 12px;
-
-  :deep(.el-tree-node__content) {
-    height: 36px;
-    padding: 0 8px;
-    margin-bottom: 4px;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-
-    &:hover {
-      background-color: #e2e8f0;
-    }
-  }
-
-  :deep(.el-tree-node.is-current > .el-tree-node__content) {
-    color: #6366f1;
-    background-color: rgba(99, 102, 241, 0.1);
-  }
-}
-
-/* 玻璃抽屉样式 */
-:deep(.glass-drawer) {
-  .el-drawer__header {
-    padding: 16px 20px;
-    margin-bottom: 0;
-    border-bottom: 1px solid #f1f5f9;
-  }
-
-  .el-drawer__title {
-    font-weight: 600;
-    color: #1e293b;
-  }
-
-  .el-drawer__body {
-    padding: 20px;
-  }
-
-  .el-drawer__footer {
-    padding: 16px 20px;
-    border-top: 1px solid #f1f5f9;
-  }
-}
-
-/* 深色模式 */
-html.dark {
-  .glass-panel {
-    background: rgba(30, 41, 59, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.3);
-  }
-
-  .permission-tree {
-    background: #1e293b;
-    border-color: #334155;
-
-    :deep(.el-tree-node__content) {
-      &:hover {
-        background-color: #334155;
-      }
-    }
-
-    :deep(.el-tree-node.is-current > .el-tree-node__content) {
-      color: #818cf8;
-      background-color: rgba(129, 140, 248, 0.15);
-    }
-  }
-
-  :deep(.glass-drawer) {
-    .el-drawer__header {
-      border-bottom-color: #334155;
-    }
-
-    .el-drawer__title {
-      color: #f1f5f9;
-    }
-
-    .el-drawer__footer {
-      border-top-color: #334155;
-    }
-  }
-}
-
-/* 极简 SaaS 风样式已统一至 @/styles/_minimal-saas.scss，此处不再重复定义 */
-</style>
