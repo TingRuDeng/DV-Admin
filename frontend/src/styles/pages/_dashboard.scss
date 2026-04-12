@@ -1,23 +1,51 @@
-// ============================================
-// Dashboard 页面样式优化
-// ============================================
-// 问候语卡片、快捷入口、统计卡片
-// 创建日期：2026-04-09
-// ============================================
-
-// ============================================
-// 1. Dashboard 容器
-// ============================================
-.dashboard-container {
+.ff-page-shell__hero--dashboard {
   position: relative;
-  min-height: 100vh;
-  padding: 24px;
-  background: var(--bg-page, #f9fafb);
+  padding: var(--ff-panel-padding-lg);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--ff-color-border-soft);
+  border-radius: var(--ff-radius-panel);
+  box-shadow: var(--ff-shadow-panel);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
 }
 
-// GitHub Corner 样式（相对于 glass-panel 定位）
-.glass-panel {
-  position: relative;
+.ff-dashboard__top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.ff-dashboard__greeting {
+  display: flex;
+  flex: 1;
+  gap: 1.25rem;
+  align-items: flex-start;
+  min-width: 16rem;
+}
+
+.ff-dashboard__avatar {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 999px;
+}
+
+.ff-dashboard__copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ff-dashboard__headline {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--ff-color-text-primary);
+}
+
+.ff-dashboard__links {
+  display: flex;
+  align-items: flex-end;
 }
 
 .github-corner {
@@ -26,271 +54,8 @@
   right: 0 !important;
   z-index: 10 !important;
   border: 0 !important;
-
-  // 不需要翻转，默认三角形指向右上角
 }
 
-// ============================================
-// 2. 问候语卡片
-// ============================================
-.greeting-card {
-  padding: 32px;
-  margin-bottom: 24px;
-  color: #ffffff;
-  background: linear-gradient(
-    135deg,
-    var(--color-primary, #6366f1) 0%,
-    var(--color-primary-dark, #4f46e5) 100%
-  );
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
-
-  .greeting-avatar {
-    width: 80px;
-    height: 80px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-
-  .greeting-text {
-    margin-bottom: 8px;
-    font-size: 24px;
-    font-weight: 600;
-    line-height: 1.4;
-  }
-
-  .greeting-subtext {
-    font-size: 14px;
-    opacity: 0.8;
-  }
-}
-
-// ============================================
-// 3. 快捷入口
-// ============================================
-.quick-links {
-  display: flex;
-  gap: 24px;
-  align-items: flex-end;
-
-  .quick-link-group {
-    .quick-link-title {
-      display: flex;
-      align-items: center;
-      margin-bottom: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-primary, #111827);
-
-      .el-icon {
-        margin-right: 4px;
-      }
-    }
-
-    .quick-link-items {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-
-      .el-link {
-        transition: transform 0.2s ease;
-
-        &:hover {
-          transform: scale(1.1);
-        }
-      }
-    }
-  }
-}
-
-// ============================================
-// 4. 统计卡片
-// ============================================
-.stats-card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 24px;
-  background: var(--bg-container, #ffffff);
-  border: 1px solid var(--border-light, #f3f4f6);
-  border-radius: 16px;
-  box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
-  transition: all 0.2s ease;
-
-  &:hover {
-    box-shadow: var(--shadow-card-hover, 0 4px 16px rgba(0, 0, 0, 0.12));
-    transform: translateY(-2px);
-  }
-
-  .stats-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-
-    .stats-title {
-      font-size: 14px;
-      color: var(--text-secondary, #6b7280);
-    }
-  }
-
-  .stats-content {
-    display: flex;
-    flex: 1;
-    align-items: center;
-    justify-content: space-between;
-
-    .stats-value {
-      font-size: 32px;
-      font-weight: 700;
-      line-height: 1;
-      color: var(--text-primary, #111827);
-    }
-
-    .stats-trend {
-      display: flex;
-      align-items: center;
-      margin-left: 8px;
-      font-size: 12px;
-
-      &.up {
-        color: var(--color-success, #10b981);
-      }
-
-      &.down {
-        color: var(--color-danger, #ef4444);
-      }
-    }
-
-    .stats-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 48px;
-      height: 48px;
-      font-size: 24px;
-      opacity: 0.8;
-    }
-  }
-
-  .stats-footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 16px;
-    font-size: 13px;
-    color: var(--text-secondary, #6b7280);
-  }
-}
-
-// ============================================
-// 5. 统计卡片网格
-// ============================================
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-top: 24px;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-// ============================================
-// 6. 版本动态项
-// ============================================
-.version-item {
-  padding: 16px;
-  margin-bottom: 12px;
-  background: var(--gray-50, #f9fafb);
-  border-radius: 12px;
-  transition: all 0.2s ease;
-
-  &.latest-item {
-    background: rgba(99, 102, 241, 0.08);
-    border: 1px solid rgba(99, 102, 241, 0.2);
-  }
-
-  &:hover {
-    background: var(--gray-100, #f3f4f6);
-    transform: translateX(5px);
-  }
-
-  .version-content {
-    margin-bottom: 12px;
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--text-secondary, #6b7280);
-  }
-}
-
-// ============================================
-// 7. 深色模式适配
-// ============================================
-html.dark {
-  .dashboard-container {
-    background: var(--bg-page, #0f172a);
-  }
-
-  .greeting-card {
-    box-shadow: 0 4px 16px rgba(129, 140, 248, 0.3);
-  }
-
-  .stats-card {
-    background: var(--bg-container, #1e293b);
-    border-color: var(--border-base, #334155);
-    box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.3));
-
-    &:hover {
-      box-shadow: var(--shadow-card-hover, 0 4px 16px rgba(0, 0, 0, 0.4));
-    }
-  }
-
-  .version-item {
-    background: var(--gray-800, #1f2937);
-
-    &.latest-item {
-      background: rgba(129, 140, 248, 0.15);
-      border-color: rgba(129, 140, 248, 0.3);
-    }
-
-    &:hover {
-      background: var(--gray-700, #374151);
-    }
-  }
-}
-
-// ============================================
-// 8. 移动端适配
-// ============================================
-@media (max-width: 640px) {
-  .dashboard-container {
-    padding: 16px;
-  }
-
-  .greeting-card {
-    padding: 24px;
-    border-radius: 12px;
-
-    .greeting-text {
-      font-size: 20px;
-    }
-  }
-
-  .quick-links {
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-
-  .stats-card {
-    padding: 20px;
-    border-radius: 12px;
-
-    .stats-content {
-      .stats-value {
-        font-size: 28px;
-      }
-    }
-  }
+html.dark .ff-page-shell__hero--dashboard {
+  background: rgba(15, 23, 42, 0.74);
 }

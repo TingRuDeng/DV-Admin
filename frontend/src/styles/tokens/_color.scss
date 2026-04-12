@@ -1,0 +1,17 @@
+:root {
+  --ff-color-bg-page: #f1f5f9;
+  --ff-color-bg-panel: rgba(255, 255, 255, 0.72);
+  --ff-color-bg-panel-strong: rgba(255, 255, 255, 0.9);
+  --ff-color-border-soft: rgba(148, 163, 184, 0.18);
+  --ff-color-text-primary: #334155;
+  --ff-color-text-secondary: #64748b;
+}
+
+html.dark {
+  --ff-color-bg-page: #0f172a;
+  --ff-color-bg-panel: rgba(15, 23, 42, 0.74);
+  --ff-color-bg-panel-strong: rgba(15, 23, 42, 0.92);
+  --ff-color-border-soft: rgba(255, 255, 255, 0.1);
+  --ff-color-text-primary: #e2e8f0;
+  --ff-color-text-secondary: #cbd5e1;
+}
