@@ -84,6 +84,12 @@ frontend/src/
 - **字典模块**：`store/modules/dict-store.ts`, `components/Dict/`
 - **布局模块**：`layouts/` (支持 left/top/mix 三种布局模式)
 
+**前端样式治理：**
+- `frontend/src/styles` 采用分层结构：`tokens -> theme -> foundation -> skins -> pages`
+- 路由页应优先组合 `PageShell`、`FilterPanel`、`DataPanel`，而不是在页面内重复拼接 `glass-panel` 或 `minimal-*` 视觉类
+- `UnoCSS` 主要用于布局和局部原子样式，共享视觉皮肤统一放在 `skins/*`
+- `_minimal-saas.scss` 仅作为未迁移页面的兼容层，不再作为新增样式的主入口
+
 ---
 
 ### Django 后端架构
