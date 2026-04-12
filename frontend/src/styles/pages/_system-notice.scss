@@ -1,0 +1,47 @@
+.ff-notice-page {
+  min-height: 0;
+}
+
+.ff-notice-detail-dialog .dialog-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.ff-notice-content {
+  line-height: 1.75;
+  color: var(--el-text-color-primary);
+  overflow-wrap: anywhere;
+}
+
+.ff-my-notice-page {
+  min-height: 0;
+}
+
+.ff-my-notice-detail-dialog .el-dialog__header {
+  text-align: center;
+}
+
+.ff-my-notice-detail__wrapper {
+  padding: 0 20px;
+}
+
+.ff-my-notice-detail__meta {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+}
+
+.ff-my-notice-detail__content {
+  max-height: 60vh;
+  padding-top: 16px;
+  margin-bottom: 24px;
+  overflow-y: auto;
+  border-top: 1px solid var(--el-border-color);
+}
+
+.ff-my-notice-detail__content::-webkit-scrollbar {
+  width: 6px;
+}

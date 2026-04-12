@@ -1,0 +1,112 @@
+.ff-profile-page__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ff-page-gap);
+}
+
+.ff-profile-page__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-page-gap);
+}
+
+.ff-profile-page__sidebar {
+  padding: 1.5rem;
+}
+
+.ff-profile-user {
+  padding: 1.25rem 0;
+  text-align: center;
+}
+
+.ff-profile-user__avatar {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.ff-profile-user__avatar-button {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.ff-profile-user__avatar-button:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.ff-profile-user__name {
+  margin-bottom: 0.5rem;
+}
+
+.ff-profile-user__display-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.ff-profile-user__edit {
+  margin-left: 0.5rem;
+  color: var(--el-text-color-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.ff-profile-user__edit:hover {
+  color: var(--el-color-primary);
+}
+
+.ff-profile-user__role {
+  font-size: 0.875rem;
+  color: var(--el-text-color-secondary);
+}
+
+.ff-profile-security-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+}
+
+.ff-profile-security-item__title {
+  margin-bottom: 0.25rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--el-text-color-primary);
+}
+
+.ff-profile-security-item__desc {
+  font-size: 0.875rem;
+  color: var(--el-text-color-secondary);
+}
+
+.ff-profile-page :deep(.el-descriptions__label) {
+  font-weight: 500;
+  color: var(--el-text-color-regular);
+}
+
+.ff-profile-page :deep(.el-descriptions__content) {
+  color: var(--el-text-color-primary);
+}
+
+.ff-profile-gender {
+  margin-left: 0.5rem;
+  font-size: 1rem;
+}
+
+.ff-profile-gender.male {
+  color: #409eff;
+}
+
+.ff-profile-gender.female {
+  color: #f56c6c;
+}
+
+@media (min-width: 1024px) {
+  .ff-profile-page__grid {
+    grid-template-columns: 320px minmax(0, 1fr);
+  }
+}

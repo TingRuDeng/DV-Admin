@@ -1,53 +1,45 @@
 <template>
-  <div class="app-container p-4 md:p-6">
-    <el-row :gutter="20">
-      <!-- 左侧个人信息卡片 -->
-      <el-col :span="8">
-        <div class="glass-panel p-5">
-          <div class="user-info">
-            <div class="avatar-wrapper">
-              <el-avatar :src="userStore.userInfo.avatar" :size="100" />
-              <el-button
-                type="info"
-                class="avatar-edit-btn"
-                circle
-                :icon="Camera"
-                size="small"
-                @click="triggerFileUpload"
-              />
-              <input
-                ref="fileInput"
-                type="file"
-                style="display: none"
-                accept="image/*"
-                @change="handleFileChange"
-              />
-            </div>
-            <div class="user-name">
-              <span class="name">{{ userProfile.name }}</span>
-              <el-icon class="edit-icon" @click="handleOpenDialog(DialogType.ACCOUNT)">
-                <Edit />
-              </el-icon>
-            </div>
-            <div class="user-role">{{ userProfile.roleNames }}</div>
+  <PageShell class="ff-profile-page">
+    <div class="ff-profile-page__grid">
+      <section class="ff-side-panel ff-profile-page__sidebar">
+        <div class="ff-profile-user">
+          <div class="ff-profile-user__avatar">
+            <el-avatar :src="userStore.userInfo.avatar" :size="100" />
+            <el-button
+              type="info"
+              class="ff-profile-user__avatar-button"
+              circle
+              :icon="Camera"
+              size="small"
+              @click="triggerFileUpload"
+            />
+            <input
+              ref="fileInput"
+              type="file"
+              style="display: none"
+              accept="image/*"
+              @change="handleFileChange"
+            />
           </div>
+          <div class="ff-profile-user__name">
+            <span class="ff-profile-user__display-name">{{ userProfile.name }}</span>
+            <el-icon class="ff-profile-user__edit" @click="handleOpenDialog(DialogType.ACCOUNT)">
+              <Edit />
+            </el-icon>
+          </div>
+          <div class="ff-profile-user__role">{{ userProfile.roleNames }}</div>
         </div>
-      </el-col>
+      </section>
 
-      <!-- 右侧信息卡片 -->
-      <el-col :span="16">
-        <div class="glass-panel p-5 mb-5">
-          <div class="flex items-center gap-2 mb-4">
-            <div class="w-1.5 h-4 bg-primary rounded-full"></div>
-            <span class="text-base font-semibold text-slate-700 tracking-wide">账号信息</span>
-          </div>
+      <div class="ff-profile-page__main">
+        <DataPanel title="账号信息">
           <el-descriptions :column="1" border>
             <el-descriptions-item label="用户名">
               {{ userProfile.username }}
-              <el-icon v-if="userProfile.gender === 1" class="gender-icon male">
+              <el-icon v-if="userProfile.gender === 1" class="ff-profile-gender male">
                 <Male />
               </el-icon>
-              <el-icon v-else class="gender-icon female">
+              <el-icon v-else class="ff-profile-gender female">
                 <Female />
               </el-icon>
             </el-descriptions-item>
@@ -61,34 +53,31 @@
               {{ userProfile.deptName }}
             </el-descriptions-item>
           </el-descriptions>
-        </div>
+        </DataPanel>
 
-        <div class="glass-panel p-5">
-          <div class="flex items-center gap-2 mb-4">
-            <div class="w-1.5 h-4 bg-primary rounded-full"></div>
-            <span class="text-base font-semibold text-slate-700 tracking-wide">安全设置</span>
-          </div>
-          <div class="security-item">
-            <div class="security-info">
-              <div class="security-title">账户密码</div>
-              <div class="security-desc">定期修改密码有助于保护账户安全</div>
+        <DataPanel title="安全设置">
+          <div class="ff-profile-security-item">
+            <div class="ff-profile-security-item__copy">
+              <div class="ff-profile-security-item__title">账户密码</div>
+              <div class="ff-profile-security-item__desc">定期修改密码有助于保护账户安全</div>
             </div>
             <el-button type="primary" link @click="() => handleOpenDialog(DialogType.PASSWORD)">
               修改
             </el-button>
           </div>
-        </div>
-      </el-col>
-    </el-row>
+        </DataPanel>
+      </div>
+    </div>
 
     <!-- 弹窗 -->
-    <el-dialog v-model="dialog.visible" :title="dialog.title" :width="500">
+    <el-dialog v-model="dialog.visible" :title="dialog.title" :width="500" class="ff-dialog">
       <!-- 账号资料 -->
       <el-form
         v-if="dialog.type === DialogType.ACCOUNT"
         ref="userProfileFormRef"
         :model="userProfileForm"
         :label-width="100"
+        class="ff-form"
       >
         <el-form-item label="昵称">
           <el-input v-model="userProfileForm.name" />
@@ -105,6 +94,7 @@
         :model="passwordChangeForm"
         :rules="passwordChangeRules"
         :label-width="100"
+        class="ff-form"
       >
         <el-form-item label="原密码" prop="currentPassword">
           <el-input v-model="passwordChangeForm.currentPassword" type="password" show-password />
@@ -162,13 +152,13 @@
       <!--      </el-form>-->
 
       <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="handleCancel">取消</el-button>
-          <el-button type="primary" @click="handleSubmit">确定</el-button>
-        </span>
+        <div class="dialog-footer flex justify-end gap-2">
+          <el-button class="ff-button-secondary" @click="handleCancel">取消</el-button>
+          <el-button type="primary" class="ff-button-primary" @click="handleSubmit">确定</el-button>
+        </div>
       </template>
     </el-dialog>
-  </div>
+  </PageShell>
 </template>
 
 <script lang="ts" setup>
@@ -423,107 +413,3 @@ onMounted(async () => {
   await loadUserProfile();
 });
 </script>
-
-<style lang="scss" scoped>
-.user-info {
-  padding: 20px 0;
-  text-align: center;
-
-  .avatar-wrapper {
-    position: relative;
-    display: inline-block;
-    margin-bottom: 16px;
-
-    .avatar-edit-btn {
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      border: none;
-      transition: all 0.3s ease;
-
-      &:hover {
-        background: rgba(0, 0, 0, 0.7);
-      }
-    }
-  }
-
-  .user-name {
-    margin-bottom: 8px;
-
-    .name {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--el-text-color-primary);
-    }
-
-    .edit-icon {
-      margin-left: 8px;
-      color: var(--el-text-color-secondary);
-      cursor: pointer;
-      transition: all 0.3s ease;
-
-      &:hover {
-        color: var(--el-color-primary);
-      }
-    }
-  }
-
-  .user-role {
-    font-size: 14px;
-    color: var(--el-text-color-secondary);
-  }
-}
-
-.security-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 0;
-
-  .security-info {
-    .security-title {
-      margin-bottom: 4px;
-      font-size: 16px;
-      font-weight: 500;
-      color: var(--el-text-color-primary);
-    }
-
-    .security-desc {
-      font-size: 14px;
-      color: var(--el-text-color-secondary);
-    }
-  }
-}
-
-.el-descriptions {
-  .el-descriptions__label {
-    font-weight: 500;
-    color: var(--el-text-color-regular);
-  }
-
-  .el-descriptions__content {
-    color: var(--el-text-color-primary);
-  }
-
-  .gender-icon {
-    margin-left: 8px;
-    font-size: 16px;
-
-    &.male {
-      color: #409eff;
-    }
-
-    &.female {
-      color: #f56c6c;
-    }
-  }
-}
-
-// 响应式适配
-@media (max-width: 768px) {
-  .el-col {
-    width: 100%;
-  }
-}
-</style>
