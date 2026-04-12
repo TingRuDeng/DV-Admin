@@ -1,14 +1,18 @@
 <template>
-  <div class="app-container p-4 md:p-6 flex flex-col gap-4">
-    <!-- 搜索区域 -->
-    <div class="glass-panel p-5">
-      <el-form ref="queryFormRef" :model="queryParams" :inline="true" class="minimal-form mb-0">
+  <PageShell class="ff-log-page">
+    <FilterPanel>
+      <el-form
+        ref="queryFormRef"
+        :model="queryParams"
+        :inline="true"
+        class="ff-form ff-toolbar"
+        @submit.prevent
+      >
         <el-form-item prop="keywords" label="关键字" class="mb-0">
           <el-input
             v-model="queryParams.keywords"
             placeholder="日志内容"
             clearable
-            class="minimal-input"
             @keyup.enter="handleQuery"
           />
         </el-form-item>
@@ -23,31 +27,23 @@
             end-placeholder="截止时间"
             value-format="YYYY-MM-DD"
             style="width: 200px"
-            class="minimal-input"
           />
         </el-form-item>
 
-        <el-form-item class="search-buttons mb-0 ml-auto">
-          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">
+        <el-form-item class="ff-toolbar__actions">
+          <el-button type="primary" icon="search" class="ff-button-primary" @click="handleQuery">
             搜索
           </el-button>
-          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">
+          <el-button icon="refresh" class="ff-button-secondary" @click="handleResetQuery">
             重置
           </el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </FilterPanel>
 
-    <div class="glass-panel p-5 flex-1 flex flex-col overflow-hidden">
-      <div class="flex justify-between items-center mb-4">
-        <div class="flex items-center gap-2">
-          <div class="w-1.5 h-4 bg-primary rounded-full"></div>
-          <span class="text-base font-semibold text-slate-700 tracking-wide">操作日志</span>
-        </div>
-      </div>
-
-      <div class="flex-1 overflow-hidden border border-slate-100/50 rounded-xl bg-white/20">
-        <el-table v-loading="loading" :data="pageData" highlight-current-row class="minimal-table">
+    <DataPanel title="操作日志">
+      <div class="ff-table-wrap">
+        <el-table v-loading="loading" :data="pageData" highlight-current-row class="ff-table">
           <el-table-column label="操作时间" prop="createTime" width="180" />
           <el-table-column label="操作人" prop="operator" width="120" />
           <el-table-column label="日志模块" prop="module" width="100" />
@@ -60,16 +56,18 @@
         </el-table>
       </div>
 
-      <pagination
-        v-if="total > 0"
-        v-model:total="total"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
-        class="minimal-pagination mt-4"
-        @pagination="fetchData"
-      />
-    </div>
-  </div>
+      <template #footer>
+        <pagination
+          v-if="total > 0"
+          v-model:total="total"
+          v-model:page="queryParams.pageNum"
+          v-model:limit="queryParams.pageSize"
+          class="mt-4"
+          @pagination="fetchData"
+        />
+      </template>
+    </DataPanel>
+  </PageShell>
 </template>
 
 <script setup lang="ts">

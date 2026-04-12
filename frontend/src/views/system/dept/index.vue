@@ -1,52 +1,47 @@
 <template>
-  <div class="app-container p-4 md:p-6 flex flex-col gap-4">
-    <div class="glass-panel p-5">
-      <el-form ref="queryFormRef" :model="queryParams" :inline="true" class="minimal-form mb-0">
+  <PageShell class="ff-dept-page">
+    <FilterPanel>
+      <el-form
+        ref="queryFormRef"
+        :model="queryParams"
+        :inline="true"
+        class="ff-form ff-toolbar"
+        @submit.prevent
+      >
         <el-form-item label="关键字" prop="search" class="mb-0">
           <el-input
             v-model="queryParams.search"
             placeholder="输入部门名称"
-            class="minimal-input"
             @keyup.enter="handleQuery"
           />
         </el-form-item>
 
         <el-form-item label="部门状态" prop="status" class="mb-0">
-          <el-select
-            v-model="queryParams.status"
-            placeholder="全部"
-            clearable
-            class="minimal-input"
-            style="width: 120px"
-          >
+          <el-select v-model="queryParams.status" placeholder="全部" clearable style="width: 120px">
             <el-option :value="1" label="正常" />
             <el-option :value="0" label="禁用" />
           </el-select>
         </el-form-item>
 
-        <el-form-item class="search-buttons mb-0 ml-auto">
-          <el-button type="primary" icon="search" class="minimal-btn" @click="handleQuery">
+        <el-form-item class="ff-toolbar__actions">
+          <el-button type="primary" icon="search" class="ff-button-primary" @click="handleQuery">
             搜索
           </el-button>
-          <el-button icon="refresh" class="minimal-btn-plain" @click="handleResetQuery">
+          <el-button icon="refresh" class="ff-button-secondary" @click="handleResetQuery">
             重置
           </el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </FilterPanel>
 
-    <div class="glass-panel p-5 flex-1 flex flex-col overflow-hidden">
-      <div class="flex justify-between items-center mb-4">
-        <div class="flex items-center gap-2">
-          <div class="w-1.5 h-4 bg-primary rounded-full"></div>
-          <span class="text-base font-semibold text-slate-700 tracking-wide">部门数据</span>
-        </div>
-        <div class="flex gap-2">
+    <DataPanel title="部门数据">
+      <template #actions>
+        <div class="ff-button-group">
           <el-button
             v-hasPerm="['system:departments:add']"
             type="primary"
             icon="plus"
-            class="minimal-btn"
+            class="ff-button-primary"
             @click="handleOpenDialog()"
           >
             新增部门
@@ -57,15 +52,15 @@
             plain
             :disabled="selectIds.length === 0"
             icon="delete"
-            class="minimal-btn-danger"
+            class="ff-button-danger"
             @click="handleDelete()"
           >
             批量删除
           </el-button>
         </div>
-      </div>
+      </template>
 
-      <div class="flex-1 overflow-hidden border border-slate-100/50 rounded-xl bg-white/20">
+      <div class="ff-table-wrap">
         <el-table
           v-loading="loading"
           :data="deptList"
@@ -73,7 +68,7 @@
           highlight-current-row
           default-expand-all
           :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
-          class="minimal-table"
+          class="ff-table"
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="55" align="center" />
@@ -89,7 +84,7 @@
             <template #default="scope">
               <el-tag
                 :type="scope.row.status == 1 ? 'success' : 'info'"
-                class="minimal-tag"
+                class="ff-status-tag"
                 :class="scope.row.status == 1 ? 'success' : 'info'"
               >
                 {{ scope.row.status == 1 ? "正常" : "禁用" }}
@@ -132,13 +127,13 @@
           </el-table-column>
         </el-table>
       </div>
-    </div>
+    </DataPanel>
 
     <el-dialog
       v-model="dialog.visible"
       :title="dialog.title"
       width="600px"
-      class="minimal-dialog"
+      class="ff-dialog"
       @closed="handleCloseDialog"
     >
       <el-form
@@ -146,7 +141,7 @@
         :model="formData"
         :rules="rules"
         label-width="80px"
-        class="minimal-form pt-4"
+        class="ff-form pt-4"
       >
         <el-form-item label="上级部门" prop="parentId">
           <el-tree-select
@@ -157,11 +152,11 @@
             node-key="id"
             check-strictly
             :render-after-expand="false"
-            class="minimal-input w-full"
+            class="w-full"
           />
         </el-form-item>
         <el-form-item label="部门名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入部门名称" class="minimal-input" />
+          <el-input v-model="formData.name" placeholder="请输入部门名称" />
         </el-form-item>
         <el-form-item label="显示排序" prop="sort">
           <el-input-number
@@ -169,7 +164,6 @@
             controls-position="right"
             style="width: 120px"
             :min="0"
-            class="minimal-input"
           />
         </el-form-item>
         <el-form-item label="部门状态">
@@ -182,12 +176,14 @@
 
       <template #footer>
         <div class="dialog-footer flex justify-end gap-2">
-          <el-button class="minimal-btn-plain" @click="handleCloseDialog">取 消</el-button>
-          <el-button type="primary" class="minimal-btn" @click="handleSubmit">确 定</el-button>
+          <el-button class="ff-button-secondary" @click="handleCloseDialog">取 消</el-button>
+          <el-button type="primary" class="ff-button-primary" @click="handleSubmit">
+            确 定
+          </el-button>
         </div>
       </template>
     </el-dialog>
-  </div>
+  </PageShell>
 </template>
 
 <script setup lang="ts">
@@ -326,10 +322,3 @@ onMounted(() => {
   handleQuery();
 });
 </script>
-
-<!-- 页面特定样式 (scoped) -->
-<style scoped lang="scss">
-/* 页面特定样式 - 无 */
-</style>
-
-<!-- 全局穿透样式已统一至 @/styles/_minimal-saas.scss，此处不再重复定义 -->

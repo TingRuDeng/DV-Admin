@@ -9,7 +9,7 @@ The frontend style system is organized in this order:
 - `tokens`: shared design values such as color, spacing, radius, shadow, motion, and z-index
 - `theme`: light/dark mode and Element Plus variable bridges
 - `foundation`: reset, base document styles, and page-shell layout rules
-- `skins`: reusable panel, form, table, dialog, drawer, tag, button, and toolbar appearances
+- `skins`: reusable panel, form, table, dialog, drawer, tag, button, toolbar, menu, tree, and chrome appearances
 - `pages`: page-only exceptions for route views that have already been migrated
 
 ## Page composition rule

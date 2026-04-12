@@ -7,7 +7,20 @@
   --el-table-tr-bg-color: transparent;
 }
 
+.minimal-table {
+  background: transparent !important;
+  --el-table-border-color: rgba(0, 0, 0, 0.04);
+  --el-table-header-bg-color: rgba(0, 0, 0, 0.02);
+  --el-table-header-text-color: var(--el-text-color-regular);
+  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.6);
+  --el-table-tr-bg-color: transparent;
+}
+
 .ff-table .el-table__inner-wrapper::before {
+  display: none;
+}
+
+.minimal-table .el-table__inner-wrapper::before {
   display: none;
 }
 
@@ -16,7 +29,16 @@
   border-bottom: 2px solid rgba(0, 0, 0, 0.06) !important;
 }
 
+.minimal-table th.el-table__cell {
+  font-weight: 600;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.06) !important;
+}
+
 .ff-table td.el-table__cell {
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.04) !important;
+}
+
+.minimal-table td.el-table__cell {
   border-bottom: 1px dashed rgba(0, 0, 0, 0.04) !important;
 }
 
@@ -29,4 +51,95 @@
 
 html.dark .ff-table-wrap {
   background: rgba(15, 23, 42, 0.28);
+}
+
+.minimal-pagination {
+  justify-content: flex-end;
+}
+
+.minimal-pagination button,
+.minimal-pagination li {
+  background: transparent !important;
+}
+
+.minimal-pagination li.is-active {
+  color: white !important;
+  background: var(--el-color-primary) !important;
+  border-radius: 6px;
+}
+
+.minimal-table .el-button.is-link {
+  height: auto !important;
+  padding: 6px 10px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.minimal-table .el-button--primary.is-link {
+  color: var(--el-text-color-regular) !important;
+}
+
+.minimal-table .el-button--primary.is-link:hover {
+  color: var(--el-color-primary) !important;
+  background-color: rgba(64, 128, 255, 0.1) !important;
+}
+
+.minimal-table .el-button--danger.is-link {
+  color: var(--el-text-color-secondary) !important;
+}
+
+.minimal-table .el-button--danger.is-link:hover {
+  color: #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+.minimal-table .el-table__cell .cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+html.dark {
+  .minimal-table {
+    --el-table-bg-color: transparent;
+    --el-table-tr-bg-color: transparent;
+    --el-table-border-color: rgba(255, 255, 255, 0.1);
+    --el-table-header-bg-color: rgba(255, 255, 255, 0.05);
+    --el-table-header-text-color: #e2e8f0;
+    --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.08);
+    --el-table-text-color: #e2e8f0;
+    color: #e2e8f0 !important;
+  }
+
+  .minimal-table th.el-table__cell {
+    color: #f1f5f9 !important;
+    background-color: rgba(30, 41, 59, 0.8) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .minimal-table td.el-table__cell {
+    color: #e2e8f0 !important;
+    background-color: transparent !important;
+    border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .minimal-table .el-button--primary.is-link {
+    color: #cbd5e1 !important;
+  }
+
+  .minimal-table .el-button--primary.is-link:hover {
+    color: #818cf8 !important;
+    background-color: rgba(129, 140, 248, 0.15) !important;
+  }
+
+  .minimal-table .el-button--danger.is-link {
+    color: #94a3b8 !important;
+  }
+
+  .minimal-table .el-button--danger.is-link:hover {
+    color: #f87171 !important;
+    background-color: rgba(239, 68, 68, 0.15) !important;
+  }
 }
