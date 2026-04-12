@@ -1,0 +1,47 @@
+.ff-filter-panel,
+.ff-data-panel,
+.ff-side-panel {
+  background: rgba(255, 255, 255, 0.72);
+  background-color: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--ff-color-border-soft);
+  border-radius: var(--ff-radius-panel);
+  box-shadow: var(--ff-shadow-panel);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
+.ff-filter-panel {
+  padding: var(--ff-panel-padding-lg);
+}
+
+.ff-data-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding: var(--ff-panel-padding-lg);
+}
+
+.ff-data-panel__header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.ff-data-panel__body {
+  flex: 1;
+  min-height: 0;
+}
+
+.ff-data-panel__footer {
+  margin-top: 1rem;
+}
+
+html.dark .ff-filter-panel,
+html.dark .ff-data-panel,
+html.dark .ff-side-panel {
+  background: rgba(15, 23, 42, 0.74);
+  background-color: rgba(15, 23, 42, 0.74);
+}

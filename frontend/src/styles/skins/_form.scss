@@ -1,0 +1,16 @@
+.ff-form .el-form-item {
+  margin-bottom: 0;
+}
+
+.ff-form .el-form-item__label {
+  font-weight: 500;
+  color: var(--el-text-color-regular);
+}
+
+.ff-form .el-input__wrapper,
+.ff-form .el-select__wrapper,
+.ff-form .el-textarea__inner,
+.ff-form .el-tree-select__wrapper {
+  border-radius: var(--ff-radius-control);
+  box-shadow: var(--ff-shadow-control);
+}

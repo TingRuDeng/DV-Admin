@@ -1,0 +1,37 @@
+.ff-role-page .permission-tree {
+  padding: 1rem;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+}
+
+.ff-role-page .permission-tree :deep(.el-tree-node__content) {
+  height: 36px;
+  padding: 0 8px;
+  margin-bottom: 4px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.ff-role-page .permission-tree :deep(.el-tree-node__content:hover) {
+  background-color: #e2e8f0;
+}
+
+.ff-role-page .permission-tree :deep(.el-tree-node.is-current > .el-tree-node__content) {
+  color: #6366f1;
+  background-color: rgba(99, 102, 241, 0.1);
+}
+
+html.dark .ff-role-page .permission-tree {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .ff-role-page .permission-tree :deep(.el-tree-node__content:hover) {
+  background-color: #334155;
+}
+
+html.dark .ff-role-page .permission-tree :deep(.el-tree-node.is-current > .el-tree-node__content) {
+  color: #818cf8;
+  background-color: rgba(129, 140, 248, 0.15);
+}

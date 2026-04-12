@@ -1,0 +1,32 @@
+.ff-table {
+  background: transparent !important;
+  --el-table-border-color: rgba(0, 0, 0, 0.04);
+  --el-table-header-bg-color: rgba(0, 0, 0, 0.02);
+  --el-table-header-text-color: var(--el-text-color-regular);
+  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.6);
+  --el-table-tr-bg-color: transparent;
+}
+
+.ff-table .el-table__inner-wrapper::before {
+  display: none;
+}
+
+.ff-table th.el-table__cell {
+  font-weight: 600;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.ff-table td.el-table__cell {
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.04) !important;
+}
+
+.ff-table-wrap {
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--ff-color-border-soft);
+  border-radius: calc(var(--ff-radius-panel) - 2px);
+}
+
+html.dark .ff-table-wrap {
+  background: rgba(15, 23, 42, 0.28);
+}

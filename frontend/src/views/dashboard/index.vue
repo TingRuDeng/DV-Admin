@@ -1,25 +1,21 @@
 <template>
-  <div class="app-container p-4 md:p-6">
-    <div class="glass-panel p-5">
-      <!-- github 角标 -->
-      <github-corner class="github-corner" />
+  <PageShell>
+    <section class="ff-page-shell__hero ff-page-shell__hero--dashboard">
+      <GithubCorner class="github-corner" />
 
-      <div class="flex flex-wrap">
-        <!-- 左侧问候语区域 -->
-        <div class="flex-1 flex items-start">
+      <div class="ff-dashboard__top">
+        <div class="ff-dashboard__greeting">
           <img
-            class="w-20 h-20 rounded-full"
+            class="ff-dashboard__avatar"
             :src="userStore.userInfo.avatar + '?imageView2/1/w/80/h/80'"
           />
-          <div class="ml-5">
-            <p class="text-lg font-medium text-slate-700">{{ greetings }}</p>
+          <div class="ff-dashboard__copy">
+            <p class="ff-dashboard__headline">{{ greetings }}</p>
           </div>
         </div>
 
-        <!-- 右侧图标区域 - PC端 -->
-        <div class="hidden sm:block">
+        <div class="ff-dashboard__links hidden sm:block">
           <div class="flex items-end space-x-6">
-            <!-- 文档 -->
             <div>
               <div class="font-bold color-#4080ff text-sm flex items-center">
                 <el-icon class="mr-2px"><Document /></el-icon>
@@ -39,8 +35,6 @@
                 </el-link>
               </div>
             </div>
-
-            <!-- 视频 -->
             <div>
               <div class="font-bold color-#f76560 text-sm flex items-center">
                 <el-icon class="mr-2px"><VideoCamera /></el-icon>
@@ -55,10 +49,8 @@
           </div>
         </div>
 
-        <!-- 移动端图标区域 -->
-        <div class="w-full sm:hidden mt-3">
+        <div class="ff-dashboard__mobile-links w-full sm:hidden mt-3">
           <div class="flex justify-end space-x-4 overflow-x-auto">
-            <!-- 文档图标 -->
             <el-link href="" target="_blank">
               <div class="i-svg:juejin text-lg" />
             </el-link>
@@ -68,16 +60,14 @@
             <el-link href="" target="_blank">
               <div class="i-svg:cnblogs text-lg" />
             </el-link>
-
-            <!-- 视频图标 -->
             <el-link href="" target="_blank">
               <div class="i-svg:bilibili text-lg" />
             </el-link>
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </section>
+  </PageShell>
 </template>
 
 <script setup lang="ts">
@@ -86,6 +76,8 @@ defineOptions({
   inheritAttrs: false,
 });
 
+import PageShell from "@/components/PageShell/index.vue";
+import GithubCorner from "@/components/GithubCorner/index.vue";
 // import { dayjs } from "element-plus";
 // import LogAPI, { VisitStatsVO, VisitTrendVO } from "@/api/system/log-api";
 import { useUserStore } from "@/store/modules/user-store";
@@ -350,7 +342,3 @@ onMounted(() => {
   // fetchVisitStatsData();
 });
 </script>
-
-<style lang="scss" scoped>
-@use "@/styles/pages/dashboard";
-</style>

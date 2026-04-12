@@ -1,0 +1,12 @@
+.ff-button-primary,
+.ff-button-secondary,
+.ff-button-danger,
+.ff-button-success {
+  border-radius: var(--ff-radius-control);
+}
+
+.ff-button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
