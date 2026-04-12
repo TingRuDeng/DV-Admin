@@ -1,0 +1,18 @@
+.ff-dialog,
+.ff-dialog.el-dialog {
+  border-radius: var(--ff-radius-panel);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+}
+
+.ff-dialog .el-dialog__header,
+.ff-dialog.el-dialog .el-dialog__header {
+  padding-bottom: 1rem;
+  margin-right: 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.ff-dialog .el-dialog__title,
+.ff-dialog.el-dialog .el-dialog__title {
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}

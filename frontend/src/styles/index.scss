@@ -1,29 +1,13 @@
-// ============================================
-// DV-Admin 全局样式入口
-// ============================================
-
-// 设计系统
+@use "./tokens";
+@use "./theme";
+@use "./foundation";
+@use "./skins";
+@use "./pages";
 @use "./design-system";
-
-// 重置样式
-@use "./reset";
-
-// Element Plus 定制
 @use "./element-plus";
-
-// Element Plus 组件深度定制
 @use "./element-plus-custom";
-
-// 页面样式
-@use "./pages/system";
-
-// 响应式设计
 @use "./responsive";
-
-// 极简 SaaS 风格全局样式
 @use "./minimal-saas";
-
-// Vxe Table
 @use "./vxe-table";
 @import url("./vxe-table.css");
 
@@ -47,6 +31,7 @@ html.dark {
   body,
   #app,
   .app-wrapper {
+    color: #e2e8f0 !important;
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
   }
 }
