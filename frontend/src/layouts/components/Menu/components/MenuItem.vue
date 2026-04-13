@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!item.meta || !item.meta.hidden">
+  <template v-if="!item.meta || !item.meta.hidden">
     <!--【叶子节点】显示叶子节点或唯一子节点且父节点未配置始终显示 -->
     <template
       v-if="
@@ -11,24 +11,25 @@
         (item.meta?.alwaysShow && !item.children)
       "
     >
-      <AppLink
-        v-if="onlyOneChild.meta"
-        :to="{
-          path: resolvePath(onlyOneChild.path),
-          query: onlyOneChild.meta.params,
-        }"
+      <el-menu-item
+        :index="resolvePath(onlyOneChild.path)"
+        :class="{ 'submenu-title-noDropdown': !isNest }"
       >
-        <el-menu-item
-          :index="resolvePath(onlyOneChild.path)"
-          :class="{ 'submenu-title-noDropdown': !isNest }"
+        <AppLink
+          v-if="onlyOneChild.meta"
+          class="menu-item-link"
+          :to="{
+            path: resolvePath(onlyOneChild.path),
+            query: onlyOneChild.meta.params,
+          }"
         >
           <MenuItemContent
             v-if="onlyOneChild.meta"
             :icon="onlyOneChild.meta.icon || item.meta?.icon"
             :title="onlyOneChild.meta.title"
           />
-        </el-menu-item>
-      </AppLink>
+        </AppLink>
+      </el-menu-item>
     </template>
 
     <!--【非叶子节点】显示含多个子节点的父菜单，或始终显示的单子节点 -->
@@ -45,7 +46,7 @@
         :base-path="resolvePath(child.path)"
       />
     </el-sub-menu>
-  </div>
+  </template>
 </template>
 
 <script setup lang="ts">
@@ -186,17 +187,49 @@ html.sidebar-color-blue {
   }
 }
 
-.hideSidebar {
-  .submenu-title-noDropdown {
-    position: relative;
+.menu-item-link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  color: inherit;
+}
 
-    & > span {
-      display: inline-block;
-      visibility: hidden;
-      width: 0;
-      height: 0;
-      overflow: hidden;
-    }
+.el-menu--collapse {
+  width: $sidebar-width-collapsed;
+
+  /* stylelint-disable-next-line no-descending-specificity */
+  > .el-menu-item,
+  /* stylelint-disable-next-line no-descending-specificity */
+  > .el-sub-menu > .el-sub-menu__title {
+    justify-content: center;
+    padding: 0 !important;
+  }
+
+  > .el-menu-item.submenu-title-noDropdown {
+    position: relative;
+  }
+
+  > .el-menu-item > .menu-item-link {
+    justify-content: center;
+  }
+
+  > .el-menu-item > .menu-item-link .menu-title {
+    display: none !important;
+  }
+
+  > .el-menu-item .el-menu-tooltip__trigger {
+    left: 0;
+    justify-content: center;
+    width: 100%;
+    padding: 0 !important;
+    transform: none;
+  }
+
+  /* stylelint-disable-next-line no-descending-specificity */
+  > .el-menu-item .menu-icon {
+    margin-right: 0 !important;
   }
 
   .el-sub-menu {
@@ -211,27 +244,19 @@ html.sidebar-color-blue {
         display: none;
       }
     }
-  }
 
-  .el-menu--collapse {
-    width: $sidebar-width-collapsed;
-
-    /* stylelint-disable-next-line no-descending-specificity */
-    > .el-menu-item,
-    /* stylelint-disable-next-line no-descending-specificity */
-    > .el-sub-menu > .el-sub-menu__title {
-      justify-content: center;
-      padding: 0 !important;
+    & > .el-sub-menu__title > span {
+      display: inline-block;
+      visibility: hidden;
+      width: 0;
+      height: 0;
+      margin-left: 0 !important;
+      overflow: hidden;
     }
 
-    .el-sub-menu {
-      & > .el-sub-menu__title > span {
-        display: inline-block;
-        visibility: hidden;
-        width: 0;
-        height: 0;
-        overflow: hidden;
-      }
+    /* stylelint-disable-next-line no-descending-specificity */
+    & > .el-sub-menu__title .menu-icon {
+      margin-right: 0 !important;
     }
   }
 }
