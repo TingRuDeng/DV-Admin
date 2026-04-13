@@ -37,4 +37,8 @@ const iconComponent = computed(() => props.icon?.replace("el-icon-", ""));
   font-size: 18px;
   color: currentcolor;
 }
+
+:global(.hideSidebar) .menu-icon {
+  margin-right: 0;
+}
 </style>
