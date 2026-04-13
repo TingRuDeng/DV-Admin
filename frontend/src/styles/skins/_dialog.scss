@@ -1,8 +1,6 @@
 /* stylelint-disable no-descending-specificity */
 .ff-dialog,
 .ff-dialog.el-dialog {
-  background: rgba(255, 255, 255, 0.82);
-  background-color: rgba(255, 255, 255, 0.82);
   border-radius: var(--ff-radius-panel);
   box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
 }
@@ -11,8 +9,6 @@
 .ff-dialog.el-dialog .el-dialog__header {
   padding-bottom: 1rem;
   margin-right: 0;
-  background: linear-gradient(135deg, rgba(248, 250, 252, 0.96) 0%, rgba(255, 255, 255, 0.88) 100%);
-  background-color: rgba(248, 250, 252, 0.96);
   border-bottom: 1px solid #f1f5f9;
 }
 
@@ -28,8 +24,6 @@
 
 .ff-dialog .el-dialog__footer {
   padding: 16px 20px;
-  background: linear-gradient(180deg, rgba(248, 250, 252, 0.92) 0%, rgba(241, 245, 249, 0.82) 100%);
-  background-color: rgba(248, 250, 252, 0.92);
   border-top: 1px solid #f1f5f9;
 }
 

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { compile } from "sass";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 function injectStyle(cssText: string) {
@@ -258,19 +259,30 @@ describe("dark theme utility overrides", () => {
     );
   });
 
-  it("uses layered chrome for ff dialogs and drawers in light mode", () => {
+  it("lets ff dialogs and drawers inherit the global light-mode chrome", () => {
     const indexScssPath = resolve(process.cwd(), "src/styles/index.scss");
+    const dialogSkinPath = resolve(process.cwd(), "src/styles/skins/_dialog.scss");
+    const drawerSkinPath = resolve(process.cwd(), "src/styles/skins/_drawer.scss");
     const css = compile(indexScssPath).css;
+    const dialogSkin = readFileSync(dialogSkinPath, "utf8");
+    const drawerSkin = readFileSync(drawerSkinPath, "utf8");
+    const dialogLightSkin = dialogSkin.split("html.dark")[0];
+    const drawerLightSkin = drawerSkin.split("html.dark")[0];
 
-    expect(css).toContain(".ff-dialog .el-dialog__header");
-    expect(css).toContain(".ff-dialog .el-dialog__footer");
-    expect(css).toContain(".ff-drawer .el-drawer__header");
-    expect(css).toContain(".ff-drawer .el-drawer__footer");
     expect(css).toContain(
-      "background: linear-gradient(135deg, rgba(248, 250, 252, 0.96) 0%, rgba(255, 255, 255, 0.88) 100%);"
+      "background: linear-gradient(135deg, var(--gray-50, #f9fafb) 0%, #ffffff 100%);"
     );
-    expect(css).toContain(
-      "background: linear-gradient(180deg, rgba(248, 250, 252, 0.92) 0%, rgba(241, 245, 249, 0.82) 100%);"
+    expect(dialogLightSkin).not.toMatch(
+      /\.ff-dialog[\s\S]*?\.el-dialog__header[\s\S]*?\{[^}]*background:/
+    );
+    expect(dialogLightSkin).not.toMatch(
+      /\.ff-dialog[\s\S]*?\.el-dialog__footer[\s\S]*?\{[^}]*background:/
+    );
+    expect(drawerLightSkin).not.toMatch(
+      /\.ff-drawer[\s\S]*?\.el-drawer__header[\s\S]*?\{[^}]*background:/
+    );
+    expect(drawerLightSkin).not.toMatch(
+      /\.ff-drawer[\s\S]*?\.el-drawer__footer[\s\S]*?\{[^}]*background:/
     );
   });
 });
