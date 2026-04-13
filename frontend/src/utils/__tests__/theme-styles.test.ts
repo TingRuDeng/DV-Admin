@@ -152,4 +152,31 @@ describe("dark theme utility overrides", () => {
     expect(getComputedStyle(filterPanel).borderRadius).toBe("16px");
     expect(getComputedStyle(dataPanel).backgroundColor).not.toBe("");
   });
+
+  it("keeps field spacing for regular ff forms while collapsing toolbar forms", () => {
+    const indexScssPath = resolve(process.cwd(), "src/styles/index.scss");
+    const css = compile(indexScssPath).css;
+
+    injectStyle(css);
+    document.body.innerHTML = `
+      <form class="el-form ff-form">
+        <div class="el-form-item">
+          <label class="el-form-item__label">用户名</label>
+        </div>
+      </form>
+      <form class="el-form ff-form ff-toolbar">
+        <div class="el-form-item">
+          <label class="el-form-item__label">关键字</label>
+        </div>
+      </form>
+    `;
+
+    const regularItem = document.querySelector(
+      ".ff-form:not(.ff-toolbar) .el-form-item"
+    ) as HTMLElement;
+    const toolbarItem = document.querySelector(".ff-toolbar .el-form-item") as HTMLElement;
+
+    expect(getComputedStyle(regularItem).marginBottom).toBe("20px");
+    expect(getComputedStyle(toolbarItem).marginBottom).toBe("0px");
+  });
 });
