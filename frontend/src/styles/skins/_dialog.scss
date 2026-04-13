@@ -1,6 +1,8 @@
 /* stylelint-disable no-descending-specificity */
 .ff-dialog,
 .ff-dialog.el-dialog {
+  background: rgba(255, 255, 255, 0.82);
+  background-color: rgba(255, 255, 255, 0.82);
   border-radius: var(--ff-radius-panel);
   box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
 }
@@ -9,6 +11,8 @@
 .ff-dialog.el-dialog .el-dialog__header {
   padding-bottom: 1rem;
   margin-right: 0;
+  background: rgba(248, 250, 252, 0.72);
+  background-color: rgba(248, 250, 252, 0.72);
   border-bottom: 1px solid #f1f5f9;
 }
 
@@ -24,6 +28,8 @@
 
 .ff-dialog .el-dialog__footer {
   padding: 16px 20px;
+  background: rgba(248, 250, 252, 0.88);
+  background-color: rgba(248, 250, 252, 0.88);
   border-top: 1px solid #f1f5f9;
 }
 
@@ -34,10 +40,13 @@ html.dark {
 
   .ff-dialog {
     background: #1e293b;
+    background-color: #1e293b;
     box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
   }
 
   .ff-dialog .el-dialog__header {
+    background: rgba(30, 41, 59, 0.92);
+    background-color: rgba(30, 41, 59, 0.92);
     border-bottom-color: #334155;
   }
 
@@ -46,6 +55,8 @@ html.dark {
   }
 
   .ff-dialog .el-dialog__footer {
+    background: rgba(30, 41, 59, 0.96);
+    background-color: rgba(30, 41, 59, 0.96);
     border-top-color: #334155;
   }
 }

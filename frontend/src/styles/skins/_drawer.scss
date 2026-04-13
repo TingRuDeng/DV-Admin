@@ -2,6 +2,8 @@
 .ff-drawer.el-drawer .el-drawer__header {
   padding-bottom: 1rem;
   margin-bottom: 0;
+  background: rgba(248, 250, 252, 0.72);
+  background-color: rgba(248, 250, 252, 0.72);
   border-bottom: 1px solid #f1f5f9;
 }
 
@@ -12,6 +14,8 @@
 
 .ff-drawer .el-drawer__footer,
 .ff-drawer.el-drawer .el-drawer__footer {
+  background: rgba(248, 250, 252, 0.88);
+  background-color: rgba(248, 250, 252, 0.88);
   border-top: 1px solid #f1f5f9;
 }
 
@@ -23,6 +27,7 @@ html.dark .ff-drawer,
 html.dark .ff-drawer.el-drawer {
   color: #e2e8f0 !important;
   background: #1e293b;
+  background-color: #1e293b;
 }
 
 html.dark .ff-drawer,
@@ -32,6 +37,8 @@ html.dark .ff-drawer * {
 
 html.dark .ff-drawer .el-drawer__header,
 html.dark .ff-drawer.el-drawer .el-drawer__header {
+  background: rgba(30, 41, 59, 0.92);
+  background-color: rgba(30, 41, 59, 0.92);
   border-bottom-color: #334155;
 }
 
@@ -42,5 +49,7 @@ html.dark .ff-drawer.el-drawer .el-drawer__body {
 
 html.dark .ff-drawer .el-drawer__footer,
 html.dark .ff-drawer.el-drawer .el-drawer__footer {
+  background: rgba(30, 41, 59, 0.96);
+  background-color: rgba(30, 41, 59, 0.96);
   border-top-color: #334155;
 }

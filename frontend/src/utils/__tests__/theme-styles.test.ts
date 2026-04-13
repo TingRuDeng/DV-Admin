@@ -257,4 +257,16 @@ describe("dark theme utility overrides", () => {
       "currentColor"
     );
   });
+
+  it("uses panel-toned chrome for ff dialogs and drawers instead of flat white blocks", () => {
+    const indexScssPath = resolve(process.cwd(), "src/styles/index.scss");
+    const css = compile(indexScssPath).css;
+
+    expect(css).toContain(".ff-dialog .el-dialog__header");
+    expect(css).toContain(".ff-dialog .el-dialog__footer");
+    expect(css).toContain(".ff-drawer .el-drawer__header");
+    expect(css).toContain(".ff-drawer .el-drawer__footer");
+    expect(css).toContain("background-color: rgba(248, 250, 252, 0.72);");
+    expect(css).toContain("background-color: rgba(248, 250, 252, 0.88);");
+  });
 });
