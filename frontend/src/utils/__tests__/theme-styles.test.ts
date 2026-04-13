@@ -219,4 +219,42 @@ describe("dark theme utility overrides", () => {
       "currentColor"
     );
   });
+
+  it("keeps message box prompts readable in dark mode", () => {
+    const indexScssPath = resolve(process.cwd(), "src/styles/index.scss");
+    const css = compile(indexScssPath).css;
+
+    injectStyle(css);
+    document.body.innerHTML = `
+      <div class="el-message-box">
+        <div class="el-message-box__header">
+          <div class="el-message-box__title">重置密码</div>
+        </div>
+        <div class="el-message-box__content">
+          <div class="el-message-box__message">请输入用户【admin】的新密码</div>
+          <div class="el-message-box__input">
+            <div class="el-input">
+              <div class="el-input__wrapper">
+                <input class="el-input__inner" value="123456" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.documentElement.classList.add("dark");
+
+    const box = document.querySelector(".el-message-box") as HTMLElement;
+    const title = document.querySelector(".el-message-box__title") as HTMLElement;
+    const message = document.querySelector(".el-message-box__message") as HTMLElement;
+    const input = document.querySelector(".el-input__inner") as HTMLInputElement;
+
+    expect(getComputedStyle(box).backgroundColor).not.toBe("");
+    expect(getComputedStyle(title).color).not.toBe("");
+    expect(getComputedStyle(message).color).not.toBe("");
+    expect(getComputedStyle(input).color).toBe("#f1f5f9");
+    expect(getComputedStyle(input).getPropertyValue("-webkit-text-fill-color")).toBe(
+      "currentColor"
+    );
+  });
 });
