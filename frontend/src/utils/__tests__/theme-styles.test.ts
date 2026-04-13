@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { compile } from "sass";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 function injectStyle(cssText: string) {
@@ -67,6 +68,39 @@ describe("dark theme utility overrides", () => {
     );
   });
 
+  it("keeps slate utility badges readable inside ff page shells in dark mode", () => {
+    const resetScssPath = resolve(process.cwd(), "src/styles/reset.scss");
+    const minimalSaasScssPath = resolve(process.cwd(), "src/styles/_minimal-saas.scss");
+    const resetCss = compile(resetScssPath).css;
+    const minimalSaasCss = compile(minimalSaasScssPath).css;
+
+    injectStyle(`
+      :root {
+        --el-text-color-primary: rgb(30, 41, 59);
+        --el-text-color-secondary: rgb(148, 163, 184);
+      }
+
+      html.dark {
+        --el-text-color-primary: rgb(241, 245, 249);
+        --el-text-color-secondary: rgb(203, 213, 225);
+      }
+    `);
+    injectStyle(resetCss);
+    injectStyle(minimalSaasCss);
+
+    document.body.innerHTML = `
+      <section class="ff-page-shell">
+        <span class="text-slate-400 font-mono bg-slate-50 px-2 py-0.5 rounded-md">10</span>
+      </section>
+    `;
+    document.documentElement.classList.add("dark");
+
+    const badge = document.querySelector(".text-slate-400") as HTMLSpanElement;
+
+    expect(getComputedStyle(badge).color).toBe("rgb(203, 213, 225)");
+    expect(getComputedStyle(badge).backgroundColor).toBe("rgba(255, 255, 255, 0.08)");
+  });
+
   it("forces webkit text fill to follow current text color inside dark layout containers", () => {
     const resetScssPath = resolve(process.cwd(), "src/styles/reset.scss");
     const minimalSaasScssPath = resolve(process.cwd(), "src/styles/_minimal-saas.scss");
@@ -103,12 +137,12 @@ describe("dark theme utility overrides", () => {
 
   it("keeps teleported dropdown items readable in dark mode", () => {
     const resetScssPath = resolve(process.cwd(), "src/styles/reset.scss");
-    const minimalSaasScssPath = resolve(process.cwd(), "src/styles/_minimal-saas.scss");
+    const darkThemeScssPath = resolve(process.cwd(), "src/styles/theme/_dark.scss");
     const resetCss = compile(resetScssPath).css;
-    const minimalSaasCss = compile(minimalSaasScssPath).css;
+    const darkThemeCss = compile(darkThemeScssPath).css;
 
     injectStyle(resetCss);
-    injectStyle(minimalSaasCss);
+    injectStyle(darkThemeCss);
 
     document.body.innerHTML = `
       <div class="el-popper is-light el-dropdown__popper">
@@ -151,5 +185,159 @@ describe("dark theme utility overrides", () => {
 
     expect(getComputedStyle(filterPanel).borderRadius).toBe("16px");
     expect(getComputedStyle(dataPanel).backgroundColor).not.toBe("");
+  });
+
+  it("keeps field spacing for regular ff forms while collapsing toolbar forms", () => {
+    const indexScssPath = resolve(process.cwd(), "src/styles/index.scss");
+    const css = compile(indexScssPath).css;
+
+    injectStyle(css);
+    document.body.innerHTML = `
+      <form class="el-form ff-form">
+        <div class="el-form-item">
+          <label class="el-form-item__label">用户名</label>
+        </div>
+      </form>
+      <form class="el-form ff-form ff-toolbar">
+        <div class="el-form-item">
+          <label class="el-form-item__label">关键字</label>
+        </div>
+      </form>
+    `;
+
+    const regularItem = document.querySelector(
+      ".ff-form:not(.ff-toolbar) .el-form-item"
+    ) as HTMLElement;
+    const toolbarItem = document.querySelector(".ff-toolbar .el-form-item") as HTMLElement;
+
+    expect(getComputedStyle(regularItem).marginBottom).toBe("20px");
+    expect(getComputedStyle(toolbarItem).marginBottom).toBe("0px");
+  });
+
+  it("keeps ff drawers readable in dark mode", () => {
+    const indexScssPath = resolve(process.cwd(), "src/styles/index.scss");
+    const css = compile(indexScssPath).css;
+
+    injectStyle(css);
+    document.body.innerHTML = `
+      <div class="el-drawer ff-drawer">
+        <header class="el-drawer__header">
+          <span class="el-drawer__title">编辑用户</span>
+        </header>
+        <div class="el-drawer__body">
+          <form class="el-form ff-form">
+            <div class="el-form-item">
+              <label class="el-form-item__label">用户名</label>
+              <div class="el-form-item__content">
+                <div class="el-input">
+                  <div class="el-input__wrapper">
+                    <input class="el-input__inner" value="admin" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+    document.documentElement.classList.add("dark");
+
+    const drawer = document.querySelector(".ff-drawer") as HTMLElement;
+    const label = document.querySelector(".el-form-item__label") as HTMLElement;
+    const input = document.querySelector(".el-input__inner") as HTMLInputElement;
+
+    expect(getComputedStyle(drawer).backgroundColor).toBe("#1e293b");
+    expect(getComputedStyle(label).color).toBe("#cbd5e1");
+    expect(getComputedStyle(input).color).toBe("#f1f5f9");
+    expect(getComputedStyle(input).getPropertyValue("-webkit-text-fill-color")).toBe(
+      "currentColor"
+    );
+  });
+
+  it("keeps message box prompts readable in dark mode", () => {
+    const indexScssPath = resolve(process.cwd(), "src/styles/index.scss");
+    const css = compile(indexScssPath).css;
+
+    injectStyle(css);
+    document.body.innerHTML = `
+      <div class="el-message-box">
+        <div class="el-message-box__header">
+          <div class="el-message-box__title">重置密码</div>
+        </div>
+        <div class="el-message-box__content">
+          <div class="el-message-box__message">请输入用户【admin】的新密码</div>
+          <div class="el-message-box__input">
+            <div class="el-input">
+              <div class="el-input__wrapper">
+                <input class="el-input__inner" value="123456" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.documentElement.classList.add("dark");
+
+    const box = document.querySelector(".el-message-box") as HTMLElement;
+    const title = document.querySelector(".el-message-box__title") as HTMLElement;
+    const message = document.querySelector(".el-message-box__message") as HTMLElement;
+    const input = document.querySelector(".el-input__inner") as HTMLInputElement;
+
+    expect(getComputedStyle(box).backgroundColor).not.toBe("");
+    expect(getComputedStyle(title).color).not.toBe("");
+    expect(getComputedStyle(message).color).not.toBe("");
+    expect(getComputedStyle(input).color).toBe("#f1f5f9");
+    expect(getComputedStyle(input).getPropertyValue("-webkit-text-fill-color")).toBe(
+      "currentColor"
+    );
+  });
+
+  it("keeps info messages readable in dark mode", () => {
+    const indexScssPath = resolve(process.cwd(), "src/styles/index.scss");
+    const css = compile(indexScssPath).css;
+
+    injectStyle(css);
+    document.body.innerHTML = `
+      <div class="el-message el-message--info">
+        <p class="el-message__content">已取消删除</p>
+      </div>
+    `;
+    document.documentElement.classList.add("dark");
+
+    const message = document.querySelector(".el-message") as HTMLElement;
+    const content = document.querySelector(".el-message__content") as HTMLElement;
+
+    expect(getComputedStyle(message).backgroundColor).toBe("rgba(15, 23, 42, 0.96)");
+    expect(getComputedStyle(content).color).toBe("#e2e8f0");
+    expect(getComputedStyle(content).getPropertyValue("-webkit-text-fill-color")).toBe(
+      "currentColor"
+    );
+  });
+
+  it("lets ff dialogs and drawers inherit the global light-mode chrome", () => {
+    const indexScssPath = resolve(process.cwd(), "src/styles/index.scss");
+    const dialogSkinPath = resolve(process.cwd(), "src/styles/skins/_dialog.scss");
+    const drawerSkinPath = resolve(process.cwd(), "src/styles/skins/_drawer.scss");
+    const css = compile(indexScssPath).css;
+    const dialogSkin = readFileSync(dialogSkinPath, "utf8");
+    const drawerSkin = readFileSync(drawerSkinPath, "utf8");
+    const dialogLightSkin = dialogSkin.split("html.dark")[0];
+    const drawerLightSkin = drawerSkin.split("html.dark")[0];
+
+    expect(css).toContain(
+      "background: linear-gradient(135deg, var(--gray-50, #f9fafb) 0%, #ffffff 100%);"
+    );
+    expect(dialogLightSkin).not.toMatch(
+      /\.ff-dialog[\s\S]*?\.el-dialog__header[\s\S]*?\{[^}]*background:/
+    );
+    expect(dialogLightSkin).not.toMatch(
+      /\.ff-dialog[\s\S]*?\.el-dialog__footer[\s\S]*?\{[^}]*background:/
+    );
+    expect(drawerLightSkin).not.toMatch(
+      /\.ff-drawer[\s\S]*?\.el-drawer__header[\s\S]*?\{[^}]*background:/
+    );
+    expect(drawerLightSkin).not.toMatch(
+      /\.ff-drawer[\s\S]*?\.el-drawer__footer[\s\S]*?\{[^}]*background:/
+    );
   });
 });
