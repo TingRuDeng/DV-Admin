@@ -26,6 +26,14 @@ Use UnoCSS mainly for layout and small local utilities. Keep shared visual styli
 
 `_minimal-saas.scss` is now a compatibility layer for non-migrated pages. Do not add new `glass-panel` or `minimal-*` usages in new code.
 
+Treat `_minimal-saas.scss` as a frozen legacy shim. The only allowed responsibilities are:
+
+- text-fill fallback for dark layout containers
+- brand gradient preservation for logo/title text
+- utility-class dark fallbacks under `.app-container`
+
+Legacy `minimal-*` and `glass-panel` aliases are no longer part of the active stylesheet graph.
+
 ## Override rule
 
 Keep `:deep()` and `!important` inside shared skin overrides unless a page-specific exception is unavoidable.

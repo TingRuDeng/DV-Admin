@@ -142,4 +142,32 @@ html.dark {
       border-top-color: var(--border-base, #334155);
     }
   }
+
+  .el-message-box {
+    color: #e2e8f0 !important;
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  .el-message-box,
+  .el-message-box * {
+    -webkit-text-fill-color: currentColor !important;
+  }
+
+  .el-message-box__header {
+    color: #f1f5f9;
+  }
+
+  .el-message-box__title {
+    color: #f1f5f9 !important;
+  }
+
+  .el-message-box__content,
+  .el-message-box__message {
+    color: #e2e8f0 !important;
+  }
+
+  .el-message-box__btns {
+    border-top-color: #334155;
+  }
 }

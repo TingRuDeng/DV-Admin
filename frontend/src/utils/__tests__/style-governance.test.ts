@@ -63,6 +63,17 @@ describe("style governance entrypoint", () => {
     expect(source).not.toContain(".el-menu-item:hover i");
   });
 
+  it("keeps component-level dark fallbacks out of the compatibility shim", () => {
+    const source = readFileSync(resolve(process.cwd(), "src/styles/_minimal-saas.scss"), "utf8");
+
+    expect(source).not.toContain(".el-select__wrapper");
+    expect(source).not.toContain(".el-radio__label");
+    expect(source).not.toContain(".el-input__wrapper");
+    expect(source).not.toContain(".el-pagination button");
+    expect(source).not.toContain(".el-popper.is-light");
+    expect(source).not.toContain(".el-dropdown-menu__item");
+  });
+
   it("documents the new style layers and page shell usage", () => {
     const source = readFileSync(resolve(process.cwd(), "src/styles/README.md"), "utf8");
 
@@ -72,12 +83,41 @@ describe("style governance entrypoint", () => {
     expect(source).toContain("DataPanel");
   });
 
+  it("freezes the compatibility shim behind an explicit legacy whitelist", () => {
+    const shimSource = readFileSync(
+      resolve(process.cwd(), "src/styles/_minimal-saas.scss"),
+      "utf8"
+    );
+    const readmeSource = readFileSync(resolve(process.cwd(), "src/styles/README.md"), "utf8");
+
+    expect(shimSource).toContain("Legacy shim whitelist");
+    expect(readmeSource).toContain("frozen legacy shim");
+    expect(readmeSource).toContain("text-fill fallback");
+    expect(readmeSource).toContain("brand gradient preservation");
+    expect(readmeSource).toContain("utility-class dark fallbacks");
+  });
+
   it("drops dead legacy search and table helpers from the active stylesheet graph", () => {
     const css = compile(resolve(process.cwd(), "src/styles/index.scss")).css;
 
     expect(css).not.toContain(".search-container");
     expect(css).not.toContain(".data-table");
     expect(existsSync(resolve(process.cwd(), "src/styles/pages/_system.scss"))).toBe(false);
+  });
+
+  it("keeps legacy minimal and glass aliases out of the active stylesheet graph", () => {
+    const css = compile(resolve(process.cwd(), "src/styles/index.scss")).css;
+
+    expect(css).not.toContain(".minimal-btn");
+    expect(css).not.toContain(".minimal-form");
+    expect(css).not.toContain(".minimal-input");
+    expect(css).not.toContain(".minimal-table");
+    expect(css).not.toContain(".minimal-dialog");
+    expect(css).not.toContain(".minimal-tag");
+    expect(css).not.toContain(".minimal-search-container");
+    expect(css).not.toContain(".minimal-data-container");
+    expect(css).not.toContain(".minimal-pagination");
+    expect(css).not.toContain(".glass-panel");
   });
 
   it("keeps element-plus custom table overrides free of legacy minimal selectors", () => {
