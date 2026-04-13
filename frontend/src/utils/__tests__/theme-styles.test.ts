@@ -179,4 +179,44 @@ describe("dark theme utility overrides", () => {
     expect(getComputedStyle(regularItem).marginBottom).toBe("20px");
     expect(getComputedStyle(toolbarItem).marginBottom).toBe("0px");
   });
+
+  it("keeps ff drawers readable in dark mode", () => {
+    const indexScssPath = resolve(process.cwd(), "src/styles/index.scss");
+    const css = compile(indexScssPath).css;
+
+    injectStyle(css);
+    document.body.innerHTML = `
+      <div class="el-drawer ff-drawer">
+        <header class="el-drawer__header">
+          <span class="el-drawer__title">编辑用户</span>
+        </header>
+        <div class="el-drawer__body">
+          <form class="el-form ff-form">
+            <div class="el-form-item">
+              <label class="el-form-item__label">用户名</label>
+              <div class="el-form-item__content">
+                <div class="el-input">
+                  <div class="el-input__wrapper">
+                    <input class="el-input__inner" value="admin" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+    document.documentElement.classList.add("dark");
+
+    const drawer = document.querySelector(".ff-drawer") as HTMLElement;
+    const label = document.querySelector(".el-form-item__label") as HTMLElement;
+    const input = document.querySelector(".el-input__inner") as HTMLInputElement;
+
+    expect(getComputedStyle(drawer).backgroundColor).toBe("#1e293b");
+    expect(getComputedStyle(label).color).toBe("#cbd5e1");
+    expect(getComputedStyle(input).color).toBe("#f1f5f9");
+    expect(getComputedStyle(input).getPropertyValue("-webkit-text-fill-color")).toBe(
+      "currentColor"
+    );
+  });
 });
