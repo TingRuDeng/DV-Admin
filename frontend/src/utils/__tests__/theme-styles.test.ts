@@ -103,12 +103,12 @@ describe("dark theme utility overrides", () => {
 
   it("keeps teleported dropdown items readable in dark mode", () => {
     const resetScssPath = resolve(process.cwd(), "src/styles/reset.scss");
-    const minimalSaasScssPath = resolve(process.cwd(), "src/styles/_minimal-saas.scss");
+    const darkThemeScssPath = resolve(process.cwd(), "src/styles/theme/_dark.scss");
     const resetCss = compile(resetScssPath).css;
-    const minimalSaasCss = compile(minimalSaasScssPath).css;
+    const darkThemeCss = compile(darkThemeScssPath).css;
 
     injectStyle(resetCss);
-    injectStyle(minimalSaasCss);
+    injectStyle(darkThemeCss);
 
     document.body.innerHTML = `
       <div class="el-popper is-light el-dropdown__popper">
