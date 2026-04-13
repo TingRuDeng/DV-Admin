@@ -26,6 +26,8 @@ html.dark {
   .layout-wrapper *,
   .layout,
   .layout *,
+  .ff-page-shell,
+  .ff-page-shell *,
   .app-container,
   .app-container * {
     -webkit-text-fill-color: currentColor !important;
@@ -43,7 +45,8 @@ html.dark {
    * 这批页面直接在模板里写了浅色专用的 slate/white 类，切深色时不会自动翻转。
    * 统一在这里收口，避免每个页面各自补丁。
    */
-  .app-container {
+  .app-container,
+  .ff-page-shell {
     [class~="text-slate-700"] {
       color: var(--el-text-color-primary) !important;
     }

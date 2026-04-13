@@ -68,6 +68,39 @@ describe("dark theme utility overrides", () => {
     );
   });
 
+  it("keeps slate utility badges readable inside ff page shells in dark mode", () => {
+    const resetScssPath = resolve(process.cwd(), "src/styles/reset.scss");
+    const minimalSaasScssPath = resolve(process.cwd(), "src/styles/_minimal-saas.scss");
+    const resetCss = compile(resetScssPath).css;
+    const minimalSaasCss = compile(minimalSaasScssPath).css;
+
+    injectStyle(`
+      :root {
+        --el-text-color-primary: rgb(30, 41, 59);
+        --el-text-color-secondary: rgb(148, 163, 184);
+      }
+
+      html.dark {
+        --el-text-color-primary: rgb(241, 245, 249);
+        --el-text-color-secondary: rgb(203, 213, 225);
+      }
+    `);
+    injectStyle(resetCss);
+    injectStyle(minimalSaasCss);
+
+    document.body.innerHTML = `
+      <section class="ff-page-shell">
+        <span class="text-slate-400 font-mono bg-slate-50 px-2 py-0.5 rounded-md">10</span>
+      </section>
+    `;
+    document.documentElement.classList.add("dark");
+
+    const badge = document.querySelector(".text-slate-400") as HTMLSpanElement;
+
+    expect(getComputedStyle(badge).color).toBe("rgb(203, 213, 225)");
+    expect(getComputedStyle(badge).backgroundColor).toBe("rgba(255, 255, 255, 0.08)");
+  });
+
   it("forces webkit text fill to follow current text color inside dark layout containers", () => {
     const resetScssPath = resolve(process.cwd(), "src/styles/reset.scss");
     const minimalSaasScssPath = resolve(process.cwd(), "src/styles/_minimal-saas.scss");
