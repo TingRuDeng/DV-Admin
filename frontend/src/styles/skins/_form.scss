@@ -1,39 +1,31 @@
 /* stylelint-disable no-descending-specificity */
-.ff-toolbar .el-form-item,
-.minimal-form .el-form-item {
+.ff-toolbar .el-form-item {
   margin-bottom: 0;
 }
 
-.ff-form .el-form-item__label,
-.minimal-form .el-form-item .el-form-item__label {
+.ff-form .el-form-item__label {
   font-weight: 500;
   color: var(--el-text-color-regular);
 }
 
 .ff-form .el-input__wrapper,
-.minimal-input .el-input__wrapper,
 .ff-form .el-select__wrapper,
-.minimal-input.el-select .el-select__wrapper,
-.minimal-input.el-tree-select .el-select__wrapper,
 .ff-form .el-textarea__inner,
 .ff-form .el-tree-select__wrapper {
   border-radius: var(--ff-radius-control);
   box-shadow: var(--ff-shadow-control);
 }
 
-.ff-form .el-input__wrapper,
-.minimal-input .el-input__wrapper {
+.ff-form .el-input__wrapper {
   background-color: rgba(255, 255, 255, 0.6);
   transition: all 0.2s ease;
 }
 
-.ff-form .el-input__wrapper:hover,
-.minimal-input .el-input__wrapper:hover {
+.ff-form .el-input__wrapper:hover {
   background-color: rgba(255, 255, 255, 0.8);
 }
 
-.ff-form .el-input__wrapper.is-focus,
-.minimal-input .el-input__wrapper.is-focus {
+.ff-form .el-input__wrapper.is-focus {
   background-color: #ffffff;
   box-shadow:
     0 0 0 1px var(--el-color-primary) inset,
@@ -41,82 +33,54 @@
 }
 
 .ff-form .el-select__wrapper,
-.ff-form .el-tree-select .el-select__wrapper,
-.minimal-input.el-select .el-select__wrapper,
-.minimal-input.el-tree-select .el-select__wrapper {
+.ff-form .el-tree-select .el-select__wrapper {
   background-color: rgba(255, 255, 255, 0.6);
   transition: all 0.2s ease;
 }
 
 .ff-form .el-select__wrapper:hover,
-.ff-form .el-tree-select .el-select__wrapper:hover,
-.minimal-input.el-select .el-select__wrapper:hover,
-.minimal-input.el-tree-select .el-select__wrapper:hover {
+.ff-form .el-tree-select .el-select__wrapper:hover {
   background-color: rgba(255, 255, 255, 0.8);
 }
 
 .ff-form .el-select__wrapper.is-focused,
-.ff-form .el-tree-select .el-select__wrapper.is-focused,
-.minimal-input.el-select .el-select__wrapper.is-focused,
-.minimal-input.el-tree-select .el-select__wrapper.is-focused {
+.ff-form .el-tree-select .el-select__wrapper.is-focused {
   background-color: #ffffff;
   box-shadow:
     0 0 0 1px var(--el-color-primary) inset,
     0 0 0 3px rgba(64, 128, 255, 0.1) !important;
-}
-
-.minimal-input.el-input-number .el-input__wrapper {
-  background-color: #f8fafc;
-  box-shadow: 0 0 0 1px #e2e8f0 inset !important;
-  transition: all 0.2s ease;
-}
-
-.minimal-input.el-input-number .el-input__wrapper:hover {
-  background-color: #ffffff;
-  box-shadow: 0 0 0 1px var(--el-color-primary) inset !important;
-}
-
-.minimal-input.el-input-number .el-input__wrapper.is-focus {
-  background-color: #ffffff;
-  box-shadow:
-    0 0 0 1px var(--el-color-primary) inset,
-    0 0 0 3px rgba(64, 128, 255, 0.1) !important;
-}
-
-html.dark .minimal-form .el-form-item .el-form-item__label {
-  color: #cbd5e1 !important;
 }
 
 html.dark {
-  .minimal-input .el-input__wrapper {
+  .ff-form .el-input__wrapper {
     background-color: rgba(30, 41, 59, 0.6);
     box-shadow: 0 0 0 1px #475569 inset !important;
   }
 
-  .minimal-input .el-input__wrapper:hover {
+  .ff-form .el-input__wrapper:hover {
     background-color: rgba(30, 41, 59, 0.8);
   }
 
-  .minimal-input .el-input__wrapper.is-focus {
+  .ff-form .el-input__wrapper.is-focus {
     background-color: #1e293b;
     box-shadow:
       0 0 0 1px var(--el-color-primary) inset,
       0 0 0 3px rgba(129, 140, 248, 0.2) !important;
   }
 
-  .minimal-input.el-select .el-select__wrapper,
-  .minimal-input.el-tree-select .el-select__wrapper {
+  .ff-form .el-select__wrapper,
+  .ff-form .el-tree-select .el-select__wrapper {
     background-color: rgba(30, 41, 59, 0.6);
     box-shadow: 0 0 0 1px #475569 inset !important;
   }
 
-  .minimal-input.el-select .el-select__wrapper:hover,
-  .minimal-input.el-tree-select .el-select__wrapper:hover {
+  .ff-form .el-select__wrapper:hover,
+  .ff-form .el-tree-select .el-select__wrapper:hover {
     background-color: rgba(30, 41, 59, 0.8);
   }
 
-  .minimal-input.el-select .el-select__wrapper.is-focused,
-  .minimal-input.el-tree-select .el-select__wrapper.is-focused {
+  .ff-form .el-select__wrapper.is-focused,
+  .ff-form .el-tree-select .el-select__wrapper.is-focused {
     background-color: #1e293b;
     box-shadow:
       0 0 0 1px var(--el-color-primary) inset,

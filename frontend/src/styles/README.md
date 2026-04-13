@@ -32,6 +32,8 @@ Treat `_minimal-saas.scss` as a frozen legacy shim. The only allowed responsibil
 - brand gradient preservation for logo/title text
 - utility-class dark fallbacks under `.app-container`
 
+Legacy `minimal-*` and `glass-panel` aliases are no longer part of the active stylesheet graph.
+
 ## Override rule
 
 Keep `:deep()` and `!important` inside shared skin overrides unless a page-specific exception is unavoidable.

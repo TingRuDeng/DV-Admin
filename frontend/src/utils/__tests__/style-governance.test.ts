@@ -105,6 +105,21 @@ describe("style governance entrypoint", () => {
     expect(existsSync(resolve(process.cwd(), "src/styles/pages/_system.scss"))).toBe(false);
   });
 
+  it("keeps legacy minimal and glass aliases out of the active stylesheet graph", () => {
+    const css = compile(resolve(process.cwd(), "src/styles/index.scss")).css;
+
+    expect(css).not.toContain(".minimal-btn");
+    expect(css).not.toContain(".minimal-form");
+    expect(css).not.toContain(".minimal-input");
+    expect(css).not.toContain(".minimal-table");
+    expect(css).not.toContain(".minimal-dialog");
+    expect(css).not.toContain(".minimal-tag");
+    expect(css).not.toContain(".minimal-search-container");
+    expect(css).not.toContain(".minimal-data-container");
+    expect(css).not.toContain(".minimal-pagination");
+    expect(css).not.toContain(".glass-panel");
+  });
+
   it("keeps element-plus custom table overrides free of legacy minimal selectors", () => {
     const tableSkinSource = readFileSync(
       resolve(process.cwd(), "src/styles/element-plus-custom/_table.scss"),
