@@ -4,6 +4,10 @@
 // ============================================
 // 表格、表单、按钮、弹窗、标签等组件的统一风格
 // Temporary compatibility layer for non-migrated pages.
+// Legacy shim whitelist:
+// - text-fill fallback for dark layout containers
+// - brand gradient preservation for logo/title text
+// - utility-class dark fallbacks under .app-container
 // 创建日期：2026-04-10
 // ============================================
 
@@ -22,6 +26,8 @@ html.dark {
   .layout-wrapper *,
   .layout,
   .layout *,
+  .ff-page-shell,
+  .ff-page-shell *,
   .app-container,
   .app-container * {
     -webkit-text-fill-color: currentColor !important;
@@ -39,7 +45,8 @@ html.dark {
    * 这批页面直接在模板里写了浅色专用的 slate/white 类，切深色时不会自动翻转。
    * 统一在这里收口，避免每个页面各自补丁。
    */
-  .app-container {
+  .app-container,
+  .ff-page-shell {
     [class~="text-slate-700"] {
       color: var(--el-text-color-primary) !important;
     }
@@ -74,89 +81,4 @@ html.dark {
   }
 
   /* ====== 核心修复：所有亮色模式硬编码文字颜色的暗黑覆盖 ====== */
-
-  /* 表单标签 (#475569 → 浅色) */
-  .el-form-item__label {
-    color: #cbd5e1 !important;
-  }
-
-  /* Select 下拉框 */
-  .el-select__wrapper,
-  .el-select__placeholder {
-    color: #e2e8f0 !important;
-  }
-
-  /* Radio / Checkbox */
-  .el-radio__label,
-  .el-checkbox__label {
-    color: #e2e8f0 !important;
-  }
-
-  /* 描述列表 / 基础文字 */
-  .el-descriptions__label,
-  .el-descriptions__content,
-  .el-form-item__content {
-    color: #e2e8f0 !important;
-  }
-
-  /* 输入框深色模式 */
-  .el-input__inner {
-    color: #f1f5f9 !important;
-  }
-
-  .el-input__wrapper {
-    background-color: rgba(30, 41, 59, 0.6) !important;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15) inset !important;
-  }
-
-  /* 分页深色模式 */
-  .el-pagination button,
-  .el-pagination .el-pager li {
-    color: #e2e8f0 !important;
-  }
-
-  .el-pagination .el-select .el-select__wrapper {
-    background-color: rgba(30, 41, 59, 0.6) !important;
-  }
-
-  /* Teleport 到 body 的下拉浮层 */
-  .el-popper.is-light,
-  .el-dropdown__popper.el-popper {
-    color: #e2e8f0 !important;
-    background: rgba(15, 23, 42, 0.96) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.45) !important;
-    -webkit-text-fill-color: currentColor !important;
-  }
-
-  .el-popper.is-light .el-popper__arrow::before,
-  .el-dropdown__popper.el-popper .el-popper__arrow::before {
-    background: rgba(15, 23, 42, 0.96) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-  }
-
-  .el-dropdown-menu {
-    background: transparent !important;
-  }
-
-  .el-dropdown-menu__item {
-    color: #e2e8f0 !important;
-    -webkit-text-fill-color: currentColor !important;
-  }
-
-  .el-dropdown-menu__item:not(.is-disabled):hover,
-  .el-dropdown-menu__item:focus {
-    color: #f8fafc !important;
-    background: rgba(129, 140, 248, 0.16) !important;
-    -webkit-text-fill-color: currentColor !important;
-  }
-
-  .el-dropdown-menu__item.is-disabled {
-    color: rgba(226, 232, 240, 0.45) !important;
-    -webkit-text-fill-color: currentColor !important;
-  }
-
-  .el-dropdown-menu__item--divided {
-    border-top-color: rgba(255, 255, 255, 0.08) !important;
-  }
 }

@@ -1,17 +1,11 @@
 .ff-button-primary,
-.minimal-btn,
-.minimal-btn-primary,
 .ff-button-secondary,
-.minimal-btn-plain,
 .ff-button-danger,
-.minimal-btn-danger,
 .ff-button-success {
   border-radius: var(--ff-radius-control);
 }
 
-.ff-button-primary,
-.minimal-btn,
-.minimal-btn-primary {
+.ff-button-primary {
   font-weight: 600;
   color: #ffffff !important;
   letter-spacing: 1px;
@@ -49,8 +43,7 @@
   }
 }
 
-.ff-button-secondary,
-.minimal-btn-plain {
+.ff-button-secondary {
   font-weight: 500;
   color: var(--el-text-color-regular) !important;
   background: rgba(255, 255, 255, 0.4) !important;
@@ -69,8 +62,7 @@
   }
 }
 
-.ff-button-danger,
-.minimal-btn-danger {
+.ff-button-danger {
   font-weight: 500;
   color: #ef4444 !important;
   background: rgba(239, 68, 68, 0.08) !important;
@@ -94,14 +86,12 @@
   }
 }
 
-.ff-button-success,
-.minimal-btn-success {
+.ff-button-success {
   font-weight: 500;
   transition: all 0.2s ease;
 }
 
-.ff-button-success:hover,
-.minimal-btn-success:hover {
+.ff-button-success:hover {
   transform: translateY(-1px);
 }
 
@@ -112,13 +102,13 @@
 }
 
 html.dark {
-  .minimal-btn-plain {
+  .ff-button-secondary {
     color: #e2e8f0 !important;
     background: rgba(30, 41, 59, 0.6) !important;
     border-color: rgba(255, 255, 255, 0.15) !important;
   }
 
-  .minimal-btn-plain:hover {
+  .ff-button-secondary:hover {
     color: #f8fafc !important;
     background: rgba(51, 65, 85, 0.8) !important;
   }
