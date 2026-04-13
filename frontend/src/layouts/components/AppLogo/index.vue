@@ -143,6 +143,14 @@ const platformName = import.meta.env.VITE_APP_TITLE || "DV-Admin";
   background-color: $sidebar-logo-background;
   transition: all 0.3s ease;
 
+  .sidebar-logo-link {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+  }
+
   &.collapse {
     justify-content: center;
     padding: 0;
@@ -155,14 +163,6 @@ const platformName = import.meta.env.VITE_APP_TITLE || "DV-Admin";
       margin-right: 0;
     }
   }
-}
-
-.sidebar-logo-link {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  text-decoration: none;
 }
 
 /* 过渡动画 */
