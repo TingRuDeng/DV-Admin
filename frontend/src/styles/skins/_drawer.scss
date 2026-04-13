@@ -2,8 +2,8 @@
 .ff-drawer.el-drawer .el-drawer__header {
   padding-bottom: 1rem;
   margin-bottom: 0;
-  background: rgba(248, 250, 252, 0.72);
-  background-color: rgba(248, 250, 252, 0.72);
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.96) 0%, rgba(255, 255, 255, 0.88) 100%);
+  background-color: rgba(248, 250, 252, 0.96);
   border-bottom: 1px solid #f1f5f9;
 }
 
@@ -14,8 +14,8 @@
 
 .ff-drawer .el-drawer__footer,
 .ff-drawer.el-drawer .el-drawer__footer {
-  background: rgba(248, 250, 252, 0.88);
-  background-color: rgba(248, 250, 252, 0.88);
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.92) 0%, rgba(241, 245, 249, 0.82) 100%);
+  background-color: rgba(248, 250, 252, 0.92);
   border-top: 1px solid #f1f5f9;
 }
 

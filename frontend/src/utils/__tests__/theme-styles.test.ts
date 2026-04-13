@@ -258,7 +258,7 @@ describe("dark theme utility overrides", () => {
     );
   });
 
-  it("uses panel-toned chrome for ff dialogs and drawers instead of flat white blocks", () => {
+  it("uses layered chrome for ff dialogs and drawers in light mode", () => {
     const indexScssPath = resolve(process.cwd(), "src/styles/index.scss");
     const css = compile(indexScssPath).css;
 
@@ -266,7 +266,11 @@ describe("dark theme utility overrides", () => {
     expect(css).toContain(".ff-dialog .el-dialog__footer");
     expect(css).toContain(".ff-drawer .el-drawer__header");
     expect(css).toContain(".ff-drawer .el-drawer__footer");
-    expect(css).toContain("background-color: rgba(248, 250, 252, 0.72);");
-    expect(css).toContain("background-color: rgba(248, 250, 252, 0.88);");
+    expect(css).toContain(
+      "background: linear-gradient(135deg, rgba(248, 250, 252, 0.96) 0%, rgba(255, 255, 255, 0.88) 100%);"
+    );
+    expect(css).toContain(
+      "background: linear-gradient(180deg, rgba(248, 250, 252, 0.92) 0%, rgba(241, 245, 249, 0.82) 100%);"
+    );
   });
 });
