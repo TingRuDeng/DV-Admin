@@ -137,48 +137,6 @@ function resolvePath(routePath: string) {
 </script>
 
 <style lang="scss">
-.hideSidebar {
-  .submenu-title-noDropdown {
-    position: relative;
-
-    & > span {
-      display: inline-block;
-      visibility: hidden;
-      width: 0;
-      height: 0;
-      overflow: hidden;
-    }
-  }
-
-  .el-sub-menu {
-    overflow: hidden;
-
-    & > .el-sub-menu__title {
-      .sub-el-icon {
-        margin-left: 19px;
-      }
-
-      .el-sub-menu__icon-arrow {
-        display: none;
-      }
-    }
-  }
-
-  .el-menu--collapse {
-    width: $sidebar-width-collapsed;
-
-    .el-sub-menu {
-      & > .el-sub-menu__title > span {
-        display: inline-block;
-        visibility: hidden;
-        width: 0;
-        height: 0;
-        overflow: hidden;
-      }
-    }
-  }
-}
-
 html.dark {
   .el-menu-item:hover {
     background-color: $menu-hover;
@@ -223,6 +181,56 @@ html.sidebar-color-blue {
 
       .menu-icon {
         color: var(--el-color-primary-light-3) !important;
+      }
+    }
+  }
+}
+
+.hideSidebar {
+  .submenu-title-noDropdown {
+    position: relative;
+
+    & > span {
+      display: inline-block;
+      visibility: hidden;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+    }
+  }
+
+  .el-sub-menu {
+    overflow: hidden;
+
+    & > .el-sub-menu__title {
+      .sub-el-icon {
+        margin-left: 19px;
+      }
+
+      .el-sub-menu__icon-arrow {
+        display: none;
+      }
+    }
+  }
+
+  .el-menu--collapse {
+    width: $sidebar-width-collapsed;
+
+    /* stylelint-disable-next-line no-descending-specificity */
+    > .el-menu-item,
+    /* stylelint-disable-next-line no-descending-specificity */
+    > .el-sub-menu > .el-sub-menu__title {
+      justify-content: center;
+      padding: 0 !important;
+    }
+
+    .el-sub-menu {
+      & > .el-sub-menu__title > span {
+        display: inline-block;
+        visibility: hidden;
+        width: 0;
+        height: 0;
+        overflow: hidden;
       }
     }
   }
