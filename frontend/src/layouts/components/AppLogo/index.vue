@@ -146,6 +146,14 @@ const platformName = import.meta.env.VITE_APP_TITLE || "DV-Admin";
   &.collapse {
     justify-content: center;
     padding: 0;
+
+    .sidebar-logo-link {
+      justify-content: center;
+    }
+
+    .cyber-logo-mini {
+      margin-right: 0;
+    }
   }
 }
 
