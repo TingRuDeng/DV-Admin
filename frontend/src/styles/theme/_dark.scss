@@ -79,4 +79,28 @@ html.dark {
   .el-dropdown-menu__item--divided {
     border-top-color: rgba(255, 255, 255, 0.08) !important;
   }
+
+  .el-message {
+    color: #e2e8f0 !important;
+    background: rgba(15, 23, 42, 0.96) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.45) !important;
+  }
+
+  .el-message,
+  .el-message * {
+    -webkit-text-fill-color: currentColor !important;
+  }
+
+  .el-message__content,
+  .el-message .el-message__content {
+    color: #e2e8f0 !important;
+  }
+
+  .el-message__icon,
+  .el-message .el-message__icon,
+  .el-message__closeBtn,
+  .el-message .el-message__closeBtn {
+    color: #cbd5e1 !important;
+  }
 }

@@ -259,6 +259,28 @@ describe("dark theme utility overrides", () => {
     );
   });
 
+  it("keeps info messages readable in dark mode", () => {
+    const indexScssPath = resolve(process.cwd(), "src/styles/index.scss");
+    const css = compile(indexScssPath).css;
+
+    injectStyle(css);
+    document.body.innerHTML = `
+      <div class="el-message el-message--info">
+        <p class="el-message__content">已取消删除</p>
+      </div>
+    `;
+    document.documentElement.classList.add("dark");
+
+    const message = document.querySelector(".el-message") as HTMLElement;
+    const content = document.querySelector(".el-message__content") as HTMLElement;
+
+    expect(getComputedStyle(message).backgroundColor).toBe("rgba(15, 23, 42, 0.96)");
+    expect(getComputedStyle(content).color).toBe("#e2e8f0");
+    expect(getComputedStyle(content).getPropertyValue("-webkit-text-fill-color")).toBe(
+      "currentColor"
+    );
+  });
+
   it("lets ff dialogs and drawers inherit the global light-mode chrome", () => {
     const indexScssPath = resolve(process.cwd(), "src/styles/index.scss");
     const dialogSkinPath = resolve(process.cwd(), "src/styles/skins/_dialog.scss");
