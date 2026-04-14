@@ -153,11 +153,12 @@
       </el-form-item>
     </ProFormDrawer>
 
-    <el-drawer
+    <ProDrawer
       v-model="assignPermDialogVisible"
       :title="'【' + checkedRole.name + '】权限分配'"
       :size="drawerSize"
-      class="ff-drawer"
+      :loading="loading"
+      @submit="handleAssignPermSubmit"
     >
       <div class="flex justify-between items-center mb-5">
         <el-input v-model="permKeywords" clearable class="w-[150px]" placeholder="菜单权限名称">
@@ -207,22 +208,19 @@
           {{ data.label }}
         </template>
       </el-tree>
-      <template #footer>
+      <template #footer="{ cancel, submit }">
         <div class="dialog-footer flex justify-end gap-2">
-          <el-button class="ff-button-secondary" @click="assignPermDialogVisible = false">
-            取 消
-          </el-button>
-          <el-button type="primary" class="ff-button-primary" @click="handleAssignPermSubmit">
-            确 定
-          </el-button>
+          <el-button class="ff-button-secondary" @click="cancel">取 消</el-button>
+          <el-button type="primary" class="ff-button-primary" @click="submit">确 定</el-button>
         </div>
       </template>
-    </el-drawer>
+    </ProDrawer>
   </PageShell>
 </template>
 
 <script setup lang="ts">
 import PageShell from "@/components/PageShell/index.vue";
+import ProDrawer from "@/components/ProDrawer/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
