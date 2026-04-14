@@ -18,15 +18,10 @@
     </ProSearch>
 
     <ProTable
+      ref="tableRef"
       title="字典数据"
-      :loading="loading"
-      :data="tableData"
-      :total="total"
-      :page="queryParams.pageNum"
-      :limit="queryParams.pageSize"
-      @update:page="queryParams.pageNum = $event"
-      @update:limit="queryParams.pageSize = $event"
-      @pagination="fetchData"
+      :request="requestTableData"
+      :params="queryParams"
       @selection-change="handleSelectionChange"
     >
       <template #actions>
@@ -157,17 +152,12 @@ import router from "@/router";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
+const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
 
 const loading = ref(false);
 const ids = ref<number[]>([]);
-const total = ref(0);
 
-const queryParams = reactive<DictPageQuery>({
-  pageNum: 1,
-  pageSize: 10,
-});
-
-const tableData = ref<DictPageVO[]>();
+const queryParams = reactive<Omit<DictPageQuery, "pageNum" | "pageSize">>({});
 
 const dialog = reactive({
   title: "",
@@ -190,30 +180,19 @@ const computedRules = computed(() => {
   return rules;
 });
 
-// 获取数据
-function fetchData() {
-  loading.value = true;
-  DictAPI.getPage(queryParams)
-    .then((data) => {
-      tableData.value = data.list;
-      total.value = data.total;
-    })
-    .finally(() => {
-      loading.value = false;
-    });
+function requestTableData(params: Record<string, unknown>) {
+  return DictAPI.getPage(params as unknown as DictPageQuery);
 }
 
 // 查询（重置页码后获取数据）
 function handleQuery() {
-  queryParams.pageNum = 1;
-  fetchData();
+  tableRef.value?.reload(true);
 }
 
 // 重置查询
 function handleResetQuery() {
   queryFormRef.value.resetFields();
-  queryParams.pageNum = 1;
-  fetchData();
+  tableRef.value?.reload(true);
 }
 
 // 行选择
@@ -251,7 +230,7 @@ function handleSubmitClick() {
           .then(() => {
             ElMessage.success("修改成功");
             handleCloseDialog();
-            handleQuery();
+            tableRef.value?.reload(true);
           })
           .finally(() => (loading.value = false));
       } else {
@@ -259,7 +238,7 @@ function handleSubmitClick() {
           .then(() => {
             ElMessage.success("新增成功");
             handleCloseDialog();
-            handleQuery();
+            tableRef.value?.reload(true);
           })
           .finally(() => (loading.value = false));
       }
@@ -299,7 +278,7 @@ function handleDelete(id?: number) {
     () => {
       DictAPI.deleteByIds(attrGroupIds).then(() => {
         ElMessage.success("删除成功");
-        handleResetQuery();
+        tableRef.value?.reload(true);
       });
     },
     () => {
@@ -322,8 +301,4 @@ function handleOpenDictData(row: DictPageVO) {
     },
   });
 }
-
-onMounted(() => {
-  handleQuery();
-});
 </script>

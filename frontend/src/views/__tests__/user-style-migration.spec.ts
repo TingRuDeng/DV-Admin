@@ -10,6 +10,9 @@ describe("system user style migration", () => {
     expect(source).toContain("<ProSearch");
     expect(source).toContain("<ProTable");
     expect(source).toContain("<ProFormDrawer");
+    expect(source).toContain(':request="requestTableData"');
+    expect(source).toContain('ref="tableRef"');
+    expect(source).not.toContain(':data="pageData"');
     expect(source).toContain('class="ff-side-panel');
     expect(source).not.toContain("glass-panel");
     expect(source).not.toContain("minimal-");
