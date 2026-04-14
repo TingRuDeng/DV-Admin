@@ -1,68 +1,66 @@
 <template>
   <div>
-    <el-dialog
+    <ProFormDrawer
+      ref="importFormRef"
       v-model="visible"
-      :align-center="true"
       title="导入数据"
-      width="600px"
+      :model="importFormData"
+      :rules="importFormRules"
+      :loading="uploading"
+      size="600px"
+      label-width="90px"
+      @submit="handleUpload"
       @close="handleClose"
     >
-      <el-scrollbar max-height="60vh">
-        <el-form
-          ref="importFormRef"
-          style="padding-right: var(--el-dialog-padding-primary)"
-          :model="importFormData"
-          :rules="importFormRules"
+      <el-form-item label="文件名" prop="files">
+        <el-upload
+          ref="uploadRef"
+          v-model:file-list="importFormData.files"
+          class="w-full"
+          accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+          :drag="true"
+          :limit="1"
+          :auto-upload="false"
+          :on-exceed="handleFileExceed"
         >
-          <el-form-item label="文件名" prop="files">
-            <el-upload
-              ref="uploadRef"
-              v-model:file-list="importFormData.files"
-              class="w-full"
-              accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-              :drag="true"
-              :limit="1"
-              :auto-upload="false"
-              :on-exceed="handleFileExceed"
-            >
-              <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-              <div class="el-upload__text">
-                将文件拖到此处，或
-                <em>点击上传</em>
-              </div>
-              <template #tip>
-                <div class="el-upload__tip">
-                  格式为*.xlsx / *.xls，文件不超过一个
-                  <el-link
-                    type="primary"
-                    icon="download"
-                    underline="never"
-                    @click="handleDownloadTemplate"
-                  >
-                    下载模板
-                  </el-link>
-                </div>
-              </template>
-            </el-upload>
-          </el-form-item>
-        </el-form>
-      </el-scrollbar>
-      <template #footer>
-        <div style="padding-right: var(--el-dialog-padding-primary)">
+          <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+          <div class="el-upload__text">
+            将文件拖到此处，或
+            <em>点击上传</em>
+          </div>
+          <template #tip>
+            <div class="el-upload__tip">
+              格式为*.xlsx / *.xls，文件不超过一个
+              <el-link
+                type="primary"
+                icon="download"
+                underline="never"
+                @click="handleDownloadTemplate"
+              >
+                下载模板
+              </el-link>
+            </div>
+          </template>
+        </el-upload>
+      </el-form-item>
+
+      <template #footer="{ submit, cancel }">
+        <div class="dialog-footer flex justify-end gap-2">
           <el-button v-if="resultData.length > 0" type="primary" @click="handleShowResult">
             错误信息
           </el-button>
           <el-button
             type="primary"
+            :loading="uploading"
             :disabled="importFormData.files.length === 0"
-            @click="handleUpload"
+            @click="submit"
           >
             确 定
           </el-button>
-          <el-button @click="handleClose">取 消</el-button>
+          <el-button :disabled="uploading" @click="cancel">取 消</el-button>
         </div>
       </template>
-    </el-dialog>
+    </ProFormDrawer>
 
     <el-dialog v-model="resultVisible" title="导入结果" width="600px">
       <el-alert
@@ -88,7 +86,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ElMessage, type UploadUserFile } from "element-plus";
+import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
+import { ElMessage, type UploadInstance, type UploadUserFile } from "element-plus";
 import UserAPI from "@/api/system/user-api";
 import { ApiCodeEnum } from "@/enums/api/code-enum";
 
@@ -103,9 +102,10 @@ const resultVisible = ref(false);
 const resultData = ref<string[]>([]);
 const invalidCount = ref(0);
 const validCount = ref(0);
+const uploading = ref(false);
 
-const importFormRef = ref(null);
-const uploadRef = ref(null);
+const importFormRef = ref<InstanceType<typeof ProFormDrawer> | null>(null);
+const uploadRef = ref<UploadInstance>();
 
 const importFormData = reactive<{
   files: UploadUserFile[];
@@ -161,6 +161,7 @@ const handleUpload = async () => {
     return;
   }
 
+  uploading.value = true;
   try {
     const result = await UserAPI.import("1", importFormData.files[0].raw as File);
     if (result.code === ApiCodeEnum.SUCCESS && result.invalidCount === 0) {
@@ -174,9 +175,12 @@ const handleUpload = async () => {
       invalidCount.value = result.invalidCount;
       validCount.value = result.validCount;
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(error);
-    ElMessage.error("上传失败：" + error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    ElMessage.error("上传失败：" + errorMessage);
+  } finally {
+    uploading.value = false;
   }
 };
 
@@ -192,7 +196,9 @@ const handleCloseResult = () => {
 
 // 关闭弹窗
 const handleClose = () => {
-  importFormData.files.length = 0;
+  importFormRef.value?.resetFields();
+  importFormRef.value?.clearValidate();
+  importFormData.files = [];
   visible.value = false;
 };
 </script>
