@@ -18,16 +18,10 @@
     </ProSearch>
 
     <ProTable
+      ref="tableRef"
       title="系统配置"
-      :loading="loading"
-      :data="pageData"
-      :total="total"
-      :page="queryParams.pageNum"
-      :limit="queryParams.pageSize"
-      @update:page="queryParams.pageNum = $event"
-      @update:limit="queryParams.pageSize = $event"
-      @pagination="fetchData"
-      @selection-change="handleSelectionChange"
+      :request="requestTableData"
+      :params="{ keywords: queryParams.keywords }"
     >
       <template #actions>
         <div class="ff-button-group">
@@ -126,7 +120,7 @@ defineOptions({
   inheritAttrs: false,
 });
 
-import ConfigAPI, { ConfigPageVO, ConfigForm, ConfigPageQuery } from "@/api/system/config-api";
+import ConfigAPI, { ConfigForm, ConfigPageQuery } from "@/api/system/config-api";
 import PageShell from "@/components/PageShell/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
@@ -136,19 +130,13 @@ import { useDebounceFn } from "@vueuse/core";
 
 const queryFormRef = ref();
 const dataFormRef = ref();
+const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
 
 const loading = ref(false);
-const selectIds = ref<number[]>([]);
-const total = ref(0);
 
-const queryParams = reactive<ConfigPageQuery>({
-  pageNum: 1,
-  pageSize: 10,
+const queryParams = reactive({
   keywords: "",
 });
-
-// 系统配置表格数据
-const pageData = ref<ConfigPageVO[]>([]);
 
 const dialog = reactive({
   title: "",
@@ -169,35 +157,19 @@ const rules = reactive({
   configValue: [{ required: true, message: "请输入系统配置值", trigger: "blur" }],
 });
 
-// 获取数据
-function fetchData() {
-  loading.value = true;
-  ConfigAPI.getPage(queryParams)
-    .then((data) => {
-      pageData.value = data.list;
-      total.value = data.total;
-    })
-    .finally(() => {
-      loading.value = false;
-    });
+function requestTableData(params: Record<string, unknown>) {
+  return ConfigAPI.getPage(params as unknown as ConfigPageQuery);
 }
 
 // 查询（重置页码后获取数据）
 function handleQuery() {
-  queryParams.pageNum = 1;
-  fetchData();
+  tableRef.value?.reload(true);
 }
 
 // 重置查询
 function handleResetQuery() {
   queryFormRef.value.resetFields();
-  queryParams.pageNum = 1;
-  fetchData();
-}
-
-// 行复选框选中项变化
-function handleSelectionChange(selection: any) {
-  selectIds.value = selection.map((item: any) => item.id);
+  tableRef.value?.reload(true);
 }
 
 // 打开系统配置弹窗
@@ -232,7 +204,7 @@ function handleSubmit() {
           .then(() => {
             ElMessage.success("修改成功");
             handleCloseDialog();
-            handleResetQuery();
+            tableRef.value?.reload(true);
           })
           .finally(() => (loading.value = false));
       } else {
@@ -240,7 +212,7 @@ function handleSubmit() {
           .then(() => {
             ElMessage.success("新增成功");
             handleCloseDialog();
-            handleResetQuery();
+            tableRef.value?.reload(true);
           })
           .finally(() => (loading.value = false));
       }
@@ -272,13 +244,9 @@ function handleDelete(id: string) {
     ConfigAPI.deleteById(id)
       .then(() => {
         ElMessage.success("删除成功");
-        handleResetQuery();
+        tableRef.value?.reload(true);
       })
       .finally(() => (loading.value = false));
   });
 }
-
-onMounted(() => {
-  handleQuery();
-});
 </script>

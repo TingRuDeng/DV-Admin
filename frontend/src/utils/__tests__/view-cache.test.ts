@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getRouteCacheKey, getRouteRenderKey, getTagCacheKey } from "@/utils/view-cache";
+import {
+  appendCacheKeyWithLimit,
+  getRouteCacheKey,
+  getRouteRenderKey,
+  getTagCacheKey,
+} from "@/utils/view-cache";
 
 describe("view-cache utils", () => {
   it("prefers explicit meta.cacheKey for keep-alive routes", () => {
@@ -118,5 +123,15 @@ describe("view-cache utils", () => {
         fullPath: "/system/role?page=3",
       })
     ).toBe("RoleList");
+  });
+
+  it("appends cache key with limit and removes oldest keys when overflow", () => {
+    expect(appendCacheKeyWithLimit([], "A", 3)).toEqual(["A"]);
+    expect(appendCacheKeyWithLimit(["A"], "B", 3)).toEqual(["A", "B"]);
+    expect(appendCacheKeyWithLimit(["A", "B", "C"], "D", 3)).toEqual(["B", "C", "D"]);
+  });
+
+  it("does not duplicate existing cache keys", () => {
+    expect(appendCacheKeyWithLimit(["A", "B"], "A", 3)).toEqual(["A", "B"]);
   });
 });

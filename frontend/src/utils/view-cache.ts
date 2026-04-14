@@ -9,6 +9,8 @@ interface CacheRouteLike {
   meta?: Partial<RouteMeta> | null;
 }
 
+export const DEFAULT_CACHED_VIEWS_LIMIT = 100;
+
 interface CacheTagLike {
   name?: string;
   path?: string;
@@ -150,4 +152,28 @@ export function getTagCacheKey(tag: CacheTagLike) {
   return (
     normalizeCacheKey(tag.cacheKey) || normalizeName(tag.name) || tag.fullPath || tag.path || ""
   );
+}
+
+export function appendCacheKeyWithLimit(
+  cacheKeys: string[],
+  nextCacheKey: string,
+  limit: number = DEFAULT_CACHED_VIEWS_LIMIT
+) {
+  if (!nextCacheKey) {
+    return [...cacheKeys];
+  }
+
+  if (cacheKeys.includes(nextCacheKey)) {
+    return [...cacheKeys];
+  }
+
+  const result = [...cacheKeys, nextCacheKey];
+  const normalizedLimit =
+    Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : Number.POSITIVE_INFINITY;
+
+  if (result.length <= normalizedLimit) {
+    return result;
+  }
+
+  return result.slice(result.length - normalizedLimit);
 }
