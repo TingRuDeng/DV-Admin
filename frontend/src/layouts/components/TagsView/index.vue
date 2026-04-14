@@ -71,6 +71,7 @@
 import { useRoute, useRouter, type RouteRecordRaw } from "vue-router";
 import { resolve } from "path-browserify";
 import { translateRouteTitle } from "@/utils/i18n";
+import { getRouteCacheKey } from "@/utils/view-cache";
 import { usePermissionStore, useTagsViewStore } from "@/store";
 
 interface ContextMenu {
@@ -142,6 +143,12 @@ const extractAffixTags = (routes: RouteRecordRaw[], basePath = "/"): TagView[] =
           fullPath,
           name: String(route.name || ""),
           title: route.meta.title || "no-name",
+          cacheKey: getRouteCacheKey({
+            name: route.name,
+            path: fullPath,
+            fullPath,
+            meta: route.meta,
+          }),
           affix: true,
           keepAlive: route.meta.keepAlive || false,
         });
@@ -182,6 +189,7 @@ const addCurrentTag = () => {
     title: route.meta.title,
     path: route.path,
     fullPath: route.fullPath,
+    cacheKey: getRouteCacheKey(route),
     affix: route.meta.affix || false,
     keepAlive: route.meta.keepAlive || false,
     query: route.query,
@@ -201,6 +209,7 @@ const updateCurrentTag = () => {
         title: route.meta?.title || "",
         path: route.path,
         fullPath: route.fullPath,
+        cacheKey: getRouteCacheKey(route),
         affix: route.meta?.affix || false,
         keepAlive: route.meta?.keepAlive || false,
         query: route.query,

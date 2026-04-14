@@ -11,51 +11,46 @@
       </aside>
 
       <section class="ff-user-page__main">
-        <FilterPanel>
-          <el-form
-            ref="queryFormRef"
-            :model="queryParams"
-            :inline="true"
-            class="ff-form ff-toolbar"
-          >
-            <el-form-item label="关键字" prop="search">
-              <el-input
-                v-model="queryParams.search"
-                placeholder="用户名/昵称/手机号"
-                clearable
-                @keyup.enter="handleQuery"
-              />
-            </el-form-item>
+        <ProSearch
+          ref="queryFormRef"
+          :model="queryParams"
+          @submit="handleQuery"
+          @reset="handleResetQuery"
+        >
+          <el-form-item label="关键字" prop="search">
+            <el-input
+              v-model="queryParams.search"
+              placeholder="用户名/昵称/手机号"
+              clearable
+              @keyup.enter="handleQuery"
+            />
+          </el-form-item>
 
-            <el-form-item label="状态" prop="isActive">
-              <el-select
-                v-model="queryParams.isActive"
-                placeholder="全部"
-                clearable
-                style="width: 100px"
-              >
-                <el-option label="正常" :value="1" />
-                <el-option label="禁用" :value="0" />
-              </el-select>
-            </el-form-item>
+          <el-form-item label="状态" prop="isActive">
+            <el-select
+              v-model="queryParams.isActive"
+              placeholder="全部"
+              clearable
+              style="width: 100px"
+            >
+              <el-option label="正常" :value="1" />
+              <el-option label="禁用" :value="0" />
+            </el-select>
+          </el-form-item>
+        </ProSearch>
 
-            <el-form-item class="ff-toolbar__actions">
-              <el-button
-                type="primary"
-                icon="search"
-                class="ff-button-primary"
-                @click="handleQuery"
-              >
-                搜索
-              </el-button>
-              <el-button icon="refresh" class="ff-button-secondary" @click="handleResetQuery">
-                重置
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </FilterPanel>
-
-        <DataPanel title="用户数据">
+        <ProTable
+          title="用户数据"
+          :loading="loading"
+          :data="pageData"
+          :total="total"
+          :page="queryParams.pageNum"
+          :limit="queryParams.pageSize"
+          @update:page="queryParams.pageNum = $event"
+          @update:limit="queryParams.pageSize = $event"
+          @pagination="fetchData"
+          @selection-change="handleSelectionChange"
+        >
           <template #actions>
             <div class="ff-button-group">
               <el-button
@@ -81,171 +76,133 @@
             </div>
           </template>
 
-          <div class="ff-table-wrap">
-            <el-table
-              v-loading="loading"
-              :data="pageData"
-              highlight-current-row
-              class="ff-table"
-              @selection-change="handleSelectionChange"
-            >
-              <el-table-column type="selection" width="50" align="center" />
-              <el-table-column label="用户名" prop="username" />
-              <el-table-column label="昵称" width="150" align="center" prop="name" />
-              <el-table-column label="部门" width="120" align="center" prop="deptName" />
-              <el-table-column label="手机号码" align="center" prop="mobile" width="120" />
-              <el-table-column label="邮箱" align="center" prop="email" min-width="160" />
-              <el-table-column label="状态" align="center" prop="isActive" width="80">
-                <template #default="scope">
-                  <el-tag
-                    :type="scope.row.isActive === 1 ? 'success' : 'info'"
-                    class="ff-status-tag"
-                    :class="scope.row.isActive === 1 ? 'success' : 'info'"
-                  >
-                    {{ scope.row.isActive === 1 ? "正常" : "禁用" }}
-                  </el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column label="操作" fixed="right" width="280">
-                <template #default="scope">
-                  <el-button
-                    v-hasPerm="'system:users:password:reset'"
-                    type="primary"
-                    icon="RefreshLeft"
-                    size="small"
-                    link
-                    @click="hancleResetPassword(scope.row)"
-                  >
-                    重置密码
-                  </el-button>
-                  <el-button
-                    v-hasPerm="'system:users:edit'"
-                    type="primary"
-                    icon="edit"
-                    link
-                    size="small"
-                    @click="handleOpenDialog(scope.row.id)"
-                  >
-                    编辑
-                  </el-button>
-                  <el-button
-                    v-hasPerm="'system:users:delete'"
-                    type="danger"
-                    icon="delete"
-                    link
-                    size="small"
-                    @click="handleDelete(scope.row.id)"
-                  >
-                    删除
-                  </el-button>
-                </template>
-              </el-table-column>
-            </el-table>
-          </div>
-
-          <template #footer>
-            <Pagination
-              v-if="total > 0"
-              v-model:total="total"
-              v-model:page="queryParams.pageNum"
-              v-model:limit="queryParams.pageSize"
-              class="mt-4"
-              @pagination="fetchData"
-            />
+          <template #default>
+            <el-table-column type="selection" width="50" align="center" />
+            <el-table-column label="用户名" prop="username" />
+            <el-table-column label="昵称" width="150" align="center" prop="name" />
+            <el-table-column label="部门" width="120" align="center" prop="deptName" />
+            <el-table-column label="手机号码" align="center" prop="mobile" width="120" />
+            <el-table-column label="邮箱" align="center" prop="email" min-width="160" />
+            <el-table-column label="状态" align="center" prop="isActive" width="80">
+              <template #default="scope">
+                <el-tag
+                  :type="scope.row.isActive === 1 ? 'success' : 'info'"
+                  class="ff-status-tag"
+                  :class="scope.row.isActive === 1 ? 'success' : 'info'"
+                >
+                  {{ scope.row.isActive === 1 ? "正常" : "禁用" }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" fixed="right" width="280">
+              <template #default="scope">
+                <el-button
+                  v-hasPerm="'system:users:password:reset'"
+                  type="primary"
+                  icon="RefreshLeft"
+                  size="small"
+                  link
+                  @click="hancleResetPassword(scope.row)"
+                >
+                  重置密码
+                </el-button>
+                <el-button
+                  v-hasPerm="'system:users:edit'"
+                  type="primary"
+                  icon="edit"
+                  link
+                  size="small"
+                  @click="handleOpenDialog(scope.row.id)"
+                >
+                  编辑
+                </el-button>
+                <el-button
+                  v-hasPerm="'system:users:delete'"
+                  type="danger"
+                  icon="delete"
+                  link
+                  size="small"
+                  @click="handleDelete(scope.row.id)"
+                >
+                  删除
+                </el-button>
+              </template>
+            </el-table-column>
           </template>
-        </DataPanel>
+        </ProTable>
       </section>
     </div>
 
-    <el-drawer
+    <ProFormDrawer
+      ref="userFormRef"
       v-model="dialog.visible"
       :title="dialog.title"
-      append-to-body
-      class="ff-drawer"
+      :model="formData"
+      :rules="rules"
+      :loading="formLoading"
       :size="drawerSize"
+      @submit="handleSubmitWrapper"
       @close="handleCloseDialog"
     >
-      <el-form
-        ref="userFormRef"
-        v-loading="formLoading"
-        :model="formData"
-        :rules="rules"
-        label-width="80px"
-        class="ff-form"
-      >
-        <el-form-item label="用户名" prop="username">
-          <el-input
-            v-model="formData.username"
-            :readonly="!!formData.id"
-            placeholder="请输入用户名"
+      <el-form-item label="用户名" prop="username">
+        <el-input
+          v-model="formData.username"
+          :readonly="!!formData.id"
+          placeholder="请输入用户名"
+        />
+      </el-form-item>
+      <el-form-item label="用户昵称" prop="name">
+        <el-input v-model="formData.name" placeholder="请输入用户昵称" />
+      </el-form-item>
+      <el-form-item label="所属部门" prop="deptId">
+        <el-tree-select
+          v-model="formData.deptId"
+          placeholder="请选择所属部门"
+          :data="deptOptions"
+          node-key="id"
+          filterable
+          check-strictly
+          :render-after-expand="false"
+          class="w-full"
+        />
+      </el-form-item>
+      <el-form-item label="角色" prop="roles">
+        <el-select v-model="formData.roles" multiple placeholder="请选择" class="w-full">
+          <el-option
+            v-for="item in roleOptions"
+            :key="item.id"
+            :label="item.label"
+            :value="item.id"
           />
-        </el-form-item>
-        <el-form-item label="用户昵称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入用户昵称" />
-        </el-form-item>
-        <el-form-item label="所属部门" prop="deptId">
-          <el-tree-select
-            v-model="formData.deptId"
-            placeholder="请选择所属部门"
-            :data="deptOptions"
-            node-key="id"
-            filterable
-            check-strictly
-            :render-after-expand="false"
-            class="w-full"
-          />
-        </el-form-item>
-        <el-form-item label="角色" prop="roles">
-          <el-select v-model="formData.roles" multiple placeholder="请选择" class="w-full">
-            <el-option
-              v-for="item in roleOptions"
-              :key="item.id"
-              :label="item.label"
-              :value="item.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="手机号码" prop="mobile">
-          <el-input v-model="formData.mobile" placeholder="请输入手机号码" maxlength="11" />
-        </el-form-item>
-        <el-form-item label="邮箱" prop="email">
-          <el-input v-model="formData.email" placeholder="请输入邮箱" maxlength="50" />
-        </el-form-item>
-        <el-form-item label="状态" prop="isActive">
-          <el-switch
-            v-model="formData.isActive"
-            inline-prompt
-            active-text="正常"
-            inactive-text="禁用"
-            :active-value="1"
-            :inactive-value="0"
-          />
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <div class="dialog-footer flex justify-end gap-2">
-          <el-button class="ff-button-secondary" @click="handleCloseDialog">取 消</el-button>
-          <el-button
-            type="primary"
-            class="ff-button-primary"
-            :loading="formLoading"
-            @click="handleSubmitWrapper"
-          >
-            确 定
-          </el-button>
-        </div>
-      </template>
-    </el-drawer>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="手机号码" prop="mobile">
+        <el-input v-model="formData.mobile" placeholder="请输入手机号码" maxlength="11" />
+      </el-form-item>
+      <el-form-item label="邮箱" prop="email">
+        <el-input v-model="formData.email" placeholder="请输入邮箱" maxlength="50" />
+      </el-form-item>
+      <el-form-item label="状态" prop="isActive">
+        <el-switch
+          v-model="formData.isActive"
+          inline-prompt
+          active-text="正常"
+          inactive-text="禁用"
+          :active-value="1"
+          :inactive-value="0"
+        />
+      </el-form-item>
+    </ProFormDrawer>
 
     <UserImport v-model="importDialogVisible" @import-success="handleQuery()" />
   </PageShell>
 </template>
 
 <script setup lang="ts">
-import DataPanel from "@/components/DataPanel/index.vue";
-import FilterPanel from "@/components/FilterPanel/index.vue";
 import PageShell from "@/components/PageShell/index.vue";
+import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
+import ProSearch from "@/components/ProSearch/index.vue";
+import ProTable from "@/components/ProTable/index.vue";
 import { useAppStore } from "@/store/modules/app-store";
 import { DeviceEnum } from "@/enums/settings/device-enum";
 

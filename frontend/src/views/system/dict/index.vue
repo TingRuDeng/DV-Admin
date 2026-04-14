@@ -1,35 +1,34 @@
 <!-- 字典 -->
 <template>
   <PageShell class="ff-dict-page">
-    <FilterPanel>
-      <el-form
-        ref="queryFormRef"
-        :model="queryParams"
-        :inline="true"
-        class="ff-form ff-toolbar"
-        @submit.prevent
-      >
-        <el-form-item label="关键字" prop="search" class="mb-0">
-          <el-input
-            v-model="queryParams.search"
-            placeholder="字典名称/编码"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
+    <ProSearch
+      ref="queryFormRef"
+      :model="queryParams"
+      @submit="handleQuery"
+      @reset="handleResetQuery"
+    >
+      <el-form-item label="关键字" prop="search" class="mb-0">
+        <el-input
+          v-model="queryParams.search"
+          placeholder="字典名称/编码"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+    </ProSearch>
 
-        <el-form-item class="ff-toolbar__actions">
-          <el-button type="primary" icon="search" class="ff-button-primary" @click="handleQuery">
-            搜索
-          </el-button>
-          <el-button icon="refresh" class="ff-button-secondary" @click="handleResetQuery">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </FilterPanel>
-
-    <DataPanel title="字典数据">
+    <ProTable
+      title="字典数据"
+      :loading="loading"
+      :data="tableData"
+      :total="total"
+      :page="queryParams.pageNum"
+      :limit="queryParams.pageSize"
+      @update:page="queryParams.pageNum = $event"
+      @update:limit="queryParams.pageSize = $event"
+      @pagination="fetchData"
+      @selection-change="handleSelectionChange"
+    >
       <template #actions>
         <div class="ff-button-group">
           <el-button
@@ -55,131 +54,104 @@
         </div>
       </template>
 
-      <div class="ff-table-wrap">
-        <el-table
-          v-loading="loading"
-          highlight-current-row
-          :data="tableData"
-          class="ff-table"
-          @selection-change="handleSelectionChange"
-        >
-          <el-table-column type="selection" width="55" align="center" />
-          <el-table-column label="字典名称" prop="name" min-width="150" />
-          <el-table-column label="字典编码" prop="dictCode" min-width="150" />
-          <el-table-column label="状态" prop="status" width="100" align="center">
-            <template #default="scope">
-              <el-tag
-                :type="scope.row.status === 1 ? 'success' : 'info'"
-                class="ff-status-tag"
-                :class="scope.row.status === 1 ? 'success' : 'info'"
-              >
-                {{ scope.row.status === 1 ? "启用" : "禁用" }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column fixed="right" label="操作" width="280">
-            <template #default="scope">
-              <el-button
-                v-hasPerm="['system:dictitems:query']"
-                type="primary"
-                link
-                size="small"
-                @click.stop="handleOpenDictData(scope.row)"
-              >
-                <template #icon><Collection /></template>
-                字典数据
-              </el-button>
-              <el-button
-                v-hasPerm="['system:dicts:edit']"
-                type="primary"
-                link
-                icon="edit"
-                size="small"
-                @click.stop="handleEditClick(scope.row.id)"
-              >
-                编辑
-              </el-button>
-              <el-button
-                v-hasPerm="['system:dicts:delete']"
-                type="danger"
-                link
-                icon="delete"
-                size="small"
-                @click.stop="handleDelete(scope.row.id)"
-              >
-                删除
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-
-      <template #footer>
-        <pagination
-          v-if="total > 0"
-          v-model:total="total"
-          v-model:page="queryParams.pageNum"
-          v-model:limit="queryParams.pageSize"
-          class="mt-4"
-          @pagination="fetchData"
-        />
+      <template #default>
+        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column label="字典名称" prop="name" min-width="150" />
+        <el-table-column label="字典编码" prop="dictCode" min-width="150" />
+        <el-table-column label="状态" prop="status" width="100" align="center">
+          <template #default="scope">
+            <el-tag
+              :type="scope.row.status === 1 ? 'success' : 'info'"
+              class="ff-status-tag"
+              :class="scope.row.status === 1 ? 'success' : 'info'"
+            >
+              {{ scope.row.status === 1 ? "启用" : "禁用" }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column fixed="right" label="操作" width="280">
+          <template #default="scope">
+            <el-button
+              v-hasPerm="['system:dictitems:query']"
+              type="primary"
+              link
+              size="small"
+              @click.stop="handleOpenDictData(scope.row)"
+            >
+              <template #icon><Collection /></template>
+              字典数据
+            </el-button>
+            <el-button
+              v-hasPerm="['system:dicts:edit']"
+              type="primary"
+              link
+              icon="edit"
+              size="small"
+              @click.stop="handleEditClick(scope.row.id)"
+            >
+              编辑
+            </el-button>
+            <el-button
+              v-hasPerm="['system:dicts:delete']"
+              type="danger"
+              link
+              icon="delete"
+              size="small"
+              @click.stop="handleDelete(scope.row.id)"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
       </template>
-    </DataPanel>
+    </ProTable>
 
     <!--字典弹窗-->
-    <el-dialog
+    <ProFormDrawer
+      ref="dataFormRef"
       v-model="dialog.visible"
       :title="dialog.title"
-      width="500px"
-      class="ff-dialog"
+      :model="formData"
+      :rules="computedRules"
+      :loading="loading"
+      size="500px"
+      label-width="80px"
+      @submit="handleSubmitClick"
       @close="handleCloseDialog"
     >
-      <el-form
-        ref="dataFormRef"
-        :model="formData"
-        :rules="computedRules"
-        label-width="80px"
-        class="ff-form pt-4"
-      >
-        <el-form-item label="字典名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入字典名称" />
-        </el-form-item>
+      <el-form-item label="字典名称" prop="name">
+        <el-input v-model="formData.name" placeholder="请输入字典名称" />
+      </el-form-item>
 
-        <el-form-item label="字典编码" prop="dictCode">
-          <el-input v-model="formData.dictCode" placeholder="请输入字典编码" />
-        </el-form-item>
+      <el-form-item label="字典编码" prop="dictCode">
+        <el-input v-model="formData.dictCode" placeholder="请输入字典编码" />
+      </el-form-item>
 
-        <el-form-item label="状态">
-          <el-radio-group v-model="formData.status">
-            <el-radio :value="1">启用</el-radio>
-            <el-radio :value="0">禁用</el-radio>
-          </el-radio-group>
-        </el-form-item>
+      <el-form-item label="状态">
+        <el-radio-group v-model="formData.status">
+          <el-radio :value="1">启用</el-radio>
+          <el-radio :value="0">禁用</el-radio>
+        </el-radio-group>
+      </el-form-item>
 
-        <el-form-item label="备注">
-          <el-input v-model="formData.remark" type="textarea" placeholder="请输入备注" />
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <div class="dialog-footer flex justify-end gap-2">
-          <el-button class="ff-button-secondary" @click="handleCloseDialog">取 消</el-button>
-          <el-button type="primary" class="ff-button-primary" @click="handleSubmitClick">
-            确 定
-          </el-button>
-        </div>
-      </template>
-    </el-dialog>
+      <el-form-item label="备注">
+        <el-input v-model="formData.remark" type="textarea" placeholder="请输入备注" />
+      </el-form-item>
+    </ProFormDrawer>
   </PageShell>
 </template>
 
 <script setup lang="ts">
 defineOptions({
   name: "Dict",
-  inherititems: false,
+  inheritAttrs: false,
 });
 
 import DictAPI, { DictPageQuery, DictPageVO } from "@/api/system/dict-api";
+import PageShell from "@/components/PageShell/index.vue";
+import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
+import ProSearch from "@/components/ProSearch/index.vue";
+import ProTable from "@/components/ProTable/index.vue";
 
 import router from "@/router";
 

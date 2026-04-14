@@ -1,34 +1,32 @@
 <template>
   <PageShell class="ff-menu-page">
-    <FilterPanel>
-      <el-form
-        ref="queryFormRef"
-        :model="queryParams"
-        :inline="true"
-        class="ff-form ff-toolbar"
-        @submit.prevent
-      >
-        <el-form-item label="关键字" prop="search" class="mb-0">
-          <el-input
-            v-model="queryParams.search"
-            placeholder="菜单名称"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
+    <ProSearch
+      ref="queryFormRef"
+      :model="queryParams"
+      @submit="handleQuery"
+      @reset="handleResetQuery"
+    >
+      <el-form-item label="关键字" prop="search" class="mb-0">
+        <el-input
+          v-model="queryParams.search"
+          placeholder="菜单名称"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+    </ProSearch>
 
-        <el-form-item class="ff-toolbar__actions">
-          <el-button type="primary" icon="search" class="ff-button-primary" @click="handleQuery">
-            搜索
-          </el-button>
-          <el-button icon="refresh" class="ff-button-secondary" @click="handleResetQuery">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </FilterPanel>
-
-    <DataPanel title="菜单数据">
+    <ProTable
+      title="菜单数据"
+      :loading="loading"
+      :data="menuTableData"
+      :show-pagination="false"
+      :tree-props="{
+        children: 'children',
+        hasChildren: 'hasChildren',
+      }"
+      @row-click="handleRowClick"
+    >
       <template #actions>
         <div class="ff-button-group">
           <el-button
@@ -43,340 +41,312 @@
         </div>
       </template>
 
-      <div class="ff-table-wrap">
-        <el-table
-          ref="dataTableRef"
-          v-loading="loading"
-          highlight-current-row
-          row-key="id"
-          :data="menuTableData"
-          :tree-props="{
-            children: 'children',
-            hasChildren: 'hasChildren',
-          }"
-          class="ff-table"
-          @row-click="handleRowClick"
-        >
-          <el-table-column label="菜单名称" min-width="200">
-            <template #default="scope">
-              <template v-if="scope.row.icon && scope.row.icon.startsWith('el-icon')">
-                <el-icon style="vertical-align: -0.15em">
-                  <component :is="scope.row.icon.replace('el-icon-', '')" />
-                </el-icon>
-              </template>
-              <template v-else-if="scope.row.icon">
-                <div :class="`i-svg:${scope.row.icon}`" />
-              </template>
-              {{ scope.row.name }}
+      <template #default>
+        <el-table-column label="菜单名称" min-width="200">
+          <template #default="scope">
+            <template v-if="scope.row.icon && scope.row.icon.startsWith('el-icon')">
+              <el-icon style="vertical-align: -0.15em">
+                <component :is="scope.row.icon.replace('el-icon-', '')" />
+              </el-icon>
             </template>
-          </el-table-column>
+            <template v-else-if="scope.row.icon">
+              <div :class="`i-svg:${scope.row.icon}`" />
+            </template>
+            {{ scope.row.name }}
+          </template>
+        </el-table-column>
 
-          <el-table-column label="类型" align="center" width="100">
-            <template #default="scope">
-              <el-tag v-if="scope.row.type === 'CATALOG'" class="ff-status-tag warning">
-                目录
-              </el-tag>
-              <el-tag v-if="scope.row.type === 'MENU'" class="ff-status-tag success">菜单</el-tag>
-              <el-tag v-if="scope.row.type === 'BUTTON'" class="ff-status-tag danger">按钮</el-tag>
-              <el-tag v-if="scope.row.type === 'EXTLINK'" class="ff-status-tag info">外链</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="路由名称" align="left" width="150" prop="routeName" />
-          <el-table-column label="路由路径" align="left" width="150" prop="routePath" />
-          <el-table-column label="组件路径" align="left" width="250" prop="component" />
-          <el-table-column label="权限标识" align="center" width="200" prop="perm" />
-          <el-table-column label="状态" align="center" width="80">
-            <template #default="scope">
-              <el-tag v-if="scope.row.visible === 1" class="ff-status-tag success">显示</el-tag>
-              <el-tag v-else class="ff-status-tag info">隐藏</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="排序" align="center" width="80" prop="sort">
-            <template #default="{ row }">
-              <span class="text-slate-400 font-mono bg-slate-50 px-2 py-0.5 rounded-md">
-                {{ row.sort }}
-              </span>
-            </template>
-          </el-table-column>
-          <el-table-column fixed="right" label="操作" width="280">
-            <template #default="scope">
-              <el-button
-                v-if="scope.row.type === 'CATALOG' || scope.row.type === 'MENU'"
-                v-hasPerm="['system:permissions:add']"
-                type="primary"
-                link
-                icon="plus"
-                size="small"
-                @click.stop="handleOpenDialog(scope.row.id)"
-              >
-                新增
-              </el-button>
+        <el-table-column label="类型" align="center" width="100">
+          <template #default="scope">
+            <el-tag v-if="scope.row.type === 'CATALOG'" class="ff-status-tag warning">目录</el-tag>
+            <el-tag v-if="scope.row.type === 'MENU'" class="ff-status-tag success">菜单</el-tag>
+            <el-tag v-if="scope.row.type === 'BUTTON'" class="ff-status-tag danger">按钮</el-tag>
+            <el-tag v-if="scope.row.type === 'EXTLINK'" class="ff-status-tag info">外链</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="路由名称" align="left" width="150" prop="routeName" />
+        <el-table-column label="路由路径" align="left" width="150" prop="routePath" />
+        <el-table-column label="组件路径" align="left" width="250" prop="component" />
+        <el-table-column label="权限标识" align="center" width="200" prop="perm" />
+        <el-table-column label="状态" align="center" width="80">
+          <template #default="scope">
+            <el-tag v-if="scope.row.visible === 1" class="ff-status-tag success">显示</el-tag>
+            <el-tag v-else class="ff-status-tag info">隐藏</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="排序" align="center" width="80" prop="sort">
+          <template #default="{ row }">
+            <span class="text-slate-400 font-mono bg-slate-50 px-2 py-0.5 rounded-md">
+              {{ row.sort }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column fixed="right" label="操作" width="280">
+          <template #default="scope">
+            <el-button
+              v-if="scope.row.type === 'CATALOG' || scope.row.type === 'MENU'"
+              v-hasPerm="['system:permissions:add']"
+              type="primary"
+              link
+              icon="plus"
+              size="small"
+              @click.stop="handleOpenDialog(scope.row.id)"
+            >
+              新增
+            </el-button>
 
-              <el-button
-                v-hasPerm="['system:permissions:edit']"
-                type="primary"
-                link
-                icon="edit"
-                @click.stop="handleOpenDialog(undefined, scope.row.id)"
-              >
-                编辑
-              </el-button>
-              <el-button
-                v-hasPerm="['system:permissions:delete']"
-                type="danger"
-                link
-                icon="delete"
-                @click.stop="handleDelete(scope.row.id)"
-              >
-                删除
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-    </DataPanel>
+            <el-button
+              v-hasPerm="['system:permissions:edit']"
+              type="primary"
+              link
+              icon="edit"
+              @click.stop="handleOpenDialog(undefined, scope.row.id)"
+            >
+              编辑
+            </el-button>
+            <el-button
+              v-hasPerm="['system:permissions:delete']"
+              type="danger"
+              link
+              icon="delete"
+              @click.stop="handleDelete(scope.row.id)"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </template>
+    </ProTable>
 
-    <el-drawer
+    <ProFormDrawer
+      ref="menuFormRef"
       v-model="dialog.visible"
       :title="dialog.title"
+      :model="formData"
+      :rules="rules"
+      :loading="loading"
       :size="drawerSize"
-      class="ff-drawer ff-menu-drawer"
+      label-width="100px"
+      class="ff-menu-drawer"
+      @submit="handleSubmit"
       @close="handleCloseDialog"
     >
-      <el-form
-        ref="menuFormRef"
-        :model="formData"
-        :rules="rules"
-        label-width="100px"
-        class="ff-form pt-4"
-      >
-        <el-form-item label="父级菜单" prop="parent">
-          <el-tree-select
-            v-model="formData.parent"
-            placeholder="选择上级菜单"
-            :data="menuOptions"
-            node-key="id"
-            filterable
-            check-strictly
-            :render-after-expand="false"
-            class="w-full"
-          />
-        </el-form-item>
+      <el-form-item label="父级菜单" prop="parent">
+        <el-tree-select
+          v-model="formData.parent"
+          placeholder="选择上级菜单"
+          :data="menuOptions"
+          node-key="id"
+          filterable
+          check-strictly
+          :render-after-expand="false"
+          class="w-full"
+        />
+      </el-form-item>
 
-        <el-form-item label="菜单名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入菜单名称" />
-        </el-form-item>
+      <el-form-item label="菜单名称" prop="name">
+        <el-input v-model="formData.name" placeholder="请输入菜单名称" />
+      </el-form-item>
 
-        <el-form-item label="菜单类型" prop="type">
-          <el-radio-group v-model="formData.type" @change="handleMenuTypeChange">
-            <el-radio :value="'CATALOG'">根目录</el-radio>
-            <el-radio :value="'MENU'">子菜单</el-radio>
-            <el-radio :value="'BUTTON'">按钮</el-radio>
-            <el-radio :value="'EXTLINK'">外链</el-radio>
-          </el-radio-group>
-        </el-form-item>
+      <el-form-item label="菜单类型" prop="type">
+        <el-radio-group v-model="formData.type" @change="handleMenuTypeChange">
+          <el-radio :value="'CATALOG'">根目录</el-radio>
+          <el-radio :value="'MENU'">子菜单</el-radio>
+          <el-radio :value="'BUTTON'">按钮</el-radio>
+          <el-radio :value="'EXTLINK'">外链</el-radio>
+        </el-radio-group>
+      </el-form-item>
 
-        <el-form-item v-if="formData.type === 'EXTLINK'" label="外链地址" prop="path">
-          <el-input v-model="formData.routePath" placeholder="请输入外链完整路径" />
-        </el-form-item>
+      <el-form-item v-if="formData.type === 'EXTLINK'" label="外链地址" prop="path">
+        <el-input v-model="formData.routePath" placeholder="请输入外链完整路径" />
+      </el-form-item>
 
-        <el-form-item v-if="formData.type === 'MENU'" prop="routeName">
-          <template #label>
-            <div class="flex items-center">
-              路由名称
-              <el-tooltip placement="bottom" effect="light">
-                <template #content>
-                  如果需要开启缓存，需保证页面 defineOptions 中的 name 与此处一致，建议使用驼峰。
-                </template>
-                <el-icon class="ml-1 cursor-pointer text-primary">
-                  <QuestionFilled />
-                </el-icon>
-              </el-tooltip>
-            </div>
-          </template>
-          <el-input v-model="formData.routeName" placeholder="User" />
-        </el-form-item>
-
-        <el-form-item
-          v-if="formData.type === 'CATALOG' || formData.type === 'MENU'"
-          prop="routePath"
-        >
-          <template #label>
-            <div class="flex items-center">
-              路由路径
-              <el-tooltip placement="bottom" effect="light">
-                <template #content>
-                  定义应用中不同页面对应的 URL 路径，目录需以 / 开头，菜单项不用。例如：系统管理目录
-                  /system，系统管理下的用户管理菜单 user。
-                </template>
-                <el-icon class="ml-1 cursor-pointer text-primary">
-                  <QuestionFilled />
-                </el-icon>
-              </el-tooltip>
-            </div>
-          </template>
-          <el-input
-            v-if="formData.type === 'CATALOG'"
-            v-model="formData.routePath"
-            placeholder="system"
-          />
-          <el-input v-else v-model="formData.routePath" placeholder="user" />
-        </el-form-item>
-
-        <el-form-item v-if="formData.type === 'MENU'" prop="component">
-          <template #label>
-            <div class="flex items-center">
-              组件路径
-              <el-tooltip placement="bottom" effect="light">
-                <template #content>
-                  组件页面完整路径，相对于 src/views/，如 system/user/index，缺省后缀 .vue
-                </template>
-                <el-icon class="ml-1 cursor-pointer text-primary">
-                  <QuestionFilled />
-                </el-icon>
-              </el-tooltip>
-            </div>
-          </template>
-
-          <el-input v-model="formData.component" placeholder="system/user/index">
-            <template v-if="formData.type === 'MENU'" #prepend>src/views/</template>
-            <template v-if="formData.type === 'MENU'" #append>.vue</template>
-          </el-input>
-        </el-form-item>
-
-        <el-form-item v-if="formData.type === 'MENU'">
-          <template #label>
-            <div class="flex items-center">
-              路由参数
-              <el-tooltip placement="bottom" effect="light">
-                <template #content>
-                  组件页面使用 `useRoute().query.参数名` 获取路由参数值。
-                </template>
-                <el-icon class="ml-1 cursor-pointer text-primary">
-                  <QuestionFilled />
-                </el-icon>
-              </el-tooltip>
-            </div>
-          </template>
-
-          <div v-if="!formData.params || formData.params.length === 0">
-            <el-button
-              type="success"
-              plain
-              class="ff-button-success"
-              @click="formData.params = [{ key: '', value: '' }]"
-            >
-              添加路由参数
-            </el-button>
-          </div>
-
-          <div v-else>
-            <div
-              v-for="(item, index) in formData.params"
-              :key="index"
-              class="flex items-center gap-2 mb-2"
-            >
-              <el-input v-model="item.key" placeholder="参数名" style="width: 100px" />
-
-              <span class="text-slate-400">=</span>
-
-              <el-input v-model="item.value" placeholder="参数值" style="width: 100px" />
-
-              <el-icon
-                v-if="formData.params.indexOf(item) === formData.params.length - 1"
-                class="cursor-pointer text-success"
-                style="vertical-align: -0.15em"
-                @click="formData.params.push({ key: '', value: '' })"
-              >
-                <CirclePlusFilled />
+      <el-form-item v-if="formData.type === 'MENU'" prop="routeName">
+        <template #label>
+          <div class="flex items-center">
+            路由名称
+            <el-tooltip placement="bottom" effect="light">
+              <template #content>
+                如果需要开启缓存，需保证页面 defineOptions 中的 name 与此处一致，建议使用驼峰。
+              </template>
+              <el-icon class="ml-1 cursor-pointer text-primary">
+                <QuestionFilled />
               </el-icon>
-              <el-icon
-                class="cursor-pointer text-danger"
-                style="vertical-align: -0.15em"
-                @click="formData.params.splice(formData.params.indexOf(item), 1)"
-              >
-                <DeleteFilled />
-              </el-icon>
-            </div>
+            </el-tooltip>
           </div>
-        </el-form-item>
+        </template>
+        <el-input v-model="formData.routeName" placeholder="User" />
+      </el-form-item>
 
-        <el-form-item v-if="formData.type !== 'BUTTON'" prop="visible" label="显示状态">
-          <el-radio-group v-model="formData.visible">
-            <el-radio :value="1">显示</el-radio>
-            <el-radio :value="0">隐藏</el-radio>
-          </el-radio-group>
-        </el-form-item>
+      <el-form-item v-if="formData.type === 'CATALOG' || formData.type === 'MENU'" prop="routePath">
+        <template #label>
+          <div class="flex items-center">
+            路由路径
+            <el-tooltip placement="bottom" effect="light">
+              <template #content>
+                定义应用中不同页面对应的 URL 路径，目录需以 / 开头，菜单项不用。例如：系统管理目录
+                /system，系统管理下的用户管理菜单 user。
+              </template>
+              <el-icon class="ml-1 cursor-pointer text-primary">
+                <QuestionFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+        </template>
+        <el-input
+          v-if="formData.type === 'CATALOG'"
+          v-model="formData.routePath"
+          placeholder="system"
+        />
+        <el-input v-else v-model="formData.routePath" placeholder="user" />
+      </el-form-item>
 
-        <el-form-item v-if="formData.type === 'CATALOG' || formData.type === 'MENU'">
-          <template #label>
-            <div class="flex items-center">
-              始终显示
-              <el-tooltip placement="bottom" effect="light">
-                <template #content>
-                  选择"是"，即使目录或菜单下只有一个子节点，也会显示父节点。
-                  <br />
-                  选择"否"，如果目录或菜单下只有一个子节点，则只显示该子节点，隐藏父节点。
-                  <br />
-                  如果是叶子节点，请选择"否"。
-                </template>
-                <el-icon class="ml-1 cursor-pointer text-primary">
-                  <QuestionFilled />
-                </el-icon>
-              </el-tooltip>
-            </div>
-          </template>
+      <el-form-item v-if="formData.type === 'MENU'" prop="component">
+        <template #label>
+          <div class="flex items-center">
+            组件路径
+            <el-tooltip placement="bottom" effect="light">
+              <template #content>
+                组件页面完整路径，相对于 src/views/，如 system/user/index，缺省后缀 .vue
+              </template>
+              <el-icon class="ml-1 cursor-pointer text-primary">
+                <QuestionFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+        </template>
 
-          <el-radio-group v-model="formData.alwaysShow">
-            <el-radio :value="1">是</el-radio>
-            <el-radio :value="0">否</el-radio>
-          </el-radio-group>
-        </el-form-item>
+        <el-input v-model="formData.component" placeholder="system/user/index">
+          <template v-if="formData.type === 'MENU'" #prepend>src/views/</template>
+          <template v-if="formData.type === 'MENU'" #append>.vue</template>
+        </el-input>
+      </el-form-item>
 
-        <el-form-item v-if="formData.type === 'MENU'" label="缓存页面">
-          <el-radio-group v-model="formData.keepAlive">
-            <el-radio :value="1">开启</el-radio>
-            <el-radio :value="0">关闭</el-radio>
-          </el-radio-group>
-        </el-form-item>
+      <el-form-item v-if="formData.type === 'MENU'">
+        <template #label>
+          <div class="flex items-center">
+            路由参数
+            <el-tooltip placement="bottom" effect="light">
+              <template #content>组件页面使用 `useRoute().query.参数名` 获取路由参数值。</template>
+              <el-icon class="ml-1 cursor-pointer text-primary">
+                <QuestionFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+        </template>
 
-        <el-form-item label="排序" prop="sort">
-          <el-input-number
-            v-model="formData.sort"
-            style="width: 100px"
-            controls-position="right"
-            :min="0"
-          />
-        </el-form-item>
-
-        <!-- 权限标识 -->
-        <el-form-item v-if="formData.type === 'BUTTON'" label="权限标识" prop="perm">
-          <el-input v-model="formData.perm" placeholder="sys:user:add" />
-        </el-form-item>
-
-        <el-form-item v-if="formData.type !== 'BUTTON'" label="图标" prop="icon">
-          <!-- 图标选择器 -->
-          <icon-select v-model="formData.icon" />
-        </el-form-item>
-
-        <el-form-item v-if="formData.type === 'CATALOG'" label="跳转路由">
-          <el-input v-model="formData.redirect" placeholder="跳转路由" />
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <div class="dialog-footer flex justify-end gap-2">
-          <el-button class="ff-button-secondary" @click="handleCloseDialog">取 消</el-button>
-          <el-button type="primary" class="ff-button-primary" @click="handleSubmit">
-            确 定
+        <div v-if="!formData.params || formData.params.length === 0">
+          <el-button
+            type="success"
+            plain
+            class="ff-button-success"
+            @click="formData.params = [{ key: '', value: '' }]"
+          >
+            添加路由参数
           </el-button>
         </div>
-      </template>
-    </el-drawer>
+
+        <div v-else>
+          <div
+            v-for="(item, index) in formData.params"
+            :key="index"
+            class="flex items-center gap-2 mb-2"
+          >
+            <el-input v-model="item.key" placeholder="参数名" style="width: 100px" />
+
+            <span class="text-slate-400">=</span>
+
+            <el-input v-model="item.value" placeholder="参数值" style="width: 100px" />
+
+            <el-icon
+              v-if="formData.params.indexOf(item) === formData.params.length - 1"
+              class="cursor-pointer text-success"
+              style="vertical-align: -0.15em"
+              @click="formData.params.push({ key: '', value: '' })"
+            >
+              <CirclePlusFilled />
+            </el-icon>
+            <el-icon
+              class="cursor-pointer text-danger"
+              style="vertical-align: -0.15em"
+              @click="formData.params.splice(formData.params.indexOf(item), 1)"
+            >
+              <DeleteFilled />
+            </el-icon>
+          </div>
+        </div>
+      </el-form-item>
+
+      <el-form-item v-if="formData.type !== 'BUTTON'" prop="visible" label="显示状态">
+        <el-radio-group v-model="formData.visible">
+          <el-radio :value="1">显示</el-radio>
+          <el-radio :value="0">隐藏</el-radio>
+        </el-radio-group>
+      </el-form-item>
+
+      <el-form-item v-if="formData.type === 'CATALOG' || formData.type === 'MENU'">
+        <template #label>
+          <div class="flex items-center">
+            始终显示
+            <el-tooltip placement="bottom" effect="light">
+              <template #content>
+                选择"是"，即使目录或菜单下只有一个子节点，也会显示父节点。
+                <br />
+                选择"否"，如果目录或菜单下只有一个子节点，则只显示该子节点，隐藏父节点。
+                <br />
+                如果是叶子节点，请选择"否"。
+              </template>
+              <el-icon class="ml-1 cursor-pointer text-primary">
+                <QuestionFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+        </template>
+
+        <el-radio-group v-model="formData.alwaysShow">
+          <el-radio :value="1">是</el-radio>
+          <el-radio :value="0">否</el-radio>
+        </el-radio-group>
+      </el-form-item>
+
+      <el-form-item v-if="formData.type === 'MENU'" label="缓存页面">
+        <el-radio-group v-model="formData.keepAlive">
+          <el-radio :value="1">开启</el-radio>
+          <el-radio :value="0">关闭</el-radio>
+        </el-radio-group>
+      </el-form-item>
+
+      <el-form-item label="排序" prop="sort">
+        <el-input-number
+          v-model="formData.sort"
+          style="width: 100px"
+          controls-position="right"
+          :min="0"
+        />
+      </el-form-item>
+
+      <!-- 权限标识 -->
+      <el-form-item v-if="formData.type === 'BUTTON'" label="权限标识" prop="perm">
+        <el-input v-model="formData.perm" placeholder="sys:user:add" />
+      </el-form-item>
+
+      <el-form-item v-if="formData.type !== 'BUTTON'" label="图标" prop="icon">
+        <!-- 图标选择器 -->
+        <icon-select v-model="formData.icon" />
+      </el-form-item>
+
+      <el-form-item v-if="formData.type === 'CATALOG'" label="跳转路由">
+        <el-input v-model="formData.redirect" placeholder="跳转路由" />
+      </el-form-item>
+    </ProFormDrawer>
   </PageShell>
 </template>
 
 <script setup lang="ts">
+import PageShell from "@/components/PageShell/index.vue";
+import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
+import ProSearch from "@/components/ProSearch/index.vue";
+import ProTable from "@/components/ProTable/index.vue";
 import { useAppStore } from "@/store/modules/app-store";
 import { DeviceEnum } from "@/enums/settings/device-enum";
 

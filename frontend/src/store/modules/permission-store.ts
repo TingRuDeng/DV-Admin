@@ -4,6 +4,7 @@ import { store } from "@/store";
 import router from "@/router";
 
 import AuthAPI, { type RouteVO } from "@/api/auth-api";
+import { normalizeRouteMeta } from "@/utils/route-meta";
 const modules = import.meta.glob("../../views/**/**.vue");
 const Layout = () => import("../../layouts/index.vue");
 
@@ -76,7 +77,10 @@ const transformRoutes = (routes: RouteVO[], isTopLevel: boolean = true): RouteRe
     // 处理组件：顶层或非Layout保留组件，中间层Layout设为undefined
     const processedComponent = isTopLevel || component !== "Layout" ? component : undefined;
 
-    const normalizedRoute = { ...args } as RouteRecordRaw;
+    const normalizedRoute = {
+      ...args,
+      meta: normalizeRouteMeta(route.meta, { routeName: route.name }),
+    } as RouteRecordRaw;
 
     if (!processedComponent) {
       // 多级菜单的父级菜单，不需要组件

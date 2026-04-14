@@ -12,6 +12,7 @@ DV-Admin/
 ├── docs/
 │   ├── README.md               # [本文件] 文档导航入口
 │   ├── ARCHITECTURE.md         # [权威] 系统架构设计
+│   ├── FRONTEND_OPTIMIZATION_BACKLOG.md # [跟踪] 当前前端优化待办
 │   ├── API_ENDPOINTS.md        # [参考] API 端点文档
 │   ├── DATABASE_SCHEMA.md      # [参考] 数据库模型文档
 │   ├── KNOWN_PITFALLS.md       # [警告] 已知陷阱和常见错误
@@ -27,6 +28,8 @@ DV-Admin/
 │   └── README.md               # [模块] Django 后端说明
 ├── fastapi/
 │   └── README.md               # [模块] FastAPI 后端说明
+├── 后续优化/
+│   └── README.md               # [历史] 旧前端优化方案说明
 └── frontend/
     └── README.md               # [模块] 前端说明
 ```
@@ -138,9 +141,9 @@ cp .env.example .env
 | **权威** | 代码冲突时以文档为准，修改需谨慎 | `AGENTS.md`, `ARCHITECTURE.md` |
 | **参考** | 从代码自动生成或同步，辅助理解 | `API_ENDPOINTS.md`, `DATABASE_SCHEMA.md` |
 | **警告** | 必须阅读，避免重复犯错 | `KNOWN_PITFALLS.md` |
-| **跟踪** | 记录待解决的问题 | `TECH_DEBT.md` |
+| **跟踪** | 记录待解决的问题或后续待办 | `TECH_DEBT.md`, `FRONTEND_OPTIMIZATION_BACKLOG.md` |
 | **模块** | 模块级说明，模块内权威 | 各子目录 `README.md` |
-| **历史** | 归档文档，仅供参考 | `docs/archive/` |
+| **历史** | 归档文档，仅供参考 | `docs/archive/`, `后续优化/` |
 
 ---
 

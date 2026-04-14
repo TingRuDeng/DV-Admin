@@ -132,12 +132,34 @@ export interface RouteVO {
 export interface Meta {
   /** 【目录】只有一个子路由是否始终显示 */
   alwaysShow?: boolean;
+  /** 是否固定页签 */
+  affix?: boolean;
+  /** 当前路由激活的菜单项 */
+  activeMenu?: string;
+  /** 面包屑中是否显示 */
+  breadcrumb?: boolean;
+  /** 稳定缓存键 */
+  cacheKey?: string;
+  /** 是否按 query 维度区分缓存实例 */
+  cacheByQuery?: boolean | number | string;
+  /** 仅按指定 query 键区分缓存实例 */
+  cacheQueryKeys?: string[] | string;
   /** 是否隐藏(true-是 false-否) */
   hidden?: boolean;
   /** ICON */
   icon?: string;
   /** 【菜单】是否开启页面缓存 */
   keepAlive?: boolean;
+  /** 布局覆盖 */
+  layout?: "left" | "top" | "mix";
+  /** 附加参数 */
+  params?: Record<string, unknown>;
+  /** 路由级权限（页面访问语义） */
+  perms?: string[] | string;
+  /** 兼容旧字段 */
+  permissions?: string[] | string;
+  /** 路由级角色（页面访问语义） */
+  roles?: string[] | string;
   /** 路由title */
   title?: string;
 }

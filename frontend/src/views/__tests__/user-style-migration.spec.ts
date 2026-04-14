@@ -7,8 +7,9 @@ describe("system user style migration", () => {
     const source = readFileSync(resolve(process.cwd(), "src/views/system/user/index.vue"), "utf8");
 
     expect(source).toContain("<PageShell");
-    expect(source).toContain("<FilterPanel");
-    expect(source).toContain("<DataPanel");
+    expect(source).toContain("<ProSearch");
+    expect(source).toContain("<ProTable");
+    expect(source).toContain("<ProFormDrawer");
     expect(source).toContain('class="ff-side-panel');
     expect(source).not.toContain("glass-panel");
     expect(source).not.toContain("minimal-");
