@@ -1,4 +1,4 @@
-import { getRouteCacheKey, getTagCacheKey } from "@/utils/view-cache";
+import { appendCacheKeyWithLimit, getRouteCacheKey, getTagCacheKey } from "@/utils/view-cache";
 
 export const useTagsViewStore = defineStore("tagsView", () => {
   const visitedViews = ref<TagView[]>([]);
@@ -39,7 +39,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
 
     // 如果视图需要缓存（keepAlive），则将其路由名称添加到缓存视图列表中
     if (view.keepAlive && cacheKey) {
-      cachedViews.value.push(cacheKey);
+      cachedViews.value = appendCacheKeyWithLimit(cachedViews.value, cacheKey);
     }
   }
 
@@ -110,7 +110,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     }
 
     if (targetView.keepAlive && nextCacheKey && !cachedViews.value.includes(nextCacheKey)) {
-      cachedViews.value.push(nextCacheKey);
+      cachedViews.value = appendCacheKeyWithLimit(cachedViews.value, nextCacheKey);
       return;
     }
 

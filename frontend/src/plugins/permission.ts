@@ -2,6 +2,7 @@ import type { RouteRecordRaw } from "vue-router";
 import NProgress from "@/utils/nprogress";
 import router from "@/router";
 import { usePermissionStore, useUserStore } from "@/store";
+import { hasRouteAccess } from "@/utils/route-access";
 
 export function setupPermission() {
   const whiteList = ["/login"];
@@ -50,6 +51,16 @@ export function setupPermission() {
       // 路由404检查
       if (to.matched.length === 0) {
         next("/404");
+        return;
+      }
+
+      // 路由级权限拦截：页面准入语义由 RouteMeta.perms/roles 决定
+      const canAccessRoute = hasRouteAccess(to.matched, {
+        userPerms: userStore.userInfo?.perms ?? [],
+        userRoles: userStore.userInfo?.roles ?? [],
+      });
+      if (!canAccessRoute) {
+        next("/403");
         return;
       }
 
