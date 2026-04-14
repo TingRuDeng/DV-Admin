@@ -90,6 +90,7 @@ frontend/src/
 - `UnoCSS` 主要用于布局和局部原子样式，共享视觉皮肤统一放在 `skins/*`
 - `_minimal-saas.scss` 仅作为未迁移页面的兼容层，不再作为新增样式的主入口
 - `components/CURD` 作为历史兼容层保留；新页面/重构页面统一使用 `ProSearch`、`ProTable`、`ProFormDrawer`
+- `ProTable` 支持受控模式与 `request(params)=>{list,total}` 请求驱动模式，分页参数统一为 `pageNum/pageSize`
 
 **前端路由与缓存约定：**
 - 动态路由在进入前端 store 前，会先将后端返回的 `meta` 统一清洗为前端 `RouteMeta` 语义
@@ -266,6 +267,7 @@ fastapi/app/
 - `userInfo.perms` / `userInfo.roles` 是当前登录用户的“身份快照”，用于按钮与角色指令判定（`v-hasPerm` / `v-hasRole`）
 - `RouteMeta.perms` / `RouteMeta.roles` 是路由级访问语义，只表达“该页面需要的权限/角色条件”
 - 路由级语义与按钮级语义分层：页面准入看 `RouteMeta`，页面内细粒度操作看按钮权限指令
+- 路由守卫会对 `to.matched` 链路逐级校验 `perms/roles`；校验失败统一跳转 `/403`
 
 **权限验证流程：**
 1. 用户登录后获取角色列表

@@ -1,6 +1,6 @@
 import { defineComponent } from "vue";
-import { mount } from "@vue/test-utils";
-import { describe, expect, it } from "vitest";
+import { flushPromises, mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
@@ -116,6 +116,37 @@ describe("pro components", () => {
 
     await wrapper.find(".pagination-trigger").trigger("click");
     expect(wrapper.emitted("pagination")).toHaveLength(1);
+  });
+
+  it("supports request-driven mode and reload", async () => {
+    const request = vi.fn().mockResolvedValue({
+      list: [{ id: 1, name: "admin" }],
+      total: 1,
+    });
+
+    const wrapper = mount(ProTable, {
+      props: {
+        title: "用户数据",
+        request,
+        params: {
+          keyword: "admin",
+        },
+      },
+      slots: {
+        default: "<el-table-column label='昵称' prop='name' />",
+      },
+      global: testGlobal,
+    });
+
+    await flushPromises();
+    expect(request).toHaveBeenCalledWith({
+      keyword: "admin",
+      pageNum: 1,
+      pageSize: 10,
+    });
+
+    await (wrapper.vm as { reload: () => Promise<void> }).reload();
+    expect(request).toHaveBeenCalledTimes(2);
   });
 
   it("renders ProFormDrawer and emits submit/cancel", async () => {
