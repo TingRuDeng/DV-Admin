@@ -22,6 +22,7 @@
 - 菜单高亮已支持 `meta.activeMenu`
 - 系统管理域已有多页完成新页面骨架迁移
 - `components/CURD` 已提供一批可复用雏形组件，但尚未演进为统一 Pro 层
+- 页面层弹层已完成抽象收敛：`frontend/src/views` 不再直接使用 `el-dialog` / `el-drawer`
 
 ---
 
@@ -106,6 +107,13 @@
 
 - `components/CURD` 继续作为历史页面兼容层保留，不作为新一轮 Pro 抽象基座
 - 新增或重构页面统一使用 `ProSearch` / `ProTable` / `ProFormDrawer`，不再新增 `CURD` 调用点
+
+**收口结果（2026-04-14）**
+
+- 系统管理域列表页已统一为 `ProTable(request)` 驱动
+- 页面层表单弹层统一为 `ProFormDrawer`
+- 页面层详情/非表单弹层统一为 `ProDialog` / `ProDrawer`
+- 已新增测试守卫，禁止在 `src/views` 回归到原生 `el-dialog` / `el-drawer`
 
 **建议的 MVP 范围**
 
