@@ -1,5 +1,5 @@
 <template>
-  <component :is="linkType" v-bind="linkProps(to)">
+  <component :is="linkType" v-bind="mergedProps">
     <slot />
   </component>
 </template>
@@ -11,6 +11,8 @@ defineOptions({
 });
 
 import { isExternal } from "@/utils/index";
+
+const attrs = useAttrs();
 
 const props = defineProps({
   to: {
@@ -35,4 +37,9 @@ const linkProps = (to: any) => {
   }
   return { to };
 };
+
+const mergedProps = computed(() => ({
+  ...attrs,
+  ...linkProps(props.to),
+}));
 </script>
