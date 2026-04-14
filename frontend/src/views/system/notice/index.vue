@@ -236,12 +236,13 @@
       </el-form-item>
     </ProFormDrawer>
     <!-- 通知公告详情 -->
-    <el-dialog
+    <ProDialog
       v-model="detailDialog.visible"
       :show-close="false"
+      :show-footer="false"
       width="50%"
       append-to-body
-      class="ff-dialog ff-notice-detail-dialog"
+      class="ff-notice-detail-dialog"
       @close="closeDetailDialog"
     >
       <template #header>
@@ -296,7 +297,7 @@
           <div class="ff-notice-content" v-html="currentNotice.content" />
         </el-descriptions-item>
       </el-descriptions>
-    </el-dialog>
+    </ProDialog>
   </PageShell>
 </template>
 
@@ -307,6 +308,7 @@ defineOptions({
 });
 
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
+import ProDialog from "@/components/ProDialog/index.vue";
 import NoticeAPI, { NoticeForm, NoticePageQuery, NoticeDetailVO } from "@/api/system/notice-api";
 import UserAPI from "@/api/system/user-api";
 

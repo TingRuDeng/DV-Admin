@@ -62,7 +62,13 @@
       </template>
     </ProFormDrawer>
 
-    <el-dialog v-model="resultVisible" title="导入结果" width="600px">
+    <ProDialog
+      v-model="resultVisible"
+      title="导入结果"
+      width="600px"
+      :show-confirm-button="false"
+      cancel-text="关闭"
+    >
       <el-alert
         :title="`导入结果：${invalidCount}条无效数据，${validCount}条有效数据`"
         type="warning"
@@ -76,16 +82,17 @@
           </template>
         </el-table-column>
       </el-table>
-      <template #footer>
+      <template #footer="{ cancel }">
         <div class="dialog-footer">
-          <el-button @click="handleCloseResult">关闭</el-button>
+          <el-button @click="cancel">关闭</el-button>
         </div>
       </template>
-    </el-dialog>
+    </ProDialog>
   </div>
 </template>
 
 <script lang="ts" setup>
+import ProDialog from "@/components/ProDialog/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import { ElMessage, type UploadInstance, type UploadUserFile } from "element-plus";
 import UserAPI from "@/api/system/user-api";
@@ -187,11 +194,6 @@ const handleUpload = async () => {
 // 显示错误信息
 const handleShowResult = () => {
   resultVisible.value = true;
-};
-
-// 关闭错误信息弹窗
-const handleCloseResult = () => {
-  resultVisible.value = false;
 };
 
 // 关闭弹窗
