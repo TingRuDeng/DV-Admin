@@ -3,12 +3,16 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("system log style migration", () => {
-  it("uses PageShell, FilterPanel, and DataPanel without minimal-* classes", () => {
+  it("uses PageShell, ProSearch and request-driven ProTable without minimal-* classes", () => {
     const source = readFileSync(resolve(process.cwd(), "src/views/system/log/index.vue"), "utf8");
 
     expect(source).toContain("<PageShell");
-    expect(source).toContain("<FilterPanel");
-    expect(source).toContain("<DataPanel");
+    expect(source).toContain("<ProSearch");
+    expect(source).toContain("<ProTable");
+    expect(source).toContain(':request="requestTableData"');
+    expect(source).toContain('ref="tableRef"');
+    expect(source).not.toContain("<FilterPanel");
+    expect(source).not.toContain("<DataPanel");
     expect(source).not.toContain("minimal-");
     expect(source).not.toContain("glass-panel");
   });
