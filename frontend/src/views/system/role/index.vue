@@ -1,34 +1,33 @@
 <template>
   <PageShell class="ff-role-page">
-    <FilterPanel>
-      <el-form
-        ref="queryFormRef"
-        :model="queryParams"
-        :inline="true"
-        class="ff-form ff-toolbar"
-        @submit.prevent
-      >
-        <el-form-item prop="search" label="关键字">
-          <el-input
-            v-model="queryParams.search"
-            placeholder="角色名称"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
+    <ProSearch
+      ref="queryFormRef"
+      :model="queryParams"
+      @submit="handleQuery"
+      @reset="handleResetQuery"
+    >
+      <el-form-item prop="search" label="关键字">
+        <el-input
+          v-model="queryParams.search"
+          placeholder="角色名称"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+    </ProSearch>
 
-        <el-form-item class="ff-toolbar__actions">
-          <el-button type="primary" icon="search" class="ff-button-primary" @click="handleQuery">
-            搜索
-          </el-button>
-          <el-button icon="refresh" class="ff-button-secondary" @click="handleResetQuery">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </FilterPanel>
-
-    <DataPanel title="角色数据">
+    <ProTable
+      title="角色数据"
+      :loading="loading"
+      :data="roleList"
+      :total="total"
+      :page="queryParams.pageNum"
+      :limit="queryParams.pageSize"
+      @update:page="queryParams.pageNum = $event"
+      @update:limit="queryParams.pageSize = $event"
+      @pagination="fetchData"
+      @selection-change="handleSelectionChange"
+    >
       <template #actions>
         <div class="ff-button-group">
           <el-button
@@ -52,149 +51,112 @@
         </div>
       </template>
 
-      <div class="ff-table-wrap">
-        <el-table
-          ref="dataTableRef"
-          v-loading="loading"
-          :data="roleList"
-          highlight-current-row
-          class="ff-table"
-          @selection-change="handleSelectionChange"
-        >
-          <el-table-column type="selection" width="55" align="center" />
-          <el-table-column label="排序" align="center" width="80" prop="sort">
-            <template #default="{ row }">
-              <span class="text-slate-400 font-mono bg-slate-50 px-2 py-0.5 rounded-md">
-                {{ row.sort }}
-              </span>
-            </template>
-          </el-table-column>
-          <el-table-column label="角色名称" prop="name" min-width="100" />
-          <el-table-column label="状态" align="center" width="100">
-            <template #default="scope">
-              <el-tag
-                :type="scope.row.status === 1 ? 'success' : 'info'"
-                class="ff-status-tag"
-                :class="scope.row.status === 1 ? 'success' : 'info'"
-              >
-                {{ scope.row.status === 1 ? "正常" : "禁用" }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="是否默认角色" align="center" width="120">
-            <template #default="scope">
-              <el-tag
-                :type="scope.row.isDefault ? 'success' : 'info'"
-                class="ff-status-tag"
-                :class="scope.row.isDefault ? 'success' : 'info'"
-              >
-                {{ scope.row.isDefault ? "是" : "否" }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="备注" prop="desc" min-width="200" />
-          <el-table-column fixed="right" label="操作" width="280">
-            <template #default="scope">
-              <el-button
-                type="primary"
-                link
-                icon="position"
-                size="small"
-                @click="handleOpenAssignPermDialog(scope.row)"
-              >
-                分配权限
-              </el-button>
-              <el-button
-                type="primary"
-                link
-                icon="edit"
-                size="small"
-                @click="handleOpenDialog(scope.row.id)"
-              >
-                编辑
-              </el-button>
-              <el-button
-                type="danger"
-                link
-                icon="delete"
-                size="small"
-                @click="handleDelete(scope.row.id)"
-              >
-                删除
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-
-      <template #footer>
-        <Pagination
-          v-if="total > 0"
-          v-model:total="total"
-          v-model:page="queryParams.pageNum"
-          v-model:limit="queryParams.pageSize"
-          class="mt-4"
-          @pagination="fetchData"
-        />
+      <template #default>
+        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column label="排序" align="center" width="80" prop="sort">
+          <template #default="{ row }">
+            <span class="text-slate-400 font-mono bg-slate-50 px-2 py-0.5 rounded-md">
+              {{ row.sort }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="角色名称" prop="name" min-width="100" />
+        <el-table-column label="状态" align="center" width="100">
+          <template #default="scope">
+            <el-tag
+              :type="scope.row.status === 1 ? 'success' : 'info'"
+              class="ff-status-tag"
+              :class="scope.row.status === 1 ? 'success' : 'info'"
+            >
+              {{ scope.row.status === 1 ? "正常" : "禁用" }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="是否默认角色" align="center" width="120">
+          <template #default="scope">
+            <el-tag
+              :type="scope.row.isDefault ? 'success' : 'info'"
+              class="ff-status-tag"
+              :class="scope.row.isDefault ? 'success' : 'info'"
+            >
+              {{ scope.row.isDefault ? "是" : "否" }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="备注" prop="desc" min-width="200" />
+        <el-table-column fixed="right" label="操作" width="280">
+          <template #default="scope">
+            <el-button
+              type="primary"
+              link
+              icon="position"
+              size="small"
+              @click="handleOpenAssignPermDialog(scope.row)"
+            >
+              分配权限
+            </el-button>
+            <el-button
+              type="primary"
+              link
+              icon="edit"
+              size="small"
+              @click="handleOpenDialog(scope.row.id)"
+            >
+              编辑
+            </el-button>
+            <el-button
+              type="danger"
+              link
+              icon="delete"
+              size="small"
+              @click="handleDelete(scope.row.id)"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
       </template>
-    </DataPanel>
+    </ProTable>
 
-    <el-dialog
+    <ProFormDrawer
+      ref="roleFormRef"
       v-model="dialog.visible"
       :title="dialog.title"
-      width="500px"
-      class="ff-dialog"
+      :model="formData"
+      :rules="rules"
+      :loading="loading"
+      :size="drawerSize"
+      label-width="100px"
+      @submit="handleSubmit"
       @close="handleCloseDialog"
     >
-      <el-form
-        ref="roleFormRef"
-        :model="formData"
-        :rules="rules"
-        label-width="100px"
-        class="ff-form pt-4"
-      >
-        <el-form-item label="角色名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入角色名称" />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-radio-group v-model="formData.status">
-            <el-radio :value="1">正常</el-radio>
-            <el-radio :value="0">停用</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="是否默认" prop="isDefault">
-          <el-radio-group v-model="formData.isDefault">
-            <el-radio :value="1">是</el-radio>
-            <el-radio :value="0">否</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="排序" prop="sort">
-          <el-input-number
-            v-model="formData.sort"
-            controls-position="right"
-            :min="0"
-            style="width: 100px"
-          />
-        </el-form-item>
-        <el-form-item label="备注" prop="desc">
-          <el-input
-            v-model="formData.desc"
-            placeholder="请输入角色备注"
-            type="textarea"
-            :rows="2"
-          />
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <div class="dialog-footer flex justify-end gap-2">
-          <el-button class="ff-button-secondary" @click="handleCloseDialog">取 消</el-button>
-          <el-button type="primary" class="ff-button-primary" @click="handleSubmit">
-            确 定
-          </el-button>
-        </div>
-      </template>
-    </el-dialog>
+      <el-form-item label="角色名称" prop="name">
+        <el-input v-model="formData.name" placeholder="请输入角色名称" />
+      </el-form-item>
+      <el-form-item label="状态" prop="status">
+        <el-radio-group v-model="formData.status">
+          <el-radio :value="1">正常</el-radio>
+          <el-radio :value="0">停用</el-radio>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item label="是否默认" prop="isDefault">
+        <el-radio-group v-model="formData.isDefault">
+          <el-radio :value="1">是</el-radio>
+          <el-radio :value="0">否</el-radio>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item label="排序" prop="sort">
+        <el-input-number
+          v-model="formData.sort"
+          controls-position="right"
+          :min="0"
+          style="width: 100px"
+        />
+      </el-form-item>
+      <el-form-item label="备注" prop="desc">
+        <el-input v-model="formData.desc" placeholder="请输入角色备注" type="textarea" :rows="2" />
+      </el-form-item>
+    </ProFormDrawer>
 
     <el-drawer
       v-model="assignPermDialogVisible"
@@ -265,9 +227,10 @@
 </template>
 
 <script setup lang="ts">
-import DataPanel from "@/components/DataPanel/index.vue";
-import FilterPanel from "@/components/FilterPanel/index.vue";
 import PageShell from "@/components/PageShell/index.vue";
+import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
+import ProSearch from "@/components/ProSearch/index.vue";
+import ProTable from "@/components/ProTable/index.vue";
 import { useAppStore } from "@/store/modules/app-store";
 import { DeviceEnum } from "@/enums/settings/device-enum";
 

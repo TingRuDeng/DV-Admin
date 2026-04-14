@@ -63,7 +63,7 @@ const formComponents = {
 };
 
 // 从环境变量读取 Logo 文字
-const logoText = import.meta.env.VITE_APP_LOGO_TEXT || 'DV';
+const logoText = import.meta.env.VITE_APP_LOGO_TEXT || "DV";
 </script>
 
 <style lang="scss" scoped>

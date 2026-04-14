@@ -4,7 +4,7 @@
       <template #default="{ Component, route }">
         <transition enter-active-class="animate__animated animate__fadeIn" mode="out-in">
           <keep-alive :include="cachedViews">
-            <component :is="currentComponent(Component, route)" :key="route.fullPath" />
+            <component :is="currentComponent(Component, route)" :key="getComponentKey(route)" />
           </keep-alive>
         </transition>
       </template>
@@ -21,6 +21,7 @@
 import { type RouteLocationNormalized } from "vue-router";
 import { useSettingsStore, useTagsViewStore } from "@/store";
 import variables from "@/styles/variables.module.scss";
+import { getRouteRenderKey } from "@/utils/view-cache";
 import Error404 from "@/views/error/404.vue";
 
 const { cachedViews } = toRefs(useTagsViewStore());
@@ -30,7 +31,7 @@ const wrapperMap = new Map<string, Component>();
 const currentComponent = (component: Component, route: RouteLocationNormalized) => {
   if (!component) return;
 
-  const { fullPath: componentName } = route; // 使用路由路径作为组件名称
+  const componentName = getRouteRenderKey(route);
   let wrapper = wrapperMap.get(componentName);
 
   if (!wrapper) {
@@ -57,6 +58,10 @@ const currentComponent = (component: Component, route: RouteLocationNormalized) 
   }
 
   return h(wrapper);
+};
+
+const getComponentKey = (route: RouteLocationNormalized) => {
+  return getRouteRenderKey(route);
 };
 
 const appMainHeight = computed(() => {

@@ -39,6 +39,8 @@ declare global {
     path: string;
     /** 页签路由完整路径 */
     fullPath: string;
+    /** 页签缓存键 */
+    cacheKey?: string;
     /** 页签图标 */
     icon?: string;
     /** 是否固定页签 */

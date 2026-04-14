@@ -1,3 +1,5 @@
+import { getRouteCacheKey, getTagCacheKey } from "@/utils/view-cache";
+
 export const useTagsViewStore = defineStore("tagsView", () => {
   const visitedViews = ref<TagView[]>([]);
   const cachedViews = ref<string[]>([]);
@@ -27,15 +29,17 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   /**
    * 添加缓存视图到缓存视图列表中
    */
-  function addCachedView({ fullPath, keepAlive }: TagView) {
+  function addCachedView(view: TagView) {
+    const cacheKey = getTagCacheKey(view);
+
     // 如果缓存视图名称已经存在于缓存视图列表中，则不再添加
-    if (cachedViews.value.includes(fullPath)) {
+    if (cachedViews.value.includes(cacheKey)) {
       return;
     }
 
     // 如果视图需要缓存（keepAlive），则将其路由名称添加到缓存视图列表中
-    if (keepAlive) {
-      cachedViews.value.push(fullPath);
+    if (view.keepAlive && cacheKey) {
+      cachedViews.value.push(cacheKey);
     }
   }
 
@@ -56,9 +60,9 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   }
 
   function delCachedView(view: TagView) {
-    const { fullPath } = view;
+    const cacheKey = getTagCacheKey(view);
     return new Promise((resolve) => {
-      const index = cachedViews.value.indexOf(fullPath);
+      const index = cachedViews.value.indexOf(cacheKey);
       if (index > -1) {
         cachedViews.value.splice(index, 1);
       }
@@ -75,9 +79,9 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   }
 
   function delOtherCachedViews(view: TagView) {
-    const { fullPath } = view;
+    const cacheKey = getTagCacheKey(view);
     return new Promise((resolve) => {
-      const index = cachedViews.value.indexOf(fullPath);
+      const index = cachedViews.value.indexOf(cacheKey);
       if (index > -1) {
         cachedViews.value = cachedViews.value.slice(index, index + 1);
       } else {
@@ -89,10 +93,31 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   }
 
   function updateVisitedView(view: TagView) {
-    for (let v of visitedViews.value) {
-      if (v.path === view.path) {
-        v = Object.assign(v, view);
-        break;
+    const targetView = visitedViews.value.find((item) => item.path === view.path);
+    if (!targetView) {
+      return;
+    }
+
+    const previousCacheKey = getTagCacheKey(targetView);
+    Object.assign(targetView, view);
+    const nextCacheKey = getTagCacheKey(targetView);
+
+    if (previousCacheKey !== nextCacheKey) {
+      const previousIndex = cachedViews.value.indexOf(previousCacheKey);
+      if (previousIndex > -1) {
+        cachedViews.value.splice(previousIndex, 1);
+      }
+    }
+
+    if (targetView.keepAlive && nextCacheKey && !cachedViews.value.includes(nextCacheKey)) {
+      cachedViews.value.push(nextCacheKey);
+      return;
+    }
+
+    if (!targetView.keepAlive) {
+      const index = cachedViews.value.indexOf(nextCacheKey);
+      if (index > -1) {
+        cachedViews.value.splice(index, 1);
       }
     }
   }
@@ -148,7 +173,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
           return true;
         }
 
-        const cacheIndex = cachedViews.value.indexOf(item.fullPath);
+        const cacheIndex = cachedViews.value.indexOf(getTagCacheKey(item));
         if (cacheIndex > -1) {
           cachedViews.value.splice(cacheIndex, 1);
         }
@@ -170,7 +195,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
         if (index <= currIndex || item?.affix) {
           return true;
         }
-        const cacheIndex = cachedViews.value.indexOf(item.fullPath);
+        const cacheIndex = cachedViews.value.indexOf(getTagCacheKey(item));
         if (cacheIndex > -1) {
           cachedViews.value.splice(cacheIndex, 1);
         }
@@ -218,6 +243,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
       title: route.meta.title as string,
       path: route.path,
       fullPath: route.fullPath,
+      cacheKey: getRouteCacheKey(route),
       affix: route.meta?.affix,
       keepAlive: route.meta?.keepAlive,
       query: route.query,
