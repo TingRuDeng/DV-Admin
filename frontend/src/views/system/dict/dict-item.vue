@@ -107,70 +107,54 @@
     </ProTable>
 
     <!--字典项弹窗-->
-    <el-dialog
+    <ProFormDrawer
+      ref="dataFormRef"
       v-model="dialog.visible"
       :title="dialog.title"
-      width="600px"
-      class="ff-dialog"
+      :model="formData"
+      :rules="computedRules"
+      :loading="loading"
+      size="600px"
+      label-width="100px"
       @close="handleCloseDialog"
+      @submit="handleSubmitClick"
     >
-      <el-form
-        ref="dataFormRef"
-        :model="formData"
-        :rules="computedRules"
-        label-width="100px"
-        class="ff-form pt-4"
-      >
-        <el-form-item label="归属字典" prop="dict">
-          <el-select v-model="formData.dict" placeholder="请选择归属字典" filterable class="w-full">
-            <el-option
-              v-for="item in dictList"
-              :key="item.id"
-              :label="item.name"
-              :value="item.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="字典项标签" prop="label">
-          <el-input v-model="formData.label" placeholder="请输入字典标签" />
-        </el-form-item>
-        <el-form-item label="字典项值" prop="value">
-          <el-input v-model="formData.value" placeholder="请输入字典值" />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-radio-group v-model="formData.status">
-            <el-radio :value="1">启用</el-radio>
-            <el-radio :value="0">禁用</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="标签类型">
-          <el-tag v-if="formData.tagType" :type="formData.tagType" class="mr-2">
-            {{ formData.label }}
-          </el-tag>
-          <el-radio-group v-model="formData.tagType">
-            <el-radio value="success" border size="small">success</el-radio>
-            <el-radio value="warning" border size="small">warning</el-radio>
-            <el-radio value="info" border size="small">info</el-radio>
-            <el-radio value="primary" border size="small">primary</el-radio>
-            <el-radio value="danger" border size="small">danger</el-radio>
-            <el-radio value="" border size="small">清空</el-radio>
-          </el-radio-group>
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <div class="dialog-footer flex justify-end gap-2">
-          <el-button class="ff-button-secondary" @click="handleCloseDialog">取 消</el-button>
-          <el-button type="primary" class="ff-button-primary" @click="handleSubmitClick">
-            确 定
-          </el-button>
-        </div>
-      </template>
-    </el-dialog>
+      <el-form-item label="归属字典" prop="dict">
+        <el-select v-model="formData.dict" placeholder="请选择归属字典" filterable class="w-full">
+          <el-option v-for="item in dictList" :key="item.id" :label="item.name" :value="item.id" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="字典项标签" prop="label">
+        <el-input v-model="formData.label" placeholder="请输入字典标签" />
+      </el-form-item>
+      <el-form-item label="字典项值" prop="value">
+        <el-input v-model="formData.value" placeholder="请输入字典值" />
+      </el-form-item>
+      <el-form-item label="状态">
+        <el-radio-group v-model="formData.status">
+          <el-radio :value="1">启用</el-radio>
+          <el-radio :value="0">禁用</el-radio>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item label="标签类型">
+        <el-tag v-if="formData.tagType" :type="formData.tagType" class="mr-2">
+          {{ formData.label }}
+        </el-tag>
+        <el-radio-group v-model="formData.tagType">
+          <el-radio value="success" border size="small">success</el-radio>
+          <el-radio value="warning" border size="small">warning</el-radio>
+          <el-radio value="info" border size="small">info</el-radio>
+          <el-radio value="primary" border size="small">primary</el-radio>
+          <el-radio value="danger" border size="small">danger</el-radio>
+          <el-radio value="" border size="small">清空</el-radio>
+        </el-radio-group>
+      </el-form-item>
+    </ProFormDrawer>
   </PageShell>
 </template>
 
 <script setup lang="ts">
+import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import DictAPI, { DictPageVO } from "@/api/system/dict-api";
 import DictItemAPI, { DictItemForm, DictItemPageQuery } from "@/api/system/dict-items-api";
 
