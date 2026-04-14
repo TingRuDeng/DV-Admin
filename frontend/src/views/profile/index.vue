@@ -70,7 +70,14 @@
     </div>
 
     <!-- 弹窗 -->
-    <el-dialog v-model="dialog.visible" :title="dialog.title" :width="500" class="ff-dialog">
+    <ProDialog
+      v-model="dialog.visible"
+      :title="dialog.title"
+      :width="500"
+      @submit="handleSubmit"
+      @cancel="handleCancel"
+      @close="handleCancel"
+    >
       <!-- 账号资料 -->
       <el-form
         v-if="dialog.type === DialogType.ACCOUNT"
@@ -150,23 +157,18 @@
       <!--          </el-input>-->
       <!--        </el-form-item>-->
       <!--      </el-form>-->
-
-      <template #footer>
-        <div class="dialog-footer flex justify-end gap-2">
-          <el-button class="ff-button-secondary" @click="handleCancel">取消</el-button>
-          <el-button type="primary" class="ff-button-primary" @click="handleSubmit">确定</el-button>
-        </div>
-      </template>
-    </el-dialog>
+    </ProDialog>
   </PageShell>
 </template>
 
 <script lang="ts" setup>
 // import UserAPI from "@/api/system/user-api";
 
+import ProDialog from "@/components/ProDialog/index.vue";
 import FileAPI from "@/api/file-api";
 import InformationAPI, { UserProfile, ProfileForm, PasswordForm } from "@/api/information-api";
 import { useUserStoreHook } from "@/store";
+import type { FormInstance } from "element-plus";
 
 import { Camera } from "@element-plus/icons-vue";
 
@@ -186,10 +188,10 @@ const dialog = reactive({
   title: "",
   type: "" as DialogType, // 修改账号资料,修改密码、绑定手机、绑定邮箱
 });
-const userProfileFormRef = ref();
-const passwordChangeFormRef = ref();
-const mobileBindingFormRef = ref();
-const emailBindingFormRef = ref();
+const userProfileFormRef = ref<FormInstance>();
+const passwordChangeFormRef = ref<FormInstance>();
+const mobileBindingFormRef = ref<FormInstance>();
+const emailBindingFormRef = ref<FormInstance>();
 
 const userProfileForm = reactive<ProfileForm>({});
 const passwordChangeForm = reactive<PasswordForm>({});
@@ -327,20 +329,22 @@ const handleOpenDialog = (type: DialogType) => {
  */
 const handleSubmit = async () => {
   if (dialog.type === DialogType.ACCOUNT) {
-    InformationAPI.updateProfile(userProfileForm).then(() => {
-      ElMessage.success("账号资料修改成功");
-      dialog.visible = false;
-      loadUserProfile();
-    });
+    await InformationAPI.updateProfile(userProfileForm);
+    ElMessage.success("账号资料修改成功");
+    handleCancel();
+    await loadUserProfile();
   } else if (dialog.type === DialogType.PASSWORD) {
+    const isValid = await passwordChangeFormRef.value?.validate().catch(() => false);
+    if (!isValid) {
+      return;
+    }
     if (passwordChangeForm.newPassword !== passwordChangeForm.confirmPassword) {
       ElMessage.error("两次输入的密码不一致");
       return;
     }
-    InformationAPI.changePassword(passwordChangeForm).then(() => {
-      ElMessage.success("密码修改成功");
-      dialog.visible = false;
-    });
+    await InformationAPI.changePassword(passwordChangeForm);
+    ElMessage.success("密码修改成功");
+    handleCancel();
     // } else if (dialog.type === DialogType.MOBILE) {
     //   InformationAPI.bindOrChangeMobile(mobileUpdateForm).then(() => {
     //     ElMessage.success("手机号绑定成功");

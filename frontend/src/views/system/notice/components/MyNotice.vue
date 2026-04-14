@@ -56,11 +56,13 @@
       </el-table-column>
     </ProTable>
 
-    <el-dialog
+    <ProDialog
       v-model="noticeDialogVisible"
       :title="noticeDetail?.title ?? '通知详情'"
       width="800px"
-      class="ff-dialog ff-my-notice-detail-dialog"
+      class="ff-my-notice-detail-dialog"
+      :show-footer="false"
+      @close="handleCloseNoticeDialog"
     >
       <div v-if="noticeDetail" class="ff-my-notice-detail__wrapper">
         <div class="ff-my-notice-detail__meta">
@@ -78,7 +80,7 @@
           <div v-html="noticeDetail.content"></div>
         </div>
       </div>
-    </el-dialog>
+    </ProDialog>
   </PageShell>
 </template>
 
@@ -88,6 +90,7 @@ defineOptions({
   inheritAttrs: false,
 });
 
+import ProDialog from "@/components/ProDialog/index.vue";
 import NoticeAPI, { NoticePageQuery, NoticeDetailVO } from "@/api/system/notice-api";
 
 const queryFormRef = ref();
@@ -119,5 +122,9 @@ function handleReadNotice(id: string) {
     noticeDialogVisible.value = true;
     noticeDetail.value = data;
   });
+}
+
+function handleCloseNoticeDialog() {
+  noticeDialogVisible.value = false;
 }
 </script>
