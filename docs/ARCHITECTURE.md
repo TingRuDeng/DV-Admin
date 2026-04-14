@@ -89,6 +89,15 @@ frontend/src/
 - 路由页应优先组合 `PageShell`、`FilterPanel`、`DataPanel`，而不是在页面内重复拼接 `glass-panel` 或 `minimal-*` 视觉类
 - `UnoCSS` 主要用于布局和局部原子样式，共享视觉皮肤统一放在 `skins/*`
 - `_minimal-saas.scss` 仅作为未迁移页面的兼容层，不再作为新增样式的主入口
+- `components/CURD` 作为历史兼容层保留；新页面/重构页面统一使用 `ProSearch`、`ProTable`、`ProFormDrawer`
+
+**前端路由与缓存约定：**
+- 动态路由在进入前端 store 前，会先将后端返回的 `meta` 统一清洗为前端 `RouteMeta` 语义
+- `RouteMeta` 当前统一字段至少包括：`title`、`icon`、`hidden`、`alwaysShow`、`affix`、`keepAlive`、`breadcrumb`、`activeMenu`、`cacheKey`、`cacheByQuery`、`cacheQueryKeys`、`perms`、`roles`、`layout`
+- `TagsView` 负责访问标签管理，`cachedViews` 只存放稳定缓存键，不再直接以 `fullPath` 作为唯一缓存标识
+- KeepAlive 默认优先使用 `meta.cacheKey`，其次使用无动态参数的 `route.name`；仅在动态参数页或未命名场景下回退到 `fullPath`
+- 仅在显式声明 `cacheByQuery=true` 或 `cacheQueryKeys=['k1','k2']` 时，才会按 query 维度区分缓存实例，避免默认缓存膨胀
+- 标签行为约定：刷新标签只清理当前标签缓存键；关闭左/右/其它/全部按标签对应缓存键同步删除，重定向刷新复用同一缓存键规则
 
 ---
 
@@ -252,6 +261,11 @@ fastapi/app/
 
 **权限标识格式：** `模块:资源:操作`
 - 示例：`system:user:add`、`system:role:edit`
+
+**前端权限职责边界：**
+- `userInfo.perms` / `userInfo.roles` 是当前登录用户的“身份快照”，用于按钮与角色指令判定（`v-hasPerm` / `v-hasRole`）
+- `RouteMeta.perms` / `RouteMeta.roles` 是路由级访问语义，只表达“该页面需要的权限/角色条件”
+- 路由级语义与按钮级语义分层：页面准入看 `RouteMeta`，页面内细粒度操作看按钮权限指令
 
 **权限验证流程：**
 1. 用户登录后获取角色列表
