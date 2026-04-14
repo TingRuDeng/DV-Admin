@@ -1,45 +1,34 @@
 <!-- 字典项 -->
 <template>
   <PageShell class="ff-dict-item-page">
-    <FilterPanel>
-      <el-form
-        ref="queryFormRef"
-        :model="queryParams"
-        :inline="true"
-        class="ff-form ff-toolbar"
-        @submit.prevent
-      >
-        <el-form-item label="关键字" prop="search" class="mb-0">
-          <el-input
-            v-model="queryParams.search"
-            placeholder="字典项标签/字典项值"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item label="归属字典" prop="dictSelect" class="mb-0">
-          <el-select v-model="queryParams.dict" placeholder="请选择归属字典" clearable filterable>
-            <el-option
-              v-for="item in dictList"
-              :key="item.id"
-              :label="item.name"
-              :value="item.id"
-            />
-          </el-select>
-        </el-form-item>
+    <ProSearch
+      ref="queryFormRef"
+      :model="queryParams"
+      @submit="handleQuery"
+      @reset="handleResetQuery"
+    >
+      <el-form-item label="关键字" prop="search" class="mb-0">
+        <el-input
+          v-model="queryParams.search"
+          placeholder="字典项标签/字典项值"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="归属字典" prop="dictSelect" class="mb-0">
+        <el-select v-model="queryParams.dict" placeholder="请选择归属字典" clearable filterable>
+          <el-option v-for="item in dictList" :key="item.id" :label="item.name" :value="item.id" />
+        </el-select>
+      </el-form-item>
+    </ProSearch>
 
-        <el-form-item class="ff-toolbar__actions">
-          <el-button type="primary" icon="search" class="ff-button-primary" @click="handleQuery">
-            搜索
-          </el-button>
-          <el-button icon="refresh" class="ff-button-secondary" @click="handleResetQuery">
-            重置
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </FilterPanel>
-
-    <DataPanel title="字典项数据">
+    <ProTable
+      ref="tableRef"
+      title="字典项数据"
+      :request="requestTableData"
+      :params="queryParams"
+      @selection-change="handleSelectionChange"
+    >
       <template #actions>
         <div class="ff-button-group">
           <el-button
@@ -65,76 +54,57 @@
         </div>
       </template>
 
-      <div class="ff-table-wrap">
-        <el-table
-          v-loading="loading"
-          highlight-current-row
-          :data="tableData"
-          class="ff-table"
-          @selection-change="handleSelectionChange"
-        >
-          <el-table-column type="selection" width="55" align="center" />
-          <el-table-column label="归属字典" prop="dictName" min-width="120" />
-          <el-table-column label="字典项标签" prop="label" min-width="120" />
-          <el-table-column label="字典项值" prop="value" min-width="100" />
-          <el-table-column label="标签类型" width="100" align="center">
-            <template #default="scope">
-              <el-tag v-if="scope.row.tagType" :type="scope.row.tagType" effect="light">
-                {{ scope.row.tagType }}
-              </el-tag>
-              <span v-else class="text-slate-400">无</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="状态" width="100" align="center">
-            <template #default="scope">
-              <el-tag
-                v-if="scope.row.status === 1"
-                type="success"
-                effect="light"
-                class="ff-status-tag success"
-              >
-                启用
-              </el-tag>
-              <el-tag v-else type="info" effect="light" class="ff-status-tag info">禁用</el-tag>
-            </template>
-          </el-table-column>
+      <template #default>
+        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column label="归属字典" prop="dictName" min-width="120" />
+        <el-table-column label="字典项标签" prop="label" min-width="120" />
+        <el-table-column label="字典项值" prop="value" min-width="100" />
+        <el-table-column label="标签类型" width="100" align="center">
+          <template #default="scope">
+            <el-tag v-if="scope.row.tagType" :type="scope.row.tagType" effect="light">
+              {{ scope.row.tagType }}
+            </el-tag>
+            <span v-else class="text-slate-400">无</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" width="100" align="center">
+          <template #default="scope">
+            <el-tag
+              v-if="scope.row.status === 1"
+              type="success"
+              effect="light"
+              class="ff-status-tag success"
+            >
+              启用
+            </el-tag>
+            <el-tag v-else type="info" effect="light" class="ff-status-tag info">禁用</el-tag>
+          </template>
+        </el-table-column>
 
-          <el-table-column fixed="right" label="操作" width="200">
-            <template #default="scope">
-              <el-button
-                v-hasPerm="['system:dictitems:edit']"
-                type="primary"
-                link
-                icon="edit"
-                @click.stop="handleOpenDialog(scope.row.id)"
-              >
-                编辑
-              </el-button>
-              <el-button
-                v-hasPerm="['system:dictitems:delete']"
-                type="danger"
-                link
-                icon="delete"
-                @click.stop="handleDelete(scope.row.id)"
-              >
-                删除
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-
-      <template #footer>
-        <pagination
-          v-if="total > 0"
-          v-model:total="total"
-          v-model:page="queryParams.pageNum"
-          v-model:limit="queryParams.pageSize"
-          class="mt-4"
-          @pagination="fetchData"
-        />
+        <el-table-column fixed="right" label="操作" width="200">
+          <template #default="scope">
+            <el-button
+              v-hasPerm="['system:dictitems:edit']"
+              type="primary"
+              link
+              icon="edit"
+              @click.stop="handleOpenDialog(scope.row.id)"
+            >
+              编辑
+            </el-button>
+            <el-button
+              v-hasPerm="['system:dictitems:delete']"
+              type="danger"
+              link
+              icon="delete"
+              @click.stop="handleDelete(scope.row.id)"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
       </template>
-    </DataPanel>
+    </ProTable>
 
     <!--字典项弹窗-->
     <el-dialog
@@ -202,30 +172,20 @@
 
 <script setup lang="ts">
 import DictAPI, { DictPageVO } from "@/api/system/dict-api";
-import DictItemAPI, {
-  DictItemForm,
-  DictItemPageVO,
-  DictItemPageQuery,
-} from "@/api/system/dict-items-api";
+import DictItemAPI, { DictItemForm, DictItemPageQuery } from "@/api/system/dict-items-api";
 
 const route = useRoute();
 
 const dict = route.query.dict as string;
 const dataFormRef = ref();
 const queryFormRef = ref();
+const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
 const dictList = ref<DictPageVO[]>([]);
 const formData = reactive<DictItemForm>({});
 
 const loading = ref(false);
 const ids = ref<number[]>([]);
-const total = ref(0);
-
-const queryParams = reactive<DictItemPageQuery>({
-  pageNum: 1,
-  pageSize: 10,
-});
-
-const tableData = ref<DictItemPageVO[]>();
+const queryParams = reactive<Omit<DictItemPageQuery, "pageNum" | "pageSize">>({});
 
 const dialog = reactive({
   title: "",
@@ -242,30 +202,19 @@ const computedRules = computed(() => {
   return rules;
 });
 
-// 获取数据
-function fetchData() {
-  loading.value = true;
-  DictItemAPI.getDictItemPage(queryParams)
-    .then((data) => {
-      tableData.value = data.list;
-      total.value = data.total;
-    })
-    .finally(() => {
-      loading.value = false;
-    });
+function requestTableData(params: Record<string, unknown>) {
+  return DictItemAPI.getDictItemPage(params as unknown as DictItemPageQuery);
 }
 
 // 查询（重置页码后获取数据）
 function handleQuery() {
-  queryParams.pageNum = 1;
-  fetchData();
+  tableRef.value?.reload(true);
 }
 
 // 重置查询
 function handleResetQuery() {
   queryFormRef.value.resetFields();
-  queryParams.pageNum = 1;
-  fetchData();
+  tableRef.value?.reload(true);
 }
 
 // 行选择
@@ -296,7 +245,7 @@ function handleSubmitClick() {
           .then(() => {
             ElMessage.success("修改成功");
             handleCloseDialog();
-            handleQuery();
+            tableRef.value?.reload(true);
           })
           .finally(() => (loading.value = false));
       } else {
@@ -304,7 +253,7 @@ function handleSubmitClick() {
           .then(() => {
             ElMessage.success("新增成功");
             handleCloseDialog();
-            handleQuery();
+            tableRef.value?.reload(true);
           })
           .finally(() => (loading.value = false));
       }
@@ -342,7 +291,7 @@ function handleDelete(id?: number) {
     () => {
       DictItemAPI.deleteDictItems(itemIds).then(() => {
         ElMessage.success("删除成功");
-        handleResetQuery();
+        tableRef.value?.reload(true);
       });
     },
     () => {
@@ -359,6 +308,5 @@ onMounted(() => {
       queryParams.dict = parseInt(dict, 10);
     }
   });
-  handleQuery();
 });
 </script>
