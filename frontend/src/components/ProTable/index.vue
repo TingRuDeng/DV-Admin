@@ -21,7 +21,7 @@
     <template #footer>
       <slot name="footer">
         <Pagination
-          v-if="showPagination && total > 0"
+          v-if="showPagination && totalProxy > 0"
           v-model:page="pageProxy"
           v-model:limit="limitProxy"
           :total="totalProxy"

@@ -40,15 +40,10 @@
         </ProSearch>
 
         <ProTable
+          ref="tableRef"
           title="用户数据"
-          :loading="loading"
-          :data="pageData"
-          :total="total"
-          :page="queryParams.pageNum"
-          :limit="queryParams.pageSize"
-          @update:page="queryParams.pageNum = $event"
-          @update:limit="queryParams.pageSize = $event"
-          @pagination="fetchData"
+          :request="requestTableData"
+          :params="queryParams"
           @selection-change="handleSelectionChange"
         >
           <template #actions>
@@ -223,14 +218,10 @@ const appStore = useAppStore();
 
 const queryFormRef = ref();
 const userFormRef = ref();
+const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
 
-const queryParams = reactive<UserPageQuery>({
-  pageNum: 1,
-  pageSize: 10,
-});
+const queryParams = reactive<Omit<UserPageQuery, "pageNum" | "pageSize">>({});
 
-const pageData = ref<UserPageVO[]>();
-const total = ref(0);
 const loading = ref(false);
 const formLoading = ref(false);
 
@@ -274,30 +265,20 @@ const roleOptions = ref<OptionType[]>();
 // 导入弹窗显示状态
 const importDialogVisible = ref(false);
 
-// 获取数据
-async function fetchData() {
-  loading.value = true;
-  try {
-    const data = await UserAPI.getPage(queryParams);
-    pageData.value = data.list;
-    total.value = data.total;
-  } finally {
-    loading.value = false;
-  }
+function requestTableData(params: Record<string, unknown>) {
+  return UserAPI.getPage(params as unknown as UserPageQuery);
 }
 
 // 查询（重置页码后获取数据）
 function handleQuery() {
-  queryParams.pageNum = 1;
-  fetchData();
+  tableRef.value?.reload(true);
 }
 
 // 重置查询
 function handleResetQuery() {
   queryFormRef.value.resetFields();
-  queryParams.pageNum = 1;
   queryParams.deptId = undefined;
-  fetchData();
+  tableRef.value?.reload(true);
 }
 
 // 选中项发生变化
@@ -369,7 +350,7 @@ const handleSubmit = useDebounceFn(() => {
           .then(() => {
             ElMessage.success("修改用户成功");
             handleCloseDialog();
-            handleResetQuery();
+            tableRef.value?.reload(true);
           })
           .finally(() => (formLoading.value = false));
       } else {
@@ -377,7 +358,7 @@ const handleSubmit = useDebounceFn(() => {
           .then(() => {
             ElMessage.success("新增用户成功");
             handleCloseDialog();
-            handleResetQuery();
+            tableRef.value?.reload(true);
           })
           .finally(() => (formLoading.value = false));
       }
@@ -450,7 +431,7 @@ function handleDelete(id?: number) {
       UserAPI.deleteByIds(userIds)
         .then(() => {
           ElMessage.success("删除成功");
-          handleResetQuery();
+          tableRef.value?.reload(true);
         })
         .finally(() => (loading.value = false));
     },
@@ -459,8 +440,4 @@ function handleDelete(id?: number) {
     }
   );
 }
-
-onMounted(() => {
-  handleQuery();
-});
 </script>

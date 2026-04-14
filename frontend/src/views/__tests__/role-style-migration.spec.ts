@@ -10,6 +10,9 @@ describe("system role style migration", () => {
     expect(source).toContain("<ProSearch");
     expect(source).toContain("<ProTable");
     expect(source).toContain("<ProFormDrawer");
+    expect(source).toContain(':request="requestTableData"');
+    expect(source).toContain('ref="tableRef"');
+    expect(source).not.toContain(':data="roleList"');
     expect(source).not.toContain("minimal-btn");
     expect(source).not.toContain("glass-panel");
   });

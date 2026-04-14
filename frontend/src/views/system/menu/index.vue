@@ -17,9 +17,10 @@
     </ProSearch>
 
     <ProTable
+      ref="tableRef"
       title="菜单数据"
-      :loading="loading"
-      :data="menuTableData"
+      :request="requestTableData"
+      :params="queryParams"
       :show-pagination="false"
       :tree-props="{
         children: 'children',
@@ -361,6 +362,7 @@ const appStore = useAppStore();
 
 const queryFormRef = ref();
 const menuFormRef = ref();
+const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
 
 const loading = ref(false);
 const dialog = reactive({
@@ -371,8 +373,6 @@ const dialog = reactive({
 const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "600px" : "90%"));
 // 查询参数
 const queryParams = reactive<MenuQuery>({});
-// 菜单表格数据
-const menuTableData = ref<MenuVO[]>([]);
 // 顶级目录下拉选项
 const menuOptions = ref<OptionType[]>([]);
 // 初始菜单表单数据
@@ -402,22 +402,23 @@ const rules = reactive({
 // 选择表格的行菜单ID
 const selectedMenuId = ref<string | undefined>();
 
+async function requestTableData(params: Record<string, unknown>) {
+  const data = await MenuAPI.getList(params as MenuQuery);
+  return {
+    list: data,
+    total: data.length,
+  };
+}
+
 // 查询菜单
 function handleQuery() {
-  loading.value = true;
-  MenuAPI.getList(queryParams)
-    .then((data) => {
-      menuTableData.value = data;
-    })
-    .finally(() => {
-      loading.value = false;
-    });
+  tableRef.value?.reload(true);
 }
 
 // 重置查询
 function handleResetQuery() {
   queryFormRef.value.resetFields();
-  handleQuery();
+  tableRef.value?.reload(true);
 }
 
 // 行点击事件
@@ -495,13 +496,13 @@ function handleSubmit() {
         MenuAPI.update(menuId, submitData).then(() => {
           ElMessage.success("修改成功");
           handleCloseDialog();
-          handleQuery();
+          tableRef.value?.reload(true);
         });
       } else {
         MenuAPI.create(submitData).then(() => {
           ElMessage.success("新增成功");
           handleCloseDialog();
-          handleQuery();
+          tableRef.value?.reload(true);
         });
       }
     }
@@ -525,7 +526,7 @@ function handleDelete(menuId: string) {
       MenuAPI.deleteById(menuId)
         .then(() => {
           ElMessage.success("删除成功");
-          handleQuery();
+          tableRef.value?.reload(true);
         })
         .finally(() => {
           loading.value = false;
@@ -557,8 +558,4 @@ function handleCloseDialog() {
   dialog.visible = false;
   resetForm();
 }
-
-onMounted(() => {
-  handleQuery();
-});
 </script>

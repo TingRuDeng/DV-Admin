@@ -10,6 +10,9 @@ describe("system menu style migration", () => {
     expect(source).toContain("<ProSearch");
     expect(source).toContain("<ProTable");
     expect(source).toContain("<ProFormDrawer");
+    expect(source).toContain(':request="requestTableData"');
+    expect(source).toContain('ref="tableRef"');
+    expect(source).not.toContain(':data="menuTableData"');
     expect(source).not.toContain("minimal-");
     expect(source).not.toContain("glass-panel");
   });
