@@ -114,6 +114,7 @@
 - 页面层表单弹层统一为 `ProFormDrawer`
 - 页面层详情/非表单弹层统一为 `ProDialog` / `ProDrawer`
 - 已新增测试守卫，禁止在 `src/views` 回归到原生 `el-dialog` / `el-drawer`
+- 已新增测试守卫，禁止在 `src/views` 回归到 `components/CURD` 页面组件，并约束系统列表页保持 `ProTable(request)`
 
 **建议的 MVP 范围**
 
