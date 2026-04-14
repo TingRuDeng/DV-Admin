@@ -31,14 +31,14 @@ const iconComponent = computed(() => props.icon?.replace("el-icon-", ""));
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: var(--el-menu-icon-width);
+  height: var(--el-menu-icon-width);
   margin-right: 5px;
   font-size: 18px;
   color: currentcolor;
 }
 
-:global(.hideSidebar) .menu-icon {
+:global(.el-menu--collapse) .menu-icon {
   margin-right: 0;
 }
 </style>
