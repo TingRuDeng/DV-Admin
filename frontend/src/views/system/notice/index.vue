@@ -187,66 +187,54 @@
     </ProTable>
 
     <!-- 通知公告表单弹窗 -->
-    <el-dialog
+    <ProFormDrawer
+      ref="dataFormRef"
       v-model="dialog.visible"
       :title="dialog.title"
-      top="3vh"
-      width="80%"
-      class="ff-dialog"
+      :model="formData"
+      :rules="rules"
+      :loading="loading"
+      size="80%"
+      label-width="100px"
       @close="handleCloseDialog"
+      @submit="handleSubmit"
     >
-      <el-form
-        ref="dataFormRef"
-        :model="formData"
-        :rules="rules"
-        label-width="100px"
-        class="ff-form pt-4"
-      >
-        <el-form-item label="通知标题" prop="title">
-          <el-input v-model="formData.title" placeholder="通知标题" clearable />
-        </el-form-item>
+      <el-form-item label="通知标题" prop="title">
+        <el-input v-model="formData.title" placeholder="通知标题" clearable />
+      </el-form-item>
 
-        <el-form-item label="通知类型" prop="type">
-          <Dict v-model="formData.type" code="notice_type" />
-        </el-form-item>
-        <el-form-item label="通知等级" prop="level">
-          <Dict v-model="formData.level" code="notice_level" />
-        </el-form-item>
-        <el-form-item label="目标类型" prop="targetType">
-          <el-radio-group v-model="formData.targetType">
-            <el-radio :value="1">全体</el-radio>
-            <el-radio :value="2">指定</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item v-if="formData.targetType == 2" label="指定用户" prop="targetUserIds">
-          <el-select
-            v-model="formData.targetUserIds"
-            multiple
-            search
-            placeholder="请选择指定用户"
-            class="w-full"
-          >
-            <el-option
-              v-for="item in userOptions"
-              :key="item.id"
-              :label="item.label"
-              :value="item.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="通知内容" prop="content">
-          <WangEditor v-model="formData.content" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer flex justify-end gap-2">
-          <el-button class="ff-button-secondary" @click="handleCloseDialog()">取消</el-button>
-          <el-button type="primary" class="ff-button-primary" @click="handleSubmit()">
-            确定
-          </el-button>
-        </div>
-      </template>
-    </el-dialog>
+      <el-form-item label="通知类型" prop="type">
+        <Dict v-model="formData.type" code="notice_type" />
+      </el-form-item>
+      <el-form-item label="通知等级" prop="level">
+        <Dict v-model="formData.level" code="notice_level" />
+      </el-form-item>
+      <el-form-item label="目标类型" prop="targetType">
+        <el-radio-group v-model="formData.targetType">
+          <el-radio :value="1">全体</el-radio>
+          <el-radio :value="2">指定</el-radio>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item v-if="formData.targetType == 2" label="指定用户" prop="targetUserIds">
+        <el-select
+          v-model="formData.targetUserIds"
+          multiple
+          search
+          placeholder="请选择指定用户"
+          class="w-full"
+        >
+          <el-option
+            v-for="item in userOptions"
+            :key="item.id"
+            :label="item.label"
+            :value="item.id"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="通知内容" prop="content">
+        <WangEditor v-model="formData.content" />
+      </el-form-item>
+    </ProFormDrawer>
     <!-- 通知公告详情 -->
     <el-dialog
       v-model="detailDialog.visible"
@@ -318,6 +306,7 @@ defineOptions({
   inheritAttrs: false,
 });
 
+import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import NoticeAPI, { NoticeForm, NoticePageQuery, NoticeDetailVO } from "@/api/system/notice-api";
 import UserAPI from "@/api/system/user-api";
 
