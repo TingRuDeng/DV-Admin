@@ -135,7 +135,16 @@ describe("pro components", () => {
       slots: {
         default: "<el-table-column label='昵称' prop='name' />",
       },
-      global: testGlobal,
+      global: {
+        ...testGlobal,
+        stubs: {
+          ...testGlobal.stubs,
+          Pagination: {
+            template:
+              "<button class='pagination-trigger' @click=\"$emit('pagination', { page: 2, limit: 10 })\">pagination</button>",
+          },
+        },
+      },
     });
 
     await flushPromises();
@@ -144,9 +153,13 @@ describe("pro components", () => {
       pageNum: 1,
       pageSize: 10,
     });
+    expect(wrapper.find(".pagination-trigger").exists()).toBe(true);
+
+    await wrapper.find(".pagination-trigger").trigger("click");
+    expect(request).toHaveBeenCalledTimes(2);
 
     await (wrapper.vm as { reload: () => Promise<void> }).reload();
-    expect(request).toHaveBeenCalledTimes(2);
+    expect(request).toHaveBeenCalledTimes(3);
   });
 
   it("renders ProFormDrawer and emits submit/cancel", async () => {

@@ -17,15 +17,10 @@
     </ProSearch>
 
     <ProTable
+      ref="tableRef"
       title="角色数据"
-      :loading="loading"
-      :data="roleList"
-      :total="total"
-      :page="queryParams.pageNum"
-      :limit="queryParams.pageSize"
-      @update:page="queryParams.pageNum = $event"
-      @update:limit="queryParams.pageSize = $event"
-      @pagination="fetchData"
+      :request="requestTableData"
+      :params="queryParams"
       @selection-change="handleSelectionChange"
     >
       <template #actions>
@@ -247,18 +242,12 @@ const appStore = useAppStore();
 const queryFormRef = ref();
 const roleFormRef = ref();
 const permTreeRef = ref();
+const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
 
 const loading = ref(false);
 const ids = ref<number[]>([]);
-const total = ref(0);
 
-const queryParams = reactive<RolePageQuery>({
-  pageNum: 1,
-  pageSize: 10,
-});
-
-// 角色表格数据
-const roleList = ref<RolePageVO[]>();
+const queryParams = reactive<Omit<RolePageQuery, "pageNum" | "pageSize">>({});
 // 菜单权限下拉
 const menuPermOptions = ref<OptionType[]>([]);
 
@@ -297,30 +286,19 @@ const isExpanded = ref(true);
 
 const parentChildLinked = ref(true);
 
-// 获取数据
-function fetchData() {
-  loading.value = true;
-  RoleAPI.getPage(queryParams)
-    .then((data) => {
-      roleList.value = data.list;
-      total.value = data.total;
-    })
-    .finally(() => {
-      loading.value = false;
-    });
+function requestTableData(params: Record<string, unknown>) {
+  return RoleAPI.getPage(params as unknown as RolePageQuery);
 }
 
 // 查询（重置页码后获取数据）
 function handleQuery() {
-  queryParams.pageNum = 1;
-  fetchData();
+  tableRef.value?.reload(true);
 }
 
 // 重置查询
 function handleResetQuery() {
   queryFormRef.value.resetFields();
-  queryParams.pageNum = 1;
-  fetchData();
+  tableRef.value?.reload(true);
 }
 
 // 行复选框选中
@@ -352,7 +330,7 @@ function handleSubmit() {
           .then(() => {
             ElMessage.success("修改成功");
             handleCloseDialog();
-            handleResetQuery();
+            tableRef.value?.reload(true);
           })
           .finally(() => (loading.value = false));
       } else {
@@ -360,7 +338,7 @@ function handleSubmit() {
           .then(() => {
             ElMessage.success("新增成功");
             handleCloseDialog();
-            handleResetQuery();
+            tableRef.value?.reload(true);
           })
           .finally(() => (loading.value = false));
       }
@@ -399,7 +377,7 @@ function handleDelete(roleId?: number) {
       RoleAPI.deleteByIds(roleIds)
         .then(() => {
           ElMessage.success("删除成功");
-          handleResetQuery();
+          tableRef.value?.reload(true);
         })
         .finally(() => (loading.value = false));
     },
@@ -446,7 +424,7 @@ function handleAssignPermSubmit() {
       .then(() => {
         ElMessage.success("分配权限成功");
         assignPermDialogVisible.value = false;
-        handleResetQuery();
+        tableRef.value?.reload(true);
       })
       .finally(() => {
         loading.value = false;
@@ -487,8 +465,4 @@ function handlePermFilter(
 function handleparentChildLinkedChange(val: any) {
   parentChildLinked.value = val;
 }
-
-onMounted(() => {
-  handleQuery();
-});
 </script>
