@@ -6,8 +6,6 @@ const COMPONENTS_ROOT = resolve(process.cwd(), "src/components");
 const RAW_OVERLAY_PATTERN = /<el-dialog\b|<el-drawer\b/g;
 
 const ALLOWED_OVERLAY_FILES = [
-  "src/components/CURD/PageContent.vue",
-  "src/components/CURD/PageModal.vue",
   "src/components/ProDialog/index.vue",
   "src/components/ProDrawer/index.vue",
   "src/components/ProFormDrawer/index.vue",
