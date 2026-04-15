@@ -348,6 +348,7 @@ import PageShell from "@/components/PageShell/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
+import { createListRequest } from "@/utils/pro-table-request";
 import { useAppStore } from "@/store/modules/app-store";
 import { DeviceEnum } from "@/enums/settings/device-enum";
 
@@ -402,13 +403,7 @@ const rules = reactive({
 // 选择表格的行菜单ID
 const selectedMenuId = ref<string | undefined>();
 
-async function requestTableData(params: Record<string, unknown>) {
-  const data = await MenuAPI.getList(params as MenuQuery);
-  return {
-    list: data,
-    total: data.length,
-  };
-}
+const requestTableData = createListRequest<MenuQuery, MenuVO>(MenuAPI.getList);
 
 // 查询菜单
 function handleQuery() {

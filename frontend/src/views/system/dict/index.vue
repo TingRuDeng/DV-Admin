@@ -147,6 +147,7 @@ import PageShell from "@/components/PageShell/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
+import { createPageRequest } from "@/utils/pro-table-request";
 
 import router from "@/router";
 
@@ -180,9 +181,7 @@ const computedRules = computed(() => {
   return rules;
 });
 
-function requestTableData(params: Record<string, unknown>) {
-  return DictAPI.getPage(params as unknown as DictPageQuery);
-}
+const requestTableData = createPageRequest<DictPageQuery, DictPageVO>(DictAPI.getPage);
 
 // 查询（重置页码后获取数据）
 function handleQuery() {

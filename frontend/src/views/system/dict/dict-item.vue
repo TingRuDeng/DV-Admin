@@ -155,8 +155,13 @@
 
 <script setup lang="ts">
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
+import { createPageRequest } from "@/utils/pro-table-request";
 import DictAPI, { DictPageVO } from "@/api/system/dict-api";
-import DictItemAPI, { DictItemForm, DictItemPageQuery } from "@/api/system/dict-items-api";
+import DictItemAPI, {
+  DictItemForm,
+  DictItemPageQuery,
+  DictItemPageVO,
+} from "@/api/system/dict-items-api";
 
 const route = useRoute();
 
@@ -186,9 +191,9 @@ const computedRules = computed(() => {
   return rules;
 });
 
-function requestTableData(params: Record<string, unknown>) {
-  return DictItemAPI.getDictItemPage(params as unknown as DictItemPageQuery);
-}
+const requestTableData = createPageRequest<DictItemPageQuery, DictItemPageVO>(
+  DictItemAPI.getDictItemPage
+);
 
 // 查询（重置页码后获取数据）
 function handleQuery() {

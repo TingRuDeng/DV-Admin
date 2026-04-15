@@ -168,6 +168,7 @@ defineOptions({
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
+import { createListRequest } from "@/utils/pro-table-request";
 import DeptAPI, { DeptForm, DeptQuery, DeptVO } from "@/api/system/dept-api";
 
 const queryFormRef = ref();
@@ -195,18 +196,9 @@ const rules = reactive({
   sort: [{ required: true, message: "显示排序不能为空", trigger: "blur" }],
 });
 
-function requestTableData(params: Record<string, unknown>) {
-  const query = { ...params };
-  delete query.pageNum;
-  delete query.pageSize;
-
-  return DeptAPI.getList(query as DeptQuery).then((data) => {
-    return {
-      list: data as DeptVO[],
-      total: data.length,
-    };
-  });
-}
+const requestTableData = createListRequest<DeptQuery, DeptVO>(DeptAPI.getList, {
+  stripPagination: true,
+});
 
 function handleQuery() {
   tableRef.value?.reload(true);

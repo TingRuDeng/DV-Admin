@@ -49,7 +49,8 @@ defineOptions({
   inheritAttrs: false,
 });
 
-import LogAPI, { LogPageQuery } from "@/api/system/log-api";
+import LogAPI, { LogPageQuery, LogPageVO } from "@/api/system/log-api";
+import { createPageRequest } from "@/utils/pro-table-request";
 
 const queryFormRef = ref();
 const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
@@ -59,9 +60,7 @@ const queryParams = reactive<Omit<LogPageQuery, "pageNum" | "pageSize">>({
   createTime: undefined,
 });
 
-function requestTableData(params: Record<string, unknown>) {
-  return LogAPI.getPage(params as unknown as LogPageQuery);
-}
+const requestTableData = createPageRequest<LogPageQuery, LogPageVO>(LogAPI.getPage);
 
 /** 查询（重置页码后获取数据） */
 function handleQuery() {
