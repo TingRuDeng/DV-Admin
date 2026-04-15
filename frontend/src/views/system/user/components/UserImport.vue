@@ -98,7 +98,9 @@ import { ElMessage, type UploadInstance, type UploadUserFile } from "element-plu
 import UserAPI from "@/api/system/user-api";
 import { ApiCodeEnum } from "@/enums/api/code-enum";
 
-const emit = defineEmits(["import-success"]);
+const emit = defineEmits<{
+  "import-success": [];
+}>();
 const visible = defineModel("modelValue", {
   type: Boolean,
   required: true,
@@ -140,9 +142,12 @@ const handleFileExceed = () => {
 
 // 下载导入模板
 const handleDownloadTemplate = () => {
-  UserAPI.downloadTemplate().then((response: any) => {
+  UserAPI.downloadTemplate().then((response) => {
     const fileData = response.data;
-    const fileName = decodeURI(response.headers["content-disposition"].split(";")[1].split("=")[1]);
+    const contentDisposition = response.headers["content-disposition"];
+    const fileName = contentDisposition
+      ? decodeURI(contentDisposition.split(";")[1].split("=")[1])
+      : "用户导入模板.xlsx";
     const fileType =
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
 

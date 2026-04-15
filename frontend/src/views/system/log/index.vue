@@ -50,10 +50,11 @@ defineOptions({
 });
 
 import LogAPI, { LogPageQuery, LogPageVO } from "@/api/system/log-api";
+import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
 
-const queryFormRef = ref();
-const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
+const queryFormRef = ref<{ resetFields: () => void } | null>(null);
+const tableRef = ref<ProTableExpose | null>(null);
 
 const queryParams = reactive<Omit<LogPageQuery, "pageNum" | "pageSize">>({
   keywords: "",
@@ -69,7 +70,7 @@ function handleQuery() {
 
 /** 重置查询 */
 function handleResetQuery() {
-  queryFormRef.value.resetFields();
+  queryFormRef.value?.resetFields();
   queryParams.createTime = undefined;
   tableRef.value?.reload(true);
 }
