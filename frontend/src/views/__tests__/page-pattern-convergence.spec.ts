@@ -6,6 +6,7 @@ const VIEWS_ROOT = resolve(process.cwd(), "src/views");
 const LEGACY_CURD_PATTERN = /components\/CURD|<PageSearch\b|<PageContent\b|<PageModal\b/g;
 const PRO_TABLE_PATTERN = /<ProTable\b/;
 const REQUEST_TABLE_PATTERN = /<ProTable\b[\s\S]*?:request\s*=\s*["'][^"']+["']/m;
+const REQUEST_ADAPTER_PATTERN = /const\s+requestTableData\s*=\s*create(?:Page|List)Request\b/m;
 
 function collectVueFiles(dir: string): string[] {
   const entries = readdirSync(dir, { withFileTypes: true });
@@ -63,6 +64,28 @@ describe("page pattern convergence", () => {
     expect(
       offenders,
       `Found view pages not using request-driven ProTable:\n${offenders.join("\n")}`
+    ).toEqual([]);
+  });
+
+  it("keeps view-layer requestTableData on shared request adapters", () => {
+    const vueFiles = collectVueFiles(VIEWS_ROOT);
+    const offenders: string[] = [];
+
+    for (const file of vueFiles) {
+      const source = readFileSync(file, "utf8");
+      if (!PRO_TABLE_PATTERN.test(source)) {
+        continue;
+      }
+
+      if (!REQUEST_ADAPTER_PATTERN.test(source)) {
+        offenders.push(relative(process.cwd(), file));
+      }
+      REQUEST_ADAPTER_PATTERN.lastIndex = 0;
+    }
+
+    expect(
+      offenders,
+      `Found view pages not using shared ProTable request adapters:\n${offenders.join("\n")}`
     ).toEqual([]);
   });
 });
