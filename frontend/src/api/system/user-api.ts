@@ -1,4 +1,5 @@
 import request from "@/utils/request";
+import type { AxiosResponse } from "axios";
 
 const USER_BASE_URL = "/api/system/users";
 
@@ -85,7 +86,7 @@ const UserAPI = {
 
   /** 下载用户导入模板 */
   downloadTemplate() {
-    return request({
+    return request<any, AxiosResponse<Blob>>({
       url: `${USER_BASE_URL}/template`,
       method: "get",
       responseType: "blob",

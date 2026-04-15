@@ -168,12 +168,13 @@ defineOptions({
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
+import type { ProTableExpose } from "@/components/ProTable/types";
 import { createListRequest } from "@/utils/pro-table-request";
 import DeptAPI, { DeptForm, DeptQuery, DeptVO } from "@/api/system/dept-api";
 
-const queryFormRef = ref();
-const deptFormRef = ref();
-const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
+const queryFormRef = ref<InstanceType<typeof ProSearch> | null>(null);
+const deptFormRef = ref<InstanceType<typeof ProFormDrawer> | null>(null);
+const tableRef = ref<ProTableExpose | null>(null);
 
 const formLoading = ref(false);
 const selectIds = ref<string[]>([]);
@@ -205,12 +206,13 @@ function handleQuery() {
 }
 
 function handleResetQuery() {
-  queryFormRef.value.resetFields();
+  queryFormRef.value?.resetFields();
   tableRef.value?.reload(true);
 }
 
-function handleSelectionChange(selection: any) {
-  selectIds.value = selection.map((item: any) => item.id);
+function handleSelectionChange(selection: unknown[]) {
+  const rows = selection as DeptVO[];
+  selectIds.value = rows.map((item) => item.id).filter((id): id is string => Boolean(id));
 }
 
 async function handleOpenDialog(parentId?: string, deptId?: string) {
@@ -229,7 +231,7 @@ async function handleOpenDialog(parentId?: string, deptId?: string) {
 
 function handleSubmit() {
   formLoading.value = true;
-  deptFormRef.value.validate((valid: any) => {
+  deptFormRef.value?.validate((valid: boolean) => {
     if (valid) {
       const deptId = formData.id;
       if (deptId) {
@@ -256,7 +258,7 @@ function handleSubmit() {
   });
 }
 
-function handleDelete(deptId?: number) {
+function handleDelete(deptId?: string | number) {
   const deptIds = deptId !== undefined ? [deptId] : selectIds.value;
   if (!deptIds || (Array.isArray(deptIds) && deptIds.length === 0)) {
     ElMessage.warning("请勾选删除项");
@@ -269,7 +271,7 @@ function handleDelete(deptId?: number) {
     type: "warning",
   }).then(
     () => {
-      DeptAPI.deleteByIds(deptIds as any)
+      DeptAPI.deleteByIds(deptIds)
         .then(() => {
           ElMessage.success("删除成功");
           tableRef.value?.reload(true);

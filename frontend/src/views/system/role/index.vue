@@ -224,9 +224,11 @@ import ProDrawer from "@/components/ProDrawer/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
+import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
 import { useAppStore } from "@/store/modules/app-store";
 import { DeviceEnum } from "@/enums/settings/device-enum";
+import type { CheckboxValueType, TreeInstance } from "element-plus";
 
 import RoleAPI, { RoleForm, RolePageQuery, RolePageVO } from "@/api/system/role-api";
 import MenuAPI from "@/api/system/menu-api";
@@ -238,10 +240,10 @@ defineOptions({
 
 const appStore = useAppStore();
 
-const queryFormRef = ref();
-const roleFormRef = ref();
-const permTreeRef = ref();
-const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
+const queryFormRef = ref<InstanceType<typeof ProSearch> | null>(null);
+const roleFormRef = ref<InstanceType<typeof ProFormDrawer> | null>(null);
+const permTreeRef = ref<TreeInstance | null>(null);
+const tableRef = ref<ProTableExpose | null>(null);
 
 const loading = ref(false);
 const ids = ref<number[]>([]);
@@ -294,13 +296,14 @@ function handleQuery() {
 
 // 重置查询
 function handleResetQuery() {
-  queryFormRef.value.resetFields();
+  queryFormRef.value?.resetFields();
   tableRef.value?.reload(true);
 }
 
 // 行复选框选中
-function handleSelectionChange(selection: any) {
-  ids.value = selection.map((item: any) => item.id);
+function handleSelectionChange(selection: unknown[]) {
+  const rows = selection as RolePageVO[];
+  ids.value = rows.map((item) => Number(item.id)).filter((id) => !Number.isNaN(id));
 }
 
 // 打开角色弹窗
@@ -318,7 +321,7 @@ function handleOpenDialog(roleId?: string) {
 
 // 提交角色表单
 function handleSubmit() {
-  roleFormRef.value.validate((valid: any) => {
+  roleFormRef.value?.validate((valid: boolean) => {
     if (valid) {
       loading.value = true;
       const roleId = formData.id;
@@ -347,8 +350,8 @@ function handleSubmit() {
 function handleCloseDialog() {
   dialog.visible = false;
 
-  roleFormRef.value.resetFields();
-  roleFormRef.value.clearValidate();
+  roleFormRef.value?.resetFields();
+  roleFormRef.value?.clearValidate();
 
   formData.id = undefined;
   formData.sort = 1;
@@ -400,7 +403,7 @@ async function handleOpenAssignPermDialog(row: RolePageVO) {
     // 回显角色已拥有的菜单
     RoleAPI.getRoleMenuIds(roleId)
       .then((data) => {
-        data.forEach((menuId) => permTreeRef.value!.setChecked(menuId, true, false));
+        data.forEach((menuId) => permTreeRef.value?.setChecked(menuId, true, false));
       })
       .finally(() => {
         loading.value = false;
@@ -412,9 +415,12 @@ async function handleOpenAssignPermDialog(row: RolePageVO) {
 function handleAssignPermSubmit() {
   const roleId = checkedRole.value.id;
   if (roleId) {
-    const checkedMenuIds: number[] = permTreeRef
-      .value!.getCheckedNodes(false, true)
-      .map((node: any) => node.id);
+    type CheckedPermNode = OptionType & { id: string | number };
+    const checkedMenuIds: number[] =
+      permTreeRef.value
+        ?.getCheckedNodes(false, true)
+        .map((node) => Number((node as CheckedPermNode).id))
+        .filter((id) => !Number.isNaN(id)) ?? [];
 
     loading.value = true;
     RoleAPI.updateRoleMenus(roleId, checkedMenuIds)
@@ -433,7 +439,17 @@ function handleAssignPermSubmit() {
 function togglePermTree() {
   isExpanded.value = !isExpanded.value;
   if (permTreeRef.value) {
-    Object.values(permTreeRef.value.store.nodesMap).forEach((node: any) => {
+    type ExpandableTreeNode = {
+      expand: () => void;
+      collapse: () => void;
+    };
+    type TreeWithNodeMap = TreeInstance & {
+      store: {
+        nodesMap: Record<string, ExpandableTreeNode>;
+      };
+    };
+    const nodesMap = (permTreeRef.value as TreeWithNodeMap).store.nodesMap;
+    Object.values(nodesMap).forEach((node) => {
       if (isExpanded.value) {
         node.expand();
       } else {
@@ -445,21 +461,16 @@ function togglePermTree() {
 
 // 权限筛选
 watch(permKeywords, (val) => {
-  permTreeRef.value!.filter(val);
+  permTreeRef.value?.filter(val);
 });
 
-function handlePermFilter(
-  value: string,
-  data: {
-    [key: string]: any;
-  }
-) {
+function handlePermFilter(value: string, data: { label?: string }) {
   if (!value) return true;
-  return data.label.includes(value);
+  return data.label?.includes(value) ?? false;
 }
 
 // 父子菜单节点是否联动
-function handleparentChildLinkedChange(val: any) {
-  parentChildLinked.value = val;
+function handleparentChildLinkedChange(val: CheckboxValueType) {
+  parentChildLinked.value = Boolean(val);
 }
 </script>

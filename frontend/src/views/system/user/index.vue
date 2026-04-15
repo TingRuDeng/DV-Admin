@@ -198,10 +198,12 @@ import PageShell from "@/components/PageShell/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
+import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
 import { useAppStore } from "@/store/modules/app-store";
 import { DeviceEnum } from "@/enums/settings/device-enum";
 
+import type { UserInfo } from "@/api/auth-api";
 import UserAPI, { UserForm, UserPageQuery, UserPageVO } from "@/api/system/user-api";
 import DeptAPI from "@/api/system/dept-api";
 import RoleAPI from "@/api/system/role-api";
@@ -217,9 +219,9 @@ defineOptions({
 
 const appStore = useAppStore();
 
-const queryFormRef = ref();
-const userFormRef = ref();
-const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
+const queryFormRef = ref<InstanceType<typeof ProSearch> | null>(null);
+const userFormRef = ref<InstanceType<typeof ProFormDrawer> | null>(null);
+const tableRef = ref<ProTableExpose | null>(null);
 
 const queryParams = reactive<Omit<UserPageQuery, "pageNum" | "pageSize">>({});
 
@@ -258,7 +260,7 @@ const rules = reactive({
 });
 
 // 选中的用户ID
-const selectIds = ref<number[]>([]);
+const selectIds = ref<string[]>([]);
 // 部门下拉数据源
 const deptOptions = ref<OptionType[]>();
 // 角色下拉数据源
@@ -275,14 +277,15 @@ function handleQuery() {
 
 // 重置查询
 function handleResetQuery() {
-  queryFormRef.value.resetFields();
+  queryFormRef.value?.resetFields();
   queryParams.deptId = undefined;
   tableRef.value?.reload(true);
 }
 
 // 选中项发生变化
-function handleSelectionChange(selection: any[]) {
-  selectIds.value = selection.map((item) => item.id);
+function handleSelectionChange(selection: unknown[]) {
+  const rows = selection as UserPageVO[];
+  selectIds.value = rows.map((item) => item.id).filter((id): id is string => Boolean(id));
 }
 
 // 重置密码
@@ -331,8 +334,8 @@ async function handleOpenDialog(id?: string) {
 // 关闭弹窗
 function handleCloseDialog() {
   dialog.visible = false;
-  userFormRef.value.resetFields();
-  userFormRef.value.clearValidate();
+  userFormRef.value?.resetFields();
+  userFormRef.value?.clearValidate();
 
   formData.id = undefined;
   formData.deptId = undefined;
@@ -341,7 +344,7 @@ function handleCloseDialog() {
 
 // 提交用户表单（防抖）
 const handleSubmit = useDebounceFn(() => {
-  userFormRef.value.validate((valid: boolean) => {
+  userFormRef.value?.validate((valid: boolean) => {
     if (valid) {
       const userId = formData.id;
       if (userId) {
@@ -382,20 +385,21 @@ function handleSubmitWrapper() {
  * @returns 是否包含当前用户
  */
 function isDeletingCurrentUser(
-  singleId?: number,
-  selectedIds: number[] = [],
-  currentUserInfo?: any
+  singleId?: string,
+  selectedIds: string[] = [],
+  currentUserInfo?: Pick<UserInfo, "id">
 ): boolean {
-  if (!currentUserInfo?.userId) return false;
+  const currentUserId = currentUserInfo?.id;
+  if (!currentUserId) return false;
 
   // 单个删除检查
-  if (singleId && singleId.toString() === currentUserInfo.userId) {
+  if (singleId && singleId === currentUserId) {
     return true;
   }
 
   // 批量删除检查
   if (!singleId && selectedIds.length > 0) {
-    return selectedIds.map(String).includes(currentUserInfo.userId);
+    return selectedIds.includes(currentUserId);
   }
 
   return false;
@@ -406,7 +410,7 @@ function isDeletingCurrentUser(
  *
  * @param id  用户ID
  */
-function handleDelete(id?: number) {
+function handleDelete(id?: string) {
   const userIds = id !== undefined ? [id] : selectIds.value;
   if (!userIds) {
     ElMessage.warning("请勾选删除项");
