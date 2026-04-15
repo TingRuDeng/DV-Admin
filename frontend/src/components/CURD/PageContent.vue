@@ -197,12 +197,11 @@
     </div>
 
     <!-- 导出弹窗 -->
-    <el-dialog
+    <ProDialog
       v-model="exportsModalVisible"
-      :align-center="true"
       title="导出数据"
       width="600px"
-      style="padding-right: 0"
+      :dialog-attrs="{ alignCenter: true }"
       @close="handleCloseExportsModal"
     >
       <!-- 滚动 -->
@@ -251,14 +250,13 @@
           <el-button @click="handleCloseExportsModal">取 消</el-button>
         </div>
       </template>
-    </el-dialog>
+    </ProDialog>
     <!-- 导入弹窗 -->
-    <el-dialog
+    <ProDialog
       v-model="importModalVisible"
-      :align-center="true"
       title="导入数据"
       width="600px"
-      style="padding-right: 0"
+      :dialog-attrs="{ alignCenter: true }"
       @close="handleCloseImportModal"
     >
       <!-- 滚动 -->
@@ -317,13 +315,14 @@
           <el-button @click="handleCloseImportModal">取 消</el-button>
         </div>
       </template>
-    </el-dialog>
+    </ProDialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { hasPerm } from "@/utils/auth";
 import { useDateFormat, useThrottleFn } from "@vueuse/core";
+import ProDialog from "@/components/ProDialog/index.vue";
 import {
   genFileId,
   type FormInstance,
