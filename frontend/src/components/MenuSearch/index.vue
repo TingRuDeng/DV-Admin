@@ -1,11 +1,13 @@
 <template>
   <div @click="openSearchModal">
     <div class="i-svg:search" />
-    <el-dialog
+    <ProDialog
       v-model="isModalVisible"
       width="30%"
       :append-to-body="true"
       :show-close="false"
+      :show-confirm-button="false"
+      cancel-text="关闭"
       @close="closeSearchModal"
     >
       <template #header>
@@ -119,11 +121,12 @@
           </div>
         </div>
       </template>
-    </el-dialog>
+    </ProDialog>
   </div>
 </template>
 
 <script setup lang="ts">
+import ProDialog from "@/components/ProDialog/index.vue";
 import router from "@/router";
 import { usePermissionStore } from "@/store";
 import { isExternal } from "@/utils";
