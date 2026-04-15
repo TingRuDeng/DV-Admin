@@ -198,6 +198,7 @@ import PageShell from "@/components/PageShell/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
+import { createPageRequest } from "@/utils/pro-table-request";
 import { useAppStore } from "@/store/modules/app-store";
 import { DeviceEnum } from "@/enums/settings/device-enum";
 
@@ -265,9 +266,7 @@ const roleOptions = ref<OptionType[]>();
 // 导入弹窗显示状态
 const importDialogVisible = ref(false);
 
-function requestTableData(params: Record<string, unknown>) {
-  return UserAPI.getPage(params as unknown as UserPageQuery);
-}
+const requestTableData = createPageRequest<UserPageQuery, UserPageVO>(UserAPI.getPage);
 
 // 查询（重置页码后获取数据）
 function handleQuery() {

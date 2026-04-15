@@ -91,7 +91,8 @@ defineOptions({
 });
 
 import ProDialog from "@/components/ProDialog/index.vue";
-import NoticeAPI, { NoticePageQuery, NoticeDetailVO } from "@/api/system/notice-api";
+import { createPageRequest } from "@/utils/pro-table-request";
+import NoticeAPI, { NoticePageQuery, NoticeDetailVO, NoticePageVO } from "@/api/system/notice-api";
 
 const queryFormRef = ref();
 const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
@@ -106,9 +107,9 @@ function handleQuery() {
   tableRef.value?.reload(true);
 }
 
-function requestTableData(params: Record<string, unknown>) {
-  return NoticeAPI.getMyNoticePage(params as unknown as NoticePageQuery);
-}
+const requestTableData = createPageRequest<NoticePageQuery, NoticePageVO>(
+  NoticeAPI.getMyNoticePage
+);
 
 // 重置通知公告查询
 function handleResetQuery() {
