@@ -120,11 +120,12 @@ defineOptions({
   inheritAttrs: false,
 });
 
-import ConfigAPI, { ConfigForm, ConfigPageQuery } from "@/api/system/config-api";
+import ConfigAPI, { ConfigForm, ConfigPageQuery, ConfigPageVO } from "@/api/system/config-api";
 import PageShell from "@/components/PageShell/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
+import { createPageRequest } from "@/utils/pro-table-request";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useDebounceFn } from "@vueuse/core";
 
@@ -157,9 +158,7 @@ const rules = reactive({
   configValue: [{ required: true, message: "请输入系统配置值", trigger: "blur" }],
 });
 
-function requestTableData(params: Record<string, unknown>) {
-  return ConfigAPI.getPage(params as unknown as ConfigPageQuery);
-}
+const requestTableData = createPageRequest<ConfigPageQuery, ConfigPageVO>(ConfigAPI.getPage);
 
 // 查询（重置页码后获取数据）
 function handleQuery() {

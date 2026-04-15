@@ -224,6 +224,7 @@ import ProDrawer from "@/components/ProDrawer/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
+import { createPageRequest } from "@/utils/pro-table-request";
 import { useAppStore } from "@/store/modules/app-store";
 import { DeviceEnum } from "@/enums/settings/device-enum";
 
@@ -284,9 +285,7 @@ const isExpanded = ref(true);
 
 const parentChildLinked = ref(true);
 
-function requestTableData(params: Record<string, unknown>) {
-  return RoleAPI.getPage(params as unknown as RolePageQuery);
-}
+const requestTableData = createPageRequest<RolePageQuery, RolePageVO>(RoleAPI.getPage);
 
 // 查询（重置页码后获取数据）
 function handleQuery() {
