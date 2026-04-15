@@ -53,11 +53,12 @@
     </template>
   </el-dropdown>
 
-  <el-dialog
+  <ProDialog
     v-model="noticeDialogVisible"
     :title="noticeDetail?.title ?? '通知详情'"
     width="800px"
-    custom-class="notification-detail"
+    class="notification-detail"
+    :show-footer="false"
   >
     <div v-if="noticeDetail" class="p-x-20px">
       <div class="flex-y-center mb-16px text-13px text-color-secondary">
@@ -75,10 +76,11 @@
         <div v-html="noticeDetail.content"></div>
       </div>
     </div>
-  </el-dialog>
+  </ProDialog>
 </template>
 
 <script setup lang="ts">
+import ProDialog from "@/components/ProDialog/index.vue";
 import NoticeAPI, { NoticePageVO, NoticeDetailVO } from "@/api/system/notice-api";
 import router from "@/router";
 

@@ -115,6 +115,7 @@
 - 页面层详情/非表单弹层统一为 `ProDialog` / `ProDrawer`
 - 已新增测试守卫，禁止在 `src/views` 回归到原生 `el-dialog` / `el-drawer`
 - 已新增测试守卫，禁止在 `src/views` 回归到 `components/CURD` 页面组件，并约束系统列表页保持 `ProTable(request)`
+- 公共组件主链路（如 `MenuSearch`、`Notification`）已收口到 `ProDialog`，原生弹层仅保留在 Pro 包装层与 `CURD` 兼容层
 
 **建议的 MVP 范围**
 
