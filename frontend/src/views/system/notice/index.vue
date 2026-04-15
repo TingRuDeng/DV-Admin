@@ -309,7 +309,13 @@ defineOptions({
 
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProDialog from "@/components/ProDialog/index.vue";
-import NoticeAPI, { NoticeForm, NoticePageQuery, NoticeDetailVO } from "@/api/system/notice-api";
+import { createPageRequest } from "@/utils/pro-table-request";
+import NoticeAPI, {
+  NoticeForm,
+  NoticePageQuery,
+  NoticeDetailVO,
+  NoticePageVO,
+} from "@/api/system/notice-api";
 import UserAPI from "@/api/system/user-api";
 
 const queryFormRef = ref();
@@ -365,9 +371,7 @@ function handleQuery() {
   tableRef.value?.reload(true);
 }
 
-function requestTableData(params: Record<string, unknown>) {
-  return NoticeAPI.getPage(params as unknown as NoticePageQuery);
-}
+const requestTableData = createPageRequest<NoticePageQuery, NoticePageVO>(NoticeAPI.getPage);
 
 // 重置查询
 function handleResetQuery() {
