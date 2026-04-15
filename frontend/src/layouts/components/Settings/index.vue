@@ -1,9 +1,9 @@
 <template>
-  <el-drawer
+  <ProDrawer
     v-model="drawerVisible"
     size="380"
     :title="t('settings.project')"
-    :before-close="handleCloseDrawer"
+    :drawer-attrs="{ beforeClose: handleCloseDrawer }"
     class="settings-drawer"
   >
     <div class="settings-content">
@@ -136,10 +136,11 @@
         </el-tooltip>
       </div>
     </template>
-  </el-drawer>
+  </ProDrawer>
 </template>
 
 <script setup lang="ts">
+import ProDrawer from "@/components/ProDrawer/index.vue";
 import { DocumentCopy, RefreshLeft, Check } from "@element-plus/icons-vue";
 
 const { t } = useI18n();
