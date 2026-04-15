@@ -116,6 +116,7 @@
 - 已新增测试守卫，禁止在 `src/views` 回归到原生 `el-dialog` / `el-drawer`
 - 已新增测试守卫，禁止在 `src/views` 回归到 `components/CURD` 页面组件，并约束系统列表页保持 `ProTable(request)`
 - 公共组件与 `CURD` 兼容层弹层均已收口到 `ProDialog` / `ProDrawer`，原生弹层仅保留在 Pro 包装层内部实现
+- 已新增全局守卫，约束 `src/**/*.vue` 的原生弹层仅可出现在 `ProDialog` / `ProDrawer` / `ProFormDrawer` 内部
 
 **建议的 MVP 范围**
 
