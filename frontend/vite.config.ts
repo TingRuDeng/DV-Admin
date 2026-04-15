@@ -82,6 +82,8 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
         ],
         // 指定自定义组件位置(默认:src/components)
         dirs: ["src/components", "src/**/components"],
+        // CURD 仅保留历史兼容层，不再参与自动注册，避免新增调用点
+        exclude: [/src\/components\/CURD\/.*/],
         // 导入组件类型声明文件路径 (false:关闭自动生成)
         dts: false,
         // dts: "src/types/components.d.ts",
