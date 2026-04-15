@@ -219,6 +219,20 @@ export default [
     },
   },
 
+  // CURD 退场治理：兼容层外禁止新增 CURD 引用
+  {
+    files: ["src/**/*.{ts,vue}"],
+    ignores: ["src/components/CURD/**", "src/types/components.d.ts", "src/**/__tests__/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: ["@/components/CURD/*", "@/components/CURD/**", "**/components/CURD/*"],
+        },
+      ],
+    },
+  },
+
   // Prettier 集成（必须放在最后）
   {
     plugins: {
