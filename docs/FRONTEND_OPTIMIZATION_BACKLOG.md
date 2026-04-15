@@ -114,7 +114,7 @@
 - 页面层表单弹层统一为 `ProFormDrawer`
 - 页面层详情/非表单弹层统一为 `ProDialog` / `ProDrawer`
 - 已新增测试守卫，禁止在 `src/views` 回归到原生 `el-dialog` / `el-drawer`
-- 已新增测试守卫，禁止在 `src/views` 回归到 `components/CURD` 页面组件，并约束系统列表页保持 `ProTable(request)`
+- 已新增测试守卫，禁止在 `src/views` 回归到 `components/CURD` 页面组件，并约束视图层 `ProTable` 保持 `request` 驱动
 - 公共组件与 `CURD` 兼容层弹层均已收口到 `ProDialog` / `ProDrawer`，原生弹层仅保留在 Pro 包装层内部实现
 - 已新增全局守卫，约束 `src/**/*.vue` 的原生弹层仅可出现在 `ProDialog` / `ProDrawer` / `ProFormDrawer` 内部
 - 已在构建层、Lint 层与测试层同时约束：`CURD` 目录不参与组件自动注册，且禁止在兼容层外新增 `components/CURD` 引用
