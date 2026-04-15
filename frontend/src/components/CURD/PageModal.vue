@@ -2,9 +2,9 @@
   <div>
     <!-- drawer -->
     <template v-if="modalConfig.component === 'drawer'">
-      <el-drawer
+      <ProDrawer
         v-model="modalVisible"
-        v-bind="{ destroyOnClose: true, ...modalConfig.drawer }"
+        :drawer-attrs="{ destroyOnClose: true, ...(modalConfig.drawer ?? {}) }"
         @close="handleClose"
       >
         <el-form ref="formRef" v-bind="modalConfig.form" :model="formData" :rules="formRules">
@@ -62,13 +62,13 @@
           <el-button v-if="!formDisable" type="primary" @click="handleSubmit">确 定</el-button>
           <el-button @click="handleClose">{{ !formDisable ? "取 消" : "关闭" }}</el-button>
         </template>
-      </el-drawer>
+      </ProDrawer>
     </template>
     <!-- dialog -->
     <template v-else>
-      <el-dialog
+      <ProDialog
         v-model="modalVisible"
-        v-bind="{ destroyOnClose: true, alignCenter: true, ...modalConfig.dialog }"
+        :dialog-attrs="{ destroyOnClose: true, alignCenter: true, ...(modalConfig.dialog ?? {}) }"
         @close="handleClose"
       >
         <el-form ref="formRef" v-bind="modalConfig.form" :model="formData" :rules="formRules">
@@ -127,7 +127,7 @@
           <el-button v-if="!formDisable" type="primary" @click="handleSubmit">确 定</el-button>
           <el-button @click="handleClose">{{ !formDisable ? "取 消" : "关闭" }}</el-button>
         </template>
-      </el-dialog>
+      </ProDialog>
     </template>
   </div>
 </template>
@@ -136,6 +136,8 @@
 import { useThrottleFn } from "@vueuse/core";
 import type { FormInstance, FormRules } from "element-plus";
 import type { IComponentType, IModalConfig, IObject } from "./types";
+import ProDialog from "@/components/ProDialog/index.vue";
+import ProDrawer from "@/components/ProDrawer/index.vue";
 import InputTag from "@/components/InputTag/index.vue";
 import IconSelect from "@/components/IconSelect/index.vue";
 
