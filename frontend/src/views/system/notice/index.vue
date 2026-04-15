@@ -309,6 +309,7 @@ defineOptions({
 
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProDialog from "@/components/ProDialog/index.vue";
+import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
 import NoticeAPI, {
   NoticeForm,
@@ -318,12 +319,12 @@ import NoticeAPI, {
 } from "@/api/system/notice-api";
 import UserAPI from "@/api/system/user-api";
 
-const queryFormRef = ref();
-const dataFormRef = ref();
-const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
+const queryFormRef = ref<{ resetFields: () => void } | null>(null);
+const dataFormRef = ref<InstanceType<typeof ProFormDrawer> | null>(null);
+const tableRef = ref<ProTableExpose | null>(null);
 
 const loading = ref(false);
-const selectIds = ref<number[]>([]);
+const selectIds = ref<string[]>([]);
 
 const queryParams = reactive<Omit<NoticePageQuery, "pageNum" | "pageSize">>({});
 
@@ -349,7 +350,7 @@ const rules = reactive({
       required: true,
       message: "请输入通知内容",
       trigger: "blur",
-      validator: (rule: any, value: string, callback: any) => {
+      validator: (_rule: unknown, value: string, callback: (error?: Error) => void) => {
         if (!value.replace(/<[^>]+>/g, "").trim()) {
           callback(new Error("请输入通知内容"));
         } else {
@@ -375,13 +376,13 @@ const requestTableData = createPageRequest<NoticePageQuery, NoticePageVO>(Notice
 
 // 重置查询
 function handleResetQuery() {
-  queryFormRef.value!.resetFields();
+  queryFormRef.value?.resetFields();
   tableRef.value?.reload(true);
 }
 
 // 行复选框选中项变化
-function handleSelectionChange(selection: any) {
-  selectIds.value = selection.map((item: any) => item.id);
+function handleSelectionChange(selection: NoticePageVO[]) {
+  selectIds.value = selection.map((item) => item.id).filter((id): id is string => Boolean(id));
 }
 
 // 打开通知公告弹窗
@@ -420,7 +421,7 @@ function handleRevoke(id: string) {
 
 // 通知公告表单提交
 function handleSubmit() {
-  dataFormRef.value.validate((valid: any) => {
+  dataFormRef.value?.validate((valid: boolean) => {
     if (valid) {
       loading.value = true;
       const id = formData.id;
@@ -447,8 +448,8 @@ function handleSubmit() {
 
 // 重置表单
 function resetForm() {
-  dataFormRef.value.resetFields();
-  dataFormRef.value.clearValidate();
+  dataFormRef.value?.resetFields();
+  dataFormRef.value?.clearValidate();
   formData.id = undefined;
   formData.targetType = 1;
 }
@@ -460,7 +461,7 @@ function handleCloseDialog() {
 }
 
 // 删除通知公告
-function handleDelete(id?: number) {
+function handleDelete(id?: string) {
   const deleteIds = [id || selectIds.value].join(",");
   if (!deleteIds) {
     ElMessage.warning("请勾选删除项");

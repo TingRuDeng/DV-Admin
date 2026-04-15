@@ -91,11 +91,12 @@ defineOptions({
 });
 
 import ProDialog from "@/components/ProDialog/index.vue";
+import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
 import NoticeAPI, { NoticePageQuery, NoticeDetailVO, NoticePageVO } from "@/api/system/notice-api";
 
-const queryFormRef = ref();
-const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
+const queryFormRef = ref<{ resetFields: () => void } | null>(null);
+const tableRef = ref<ProTableExpose | null>(null);
 
 const queryParams = reactive<Omit<NoticePageQuery, "pageNum" | "pageSize">>({});
 
@@ -113,7 +114,7 @@ const requestTableData = createPageRequest<NoticePageQuery, NoticePageVO>(
 
 // 重置通知公告查询
 function handleResetQuery() {
-  queryFormRef.value!.resetFields();
+  queryFormRef.value?.resetFields();
   tableRef.value?.reload(true);
 }
 

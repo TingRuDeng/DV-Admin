@@ -348,6 +348,7 @@ import PageShell from "@/components/PageShell/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
+import type { ProTableExpose } from "@/components/ProTable/types";
 import { createListRequest } from "@/utils/pro-table-request";
 import { useAppStore } from "@/store/modules/app-store";
 import { DeviceEnum } from "@/enums/settings/device-enum";
@@ -361,9 +362,9 @@ defineOptions({
 
 const appStore = useAppStore();
 
-const queryFormRef = ref();
-const menuFormRef = ref();
-const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
+const queryFormRef = ref<InstanceType<typeof ProSearch> | null>(null);
+const menuFormRef = ref<InstanceType<typeof ProFormDrawer> | null>(null);
+const tableRef = ref<ProTableExpose | null>(null);
 
 const loading = ref(false);
 const dialog = reactive({
@@ -412,7 +413,7 @@ function handleQuery() {
 
 // 重置查询
 function handleResetQuery() {
-  queryFormRef.value.resetFields();
+  queryFormRef.value?.resetFields();
   tableRef.value?.reload(true);
 }
 
@@ -473,7 +474,7 @@ function handleMenuTypeChange() {
  * 提交表单
  */
 function handleSubmit() {
-  menuFormRef.value.validate((isValid: boolean) => {
+  menuFormRef.value?.validate((isValid: boolean) => {
     if (isValid) {
       const menuId = formData.value.id;
       const submitData = { ...formData.value };
@@ -534,8 +535,8 @@ function handleDelete(menuId: string) {
 }
 
 function resetForm() {
-  menuFormRef.value.resetFields();
-  menuFormRef.value.clearValidate();
+  menuFormRef.value?.resetFields();
+  menuFormRef.value?.clearValidate();
   formData.value = {
     id: undefined,
     parent: "0",

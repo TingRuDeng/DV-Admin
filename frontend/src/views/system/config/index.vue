@@ -125,13 +125,14 @@ import PageShell from "@/components/PageShell/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
+import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useDebounceFn } from "@vueuse/core";
 
-const queryFormRef = ref();
-const dataFormRef = ref();
-const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
+const queryFormRef = ref<InstanceType<typeof ProSearch> | null>(null);
+const dataFormRef = ref<InstanceType<typeof ProFormDrawer> | null>(null);
+const tableRef = ref<ProTableExpose | null>(null);
 
 const loading = ref(false);
 
@@ -167,7 +168,7 @@ function handleQuery() {
 
 // 重置查询
 function handleResetQuery() {
-  queryFormRef.value.resetFields();
+  queryFormRef.value?.resetFields();
   tableRef.value?.reload(true);
 }
 
@@ -194,7 +195,7 @@ const handleRefreshCache = useDebounceFn(() => {
 
 // 系统配置表单提交
 function handleSubmit() {
-  dataFormRef.value.validate((valid: any) => {
+  dataFormRef.value?.validate((valid: boolean) => {
     if (valid) {
       loading.value = true;
       const id = formData.id;
@@ -221,8 +222,8 @@ function handleSubmit() {
 
 // 重置表单
 function resetForm() {
-  dataFormRef.value.resetFields();
-  dataFormRef.value.clearValidate();
+  dataFormRef.value?.resetFields();
+  dataFormRef.value?.clearValidate();
   formData.id = undefined;
 }
 

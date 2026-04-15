@@ -155,6 +155,7 @@
 
 <script setup lang="ts">
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
+import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
 import DictAPI, { DictPageVO } from "@/api/system/dict-api";
 import DictItemAPI, {
@@ -162,13 +163,14 @@ import DictItemAPI, {
   DictItemPageQuery,
   DictItemPageVO,
 } from "@/api/system/dict-items-api";
+import type { FormRules } from "element-plus";
 
 const route = useRoute();
 
 const dict = route.query.dict as string;
-const dataFormRef = ref();
-const queryFormRef = ref();
-const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
+const dataFormRef = ref<InstanceType<typeof ProFormDrawer> | null>(null);
+const queryFormRef = ref<{ resetFields: () => void } | null>(null);
+const tableRef = ref<ProTableExpose | null>(null);
 const dictList = ref<DictPageVO[]>([]);
 const formData = reactive<DictItemForm>({});
 
@@ -182,7 +184,7 @@ const dialog = reactive({
 });
 
 const computedRules = computed(() => {
-  const rules: Partial<Record<string, any>> = {
+  const rules: FormRules<DictItemForm> = {
     dict: [{ required: true, message: "请选择归属字典", trigger: "change" }],
     value: [{ required: true, message: "请输入字典值", trigger: "blur" }],
     label: [{ required: true, message: "请输入字典标签", trigger: "blur" }],
@@ -202,13 +204,13 @@ function handleQuery() {
 
 // 重置查询
 function handleResetQuery() {
-  queryFormRef.value.resetFields();
+  queryFormRef.value?.resetFields();
   tableRef.value?.reload(true);
 }
 
 // 行选择
-function handleSelectionChange(selection: any) {
-  ids.value = selection.map((item: any) => item.id);
+function handleSelectionChange(selection: DictItemPageVO[]) {
+  ids.value = selection.map((item) => Number(item.id)).filter((id) => !Number.isNaN(id));
 }
 
 // 打开弹窗
@@ -225,7 +227,7 @@ function handleOpenDialog(id?: number) {
 
 // 提交表单
 function handleSubmitClick() {
-  dataFormRef.value.validate((isValid: boolean) => {
+  dataFormRef.value?.validate((isValid: boolean) => {
     if (isValid) {
       loading.value = true;
       const id = formData.id;
@@ -252,8 +254,8 @@ function handleSubmitClick() {
 
 // 关闭弹窗
 function handleCloseDialog() {
-  dataFormRef.value.resetFields();
-  dataFormRef.value.clearValidate();
+  dataFormRef.value?.resetFields();
+  dataFormRef.value?.clearValidate();
 
   formData.id = undefined;
   formData.status = 1;

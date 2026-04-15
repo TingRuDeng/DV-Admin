@@ -40,6 +40,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import type { FormInstance, FormProps, FormRules } from "element-plus";
+import type { ProFormDrawerExpose } from "./types";
 
 const props = withDefaults(
   defineProps<{
@@ -88,7 +89,7 @@ function handleClose() {
   emit("close");
 }
 
-defineExpose({
+defineExpose<ProFormDrawerExpose>({
   formRef,
   resetFields: () => formRef.value?.resetFields(),
   clearValidate: () => formRef.value?.clearValidate(),

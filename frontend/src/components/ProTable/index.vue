@@ -37,6 +37,7 @@
 import { computed, ref, watch } from "vue";
 import DataPanel from "@/components/DataPanel/index.vue";
 import Pagination from "@/components/Pagination/index.vue";
+import type { ProTableExpose, ProTablePaginationPayload, ProTableRequestResult } from "./types";
 
 defineOptions({
   inheritAttrs: false,
@@ -50,7 +51,7 @@ const props = withDefaults(
     page?: number;
     limit?: number;
     loading?: boolean;
-    request?: (params: Record<string, unknown>) => Promise<{ list?: unknown[]; total?: number }>;
+    request?: (params: Record<string, unknown>) => Promise<ProTableRequestResult<unknown>>;
     params?: Record<string, unknown>;
     immediate?: boolean;
     rowKey?: string | ((row: unknown) => string);
@@ -72,7 +73,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   "update:page": [value: number];
   "update:limit": [value: number];
-  pagination: [{ page: number; limit: number }];
+  pagination: [payload: ProTablePaginationPayload];
   selectionChange: [value: unknown[]];
 }>();
 
@@ -119,11 +120,12 @@ async function reload(resetPage: boolean = false) {
 
   innerLoading.value = true;
   try {
-    const result = await props.request({
-      ...props.params,
+    const requestParams = {
+      ...(props.params ?? {}),
       pageNum: innerPage.value,
       pageSize: innerLimit.value,
-    });
+    };
+    const result = await props.request(requestParams);
     innerData.value = result?.list ?? [];
     innerTotal.value = Number(result?.total ?? 0);
   } finally {
@@ -135,7 +137,7 @@ function handleSelectionChange(value: unknown[]) {
   emit("selectionChange", value);
 }
 
-function handlePagination(payload: { page: number; limit: number }) {
+function handlePagination(payload: ProTablePaginationPayload) {
   if (isRequestMode.value) {
     reload();
   }
@@ -171,7 +173,7 @@ watch(
   { immediate: true, deep: true }
 );
 
-defineExpose({
+defineExpose<ProTableExpose>({
   reload,
 });
 </script>
