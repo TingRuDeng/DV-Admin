@@ -4,9 +4,15 @@ import { describe, expect, it, vi } from "vitest";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
+import type { ProTableExpose } from "@/components/ProTable/types";
 
 const ElFormStub = defineComponent({
-  props: ["model"],
+  props: {
+    model: {
+      type: Object,
+      default: () => ({}),
+    },
+  },
   setup(_, { expose }) {
     expose({
       resetFields: () => undefined,
@@ -19,40 +25,30 @@ const ElFormStub = defineComponent({
   template: "<form class='el-form-stub'><slot /></form>",
 });
 
-const ElFormItemStub = defineComponent({
-  template: "<div class='el-form-item-stub'><slot /></div>",
-});
-
-const ElButtonStub = defineComponent({
-  emits: ["click"],
-  template: "<button @click=\"$emit('click')\"><slot /></button>",
-});
-
-const ElTableStub = defineComponent({
-  emits: ["selection-change"],
-  template: "<div class='ff-table'><slot /></div>",
-});
-
-const ElTableColumnStub = defineComponent({
-  template: "<div class='el-table-column-stub'><slot /></div>",
-});
-
-const ElDrawerStub = defineComponent({
-  props: ["modelValue", "title"],
-  emits: ["update:modelValue", "close"],
-  template:
-    "<section class='el-drawer-stub'><header>{{ title }}</header><div><slot /></div><footer><slot name='footer' /></footer></section>",
-});
-
 const testGlobal = {
   stubs: {
     "el-form": ElFormStub,
-    "el-form-item": ElFormItemStub,
+    "el-form-item": {
+      template: "<div class='el-form-item-stub'><slot /></div>",
+    },
     "el-input": true,
-    "el-button": ElButtonStub,
-    "el-table": ElTableStub,
-    "el-table-column": ElTableColumnStub,
-    "el-drawer": ElDrawerStub,
+    "el-button": {
+      emits: ["click"],
+      template: "<button @click=\"$emit('click')\"><slot /></button>",
+    },
+    "el-table": {
+      emits: ["selection-change"],
+      template: "<div class='ff-table'><slot /></div>",
+    },
+    "el-table-column": {
+      template: "<div class='el-table-column-stub'><slot /></div>",
+    },
+    "el-drawer": {
+      props: ["modelValue", "title"],
+      emits: ["update:modelValue", "close"],
+      template:
+        "<section class='el-drawer-stub'><header>{{ title }}</header><div><slot /></div><footer><slot name='footer' /></footer></section>",
+    },
   },
   directives: {
     loading: () => undefined,
@@ -119,10 +115,11 @@ describe("pro components", () => {
   });
 
   it("supports request-driven mode and reload", async () => {
-    const request = vi.fn().mockResolvedValue({
+    const requestMock = vi.fn().mockResolvedValue({
       list: [{ id: 1, name: "admin" }],
       total: 1,
     });
+    const request = requestMock;
 
     const wrapper = mount(ProTable, {
       props: {
@@ -148,7 +145,7 @@ describe("pro components", () => {
     });
 
     await flushPromises();
-    expect(request).toHaveBeenCalledWith({
+    expect(requestMock).toHaveBeenCalledWith({
       keyword: "admin",
       pageNum: 1,
       pageSize: 10,
@@ -156,10 +153,10 @@ describe("pro components", () => {
     expect(wrapper.find(".pagination-trigger").exists()).toBe(true);
 
     await wrapper.find(".pagination-trigger").trigger("click");
-    expect(request).toHaveBeenCalledTimes(2);
+    expect(requestMock).toHaveBeenCalledTimes(2);
 
-    await (wrapper.vm as { reload: () => Promise<void> }).reload();
-    expect(request).toHaveBeenCalledTimes(3);
+    await (wrapper.vm as ProTableExpose).reload();
+    expect(requestMock).toHaveBeenCalledTimes(3);
   });
 
   it("renders ProFormDrawer and emits submit/cancel", async () => {

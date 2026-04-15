@@ -22,24 +22,26 @@
 
 <script setup lang="ts">
 import DeptAPI from "@/api/system/dept-api";
-const props = defineProps({
-  modelValue: {
-    type: [String, Number],
-    default: undefined,
-  },
-});
+import type { TreeInstance } from "element-plus";
+
+const props = defineProps<{
+  modelValue?: string | number;
+}>();
 
 const deptList = ref<OptionType[]>(); // 部门列表
-const deptTreeRef = ref(); // 部门树
-const deptName = ref(); // 部门名称
+const deptTreeRef = ref<TreeInstance | null>(null); // 部门树
+const deptName = ref(""); // 部门名称
 
-const emits = defineEmits(["node-click", "update:modelValue"]);
+const emits = defineEmits<{
+  "node-click": [];
+  "update:modelValue": [value?: string | number];
+}>();
 
 const deptId = useVModel(props, "modelValue", emits);
 
 watchEffect(
   () => {
-    deptTreeRef.value.filter(deptName.value);
+    deptTreeRef.value?.filter(deptName.value);
   },
   {
     flush: "post", // watchEffect会在DOM挂载或者更新之前就会触发，此属性控制在DOM元素更新后运行
@@ -49,15 +51,15 @@ watchEffect(
 /**
  * 部门筛选
  */
-function handleFilter(value: string, data: any) {
+function handleFilter(value: string, data: { label?: string }) {
   if (!value) {
     return true;
   }
-  return data.label.indexOf(value) !== -1;
+  return data.label?.includes(value) ?? false;
 }
 
 /** 部门树节点 Click */
-function handleNodeClick(data: { [key: string]: any }) {
+function handleNodeClick(data: OptionType) {
   deptId.value = data.id;
   emits("node-click");
 }

@@ -147,13 +147,15 @@ import PageShell from "@/components/PageShell/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
+import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
+import type { FormRules } from "element-plus";
 
 import router from "@/router";
 
-const queryFormRef = ref();
-const dataFormRef = ref();
-const tableRef = ref<{ reload: (resetPage?: boolean) => Promise<void> } | null>(null);
+const queryFormRef = ref<InstanceType<typeof ProSearch> | null>(null);
+const dataFormRef = ref<InstanceType<typeof ProFormDrawer> | null>(null);
+const tableRef = ref<ProTableExpose | null>(null);
 
 const loading = ref(false);
 const ids = ref<number[]>([]);
@@ -165,7 +167,15 @@ const dialog = reactive({
   visible: false,
 });
 
-const formData = reactive({
+interface DictFormData {
+  id?: string;
+  name: string;
+  dictCode: string;
+  status: number;
+  remark: string;
+}
+
+const formData = reactive<DictFormData>({
   id: undefined,
   name: "",
   dictCode: "",
@@ -174,7 +184,7 @@ const formData = reactive({
 });
 
 const computedRules = computed(() => {
-  const rules: Partial<Record<string, any>> = {
+  const rules: FormRules<DictFormData> = {
     name: [{ required: true, message: "请输入字典名称", trigger: "blur" }],
     dictCode: [{ required: true, message: "请输入字典编码", trigger: "blur" }],
   };
@@ -190,13 +200,14 @@ function handleQuery() {
 
 // 重置查询
 function handleResetQuery() {
-  queryFormRef.value.resetFields();
+  queryFormRef.value?.resetFields();
   tableRef.value?.reload(true);
 }
 
 // 行选择
-function handleSelectionChange(selection: any) {
-  ids.value = selection.map((item: any) => item.id);
+function handleSelectionChange(selection: unknown[]) {
+  const rows = selection as DictPageVO[];
+  ids.value = rows.map((item) => Number(item.id)).filter((id) => !Number.isNaN(id));
 }
 
 // 新增字典
@@ -220,7 +231,7 @@ function handleEditClick(id: string) {
 
 // 提交字典表单
 function handleSubmitClick() {
-  dataFormRef.value.validate((isValid: boolean) => {
+  dataFormRef.value?.validate((isValid: boolean) => {
     if (isValid) {
       loading.value = true;
       const id = formData.id;
@@ -249,8 +260,8 @@ function handleSubmitClick() {
 function handleCloseDialog() {
   dialog.visible = false;
 
-  dataFormRef.value.resetFields();
-  dataFormRef.value.clearValidate();
+  dataFormRef.value?.resetFields();
+  dataFormRef.value?.clearValidate();
 
   formData.id = undefined;
   formData.status = 1;

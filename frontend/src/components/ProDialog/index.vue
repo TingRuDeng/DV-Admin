@@ -41,6 +41,7 @@
 <script setup lang="ts">
 import { computed, useSlots } from "vue";
 import type { DialogProps } from "element-plus";
+import type { ProDialogExpose } from "./types";
 
 const props = withDefaults(
   defineProps<{
@@ -99,4 +100,10 @@ function handleCancel() {
 function handleClose() {
   emit("close");
 }
+
+defineExpose<ProDialogExpose>({
+  submit: handleSubmit,
+  cancel: handleCancel,
+  close: handleClose,
+});
 </script>
