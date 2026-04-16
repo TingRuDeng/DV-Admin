@@ -66,3 +66,7 @@ dv_admin.db-wal
 .codeartsdoer/
 node_modules/
 package-lock.json
+
+# Frontend E2E local artifacts
+frontend/test-results/
+frontend/e2e/*.local.spec.ts
