@@ -94,7 +94,9 @@ class JSONLogFormatter:
                 "traceback": record["exception"].traceback if record["exception"].traceback else None,
             }
 
-        return json.dumps(log_data, ensure_ascii=False, default=str)
+        # Loguru 会对 callable format 的返回值再次执行 format_map。
+        # 这里先转义花括号，避免 JSON 字符串中的键名被当作模板变量。
+        return json.dumps(log_data, ensure_ascii=False, default=str).replace("{", "{{").replace("}", "}}") + "\n"
 
 
 def setup_logger(
