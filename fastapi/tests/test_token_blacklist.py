@@ -17,6 +17,8 @@ class TestTokenBlacklistService:
         """每个测试方法前的设置"""
         # 重置服务的 redis 客户端
         token_blacklist_service._redis = None
+        token_blacklist_service._memory_blacklist = {}
+        token_blacklist_service._memory_user_revocations = {}
 
     def test_get_blacklist_key(self):
         """测试生成黑名单 Key"""
@@ -344,3 +346,39 @@ class TestTokenBlacklistService:
         result = await service.clear_user_revocation(123)
 
         assert result is False
+
+    @pytest.mark.asyncio
+    async def test_falls_back_to_memory_when_redis_unavailable(self):
+        """Redis 不可用时应降级到内存黑名单，避免认证链路持续报错。"""
+        service = TokenBlacklistService()
+        token = "test_token_memory"
+        now = datetime.now(timezone.utc)
+        expiration = now + timedelta(minutes=30)
+
+        with patch("app.services.token_blacklist.redis_manager") as mock_manager, \
+             patch("app.services.token_blacklist.decode_token") as mock_decode, \
+             patch("app.services.token_blacklist.get_token_expiration") as mock_expiration:
+            type(mock_manager).client = property(lambda _: (_ for _ in ()).throw(RuntimeError("Redis 未初始化")))
+            mock_decode.return_value = {"sub": "1"}
+            mock_expiration.return_value = expiration
+
+            added = await service.add_token_to_blacklist(token, user_id=1)
+            blacklisted = await service.is_token_blacklisted(token)
+
+            assert added is True
+            assert blacklisted is True
+
+    @pytest.mark.asyncio
+    async def test_user_revocation_falls_back_to_memory_when_redis_unavailable(self):
+        """Redis 不可用时批量撤销标记也应使用内存存储。"""
+        service = TokenBlacklistService()
+        token_issued_at = datetime.now(timezone.utc) - timedelta(minutes=5)
+
+        with patch("app.services.token_blacklist.redis_manager") as mock_manager:
+            type(mock_manager).client = property(lambda _: (_ for _ in ()).throw(RuntimeError("Redis 未初始化")))
+
+            revoked = await service.revoke_all_user_tokens(123)
+            is_revoked = await service.is_user_tokens_revoked(123, token_issued_at)
+
+            assert revoked is True
+            assert is_revoked is True

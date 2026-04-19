@@ -31,6 +31,8 @@ class TokenBlacklistService:
     def __init__(self):
         """初始化服务"""
         self._redis: Redis | None = None
+        self._memory_blacklist: dict[str, datetime] = {}
+        self._memory_user_revocations: dict[int, datetime] = {}
 
     @property
     def redis(self) -> Redis:
@@ -43,6 +45,19 @@ class TokenBlacklistService:
         if self._redis is None:
             self._redis = redis_manager.client
         return self._redis
+
+    def _get_redis_or_none(self) -> Redis | None:
+        try:
+            return self.redis
+        except RuntimeError as exc:
+            logger.warning(f"Redis 不可用，Token 黑名单降级到内存模式: {exc}")
+            return None
+
+    def _cleanup_memory_blacklist(self) -> None:
+        now = datetime.now(timezone.utc)
+        expired_keys = [key for key, expires_at in self._memory_blacklist.items() if expires_at <= now]
+        for key in expired_keys:
+            self._memory_blacklist.pop(key, None)
 
     def _get_blacklist_key(self, token: str) -> str:
         """
@@ -109,16 +124,19 @@ class TokenBlacklistService:
                 logger.debug("Token 已过期，无需加入黑名单")
                 return True
 
-            # 存储到黑名单
             key = self._get_blacklist_key(token)
+            redis = self._get_redis_or_none()
+            if redis is None:
+                self._memory_blacklist[key] = expiration
+                return True
+
             value = {
                 "user_id": user_id,
                 "reason": reason,
                 "revoked_at": now.isoformat(),
             }
 
-            # 使用 Redis 的 setex 命令设置带过期时间的 key
-            await self.redis.setex(
+            await redis.setex(
                 key,
                 ttl,
                 str(value),
@@ -146,7 +164,12 @@ class TokenBlacklistService:
         """
         try:
             key = self._get_blacklist_key(token)
-            exists = await self.redis.exists(key)
+            redis = self._get_redis_or_none()
+            if redis is None:
+                self._cleanup_memory_blacklist()
+                return key in self._memory_blacklist
+
+            exists = await redis.exists(key)
             return exists > 0
         except RedisError as e:
             logger.error(f"检查 Token 黑名单失败: {e}")
@@ -173,12 +196,13 @@ class TokenBlacklistService:
         try:
             key = f"{self.BLACKLIST_PREFIX}:user:{user_id}"
             now = datetime.now(timezone.utc)
-
-            # 存储用户的强制登出时间
-            # 使用 refresh_token 的过期时间作为 TTL
             ttl = settings.refresh_token_expire_days * 24 * 60 * 60
+            redis = self._get_redis_or_none()
+            if redis is None:
+                self._memory_user_revocations[user_id] = now
+                return True
 
-            await self.redis.setex(
+            await redis.setex(
                 key,
                 ttl,
                 now.isoformat(),
@@ -204,7 +228,12 @@ class TokenBlacklistService:
         """
         try:
             key = f"{self.BLACKLIST_PREFIX}:user:{user_id}"
-            revoked_at_str = await self.redis.get(key)
+            redis = self._get_redis_or_none()
+            if redis is None:
+                revoked_at = self._memory_user_revocations.get(user_id)
+                return revoked_at is not None and token_issued_at < revoked_at
+
+            revoked_at_str = await redis.get(key)
 
             if not revoked_at_str:
                 return False
@@ -232,7 +261,12 @@ class TokenBlacklistService:
         """
         try:
             key = self._get_blacklist_key(token)
-            await self.redis.delete(key)
+            redis = self._get_redis_or_none()
+            if redis is None:
+                self._memory_blacklist.pop(key, None)
+                return True
+
+            await redis.delete(key)
             logger.info("Token 已从黑名单移除")
             return True
         except RedisError as e:
@@ -251,7 +285,12 @@ class TokenBlacklistService:
         """
         try:
             key = f"{self.BLACKLIST_PREFIX}:user:{user_id}"
-            await self.redis.delete(key)
+            redis = self._get_redis_or_none()
+            if redis is None:
+                self._memory_user_revocations.pop(user_id, None)
+                return True
+
+            await redis.delete(key)
             logger.info(f"已清除用户 {user_id} 的 Token 撤销标记")
             return True
         except RedisError as e:
