@@ -2,6 +2,54 @@
 
 > 本文件是项目文档的**单一导航入口**。所有文档的用途、权威级别和阅读路径都在此定义。
 
+## 目的
+
+为人类维护者与 AI 代理提供统一文档入口，快速定位权威文档、任务阅读路径和校验入口。
+
+## 适合读者
+
+- 新加入项目、需要快速上手的开发者
+- 需要按任务选择上下文的 AI 代理
+- 负责代码审查与文档一致性检查的维护者
+
+## 一分钟摘要
+
+- 主规则入口是 `AGENTS.md`，主导航入口是本文件。
+- AI 快速索引入口是 `docs/AI_CONTEXT.md`，不替代规则文档。
+- 架构、API、数据库、坑点、债务分别由独立文档负责，避免一个文档承载全部事实。
+- 提交前用 `docs/DOC_SYNC_CHECKLIST.md` 和 `scripts/validate_docs.py` 做文档闭环检查。
+
+```yaml
+ai_summary:
+  authority: "文档导航与任务阅读路径的唯一入口"
+  scope: "文档职责分工、阅读顺序、权威级别和校验入口"
+  read_when:
+    - "进入仓库后需要确定先读什么时"
+    - "开始新任务前需要装配最小上下文时"
+  verify_with:
+    - "AGENTS.md"
+    - "docs/AI_CONTEXT.md"
+    - "docs/ARCHITECTURE.md"
+    - "docs/API_ENDPOINTS.md"
+    - "docs/DOC_SYNC_CHECKLIST.md"
+    - "scripts/validate_docs.py"
+  stale_when:
+    - "文档入口新增或迁移"
+    - "权威文档职责边界调整"
+    - "校验脚本规则或路径变化"
+```
+
+## 权威边界
+
+- 本文件负责导航与分工，不负责替代架构/API/数据库事实正文。
+- 与代码冲突时信任代码，并在同一变更修正对应权威文档。
+
+## 如何验证
+
+- 文档入口唯一性：确认导航入口仅为 `docs/README.md`。
+- AI 索引唯一性：确认 `docs/AI_CONTEXT.md` 存在且在本文件可达。
+- 校验闭环：运行 `python3 scripts/validate_docs.py`。
+
 ---
 
 ## 文档结构总览
@@ -11,12 +59,13 @@ DV-Admin/
 ├── AGENTS.md                    # [权威] 代理工作规则入口
 ├── docs/
 │   ├── README.md               # [本文件] 文档导航入口
+│   ├── AI_CONTEXT.md           # [权威] AI 任务路由短索引
 │   ├── ARCHITECTURE.md         # [权威] 系统架构设计
 │   ├── FRONTEND_OPTIMIZATION_BACKLOG.md # [跟踪] 当前前端优化待办
-│   ├── API_ENDPOINTS.md        # [参考] API 端点文档
-│   ├── DATABASE_SCHEMA.md      # [参考] 数据库模型文档
-│   ├── KNOWN_PITFALLS.md       # [警告] 已知陷阱和常见错误
-│   ├── TECH_DEBT.md            # [跟踪] 技术债务记录
+│   ├── API_ENDPOINTS.md        # [权威-概览] API 契约核心概览
+│   ├── DATABASE_SCHEMA.md      # [权威-概览] 数据库模型核心概览
+│   ├── KNOWN_PITFALLS.md       # [权威] 已知陷阱和常见错误
+│   ├── TECH_DEBT.md            # [权威-跟踪] 技术债务记录
 │   ├── AGENT_STARTER_PROMPT.md # [工具] 代理启动提示词
 │   ├── DOC_SYNC_CHECKLIST.md   # [流程] 文档同步检查清单
 │   └── archive/                # [历史] 归档文档
@@ -30,6 +79,8 @@ DV-Admin/
 │   └── README.md               # [模块] FastAPI 后端说明
 ├── 后续优化/
 │   └── README.md               # [历史] 旧前端优化方案说明
+├── scripts/
+│   └── validate_docs.py        # [校验] 文档结构与链接校验
 └── frontend/
     └── README.md               # [模块] 前端说明
 ```
@@ -138,10 +189,10 @@ cp .env.example .env
 
 | 级别 | 含义 | 示例 |
 |------|------|------|
-| **权威** | 代码冲突时以文档为准，修改需谨慎 | `AGENTS.md`, `ARCHITECTURE.md` |
-| **参考** | 从代码自动生成或同步，辅助理解 | `API_ENDPOINTS.md`, `DATABASE_SCHEMA.md` |
-| **警告** | 必须阅读，避免重复犯错 | `KNOWN_PITFALLS.md` |
-| **跟踪** | 记录待解决的问题或后续待办 | `TECH_DEBT.md`, `FRONTEND_OPTIMIZATION_BACKLOG.md` |
+| **权威** | 规则、导航、架构与风险边界事实入口 | `AGENTS.md`, `docs/README.md`, `docs/AI_CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/KNOWN_PITFALLS.md` |
+| **权威-概览** | 经过代码核验的核心概要，非全量清单 | `docs/API_ENDPOINTS.md`, `docs/DATABASE_SCHEMA.md` |
+| **权威-跟踪** | 已确认且持续维护的治理事项 | `docs/TECH_DEBT.md`, `docs/DOC_SYNC_CHECKLIST.md` |
+| **跟踪** | 迭代规划与待办，不作为当前事实规范 | `docs/FRONTEND_OPTIMIZATION_BACKLOG.md` |
 | **模块** | 模块级说明，模块内权威 | 各子目录 `README.md` |
 | **历史** | 归档文档，仅供参考 | `docs/archive/`, `后续优化/` |
 
@@ -434,9 +485,11 @@ cp .env.example .env
 ## 快速链接
 
 - [代理工作规则](../AGENTS.md)
+- [AI 上下文索引](./AI_CONTEXT.md)
 - [系统架构](./ARCHITECTURE.md)
 - [API 端点](./API_ENDPOINTS.md)
 - [数据库模型](./DATABASE_SCHEMA.md)
+- [文档同步清单](./DOC_SYNC_CHECKLIST.md)
 - [已知陷阱](./KNOWN_PITFALLS.md)
 - [技术债务](./TECH_DEBT.md)
 - [代理启动提示词](./AGENT_STARTER_PROMPT.md)
