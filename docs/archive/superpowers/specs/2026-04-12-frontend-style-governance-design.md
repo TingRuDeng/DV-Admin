@@ -1,5 +1,10 @@
 # Frontend Style Governance Refactor Design
 
+> ⚠️ **已归档**
+>
+> 本文档已于 2026-05-06 归档，内容可能已过时。
+> 当前权威文档请参考 `/AGENTS.md`、`/docs/README.md`、`/docs/ARCHITECTURE.md`。
+
 Date: 2026-04-12
 Scope: `frontend/`
 Target pages: `dashboard`, `system/user`, `system/role`

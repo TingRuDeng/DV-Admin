@@ -1,5 +1,10 @@
 # Frontend Style Governance Refactor Implementation Plan
 
+> ⚠️ **已归档**
+>
+> 本文档已于 2026-05-06 归档，内容可能已过时。
+> 当前权威文档请参考 `/AGENTS.md`、`/docs/README.md`、`/docs/ARCHITECTURE.md`。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Rebuild the frontend style system into clear layers, add reusable page-shell components, and migrate `dashboard`, `system/user`, and `system/role` to the new structure without changing business behavior.
