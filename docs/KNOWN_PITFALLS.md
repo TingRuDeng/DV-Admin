@@ -2,6 +2,50 @@
 
 > 本文档记录项目中已知的陷阱、常见错误及其解决方案。**遇到问题时请先查阅此文档。**
 
+## 目的
+
+沉淀已复现、可验证的工程陷阱，避免团队和代理重复踩坑。
+
+## 适合读者
+
+- 进行问题排查和回归验证的开发者
+- 执行改动前需要风险预检的 AI 代理
+
+## 一分钟摘要
+
+- 命名转换、权限白名单、双后端契约差异是高频误读点。
+- 本文档只记录有证据的坑点，不记录纯推测建议。
+- 遇到文档与代码冲突时优先信任代码并回写本文档。
+
+```yaml
+ai_summary:
+  authority: "已验证陷阱与排查路径"
+  scope: "命名转换、迁移、认证权限、前后端联调、环境与部署常见误区"
+  read_when:
+    - "开始 bug 排查前"
+    - "修改鉴权、路由、缓存、迁移相关逻辑前"
+  verify_with:
+    - "backend/drf_admin/settings.py"
+    - "backend/drf_admin/utils/middleware.py"
+    - "backend/drf_admin/utils/permissions.py"
+    - "frontend/src/store/modules/permission-store.ts"
+    - "frontend/src/store/modules/dict-store.ts"
+    - "frontend/vite.config.ts"
+  stale_when:
+    - "中间件、权限、缓存或启动流程变化"
+    - "已记录陷阱被彻底消除且验证通过"
+```
+
+## 权威边界
+
+- 本文件负责“已知问题与排查手册”，不替代架构设计或接口清单。
+- 新陷阱需要给出可追踪证据后再纳入。
+
+## 如何验证
+
+- 每条陷阱至少可映射到对应代码路径、配置项或可执行命令。
+- 排查步骤可在本地通过命令或最小复现路径复核。
+
 ---
 
 ## 命名转换陷阱
@@ -394,9 +438,25 @@ async def test_async_function():
 
 ---
 
+### 陷阱 19：Playwright 默认端口与 Vite 开发端口不一致
+
+**问题描述：**
+执行 `pnpm run test:e2e` 时，E2E 用例访问的地址与本地前端实际端口不一致，导致登录页超时或页面元素找不到。
+
+**已验证事实：**
+- 前端开发端口来自 `frontend/.env.development` 的 `VITE_APP_PORT=9527`
+- Playwright 配置当前使用 `http://localhost:5173`（`frontend/playwright.config.ts`）
+
+**解决方案：**
+1. 运行 E2E 前先统一端口策略（修改 Playwright 配置或启动端口）
+2. 将端口约定同步到团队文档，避免环境漂移
+3. CI 与本地保持同一端口配置
+
+---
+
 ## 部署陷阱
 
-### 陷阱 19：静态文件 404
+### 陷阱 20：静态文件 404
 
 **问题描述：**
 部署后访问静态文件（CSS、JS、图片）返回 404。

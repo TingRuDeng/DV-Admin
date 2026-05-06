@@ -2,6 +2,49 @@
 
 > 本文档定义代码变更时需要同步更新的文档。提交 PR 前请确保完成相关检查。
 
+## 目的
+
+提供可执行的文档同步门禁，确保代码变更后文档事实与入口结构不漂移。
+
+## 适合读者
+
+- 提交 PR 的开发者
+- 在任务收尾阶段做一致性验收的 AI 代理
+- 代码审查者
+
+## 一分钟摘要
+
+- 代码改动后必须判断是否影响 API、模型、架构、坑点或技术债务文档。
+- 如果判定“无文档影响”，必须在 PR 中给出理由。
+- 除人工清单外，应运行 `python3 scripts/validate_docs.py` 做结构与链接校验。
+
+```yaml
+ai_summary:
+  authority: "文档同步验收门禁"
+  scope: "变更类型到文档更新义务的映射与收尾检查"
+  read_when:
+    - "准备提交或开 PR 前"
+    - "评估某次改动是否需要更新文档时"
+  verify_with:
+    - "docs/DOC_SYNC_CHECKLIST.md"
+    - "scripts/validate_docs.py"
+    - "docs/README.md"
+    - "AGENTS.md"
+  stale_when:
+    - "文档体系新增/迁移而清单未更新"
+    - "校验脚本规则变化但清单未同步"
+```
+
+## 权威边界
+
+- 本文件负责“文档同步动作”，不替代具体业务文档事实。
+- 具体内容更新仍应回到对应权威文档完成。
+
+## 如何验证
+
+- 提交前逐项勾选对应检查项，并在 PR 描述写明文档更新结果。
+- 运行 `python3 scripts/validate_docs.py`，确保结构、AI 索引和本地链接校验通过。
+
 ---
 
 ## 检查清单使用方法
@@ -202,6 +245,7 @@
 - [ ] 已运行前端质量检查 `pnpm run quality`
 - [ ] 已运行后端 (Django) 质量检查 `uv run ruff check .` 和 `uv run pytest`
 - [ ] 已运行后端 (FastAPI) 质量检查 `make quality`
+- [ ] 已运行文档结构校验 `python3 scripts/validate_docs.py`
 - [ ] 已通过本地验证
 ```
 
