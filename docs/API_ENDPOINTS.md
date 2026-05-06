@@ -2,6 +2,55 @@
 
 > **重要说明：** 本文档是**核心接口概要**，不是完整接口清单。代码是真理之源，实际接口以代码为准。
 
+## 目的
+
+提供跨 Django/FastAPI 两套替代后端的核心 API 契约概览，帮助快速判断共享接口边界和差异点。
+
+## 适合读者
+
+- 修改 API 或联调前后端的开发者
+- 需要校验共享契约兼容性的 AI 代理与代码审查者
+
+## 一分钟摘要
+
+- 两套后端共享 `/api/v1/` 契约前缀，但仍有局部差异端点。
+- 成功响应业务码当前均以 `20000` 为主；Django 错误包裹字段为 `msg/errors`，FastAPI 为 `message`。
+- FastAPI 提供 `/health` 与验证码接口；Django 提供 `/oauth/home/`。
+- 刷新 Token 两端都支持 `POST /oauth/refresh-token/`，但参数受理形式不同。
+
+```yaml
+ai_summary:
+  authority: "核心 API 契约与双后端差异说明"
+  scope: "核心端点、认证流程、响应包裹和兼容差异"
+  read_when:
+    - "新增或修改 API 前"
+    - "排查 Django/FastAPI 契约不一致时"
+  verify_with:
+    - "backend/drf_admin/apps/oauth/urls.py"
+    - "backend/drf_admin/apps/oauth/views/oauth.py"
+    - "backend/drf_admin/utils/middleware.py"
+    - "fastapi/app/api/v1/oauth/auth.py"
+    - "fastapi/app/api/health.py"
+    - "fastapi/app/schemas/base.py"
+    - "frontend/src/api/auth-api.ts"
+    - "frontend/src/utils/request.ts"
+  stale_when:
+    - "端点路径变化"
+    - "响应包裹字段变化"
+    - "认证参数或 token 刷新协议变化"
+```
+
+## 权威边界
+
+- 本文件是核心接口概要，不是自动生成的全量接口说明。
+- 详细请求/响应以具体路由与 schema/serializer 代码为准。
+
+## 如何验证
+
+- Django OAuth 路由与视图：`backend/drf_admin/apps/oauth/urls.py`、`backend/drf_admin/apps/oauth/views/oauth.py`。
+- FastAPI OAuth 与健康检查：`fastapi/app/api/v1/oauth/auth.py`、`fastapi/app/api/health.py`。
+- 前端调用口径：`frontend/src/api/auth-api.ts`、`frontend/src/utils/request.ts`。
+
 ---
 
 ## 文档边界
@@ -51,8 +100,9 @@
 **响应格式：**
 ```json
 {
-  "code": 200,
-  "message": "success",
+  "code": 20000,
+  "msg": "成功",
+  "errors": null,
   "data": { ... }
 }
 ```
@@ -60,14 +110,20 @@
 **分页响应格式：**
 ```json
 {
-  "code": 200,
-  "message": "success",
+  "code": 20000,
+  "msg": "成功",
+  "errors": null,
   "data": {
     "list": [...],
     "total": 100
   }
 }
 ```
+
+**补充说明：**
+- Django 响应中间件统一输出 `{code, msg, errors, data}`（见 `backend/drf_admin/utils/middleware.py`）。
+- FastAPI `ResponseModel` 默认输出 `{code, message, data}`（见 `fastapi/app/schemas/base.py`）。
+- 前端成功分支仅依赖 `code/data`，错误分支当前优先读取 `errors` 与 `msg`（见 `frontend/src/utils/request.ts`）。
 
 ---
 
@@ -93,7 +149,7 @@ POST /api/v1/oauth/login/
 **响应：**
 ```json
 {
-  "code": 200,
+  "code": 20000,
   "data": {
     "accessToken": "eyJ...",
     "refreshToken": "eyJ...",
@@ -123,8 +179,8 @@ POST /api/v1/oauth/refresh-token/
 ```
 
 **请求方式：**
-- 查询参数：`?refreshToken=token`
-- 请求体：`{ "refreshToken": "token" }` 或 `{ "refresh": "token" }`
+- Django：支持查询参数 `?refreshToken=token`，也兼容请求体 `refreshToken/refresh`。
+- FastAPI：当前只接收查询参数 `?refreshToken=token`。
 
 **响应：**
 ```json
@@ -173,7 +229,7 @@ GET /api/v1/oauth/captcha/
 **响应：**
 ```json
 {
-  "code": 200,
+  "code": 20000,
   "data": {
     "captchaKey": "xxx-xxx-xxx",
     "captchaBase64": "data:image/png;base64,..."
@@ -195,8 +251,13 @@ GET /api/v1/oauth/home/
 **响应：**
 ```json
 {
-  "visits": 100,
-  "users": 50
+  "code": 20000,
+  "msg": "成功",
+  "errors": null,
+  "data": {
+    "visits": 100,
+    "users": 50
+  }
 }
 ```
 

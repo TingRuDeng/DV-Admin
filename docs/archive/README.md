@@ -21,6 +21,8 @@
 | `CODE_REVIEW_DJANGO_BACKEND.md` | 2026-04-09 | Django 后端代码审查报告 | 所有问题已修复 |
 | `BACKEND_OPTIMIZATION_PLAN.md` | 2026-04-09 | Django 后端架构优化方案 | 已实施完成 |
 | `QUALITY_GATES_IMPLEMENTATION_PLAN.md` | 2026-04-09 | 质量门禁实施方案 | 已实施完成 |
+| `superpowers/plans/2026-04-12-frontend-style-governance.md` | 2026-05-06 | 前端样式治理执行计划 | 已被现行架构文档与 backlog 吸收，降级为历史资料 |
+| `superpowers/specs/2026-04-12-frontend-style-governance-design.md` | 2026-05-06 | 前端样式治理设计稿 | 已被现行架构文档吸收，避免与活跃入口并存 |
 
 ---
 
