@@ -17,6 +17,11 @@ AUTHORITY_DOCS = [
     ROOT / "docs/KNOWN_PITFALLS.md",
     ROOT / "docs/TECH_DEBT.md",
     ROOT / "docs/DOC_SYNC_CHECKLIST.md",
+    ROOT / "docs/archive/README.md",
+]
+
+MODULE_DOCS = [
+    ROOT / "frontend/src/router/README.md",
 ]
 
 AI_CONTEXT_DOC = ROOT / "docs/AI_CONTEXT.md"
@@ -137,9 +142,9 @@ def check_local_links(path: Path, text: str, errors: list[str]) -> None:
 def main() -> int:
     errors: list[str] = []
 
-    for doc in AUTHORITY_DOCS:
+    for doc in [*AUTHORITY_DOCS, *MODULE_DOCS]:
         if not doc.exists():
-            errors.append(f"missing authority doc: {doc.relative_to(ROOT)}")
+            errors.append(f"missing required doc: {doc.relative_to(ROOT)}")
             continue
         text = _read_text(doc)
         check_required_sections(doc, text, errors)
@@ -151,7 +156,7 @@ def main() -> int:
         ai_text = _read_text(AI_CONTEXT_DOC)
         check_ai_context(AI_CONTEXT_DOC, ai_text, errors)
 
-    link_docs = {ROOT / "AGENTS.md", AI_CONTEXT_DOC}
+    link_docs = {ROOT / "AGENTS.md", AI_CONTEXT_DOC, *MODULE_DOCS}
     link_docs.update(ROOT.glob("docs/**/*.md"))
     for doc in sorted(link_docs):
         if doc.exists():
