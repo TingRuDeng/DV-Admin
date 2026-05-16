@@ -1,50 +1,57 @@
-# DV-Admin 技术债务记录
-
-> 本文档记录项目中的技术债务，包括已知问题、待优化项和改进计划。
-
-## 目的
-
-集中记录已确认的技术债务、影响范围与处理约束，避免将“已知问题”误读为“当前规范”。
-
-## 适合读者
-
-- 规划重构或版本迭代的维护者
-- 评估改动风险和范围的 AI 代理与审查者
-
-## 一分钟摘要
-
-- 债务条目按优先级管理，但不是当前行为规范。
-- 未进入本文件的事项默认不算已确认债务。
-- 债务描述需要可落到代码位置或契约层证据。
-
-```yaml
+---
 ai_summary:
-  authority: "已确认技术债务与治理优先级记录"
-  scope: "债务清单、影响范围、处理路径和历史解决项"
+  purpose: "集中记录 DV-Admin 已确认技术债务、影响范围和治理边界。"
   read_when:
     - "制定迭代计划时"
-    - "评估是否顺手修复非任务范围问题时"
-  verify_with:
+    - "评估是否处理非任务范围问题时"
+  source_of_truth:
     - "docs/ARCHITECTURE.md"
     - "docs/API_ENDPOINTS.md"
     - "docs/DATABASE_SCHEMA.md"
-    - "frontend/src/"
-    - "backend/drf_admin/"
-    - "fastapi/app/"
+    - "frontend/src"
+    - "backend/drf_admin"
+    - "fastapi/app"
+  verify_with:
+    - "python3 scripts/validate_docs.py . --profile generic"
+    - "git ls-files docs/ARCHITECTURE.md docs/API_ENDPOINTS.md docs/DATABASE_SCHEMA.md"
   stale_when:
     - "债务已修复但条目未回写"
-    - "优先级或影响范围发生变化"
-```
+    - "优先级、影响范围或治理策略变化"
+---
 
-## 权威边界
+# DV-Admin 技术债务记录
 
-- 本文件记录“已确认待治理项”，不直接定义当前开发规则。
-- 当前开发规则以 `AGENTS.md` 和对应权威事实文档为准。
+> 本文档记录已确认债务，不把规划项伪装成当前规范。
 
-## 如何验证
+## Purpose
 
-- 债务项需能映射到真实代码或契约差异。
-- 标记“已解决”前需提供对应变更提交或通过的质量检查证据。
+集中记录已确认的技术债务、影响范围与处理约束。
+
+## Source of truth
+
+- `docs/ARCHITECTURE.md`
+- `docs/API_ENDPOINTS.md`
+- `docs/DATABASE_SCHEMA.md`
+- `frontend/src`
+- `backend/drf_admin`
+- `fastapi/app`
+
+## Key facts
+
+- 债务条目按优先级管理，但不是当前行为规范。
+- 未进入本文档的事项默认不算已确认债务。
+- 债务描述需要落到代码位置或契约层证据。
+
+## How to verify
+
+- quick: `python3 scripts/validate_docs.py . --profile generic`
+- full: `pnpm --dir frontend run quality`
+- full: `make -C fastapi quality`
+
+## Stale when
+
+- 债务项被修复、降级或影响范围变化。
+- 新技术债被确认但没有进入跟踪。
 
 ---
 
