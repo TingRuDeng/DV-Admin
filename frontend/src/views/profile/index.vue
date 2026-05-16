@@ -168,10 +168,12 @@ import ProDialog from "@/components/ProDialog/index.vue";
 import FileAPI from "@/api/file-api";
 import InformationAPI, { UserProfile, ProfileForm, PasswordForm } from "@/api/information-api";
 import { useUserStoreHook } from "@/store";
+import { createLogger } from "@/utils/logger";
 import type { FormInstance } from "element-plus";
 
 import { Camera } from "@element-plus/icons-vue";
 
+const profileLogger = createLogger("Profile");
 const userStore = useUserStoreHook();
 
 const userProfile = ref<UserProfile>({});
@@ -396,7 +398,7 @@ const handleFileChange = async (event: Event) => {
       // 更新用户头像
       userStore.userInfo.avatar = data.url;
     } catch (error) {
-      console.error("头像上传失败：" + error);
+      profileLogger.error("头像上传失败:", error);
       ElMessage.error("头像上传失败");
     }
   }
