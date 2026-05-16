@@ -2,6 +2,9 @@ import { Storage } from "./storage";
 import { AUTH_KEYS, ROLE_ROOT } from "@/constants";
 import { useUserStoreHook } from "@/store/modules/user-store";
 import router from "@/router";
+import { createLogger } from "@/utils/logger";
+
+const authLogger = createLogger("auth");
 
 // 负责本地凭证与偏好的读写
 export const AuthStorage = {
@@ -85,6 +88,6 @@ export async function redirectToLogin(message: string = "请重新登录"): Prom
     const currentPath = router.currentRoute.value.fullPath;
     await router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
   } catch (error) {
-    console.error("Redirect to login error:", error);
+    authLogger.error("重定向到登录页失败:", error);
   }
 }
