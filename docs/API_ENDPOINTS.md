@@ -1,31 +1,10 @@
-# DV-Admin API 端点文档
-
-> **重要说明：** 本文档是**核心接口概要**，不是完整接口清单。代码是真理之源，实际接口以代码为准。
-
-## 目的
-
-提供跨 Django/FastAPI 两套替代后端的核心 API 契约概览，帮助快速判断共享接口边界和差异点。
-
-## 适合读者
-
-- 修改 API 或联调前后端的开发者
-- 需要校验共享契约兼容性的 AI 代理与代码审查者
-
-## 一分钟摘要
-
-- 两套后端共享 `/api/v1/` 契约前缀，但仍有局部差异端点。
-- 成功响应业务码当前均以 `20000` 为主；Django 错误包裹字段为 `msg/errors`，FastAPI 为 `message`。
-- FastAPI 提供 `/health` 与验证码接口；Django 提供 `/oauth/home/`。
-- 刷新 Token 两端都支持 `POST /oauth/refresh-token/`，但参数受理形式不同。
-
-```yaml
+---
 ai_summary:
-  authority: "核心 API 契约与双后端差异说明"
-  scope: "核心端点、认证流程、响应包裹和兼容差异"
+  purpose: "说明 Django/FastAPI 两套替代后端的核心 API 契约和已知差异。"
   read_when:
     - "新增或修改 API 前"
-    - "排查 Django/FastAPI 契约不一致时"
-  verify_with:
+    - "排查 Django/FastAPI 或前后端契约不一致时"
+  source_of_truth:
     - "backend/drf_admin/apps/oauth/urls.py"
     - "backend/drf_admin/apps/oauth/views/oauth.py"
     - "backend/drf_admin/utils/middleware.py"
@@ -34,22 +13,49 @@ ai_summary:
     - "fastapi/app/schemas/base.py"
     - "frontend/src/api/auth-api.ts"
     - "frontend/src/utils/request.ts"
+  verify_with:
+    - "python3 scripts/validate_docs.py . --profile generic"
+    - "git ls-files backend/drf_admin/apps/oauth/urls.py fastapi/app/api/v1/oauth/auth.py frontend/src/api/auth-api.ts"
   stale_when:
-    - "端点路径变化"
-    - "响应包裹字段变化"
-    - "认证参数或 token 刷新协议变化"
-```
+    - "接口路径、请求参数或响应包裹字段变化"
+    - "认证、刷新 token、分页契约或错误格式变化"
+---
 
-## 权威边界
+# DV-Admin API 端点文档
 
-- 本文件是核心接口概要，不是自动生成的全量接口说明。
-- 详细请求/响应以具体路由与 schema/serializer 代码为准。
+> 本文档是核心接口概要，不替代代码路由、schema 或序列化器。
 
-## 如何验证
+## Purpose
 
-- Django OAuth 路由与视图：`backend/drf_admin/apps/oauth/urls.py`、`backend/drf_admin/apps/oauth/views/oauth.py`。
-- FastAPI OAuth 与健康检查：`fastapi/app/api/v1/oauth/auth.py`、`fastapi/app/api/health.py`。
-- 前端调用口径：`frontend/src/api/auth-api.ts`、`frontend/src/utils/request.ts`。
+提供跨 Django/FastAPI 两套替代后端的核心 API 契约概览。
+
+## Source of truth
+
+- `backend/drf_admin/apps/oauth/urls.py`
+- `backend/drf_admin/apps/oauth/views/oauth.py`
+- `backend/drf_admin/utils/middleware.py`
+- `fastapi/app/api/v1/oauth/auth.py`
+- `fastapi/app/api/health.py`
+- `fastapi/app/schemas/base.py`
+- `frontend/src/api/auth-api.ts`
+- `frontend/src/utils/request.ts`
+
+## Key facts
+
+- 两套后端共享 `/api/v1/` 契约前缀，但仍存在局部差异端点。
+- 前端成功分支主要依赖 `code/data`，错误分支会读取 `errors`、`msg` 或 `message`。
+- 刷新 token、验证码和健康检查端点是契约差异高风险区域。
+
+## How to verify
+
+- quick: `python3 scripts/validate_docs.py . --profile generic`
+- full: `pnpm --dir frontend run quality`
+- full: `make -C fastapi quality`
+
+## Stale when
+
+- 路由、schema、serializer、请求封装或响应中间件变化。
+- 新增接口但未同步本概要。
 
 ---
 

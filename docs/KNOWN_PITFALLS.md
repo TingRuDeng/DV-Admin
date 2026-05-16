@@ -1,50 +1,56 @@
-# DV-Admin 已知陷阱和常见错误
-
-> 本文档记录项目中已知的陷阱、常见错误及其解决方案。**遇到问题时请先查阅此文档。**
-
-## 目的
-
-沉淀已复现、可验证的工程陷阱，避免团队和代理重复踩坑。
-
-## 适合读者
-
-- 进行问题排查和回归验证的开发者
-- 执行改动前需要风险预检的 AI 代理
-
-## 一分钟摘要
-
-- 命名转换、权限白名单、双后端契约差异是高频误读点。
-- 本文档只记录有证据的坑点，不记录纯推测建议。
-- 遇到文档与代码冲突时优先信任代码并回写本文档。
-
-```yaml
+---
 ai_summary:
-  authority: "已验证陷阱与排查路径"
-  scope: "命名转换、迁移、认证权限、前后端联调、环境与部署常见误区"
+  purpose: "沉淀 DV-Admin 中已验证的命名、权限、迁移、联调和环境陷阱。"
   read_when:
     - "开始 bug 排查前"
-    - "修改鉴权、路由、缓存、迁移相关逻辑前"
-  verify_with:
+    - "修改鉴权、路由、缓存、迁移或联调流程前"
+  source_of_truth:
     - "backend/drf_admin/settings.py"
     - "backend/drf_admin/utils/middleware.py"
     - "backend/drf_admin/utils/permissions.py"
     - "frontend/src/store/modules/permission-store.ts"
     - "frontend/src/store/modules/dict-store.ts"
     - "frontend/vite.config.ts"
+  verify_with:
+    - "python3 scripts/validate_docs.py . --profile generic"
+    - "git ls-files backend/drf_admin/settings.py frontend/vite.config.ts"
   stale_when:
-    - "中间件、权限、缓存或启动流程变化"
-    - "已记录陷阱被彻底消除且验证通过"
-```
+    - "已记录陷阱被修复或实现路径迁移"
+    - "权限、命名转换、缓存或启动流程变化"
+---
 
-## 权威边界
+# DV-Admin 已知陷阱和常见错误
 
-- 本文件负责“已知问题与排查手册”，不替代架构设计或接口清单。
-- 新陷阱需要给出可追踪证据后再纳入。
+> 本文档只记录已复现、可验证的项目陷阱和排查路径。
 
-## 如何验证
+## Purpose
 
-- 每条陷阱至少可映射到对应代码路径、配置项或可执行命令。
-- 排查步骤可在本地通过命令或最小复现路径复核。
+沉淀已复现、可验证的工程陷阱，避免团队和代理重复踩坑。
+
+## Source of truth
+
+- `backend/drf_admin/settings.py`
+- `backend/drf_admin/utils/middleware.py`
+- `backend/drf_admin/utils/permissions.py`
+- `frontend/src/store/modules/permission-store.ts`
+- `frontend/src/store/modules/dict-store.ts`
+- `frontend/vite.config.ts`
+
+## Key facts
+
+- 命名转换、权限白名单、双后端契约差异是高频误读点。
+- 每条陷阱都应能映射到代码路径、配置项或可执行命令。
+- 新陷阱需要先有复现证据再进入本文档。
+
+## How to verify
+
+- quick: `python3 scripts/validate_docs.py . --profile generic`
+- full: `pnpm --dir frontend run quality`
+
+## Stale when
+
+- 陷阱对应代码被删除、替换或彻底修复。
+- 新增高频陷阱但未回写本文档。
 
 ---
 

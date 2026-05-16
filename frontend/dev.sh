@@ -7,8 +7,9 @@
 ##############################################################################
 PROJECT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PID_FILE="${PROJECT_DIR}/dev.pid"
-LOG_DIR="${PROJECT_DIR}/../logs/frontend"
-DEFAULT_PORT=9527
+LOG_DIR="${PROJECT_DIR}/logs"
+DEFAULT_PORT=$(awk -F= '/^VITE_APP_PORT=/{print $2}' "${PROJECT_DIR}/.env.development" 2>/dev/null)
+DEFAULT_PORT=${DEFAULT_PORT:-9527}
 
 ##############################################################################
 
@@ -54,7 +55,7 @@ start() {
 
     # 启动
     cd "$PROJECT_DIR" || exit 1
-    pnpm run dev --host 0.0.0.0 --port $port >> "$LOG_DIR/dev.log" 2>&1 &
+    pnpm run dev --host 0.0.0.0 --port "$port" >> "$LOG_DIR/dev.log" 2>&1 &
     local server_pid=$!
     echo $server_pid > "$PID_FILE"
 

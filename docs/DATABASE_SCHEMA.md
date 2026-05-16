@@ -1,53 +1,54 @@
-# DV-Admin 数据库模型文档
-
-> 本文档记录数据库模型结构。代码是真理之源，此文档仅供参考。
-
-## 目的
-
-汇总 Django/FastAPI 两套实现下的核心数据模型、命名差异和迁移约束，降低接口与模型联动修改时的误判风险。
-
-## 适合读者
-
-- 进行模型变更、迁移或数据排查的后端开发者
-- 需要核对字段与索引事实的 AI 代理与审查者
-
-## 一分钟摘要
-
-- 开发环境默认可使用 SQLite，生产推荐 MySQL；两者行为不能简单等同。
-- Django 与 FastAPI 模型存在局部命名差异（如字典相关表），属于已知兼容成本。
-- 文档列出核心模型与关系，但不是 ORM 字段的逐行替代。
-- 迁移命令以对应后端工程内实际命令为准。
-
-```yaml
+---
 ai_summary:
-  authority: "核心数据模型、关系与迁移约束说明"
-  scope: "Django/FastAPI 核心模型、命名差异、索引与迁移入口"
+  purpose: "说明 Django/FastAPI 核心数据模型、命名差异和迁移约束。"
   read_when:
-    - "修改模型或序列化 schema 前"
-    - "排查字段不一致或迁移冲突时"
-  verify_with:
+    - "修改模型、schema、迁移或数据排查前"
+    - "评估双后端模型差异时"
+  source_of_truth:
     - "backend/drf_admin/apps/system/models.py"
-    - "backend/drf_admin/apps/oauth/models.py"
     - "fastapi/app/db/models/system.py"
     - "fastapi/app/db/models/oauth.py"
     - "backend/dev.sh"
     - "fastapi/scripts/dev.sh"
+  verify_with:
+    - "python3 scripts/validate_docs.py . --profile generic"
+    - "git ls-files backend/drf_admin/apps/system/models.py fastapi/app/db/models/system.py"
   stale_when:
-    - "模型字段或表名变化"
-    - "迁移策略变化"
-    - "开发/生产数据库策略变化"
-```
+    - "模型字段、表名、索引或关系变化"
+    - "迁移策略或开发数据库位置变化"
+---
 
-## 权威边界
+# DV-Admin 数据库模型文档
 
-- 本文件是模型概览与差异说明，不替代 ORM 源码与迁移文件。
-- 与模型代码冲突时以模型定义和迁移历史为准。
+> 本文档记录核心模型概览和迁移边界，代码与迁移历史是真理之源。
 
-## 如何验证
+## Purpose
 
-- Django 模型：`backend/drf_admin/apps/system/models.py`、`backend/drf_admin/apps/oauth/models.py`。
-- FastAPI 模型：`fastapi/app/db/models/system.py`、`fastapi/app/db/models/oauth.py`。
-- 迁移入口：Django `manage.py makemigrations/migrate`，FastAPI `uvicorn + generate_schemas` 与生产迁移流程。
+汇总 Django/FastAPI 两套实现下的核心数据模型、命名差异和迁移约束。
+
+## Source of truth
+
+- `backend/drf_admin/apps/system/models.py`
+- `fastapi/app/db/models/system.py`
+- `fastapi/app/db/models/oauth.py`
+- `backend/dev.sh`
+- `fastapi/scripts/dev.sh`
+
+## Key facts
+
+- 开发环境默认可使用 SQLite，生产推荐 MySQL，二者行为不能直接等同。
+- Django 与 FastAPI 模型存在字典表等局部命名差异。
+- 模型事实以 ORM 源码和迁移历史为准。
+
+## How to verify
+
+- quick: `python3 scripts/validate_docs.py . --profile generic`
+- full: `make -C fastapi quality`
+
+## Stale when
+
+- ORM 模型、迁移入口或数据库策略变化。
+- 本地开发库路径变化。
 
 ---
 
@@ -58,7 +59,7 @@ ai_summary:
 - MySQL 8.0+（生产环境推荐）
 
 **开发环境说明：**
-- 当前仓库本地 Django 开发库默认文件为 [backend/drf_admin/db.sqlite3](/Users/dengtingru/Desktop/code/DV-Admin/backend/drf_admin/db.sqlite3)
+- 当前仓库本地 Django 开发库默认文件为 [backend/drf_admin/db.sqlite3](../backend/drf_admin/db.sqlite3)
 - 代理/调试场景下可通过 SQLite MCP 直接连接该文件查看本地数据
 - 这类 MCP 访问仅代表本地开发环境，不代表生产数据库类型、数据规模或 SQL 行为
 

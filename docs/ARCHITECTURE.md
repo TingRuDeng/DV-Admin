@@ -1,54 +1,60 @@
-# DV-Admin 系统架构
-
-> 本文档描述系统的整体架构设计，是架构决策的权威文档。
-
-## 目的
-
-沉淀 DV-Admin 的系统形态、模块边界、跨层数据流与关键中间件行为，作为架构事实入口。
-
-## 适合读者
-
-- 需要理解整体系统边界的前后端开发者
-- 需要判定变更影响面的架构审查者与 AI 代理
-
-## 一分钟摘要
-
-- DV-Admin 采用前后端分离，`backend/` 与 `fastapi/` 是同域替代实现。
-- 前端统一通过 API 契约接入，涉及共享契约变更时两后端需要兼容。
-- Django 通过中间件统一响应与命名转换；FastAPI 通过 `ResponseModel` 和异常处理器统一响应。
-- 当前前端路由已采用 `RouteMeta` 规范化与缓存键收口（`cacheKey/cacheByQuery/cacheQueryKeys`）。
-
-```yaml
+---
 ai_summary:
-  authority: "系统架构边界与跨模块行为的权威说明"
-  scope: "前后端形态、模块分工、认证权限、缓存与关键中间件行为"
+  purpose: "说明 DV-Admin 的系统架构边界、双后端替代关系和关键前端约定。"
   read_when:
-    - "需要评估跨模块影响时"
-    - "涉及鉴权、路由、缓存、替代后端兼容时"
-  verify_with:
+    - "评估跨模块影响时"
+    - "修改鉴权、路由、缓存、响应包裹或替代后端兼容逻辑时"
+  source_of_truth:
+    - "frontend/src/utils/route-meta.ts"
+    - "frontend/src/utils/view-cache.ts"
+    - "frontend/src/store/modules/tags-view-store.ts"
     - "backend/drf_admin/settings.py"
     - "backend/drf_admin/utils/middleware.py"
     - "fastapi/app/main.py"
     - "fastapi/app/schemas/base.py"
-    - "frontend/src/utils/route-meta.ts"
-    - "frontend/src/utils/view-cache.ts"
+  verify_with:
+    - "python3 scripts/validate_docs.py . --profile generic"
+    - "git ls-files frontend/src/utils/route-meta.ts backend/drf_admin/settings.py fastapi/app/main.py"
   stale_when:
-    - "中间件顺序变化"
-    - "认证/响应包裹协议变化"
-    - "路由 meta 或缓存策略变化"
-```
+    - "前后端目录结构变化"
+    - "响应包裹、鉴权、路由 meta 或缓存策略变化"
+    - "Django/FastAPI 替代关系变化"
+---
 
-## 权威边界
+# DV-Admin 系统架构
 
-- 本文件聚焦架构与关键机制，不维护完整 API 清单或完整表结构。
-- API 细节与模型字段以 `docs/API_ENDPOINTS.md`、`docs/DATABASE_SCHEMA.md` 为主。
+> 本文档记录系统形态、模块边界、跨层数据流与关键中间件行为。
 
-## 如何验证
+## Purpose
 
-- 后端替代关系与服务入口：`backend/`、`fastapi/` 启动脚本和 `fastapi/app/main.py`。
-- Django 中间件行为：`backend/drf_admin/settings.py`、`backend/drf_admin/utils/middleware.py`。
-- FastAPI 响应模型：`fastapi/app/schemas/base.py`、`fastapi/app/core/exceptions.py`。
-- 前端路由/缓存契约：`frontend/src/utils/route-meta.ts`、`frontend/src/utils/view-cache.ts`、`frontend/src/store/modules/tags-view-store.ts`。
+沉淀 DV-Admin 的系统形态、模块边界、跨层数据流与关键中间件行为。
+
+## Source of truth
+
+- `frontend/src/utils/route-meta.ts`
+- `frontend/src/utils/view-cache.ts`
+- `frontend/src/store/modules/tags-view-store.ts`
+- `backend/drf_admin/settings.py`
+- `backend/drf_admin/utils/middleware.py`
+- `fastapi/app/main.py`
+- `fastapi/app/schemas/base.py`
+
+## Key facts
+
+- 前端为 Vue 3 + TypeScript + Element Plus + Vite 7。
+- `backend/` 是 Django/DRF 实现，`fastapi/` 是 FastAPI/Tortoise ORM 替代实现。
+- 共享 API 或数据契约变化时，需要同时考虑两套后端兼容性。
+
+## How to verify
+
+- quick: `python3 scripts/validate_docs.py . --profile generic`
+- full: `pnpm --dir frontend run quality`
+- full: `make -C fastapi quality`
+
+## Stale when
+
+- 中间件顺序或响应包裹协议变化。
+- 路由 meta、KeepAlive 缓存键或 ProTable 页面契约变化。
 
 ---
 
