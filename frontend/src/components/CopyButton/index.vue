@@ -8,10 +8,14 @@
 </template>
 
 <script setup lang="ts">
+import { createLogger } from "@/utils/logger";
+
 defineOptions({
   name: "CopyButton",
   inheritAttrs: false,
 });
+
+const copyButtonLogger = createLogger("CopyButton");
 
 const props = defineProps({
   text: {
@@ -34,7 +38,7 @@ function handleClipboard() {
       })
       .catch((error) => {
         ElMessage.warning("Copy failed");
-        console.error("[CopyButton] Copy failed", error);
+        copyButtonLogger.error("复制失败:", error);
       });
   } else {
     // 兼容性处理（useClipboard 有兼容性问题）
@@ -53,7 +57,7 @@ function handleClipboard() {
       }
     } catch (err) {
       ElMessage.error("Copy failed.");
-      console.error("[CopyButton] Copy failed.", err);
+      copyButtonLogger.error("兼容复制失败:", err);
     } finally {
       document.body.removeChild(input);
     }

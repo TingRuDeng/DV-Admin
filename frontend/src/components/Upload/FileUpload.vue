@@ -49,6 +49,9 @@ import {
 } from "element-plus";
 
 import FileAPI, { FileInfo } from "@/api/file-api";
+import { createLogger } from "@/utils/logger";
+
+const fileUploadLogger = createLogger("FileUpload");
 
 const props = defineProps({
   /**
@@ -213,7 +216,7 @@ const handleSuccess = (response: any, uploadFile: UploadFile, files: UploadFiles
  * 上传失败
  */
 const handleError = (_error: any) => {
-  console.error(_error);
+  fileUploadLogger.error("文件上传失败:", _error);
   ElMessage.error("上传失败");
 };
 
