@@ -150,7 +150,7 @@ function handleUpload(options: UploadRequestOptions) {
  * 预览图片
  */
 function handlePreview() {
-  console.log("预览图片,停止冒泡");
+  // 预览交由 el-upload 内部处理，这里仅保留事件占位。
 }
 
 /**
@@ -174,7 +174,6 @@ const onSuccess = (fileInfo: FileInfo) => {
  * 上传失败回调
  */
 const onError = (error: any) => {
-  console.log("onError");
   ElMessage.error("上传失败: " + error.message);
 };
 </script>

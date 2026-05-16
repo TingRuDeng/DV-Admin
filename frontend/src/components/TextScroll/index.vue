@@ -42,6 +42,7 @@
 
 <script setup lang="ts">
 import { useElementHover } from "@vueuse/core";
+import { sanitizeHtml } from "@/utils/safe-html";
 
 const emit = defineEmits(["close"]);
 
@@ -108,9 +109,11 @@ const shouldScroll = computed(() => {
  * 计算最终显示的内容
  * 如果启用了打字机效果，则显示当前已打出的文本
  * 否则直接显示完整文本
- * 注意：内容支持 HTML，使用时需注意 XSS 风险
+ * 注意：内容支持有限 HTML，渲染前会统一净化，避免公告内容携带脚本。
  */
-const sanitizedContent = computed(() => (props.typewriter ? currentText.value : props.text));
+const sanitizedContent = computed(() =>
+  sanitizeHtml(props.typewriter ? currentText.value : props.text)
+);
 
 /**
  * 计算滚动样式

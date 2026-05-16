@@ -33,6 +33,8 @@ jobs:
         with:
           node-version: 22.12.0
           package-manager-cache: false
+      - name: Validate docs
+        run: python3 scripts/validate_docs.py . --profile generic
       - name: Install dependencies
         working-directory: frontend
         run: pnpm install --frozen-lockfile
@@ -42,6 +44,12 @@ jobs:
       - name: Run build
         working-directory: frontend
         run: pnpm run build
+      - name: Install Playwright browser
+        working-directory: frontend
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run E2E smoke tests
+        working-directory: frontend
+        run: pnpm run test:e2e:smoke
 
   backend:
     name: Django Backend Quality

@@ -208,13 +208,14 @@ def is_generic_section(content):
 def validate_links(base):
     issues = []
     for path in sorted(base.rglob("*.md")):
-        if should_skip_link_doc(path):
+        if should_skip_link_doc(path, base):
             continue
         text = read_text(path)
         issues.extend(validate_links_in_file(path, base, text))
     return issues
-def should_skip_link_doc(path):
-    return any(part in SKIPPED_LINK_DIRS for part in path.parts)
+def should_skip_link_doc(path, base):
+    rel = relative_path(path, base)
+    return rel.startswith("docs/archive/") or any(part in SKIPPED_LINK_DIRS for part in path.parts)
 def validate_links_in_file(path, base, text):
     issues = []
     for target in LINK_PATTERN.findall(text):

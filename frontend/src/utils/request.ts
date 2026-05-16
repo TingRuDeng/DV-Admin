@@ -4,6 +4,7 @@ import { ApiCodeEnum } from "@/enums/api/code-enum";
 import { AuthStorage, redirectToLogin } from "@/utils/auth";
 import { useTokenRefresh } from "@/composables/auth/useTokenRefresh";
 import { authConfig } from "@/settings";
+import { getApiErrorMessage } from "@/utils/api-error";
 
 // 初始化token刷新组合式函数
 const { refreshTokenAndRetry } = useTokenRefresh();
@@ -64,7 +65,7 @@ httpRequest.interceptors.response.use(
       return { success: true };
     }
 
-    const { code, data, msg, errors } = response.data || {}; // 增加空对象默认值防止解构错误
+    const { code, data } = response.data || {}; // 增加空对象默认值防止解构错误
 
     // 请求成功
     if (code === ApiCodeEnum.SUCCESS) {
@@ -72,8 +73,9 @@ httpRequest.interceptors.response.use(
     }
 
     // 业务错误
-    ElMessage.error(errors || "系统出错");
-    return Promise.reject(new Error(msg || "Business Error"));
+    const errorMessage = getApiErrorMessage(response.data, "系统出错");
+    ElMessage.error(errorMessage);
+    return Promise.reject(new Error(errorMessage));
   },
   async (error) => {
     console.error("Response interceptor error:", error);
@@ -86,7 +88,9 @@ httpRequest.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    const { code, errors } = response.data as ApiResponse;
+    const responseData = response.data as ApiResponse | undefined;
+    const code = responseData?.code;
+    const errorMessage = getApiErrorMessage(responseData, "请求失败");
 
     switch (code) {
       case ApiCodeEnum.ACCESS_TOKEN_INVALID:
@@ -97,18 +101,20 @@ httpRequest.interceptors.response.use(
         } else {
           // 未启用token刷新，直接跳转登录页
           await redirectToLogin("登录已过期");
-          return Promise.reject(new Error(errors || "Access Token Invalid"));
+          return Promise.reject(
+            new Error(getApiErrorMessage(responseData, "Access Token Invalid"))
+          );
         }
 
       case ApiCodeEnum.REFRESH_TOKEN_INVALID:
         // Refresh Token 过期，跳转登录页
         await redirectToLogin("登录已过期");
-        return Promise.reject(new Error(errors || "Refresh Token Invalid"));
+        return Promise.reject(new Error(getApiErrorMessage(responseData, "Refresh Token Invalid")));
 
       default:
         console.error("Response interceptor error:", response.data);
-        ElMessage.error(errors || "请求失败");
-        return Promise.reject(new Error(errors || "Request Error"));
+        ElMessage.error(errorMessage);
+        return Promise.reject(new Error(errorMessage));
     }
   }
 );
