@@ -97,6 +97,9 @@ import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import { ElMessage, type UploadInstance, type UploadUserFile } from "element-plus";
 import UserAPI from "@/api/system/user-api";
 import { ApiCodeEnum } from "@/enums/api/code-enum";
+import { createLogger } from "@/utils/logger";
+
+const userImportLogger = createLogger("UserImport");
 
 const emit = defineEmits<{
   "import-success": [];
@@ -188,7 +191,7 @@ const handleUpload = async () => {
       validCount.value = result.validCount;
     }
   } catch (error: unknown) {
-    console.error(error);
+    userImportLogger.error("用户导入失败:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     ElMessage.error("上传失败：" + errorMessage);
   } finally {
