@@ -7,6 +7,9 @@ import { usePermissionStoreHook } from "@/store/modules/permission-store";
 import { useDictStoreHook } from "@/store/modules/dict-store";
 import { useTagsViewStore } from "@/store";
 import { cleanupWebSocket } from "@/plugins/websocket";
+import { createLogger } from "@/utils/logger";
+
+const userStoreLogger = createLogger("userStore");
 
 export const useUserStore = defineStore("user", () => {
   // 用户信息
@@ -127,7 +130,7 @@ export const useUserStore = defineStore("user", () => {
           resolve();
         })
         .catch((error) => {
-          console.error("refreshToken 刷新失败", error);
+          userStoreLogger.error("refreshToken 刷新失败:", error);
           reject(error);
         });
     });
