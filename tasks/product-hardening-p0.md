@@ -68,13 +68,14 @@
 - 2026-05-16：前端请求错误文案兼容 Django `msg/errors` 与 FastAPI `message`；`pnpm --dir frontend run test:unit -- api-error`、`pnpm --dir frontend run type-check` 通过。
 - 2026-05-16：CI 前端门禁加入文档校验和登录页 smoke E2E；明显页面调试 `console.log` 已清理，WebSocket 日志治理保留到后续专项。
 - 2026-05-16：完成最小充分验证：`python3 scripts/validate_docs.py . --profile generic`、`pnpm --dir frontend run quality`、`pnpm --dir frontend run build`、`pnpm --dir frontend run test:e2e:smoke` 均通过。
+- 2026-05-16：PR 首轮 CI 发现文档链接校验依赖本地 SQLite 与归档绝对路径；已修正链接边界并通过 `python3 scripts/validate_docs.py . --profile generic`、`python3 -m py_compile scripts/validate_docs.py`。
 
 ## Review 小结
 
 - 终态：finished。
 - Spec 符合度：通过。所有 P0 执行项已完成，未扩大到后端模型统一或 WebSocket 专项重构。
 - 安全检查：通过。通知详情裸 `v-html` 已替换为 `SafeHtml`，富文本入口通过 `sanitizeHtml` 做白名单净化；未新增 secret、mock 或静默降级。
-- 测试与验证：通过。`python3 scripts/validate_docs.py . --profile generic`、`pnpm --dir frontend run quality`、`pnpm --dir frontend run build`、`pnpm --dir frontend run test:e2e:smoke` 均通过。
+- 测试与验证：通过。`python3 scripts/validate_docs.py . --profile generic`、`python3 -m py_compile scripts/validate_docs.py`、`pnpm --dir frontend run quality`、`pnpm --dir frontend run build`、`pnpm --dir frontend run test:e2e:smoke` 均通过。
 - 复杂度检查：通过。新增工具和测试文件职责单一，未出现大文件或大函数扩张。
 - Document-refresh: needed。原因：P0 执行计划本身需要同步完成状态和验证结果，已更新本文件。
 - 剩余风险：WebSocket 相关 `console.log` 仍保留，需后续连接管理专项统一处理；当前 E2E 只覆盖登录页 smoke，未覆盖登录后完整业务流。

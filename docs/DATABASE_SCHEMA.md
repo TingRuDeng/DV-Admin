@@ -59,7 +59,7 @@ ai_summary:
 - MySQL 8.0+（生产环境推荐）
 
 **开发环境说明：**
-- 当前仓库本地 Django 开发库默认文件为 [backend/drf_admin/db.sqlite3](../backend/drf_admin/db.sqlite3)
+- 当前仓库本地 Django 开发库默认文件通常为 `backend/drf_admin/db.sqlite3`
 - 代理/调试场景下可通过 SQLite MCP 直接连接该文件查看本地数据
 - 这类 MCP 访问仅代表本地开发环境，不代表生产数据库类型、数据规模或 SQL 行为
 
