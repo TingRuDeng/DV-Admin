@@ -1,6 +1,56 @@
+---
+ai_summary:
+  purpose: "跟踪当前仍有效的前端优化事项和已完成治理基线。"
+  read_when:
+    - "规划前端治理或重构范围时"
+    - "判断旧前端优化方案是否仍有效时"
+  source_of_truth:
+    - "docs/ARCHITECTURE.md"
+    - "frontend/src/styles"
+    - "frontend/src/components"
+    - "frontend/src/views"
+    - "frontend/src/router/index.ts"
+    - "frontend/src/store/modules/tags-view-store.ts"
+  verify_with:
+    - "python3 scripts/validate_docs.py . --profile generic"
+    - "pnpm --dir frontend run quality"
+  stale_when:
+    - "前端治理基线变化"
+    - "系统页面迁移状态、Pro 组件边界或缓存策略变化"
+---
+
 # DV-Admin 前端优化待办
 
-> 本文档用于记录**当前仍有效**的前端后续优化事项。它基于仓库现状重新整理，替代仓库根目录 `后续优化/` 下旧方案文档中的可执行部分。
+> 本文档是当前仍有效的前端治理 backlog，不替代架构事实。
+
+## Purpose
+
+记录当前仍有效的前端后续优化事项，并明确旧方案中已经失效的部分。
+
+## Source of truth
+
+- `docs/ARCHITECTURE.md`
+- `frontend/src/styles`
+- `frontend/src/components`
+- `frontend/src/views`
+- `frontend/src/router/index.ts`
+- `frontend/src/store/modules/tags-view-store.ts`
+
+## Key facts
+
+- 本文档是跟踪入口，不是架构权威。
+- `后续优化/` 下旧文档保留为历史参考。
+- 已完成治理基线不应重复规划为新增项。
+
+## How to verify
+
+- quick: `python3 scripts/validate_docs.py . --profile generic`
+- full: `pnpm --dir frontend run quality`
+
+## Stale when
+
+- 前端样式治理、Pro 组件、RouteMeta 或 KeepAlive 策略变化。
+- 旧 backlog 条目完成或失效。
 
 ---
 
