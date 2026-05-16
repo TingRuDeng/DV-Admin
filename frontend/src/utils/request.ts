@@ -5,12 +5,14 @@ import { AuthStorage, redirectToLogin } from "@/utils/auth";
 import { useTokenRefresh } from "@/composables/auth/useTokenRefresh";
 import { authConfig } from "@/settings";
 import { getApiErrorMessage } from "@/utils/api-error";
+import { createLogger } from "@/utils/logger";
 
 // 初始化token刷新组合式函数
 const { refreshTokenAndRetry } = useTokenRefresh();
 
 // 获取 API 版本前缀
 const apiVersion = import.meta.env.VITE_APP_API_VERSION;
+const requestLogger = createLogger("request");
 
 /**
  * 创建 HTTP 请求实例
@@ -44,7 +46,7 @@ httpRequest.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error("Request interceptor error:", error);
+    requestLogger.error("请求拦截器异常:", error);
     return Promise.reject(error);
   }
 );
@@ -78,7 +80,7 @@ httpRequest.interceptors.response.use(
     return Promise.reject(new Error(errorMessage));
   },
   async (error) => {
-    console.error("Response interceptor error:", error);
+    requestLogger.error("响应拦截器异常:", error);
 
     const { config, response } = error;
 
@@ -112,7 +114,7 @@ httpRequest.interceptors.response.use(
         return Promise.reject(new Error(getApiErrorMessage(responseData, "Refresh Token Invalid")));
 
       default:
-        console.error("Response interceptor error:", response.data);
+        requestLogger.error("响应业务错误:", response.data);
         ElMessage.error(errorMessage);
         return Promise.reject(new Error(errorMessage));
     }
