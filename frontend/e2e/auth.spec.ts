@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Auth E2E Tests", () => {
   test("should display login page", async ({ page }) => {
     await page.goto("/login");
-    await expect(page.locator("h1, h2, title")).toBeVisible();
+    await expect(page.getByRole("heading").first()).toBeVisible();
   });
 
   test("should have login form", async ({ page }) => {

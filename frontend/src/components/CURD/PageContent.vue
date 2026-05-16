@@ -597,7 +597,7 @@ function handleExports() {
           .then((buffer) => {
             saveXlsx(buffer, filename as string);
           })
-          .catch((error) => console.log(error));
+          .catch((error) => console.error(error));
       });
     } else {
       ElMessage.error("未配置exportsAction");
@@ -611,7 +611,7 @@ function handleExports() {
       .then((buffer) => {
         saveXlsx(buffer, filename as string);
       })
-      .catch((error) => console.log(error));
+      .catch((error) => console.error(error));
   }
 }
 
@@ -745,7 +745,7 @@ function handleImports() {
             handleRefresh(true);
           });
         })
-        .catch((error) => console.log(error));
+        .catch((error) => console.error(error));
     } else {
       ElMessage.error("读取文件失败");
     }

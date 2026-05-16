@@ -34,7 +34,7 @@ function handleClipboard() {
       })
       .catch((error) => {
         ElMessage.warning("Copy failed");
-        console.log("[CopyButton] Copy failed", error);
+        console.error("[CopyButton] Copy failed", error);
       });
   } else {
     // 兼容性处理（useClipboard 有兼容性问题）
@@ -53,7 +53,7 @@ function handleClipboard() {
       }
     } catch (err) {
       ElMessage.error("Copy failed.");
-      console.log("[CopyButton] Copy failed.", err);
+      console.error("[CopyButton] Copy failed.", err);
     } finally {
       document.body.removeChild(input);
     }
