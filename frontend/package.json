@@ -16,6 +16,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test e2e/auth.spec.ts",
     "test:e2e:ui": "playwright test --ui",
     "lint:eslint": "eslint --cache \"src/**/*.{vue,ts,js}\" --fix",
     "lint:prettier": "prettier --write \"**/*.{js,cjs,ts,json,css,scss,vue,html,md}\"",

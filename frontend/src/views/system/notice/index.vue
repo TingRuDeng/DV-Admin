@@ -294,7 +294,7 @@
           {{ currentNotice.publishTime }}
         </el-descriptions-item>
         <el-descriptions-item label="公告内容：">
-          <div class="ff-notice-content" v-html="currentNotice.content" />
+          <SafeHtml class="ff-notice-content" :content="currentNotice.content" />
         </el-descriptions-item>
       </el-descriptions>
     </ProDialog>
@@ -309,6 +309,7 @@ defineOptions({
 
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProDialog from "@/components/ProDialog/index.vue";
+import SafeHtml from "@/components/SafeHtml/index.vue";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
 import NoticeAPI, {

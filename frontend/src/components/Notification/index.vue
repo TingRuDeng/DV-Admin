@@ -73,7 +73,7 @@
       </div>
 
       <div class="max-h-60vh pt-16px mb-24px overflow-y-auto border-t border-solid border-color">
-        <div v-html="noticeDetail.content"></div>
+        <SafeHtml :content="noticeDetail.content" />
       </div>
     </div>
   </ProDialog>
@@ -81,6 +81,7 @@
 
 <script setup lang="ts">
 import ProDialog from "@/components/ProDialog/index.vue";
+import SafeHtml from "@/components/SafeHtml/index.vue";
 import NoticeAPI, { NoticePageVO, NoticeDetailVO } from "@/api/system/notice-api";
 import router from "@/router";
 
@@ -96,7 +97,6 @@ watch(
   (connected) => {
     if (connected) {
       subscribe("/user/queue/message", (message: any) => {
-        console.log("收到通知消息：", message);
         const data = JSON.parse(message.body);
         const id = data.id;
         if (!noticeList.value.some((notice) => notice.id == id)) {

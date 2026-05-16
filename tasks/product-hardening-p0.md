@@ -31,16 +31,16 @@
 
 ## 执行计划
 
-- [ ] 建立隔离工作区：从最新 `origin/master` 创建 `codex/product-hardening-p0`。
-- [ ] 富文本安全收口：新增统一安全 HTML 渲染工具或组件，并替换通知相关 `v-html` 入口。
-- [ ] 富文本测试：补充恶意 HTML、允许标签、空内容等用例。
-- [ ] E2E 配置修复：让 Playwright 端口读取 `VITE_APP_PORT` 或统一到前端默认端口。
-- [ ] CI 门禁增强：加入文档校验和最小 E2E smoke；必要时先限定为稳定 smoke，不扩大到全流程。
-- [ ] 请求错误兼容：让 `frontend/src/utils/request.ts` 同时支持 `msg/errors/message`，并补响应处理测试。
-- [ ] 双后端契约测试：增加最小响应 envelope 契约检查，覆盖 Django/FastAPI 已知差异的前端兼容行为。
-- [ ] 清理生产调试输出：先处理明显页面调试日志，不扩大到 WebSocket 全量重构。
-- [ ] 运行最小充分验证并记录结果。
-- [ ] 使用 `review-gate` 做交付前审查。
+- [x] 建立隔离工作区：从最新 `origin/master` 创建 `codex/product-hardening-p0`。
+- [x] 富文本安全收口：新增统一安全 HTML 渲染工具或组件，并替换通知相关 `v-html` 入口。
+- [x] 富文本测试：补充恶意 HTML、允许标签、空内容等用例。
+- [x] E2E 配置修复：让 Playwright 端口读取 `VITE_APP_PORT` 或统一到前端默认端口。
+- [x] CI 门禁增强：加入文档校验和最小 E2E smoke；必要时先限定为稳定 smoke，不扩大到全流程。
+- [x] 请求错误兼容：让 `frontend/src/utils/request.ts` 同时支持 `msg/errors/message`，并补响应处理测试。
+- [x] 双后端契约测试：增加最小响应 envelope 契约检查，覆盖 Django/FastAPI 已知差异的前端兼容行为。
+- [x] 清理生产调试输出：先处理明显页面调试日志，不扩大到 WebSocket 全量重构。
+- [x] 运行最小充分验证并记录结果。
+- [x] 使用 `review-gate` 做交付前审查。
 
 ## 验证矩阵
 
@@ -62,7 +62,22 @@
 ## 进度记录
 
 - 2026-05-16：完成 P0 执行前规划，等待用户确认后进入编码。
+- 2026-05-16：从 `origin/master` 创建 `codex/product-hardening-p0`，开始执行富文本安全收口。
+- 2026-05-16：完成 `SafeHtml` 与 `sanitizeHtml`，通知详情改为统一安全渲染；`pnpm --dir frontend run test:unit -- safe-html notice-html-safety`、`pnpm --dir frontend run type-check` 通过。
+- 2026-05-16：修复 Playwright 端口来源并新增 `test:e2e:smoke`；`pnpm --dir frontend run test:e2e:smoke` 通过。
+- 2026-05-16：前端请求错误文案兼容 Django `msg/errors` 与 FastAPI `message`；`pnpm --dir frontend run test:unit -- api-error`、`pnpm --dir frontend run type-check` 通过。
+- 2026-05-16：CI 前端门禁加入文档校验和登录页 smoke E2E；明显页面调试 `console.log` 已清理，WebSocket 日志治理保留到后续专项。
+- 2026-05-16：完成最小充分验证：`python3 scripts/validate_docs.py . --profile generic`、`pnpm --dir frontend run quality`、`pnpm --dir frontend run build`、`pnpm --dir frontend run test:e2e:smoke` 均通过。
+- 2026-05-16：PR 首轮 CI 发现文档链接校验依赖本地 SQLite 与归档绝对路径；已修正链接边界并通过 `python3 scripts/validate_docs.py . --profile generic`、`python3 -m py_compile scripts/validate_docs.py`。
 
 ## Review 小结
 
-- 待实现完成后补充。
+- 终态：finished。
+- Spec 符合度：通过。所有 P0 执行项已完成，未扩大到后端模型统一或 WebSocket 专项重构。
+- 安全检查：通过。通知详情裸 `v-html` 已替换为 `SafeHtml`，富文本入口通过 `sanitizeHtml` 做白名单净化；未新增 secret、mock 或静默降级。
+- 测试与验证：通过。`python3 scripts/validate_docs.py . --profile generic`、`python3 -m py_compile scripts/validate_docs.py`、`pnpm --dir frontend run quality`、`pnpm --dir frontend run build`、`pnpm --dir frontend run test:e2e:smoke` 均通过。
+- 复杂度检查：通过。新增工具和测试文件职责单一，未出现大文件或大函数扩张。
+- Document-refresh: needed。原因：P0 执行计划本身需要同步完成状态和验证结果，已更新本文件。
+- 剩余风险：WebSocket 相关 `console.log` 仍保留，需后续连接管理专项统一处理；当前 E2E 只覆盖登录页 smoke，未覆盖登录后完整业务流。
+- 潜在技术债：前端富文本净化当前在客户端兜底，后续仍应在后端保存或发布边界增加内容安全策略。
+- 结论：通过。
