@@ -120,8 +120,10 @@ import router from "@/router";
 import { useUserStore } from "@/store";
 // import CommonWrapper from "@/components/CommonWrapper/index.vue";
 import { AuthStorage } from "@/utils/auth";
+import { createLogger } from "@/utils/logger";
 import { defaultSettings } from "@/settings";
 
+const loginLogger = createLogger("Login");
 const { t } = useI18n();
 const userStore = useUserStore();
 const route = useRoute();
@@ -225,7 +227,7 @@ async function handleLoginSubmit() {
     if (enableCaptcha) {
       getCaptcha(); // 刷新验证码
     }
-    console.error("登录失败:", error);
+    loginLogger.error("登录失败:", error);
   } finally {
     loading.value = false;
   }

@@ -334,8 +334,11 @@ import {
 } from "element-plus";
 import ExcelJS from "exceljs";
 import { reactive, ref, computed } from "vue";
+import { createLogger } from "@/utils/logger";
 import type { IContentConfig, IObject, IOperateData } from "./types";
 import type { IToolsButton } from "./types";
+
+const pageContentLogger = createLogger("PageContent");
 
 // 定义接收的属性
 const props = defineProps<{ contentConfig: IContentConfig }>();
@@ -597,7 +600,7 @@ function handleExports() {
           .then((buffer) => {
             saveXlsx(buffer, filename as string);
           })
-          .catch((error) => console.error(error));
+          .catch((error) => pageContentLogger.error("远程导出文件生成失败:", error));
       });
     } else {
       ElMessage.error("未配置exportsAction");
@@ -611,7 +614,7 @@ function handleExports() {
       .then((buffer) => {
         saveXlsx(buffer, filename as string);
       })
-      .catch((error) => console.error(error));
+      .catch((error) => pageContentLogger.error("本地导出文件生成失败:", error));
   }
 }
 
@@ -745,7 +748,7 @@ function handleImports() {
             handleRefresh(true);
           });
         })
-        .catch((error) => console.error(error));
+        .catch((error) => pageContentLogger.error("导入文件解析失败:", error));
     } else {
       ElMessage.error("读取文件失败");
     }

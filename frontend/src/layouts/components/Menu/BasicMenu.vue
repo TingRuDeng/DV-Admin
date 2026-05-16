@@ -32,8 +32,11 @@ import type { RouteRecordRaw } from "vue-router";
 import { SidebarColor } from "@/enums/settings/theme-enum";
 import { useSettingsStore, useAppStore } from "@/store";
 import { isExternal } from "@/utils/index";
+import { createLogger } from "@/utils/logger";
 import MenuItem from "./components/MenuItem.vue";
 import variables from "@/styles/variables.module.scss";
+
+const menuLogger = createLogger("BasicMenu");
 
 const props = defineProps({
   data: {
@@ -230,7 +233,7 @@ function updateParentMenuStyles() {
         }
       }
     } catch (error) {
-      console.error("Error updating parent menu styles:", error);
+      menuLogger.error("更新父级菜单样式失败:", error);
     }
   });
 }
