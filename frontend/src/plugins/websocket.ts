@@ -1,5 +1,6 @@
-import { useDictSync } from "@/composables";
+import { useDictSync } from "@/composables/websocket/useDictSync";
 import { AuthStorage } from "@/utils/auth";
+import { createLogger } from "@/utils/logger";
 // 不直接导入 store 或 userStore
 
 // 全局 WebSocket 实例管理
@@ -8,13 +9,14 @@ const websocketInstances = new Map<string, any>();
 // 用于防止重复初始化的状态标记
 let isInitialized = false;
 let dictWebSocketInstance: ReturnType<typeof useDictSync> | null = null;
+const logger = createLogger("WebSocketPlugin");
 
 /**
  * 注册 WebSocket 实例
  */
 export function registerWebSocketInstance(key: string, instance: any) {
   websocketInstances.set(key, instance);
-  console.log(`[WebSocketPlugin] Registered WebSocket instance: ${key}`);
+  logger.debug(`Registered WebSocket instance: ${key}`);
 }
 
 /**
@@ -28,26 +30,24 @@ export function getWebSocketInstance(key: string) {
  * 初始化WebSocket服务
  */
 export function setupWebSocket() {
-  console.log("[WebSocketPlugin] 开始初始化WebSocket服务...");
+  logger.info("开始初始化WebSocket服务...");
 
   // 检查是否已经初始化
   if (isInitialized) {
-    console.log("[WebSocketPlugin] WebSocket服务已经初始化,跳过重复初始化");
+    logger.debug("WebSocket服务已经初始化，跳过重复初始化");
     return;
   }
 
   // 检查环境变量是否配置
   const wsEndpoint = import.meta.env.VITE_APP_WS_ENDPOINT;
   if (!wsEndpoint) {
-    console.log("[WebSocketPlugin] 未配置WebSocket端点,跳过WebSocket初始化");
+    logger.debug("未配置WebSocket端点，跳过WebSocket初始化");
     return;
   }
 
   // 检查是否已登录（基于是否存在访问令牌）
   if (!AuthStorage.getAccessToken()) {
-    console.warn(
-      "[WebSocketPlugin] 未找到访问令牌，WebSocket初始化已跳过。用户登录后将自动重新连接。"
-    );
+    logger.warn("未找到访问令牌，WebSocket初始化已跳过。用户登录后将自动重新连接。");
     return;
   }
 
@@ -60,23 +60,24 @@ export function setupWebSocket() {
 
       // 初始化字典WebSocket服务
       dictWebSocketInstance.initWebSocket();
-      console.log("[WebSocketPlugin] 字典WebSocket初始化完成");
+      logger.info("字典WebSocket初始化完成");
 
       // 初始化在线用户计数WebSocket
-      import("@/composables").then(({ useOnlineCount }) => {
+      // 直接加载具体模块，避免通过 composables 汇总入口形成 WebSocket 循环分块。
+      import("@/composables/websocket/useOnlineCount").then(({ useOnlineCount }) => {
         const onlineCountInstance = useOnlineCount({ autoInit: false });
         onlineCountInstance.initWebSocket();
-        console.log("[WebSocketPlugin] 在线用户计数WebSocket初始化完成");
+        logger.info("在线用户计数WebSocket初始化完成");
       });
 
       // 在窗口关闭前断开WebSocket连接
       window.addEventListener("beforeunload", handleWindowClose);
 
-      console.log("[WebSocketPlugin] WebSocket服务初始化完成");
+      logger.info("WebSocket服务初始化完成");
       isInitialized = true;
     }, 1000); // 延迟1秒初始化
   } catch (error) {
-    console.error("[WebSocketPlugin] 初始化WebSocket服务失败:", error);
+    logger.error("初始化WebSocket服务失败:", error);
   }
 }
 
@@ -84,7 +85,7 @@ export function setupWebSocket() {
  * 处理窗口关闭
  */
 function handleWindowClose() {
-  console.log("[WebSocketPlugin] 窗口即将关闭，断开WebSocket连接");
+  logger.info("窗口即将关闭，断开WebSocket连接");
   cleanupWebSocket();
 }
 
@@ -96,9 +97,9 @@ export function cleanupWebSocket() {
   if (dictWebSocketInstance) {
     try {
       dictWebSocketInstance.closeWebSocket();
-      console.log("[WebSocketPlugin] 字典WebSocket连接已断开");
+      logger.info("字典WebSocket连接已断开");
     } catch (error) {
-      console.error("[WebSocketPlugin] 断开字典WebSocket连接失败:", error);
+      logger.error("断开字典WebSocket连接失败:", error);
     }
   }
 
@@ -107,13 +108,13 @@ export function cleanupWebSocket() {
     try {
       if (instance && typeof instance.disconnect === "function") {
         instance.disconnect();
-        console.log(`[WebSocketPlugin] ${key} WebSocket连接已断开`);
+        logger.info(`${key} WebSocket连接已断开`);
       } else if (instance && typeof instance.closeWebSocket === "function") {
         instance.closeWebSocket();
-        console.log(`[WebSocketPlugin] ${key} WebSocket连接已断开`);
+        logger.info(`${key} WebSocket连接已断开`);
       }
     } catch (error) {
-      console.error(`[WebSocketPlugin] 断开 ${key} WebSocket连接失败:`, error);
+      logger.error(`断开 ${key} WebSocket连接失败:`, error);
     }
   });
 
