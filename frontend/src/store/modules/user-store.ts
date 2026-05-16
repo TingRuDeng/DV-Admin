@@ -93,7 +93,6 @@ export const useUserStore = defineStore("user", () => {
 
     // 3. 清理 WebSocket 连接
     cleanupWebSocket();
-    console.log("[UserStore] WebSocket connections cleaned up");
 
     return Promise.resolve();
   }
@@ -128,7 +127,7 @@ export const useUserStore = defineStore("user", () => {
           resolve();
         })
         .catch((error) => {
-          console.log(" refreshToken  刷新失败", error);
+          console.error("refreshToken 刷新失败", error);
           reject(error);
         });
     });
