@@ -19,7 +19,9 @@ import { RouteLocationMatched } from "vue-router";
 import { compile } from "path-to-regexp";
 import router from "@/router";
 import { translateRouteTitle } from "@/utils/i18n";
+import { createLogger } from "@/utils/logger";
 
+const breadcrumbLogger = createLogger("Breadcrumb");
 const currentRoute = useRoute();
 const pathCompile = (path: string) => {
   const { params } = currentRoute;
@@ -52,12 +54,12 @@ function handleLink(item: any) {
   const { redirect, path } = item;
   if (redirect) {
     router.push(redirect).catch((err) => {
-      console.warn(err);
+      breadcrumbLogger.warn("面包屑重定向跳转失败:", err);
     });
     return;
   }
   router.push(pathCompile(path)).catch((err) => {
-    console.warn(err);
+    breadcrumbLogger.warn("面包屑路径跳转失败:", err);
   });
 }
 
