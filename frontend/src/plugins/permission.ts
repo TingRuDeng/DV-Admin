@@ -3,6 +3,9 @@ import NProgress from "@/utils/nprogress";
 import router from "@/router";
 import { usePermissionStore, useUserStore } from "@/store";
 import { hasRouteAccess } from "@/utils/route-access";
+import { createLogger } from "@/utils/logger";
+
+const permissionLogger = createLogger("permission");
 
 export function setupPermission() {
   const whiteList = ["/login"];
@@ -72,9 +75,8 @@ export function setupPermission() {
 
       next();
     } catch (error) {
-      console.error("❌ Route guard error:", error);
       // 错误处理：重置状态并跳转登录
-      console.error("Route guard error:", error);
+      permissionLogger.error("路由守卫异常:", error);
       await useUserStore().resetAllState();
       next("/login");
       NProgress.done();
