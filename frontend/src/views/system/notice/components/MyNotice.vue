@@ -77,7 +77,7 @@
         </div>
 
         <div class="ff-my-notice-detail__content">
-          <div v-html="noticeDetail.content"></div>
+          <SafeHtml :content="noticeDetail.content" />
         </div>
       </div>
     </ProDialog>
@@ -91,6 +91,7 @@ defineOptions({
 });
 
 import ProDialog from "@/components/ProDialog/index.vue";
+import SafeHtml from "@/components/SafeHtml/index.vue";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
 import NoticeAPI, { NoticePageQuery, NoticeDetailVO, NoticePageVO } from "@/api/system/notice-api";

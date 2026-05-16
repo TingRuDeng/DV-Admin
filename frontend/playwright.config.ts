@@ -1,4 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
+import { loadEnv } from "vite";
+
+const env = loadEnv("development", process.cwd(), "");
+const appPort = Number(process.env.VITE_APP_PORT || env.VITE_APP_PORT || 9527);
+const appBaseUrl = `http://localhost:${appPort}`;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -8,7 +13,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: "html",
   use: {
-    baseURL: "http://localhost:5173",
+    baseURL: appBaseUrl,
     trace: "on-first-retry",
   },
   projects: [
@@ -18,8 +23,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "pnpm dev",
-    url: "http://localhost:5173",
+    command: "pnpm dev -- --host 127.0.0.1",
+    url: appBaseUrl,
     reuseExistingServer: !process.env.CI,
   },
 });
