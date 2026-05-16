@@ -1,6 +1,9 @@
 import type { InternalAxiosRequestConfig } from "axios";
 import { useUserStoreHook } from "@/store/modules/user-store";
 import { AuthStorage, redirectToLogin } from "@/utils/auth";
+import { createLogger } from "@/utils/logger";
+
+const tokenRefreshLogger = createLogger("useTokenRefresh");
 
 /**
  * 重试请求的回调函数类型
@@ -47,14 +50,14 @@ export function useTokenRefresh() {
               try {
                 callback();
               } catch (error) {
-                console.error("Retry request error:", error);
+                tokenRefreshLogger.error("重试请求失败:", error);
               }
             });
             // 清空队列
             pendingRequests.length = 0;
           })
           .catch(async (error) => {
-            console.error("Token refresh failed:", error);
+            tokenRefreshLogger.error("刷新 Token 失败:", error);
             // 刷新失败，清空队列并跳转登录页
             pendingRequests.length = 0;
             await redirectToLogin("登录状态已失效，请重新登录");
