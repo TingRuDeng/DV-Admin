@@ -1,6 +1,57 @@
+---
+ai_summary:
+  purpose: "定义 DV-Admin 仓库中代理执行任务的规则入口、分支约束和交付门禁。"
+  read_when:
+    - "开始任何会改动文件的任务前"
+    - "判断分支、验证、文档同步或后端替代关系约束时"
+  source_of_truth:
+    - "AGENTS.md"
+    - "docs/README.md"
+    - "docs/AI_CONTEXT.md"
+    - ".github/workflows/quality-gates.yml"
+    - "frontend/.env.development"
+    - "backend/dev.sh"
+    - "fastapi/scripts/dev.sh"
+  verify_with:
+    - "python3 scripts/validate_docs.py . --profile generic"
+    - "python3 -m py_compile scripts/validate_docs.py"
+  stale_when:
+    - "代理工作流、分支策略或质量门禁变化"
+    - "默认端口、启动脚本、后端替代关系或文档入口变化"
+---
 # DV-Admin 代理工作指南
 
 > 本文件是代理在此仓库工作的**单一权威规则入口**。所有工作流规则、启动检查和约束都在此定义。
+
+## Purpose
+
+定义代理在 DV-Admin 仓库执行任务时必须遵循的规则入口、分支隔离、验证门禁与文档同步要求。
+
+## Source of truth
+
+- `AGENTS.md`
+- `docs/README.md`
+- `docs/AI_CONTEXT.md`
+- `.github/workflows/quality-gates.yml`
+- `frontend/.env.development`
+- `backend/dev.sh`
+- `fastapi/scripts/dev.sh`
+
+## Key facts
+
+- 会产生改动的任务默认不能直接在 `master` / `main` 分支开发。
+- `backend/` 与 `fastapi/` 是面向同一前端的替代实现，不是上下游服务。
+- 交付前需要按受影响技术栈执行最小充分验证，并同步相关文档。
+
+## How to verify
+
+- quick: `python3 scripts/validate_docs.py . --profile generic`
+- quick: `python3 -m py_compile scripts/validate_docs.py`
+
+## Stale when
+
+- 分支策略、质量门禁、默认端口或启动脚本变化。
+- 文档导航入口、后端替代关系或代理执行规则变化。
 
 ## 目的
 
@@ -17,26 +68,6 @@
 - Django 与 FastAPI 是同域替代实现，涉及共享契约必须保持兼容。
 - 完成任务前必须按对应技术栈执行质量检查，并同步文档。
 - 文档导航入口是 `docs/README.md`，代码与文档冲突时信任代码并回写文档。
-
-```yaml
-ai_summary:
-  authority: "代理执行规则与交付门禁的唯一入口"
-  scope: "分支策略、变更约束、测试门禁、文档同步和紧急处理"
-  read_when:
-    - "开始任何会改动文件的任务前"
-    - "需要判断是否可直接修改主分支或如何验收时"
-  verify_with:
-    - "AGENTS.md"
-    - "docs/README.md"
-    - ".github/workflows/quality-gates.yml"
-    - "backend/dev.sh"
-    - "fastapi/scripts/dev.sh"
-    - "frontend/.env.development"
-  stale_when:
-    - "工作流规则变化"
-    - "质量门禁命令变化"
-    - "默认端口、启动脚本或后端替代关系变化"
-```
 
 ## 权威边界
 
@@ -101,7 +132,7 @@ cp .env.example .env
 
 > Django 和 FastAPI 是替代关系。开发环境通常只选择其中一种后端启动；除非你在做兼容性对比或双实现同步，否则不需要两套后端同时运行。
 
-> 本地开发环境默认数据库通常为 SQLite。当前仓库的 Django 开发库位于 [backend/drf_admin/db.sqlite3](/Users/dengtingru/Desktop/code/DV-Admin/backend/drf_admin/db.sqlite3)，代理在本地调试时可通过 SQLite MCP 连接该文件，但不要把本地 SQLite 的行为直接外推为生产 MySQL 行为。
+> 本地开发环境默认数据库通常为 SQLite。当前仓库的 Django 开发库位于 [backend/drf_admin/db.sqlite3](backend/drf_admin/db.sqlite3)，代理在本地调试时可通过 SQLite MCP 连接该文件，但不要把本地 SQLite 的行为直接外推为生产 MySQL 行为。
 
 ### 2. 必读文件
 
