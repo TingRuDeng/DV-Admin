@@ -47,7 +47,7 @@ pnpm run dev
 - 前端开发服务器默认运行在 `http://localhost:9527`
 - 开发环境下，前端会将 `/dev-api` 代理到 `http://127.0.0.1:8769`
 - 本地联调时，请在 Django `backend/` 和 FastAPI `fastapi/` 两套后端实现中选择一套启动即可
-- 如果你修改了后端端口，需要同步更新 [frontend/.env.development](/Users/dengtingru/Desktop/code/DV-Admin/frontend/.env.development) 中的 `VITE_APP_API_URL`
+- 如果你修改了后端端口，需要同步更新 [.env.development](.env.development) 中的 `VITE_APP_API_URL`
 - 默认可用账户：
   - `admin/123456`
   - `visitor/123456`

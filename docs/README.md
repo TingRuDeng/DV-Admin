@@ -155,7 +155,7 @@ cp .env.example .env
 - 前端开发时始终连接“当前选中的那一套后端实现”，不是同时连接 Django 和 FastAPI
 - 共享 API / 数据契约修改时，需要考虑两套后端实现的兼容性，但不代表本地联调要双开
 - 如果后端端口不是 `8769`，请同步修改 [frontend/.env.development](../frontend/.env.development) 中的 `VITE_APP_API_URL`
-- 本地开发环境默认数据库通常是 SQLite；当前仓库的 Django 开发库位于 [backend/drf_admin/db.sqlite3](../backend/drf_admin/db.sqlite3)
+- 本地开发环境默认数据库通常是 SQLite；当前仓库的 Django 开发库通常位于 `backend/drf_admin/db.sqlite3`
 - 如需通过 MCP 查看本地开发数据，可为 SQLite MCP 指向该数据库文件；这类访问仅面向本地调试，不代表生产数据库类型或生产数据状态
 - 更完整的启动细节分别见：
   - [AGENTS.md](../AGENTS.md)
