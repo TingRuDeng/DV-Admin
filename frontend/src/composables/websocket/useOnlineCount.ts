@@ -2,10 +2,12 @@ import { ref, watch, onMounted, onUnmounted, getCurrentInstance } from "vue";
 import { useStomp } from "./useStomp";
 import { registerWebSocketInstance } from "@/plugins/websocket";
 import { AuthStorage } from "@/utils/auth";
+import { createLogger } from "@/utils/logger";
 import { ElMessage } from "element-plus";
 
 // 全局单例实例
 let globalInstance: ReturnType<typeof createOnlineCountHook> | null = null;
+const onlineCountLogger = createLogger("useOnlineCount");
 
 /**
  * 创建在线用户计数的核心逻辑
@@ -56,7 +58,7 @@ function createOnlineCountHook() {
 
       // 一旦连接成功，立即订阅主题
       subscribeToOnlineCount();
-      console.log("[useOnlineCount] WebSocket连接成功，已订阅在线用户计数主题");
+      onlineCountLogger.info("WebSocket连接成功，已订阅在线用户计数主题");
     }
   });
 
@@ -88,7 +90,7 @@ function createOnlineCountHook() {
           lastUpdateTime.value = Date.now();
         }
       } catch (error) {
-        console.error("[useOnlineCount] 解析在线用户数量失败:", error);
+        onlineCountLogger.error("解析在线用户数量失败:", error);
       }
     });
   };
@@ -102,19 +104,19 @@ function createOnlineCountHook() {
     // 检查WebSocket端点是否配置
     const wsEndpoint = import.meta.env.VITE_APP_WS_ENDPOINT;
     if (!wsEndpoint) {
-      console.log("[useOnlineCount] 未配置WebSocket端点(VITE_APP_WS_ENDPOINT),跳过WebSocket连接");
+      onlineCountLogger.debug("未配置WebSocket端点(VITE_APP_WS_ENDPOINT)，跳过WebSocket连接");
       return;
     }
 
     // 使用 AuthStorage.getAccessToken() 获取令牌，确保获取到最新的
     const accessToken = AuthStorage.getAccessToken();
     if (!accessToken) {
-      console.log("[useOnlineCount] 没有检测到有效令牌，不尝试WebSocket连接");
+      onlineCountLogger.debug("没有检测到有效令牌，不尝试WebSocket连接");
       return;
     }
 
     isConnecting.value = true;
-    console.log("[useOnlineCount] 开始建立WebSocket连接...");
+    onlineCountLogger.info("开始建立WebSocket连接...");
 
     // 连接WebSocket
     connect();
@@ -123,7 +125,7 @@ function createOnlineCountHook() {
     clearTimeout(connectionTimeoutTimer);
     connectionTimeoutTimer = setTimeout(() => {
       if (!isConnected.value) {
-        console.warn("[useOnlineCount] WebSocket连接超时，将自动尝试重连");
+        onlineCountLogger.warn("WebSocket连接超时，将自动尝试重连");
         ElMessage.warning("正在尝试连接服务器，请稍候...");
 
         // 超时后尝试重新连接
@@ -133,7 +135,7 @@ function createOnlineCountHook() {
           if (AuthStorage.getAccessToken()) {
             initWebSocket();
           } else {
-            console.log("[useOnlineCount] 令牌无效，放弃重连");
+            onlineCountLogger.warn("令牌无效，放弃重连");
           }
         }, 3000);
       }
@@ -197,17 +199,17 @@ export function useOnlineCount(options: { autoInit?: boolean } = {}) {
     onMounted(() => {
       // 只有在未连接且未连接中时才尝试初始化
       if (!globalInstance!.isConnected.value && !globalInstance!.isConnecting.value) {
-        console.log("[useOnlineCount] 组件挂载，尝试初始化WebSocket连接");
+        onlineCountLogger.debug("组件挂载，尝试初始化WebSocket连接");
         globalInstance!.initWebSocket();
       } else {
-        console.log("[useOnlineCount] WebSocket已连接或正在连接，跳过初始化");
+        onlineCountLogger.debug("WebSocket已连接或正在连接，跳过初始化");
       }
     });
 
     // 组件卸载时不关闭连接，保持全局连接
     onUnmounted(() => {
       // 不关闭连接，让其他组件继续使用
-      console.log("[useOnlineCount] Component unmounted, keeping WebSocket connection");
+      onlineCountLogger.debug("组件卸载，保留全局WebSocket连接");
     });
   }
 
