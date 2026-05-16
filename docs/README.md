@@ -1,54 +1,57 @@
-# DV-Admin 文档导航
-
-> 本文件是项目文档的**单一导航入口**。所有文档的用途、权威级别和阅读路径都在此定义。
-
-## 目的
-
-为人类维护者与 AI 代理提供统一文档入口，快速定位权威文档、任务阅读路径和校验入口。
-
-## 适合读者
-
-- 新加入项目、需要快速上手的开发者
-- 需要按任务选择上下文的 AI 代理
-- 负责代码审查与文档一致性检查的维护者
-
-## 一分钟摘要
-
-- 主规则入口是 `AGENTS.md`，主导航入口是本文件。
-- AI 快速索引入口是 `docs/AI_CONTEXT.md`，不替代规则文档。
-- 架构、API、数据库、坑点、债务分别由独立文档负责，避免一个文档承载全部事实。
-- 提交前用 `docs/DOC_SYNC_CHECKLIST.md` 和 `scripts/validate_docs.py` 做文档闭环检查。
-
-```yaml
+---
 ai_summary:
-  authority: "文档导航与任务阅读路径的唯一入口"
-  scope: "文档职责分工、阅读顺序、权威级别和校验入口"
+  purpose: "为 DV-Admin 提供文档导航、权威边界和上下文包校验入口。"
   read_when:
     - "进入仓库后需要确定先读什么时"
     - "开始新任务前需要装配最小上下文时"
-  verify_with:
+  source_of_truth:
     - "AGENTS.md"
     - "docs/AI_CONTEXT.md"
     - "docs/ARCHITECTURE.md"
     - "docs/API_ENDPOINTS.md"
-    - "docs/DOC_SYNC_CHECKLIST.md"
+    - "docs/DATABASE_SCHEMA.md"
     - "scripts/validate_docs.py"
+  verify_with:
+    - "python3 scripts/validate_docs.py . --profile generic"
+    - "python3 -m py_compile scripts/validate_docs.py"
   stale_when:
-    - "文档入口新增或迁移"
-    - "权威文档职责边界调整"
-    - "校验脚本规则或路径变化"
-```
+    - "文档入口新增、迁移或改名"
+    - "上下文包校验规则变化"
+    - "任务阅读路径或权威边界调整"
+---
 
-## 权威边界
+# DV-Admin 文档导航
 
-- 本文件负责导航与分工，不负责替代架构/API/数据库事实正文。
-- 与代码冲突时信任代码，并在同一变更修正对应权威文档。
+> 本文件是项目文档的单一导航入口，负责把任务路由到对应权威资料。
 
-## 如何验证
+## Purpose
 
-- 文档入口唯一性：确认导航入口仅为 `docs/README.md`。
-- AI 索引唯一性：确认 `docs/AI_CONTEXT.md` 存在且在本文件可达。
-- 校验闭环：运行 `python3 scripts/validate_docs.py`。
+为人类维护者与 AI 代理提供统一文档入口，减少进入仓库时的上下文装配成本。
+
+## Source of truth
+
+- `AGENTS.md`
+- `docs/AI_CONTEXT.md`
+- `docs/ARCHITECTURE.md`
+- `docs/API_ENDPOINTS.md`
+- `docs/DATABASE_SCHEMA.md`
+- `scripts/validate_docs.py`
+
+## Key facts
+
+- 当前项目已有旧文档体系，本次按升级模式保留有效内容。
+- `AGENTS.md` 是代理规则入口，`docs/AI_CONTEXT.md` 是短上下文地图。
+- `backend/` 与 `fastapi/` 是同域替代实现，前端通常只连接其中一套。
+
+## How to verify
+
+- quick: `python3 scripts/validate_docs.py . --profile generic`
+- quick: `python3 -m py_compile scripts/validate_docs.py`
+
+## Stale when
+
+- 新增或迁移文档入口。
+- 质量门禁、端口、后端替代关系或上下文包规则变化。
 
 ---
 
@@ -151,14 +154,14 @@ cp .env.example .env
 
 - 前端开发时始终连接“当前选中的那一套后端实现”，不是同时连接 Django 和 FastAPI
 - 共享 API / 数据契约修改时，需要考虑两套后端实现的兼容性，但不代表本地联调要双开
-- 如果后端端口不是 `8769`，请同步修改 [frontend/.env.development](/Users/dengtingru/Desktop/code/DV-Admin/frontend/.env.development) 中的 `VITE_APP_API_URL`
-- 本地开发环境默认数据库通常是 SQLite；当前仓库的 Django 开发库位于 [backend/drf_admin/db.sqlite3](/Users/dengtingru/Desktop/code/DV-Admin/backend/drf_admin/db.sqlite3)
+- 如果后端端口不是 `8769`，请同步修改 [frontend/.env.development](../frontend/.env.development) 中的 `VITE_APP_API_URL`
+- 本地开发环境默认数据库通常是 SQLite；当前仓库的 Django 开发库位于 [backend/drf_admin/db.sqlite3](../backend/drf_admin/db.sqlite3)
 - 如需通过 MCP 查看本地开发数据，可为 SQLite MCP 指向该数据库文件；这类访问仅面向本地调试，不代表生产数据库类型或生产数据状态
 - 更完整的启动细节分别见：
-  - [AGENTS.md](/Users/dengtingru/Desktop/code/DV-Admin/AGENTS.md)
-  - [frontend/README.md](/Users/dengtingru/Desktop/code/DV-Admin/frontend/README.md)
-  - [backend/README.md](/Users/dengtingru/Desktop/code/DV-Admin/backend/README.md)
-  - [fastapi/README.md](/Users/dengtingru/Desktop/code/DV-Admin/fastapi/README.md)
+  - [AGENTS.md](../AGENTS.md)
+  - [frontend/README.md](../frontend/README.md)
+  - [backend/README.md](../backend/README.md)
+  - [fastapi/README.md](../fastapi/README.md)
 
 ### SQLite MCP 示例
 
@@ -172,7 +175,7 @@ cp .env.example .env
       "args": [
         "-y",
         "mcp-sqlite",
-        "/Users/dengtingru/Desktop/code/DV-Admin/backend/drf_admin/db.sqlite3"
+        "backend/drf_admin/db.sqlite3"
       ]
     }
   }
