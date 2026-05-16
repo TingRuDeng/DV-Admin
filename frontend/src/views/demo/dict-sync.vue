@@ -144,6 +144,9 @@ import { useDateFormat } from "@vueuse/core";
 import { DictItemForm } from "@/api/system/dict-items-api";
 import { useDictSync, DictMessage } from "@/composables";
 import DictItemsApi from "@/api/system/dict-items-api";
+import { createLogger } from "@/utils/logger";
+
+const dictSyncDemoLogger = createLogger("DictSyncDemo");
 
 // 性别字典编码
 const DICT_CODE = "gender";
@@ -227,7 +230,7 @@ const saveDict = async () => {
 
     ElMessage.success("保存成功，后端将通过WebSocket通知所有客户端");
   } catch (error) {
-    console.error("保存字典项失败:", error);
+    dictSyncDemoLogger.error("保存字典项失败:", error);
     ElMessage.error("保存失败");
   } finally {
     saving.value = false;

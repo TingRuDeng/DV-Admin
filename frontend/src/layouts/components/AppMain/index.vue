@@ -22,8 +22,10 @@ import { type RouteLocationNormalized } from "vue-router";
 import { useSettingsStore, useTagsViewStore } from "@/store";
 import variables from "@/styles/variables.module.scss";
 import { getRouteRenderKey } from "@/utils/view-cache";
+import { createLogger } from "@/utils/logger";
 import Error404 from "@/views/error/404.vue";
 
+const appMainLogger = createLogger("AppMain");
 const { cachedViews } = toRefs(useTagsViewStore());
 
 // 当前组件
@@ -41,7 +43,7 @@ const currentComponent = (component: Component, route: RouteLocationNormalized) 
         try {
           return h(component);
         } catch (error) {
-          console.error(`Error rendering component for route: ${componentName}`, error);
+          appMainLogger.error(`渲染路由组件失败: ${componentName}`, error);
           return h(Error404);
         }
       },
