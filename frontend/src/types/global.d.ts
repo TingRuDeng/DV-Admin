@@ -1,8 +1,10 @@
+import type { LocationQuery } from "vue-router";
+
 declare global {
   /**
    * 响应数据
    */
-  interface ApiResponse<T = any> {
+  interface ApiResponse<T = unknown> {
     code: number;
     data: T;
     msg?: string;
@@ -49,7 +51,7 @@ declare global {
     /** 是否开启缓存 */
     keepAlive?: boolean;
     /** 路由查询参数 */
-    query?: any;
+    query?: LocationQuery;
   }
 
   /**
