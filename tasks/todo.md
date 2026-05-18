@@ -94,3 +94,17 @@
 ## Review 小结
 
 终态：finished。P8 已将 WebSocket 插件实例注册表从 `Map<string, any>` 收口为最小生命周期接口，并新增实例注册表类型治理守卫测试；红绿测试、前端类型检查、前端质量聚合、文档校验、diff 检查和生产构建均通过。
+
+---
+
+# P9 全局路由类型边界收口
+
+- [x] 新增全局路由/API 类型治理测试，并确认当前代码会失败
+- [x] 将 `ApiResponse` 默认 payload、`TagView.query` 和 `translateRouteTitle` 参数改为显式类型
+- [x] 运行目标测试和前端类型检查
+- [x] 运行前端质量、文档校验和 diff 检查
+- [x] 使用 `review-gate` 做交付前审查
+
+## Review 小结
+
+终态：finished。P9 已将 `ApiResponse` 默认 payload 收口为 `unknown`，将 `TagView.query` 对齐为 `LocationQuery`，并将 `translateRouteTitle` 参数改为可选字符串；红绿测试、前端类型检查、前端质量聚合、文档校验、diff 检查和生产构建均通过。

@@ -51,34 +51,41 @@ httpRequest.interceptors.request.use(
   }
 );
 
+type AxiosResponseInterceptor = NonNullable<
+  Parameters<typeof httpRequest.interceptors.response.use>[0]
+>;
+
+function handleBusinessResponse(response: AxiosResponse<ApiResponse<unknown>>) {
+  // 如果响应是二进制数据，则直接返回response对象（用于文件下载、Excel导出、图片显示等）
+  if (response.config.responseType === "blob" || response.config.responseType === "arraybuffer") {
+    return response;
+  }
+
+  // 新增：处理204状态码（无内容）的DELETE请求
+  if (response.status === 204 && response.config.method?.toUpperCase() === "DELETE") {
+    // 返回模拟的成功响应数据
+    return { success: true };
+  }
+
+  const { code, data } = response.data || {}; // 增加空对象默认值防止解构错误
+
+  // 请求成功
+  if (code === ApiCodeEnum.SUCCESS) {
+    return data;
+  }
+
+  // 业务错误
+  const errorMessage = getApiErrorMessage(response.data, "系统出错");
+  ElMessage.error(errorMessage);
+  return Promise.reject(new Error(errorMessage));
+}
+
 /**
  * 响应拦截器 - 统一处理响应和错误
  */
 httpRequest.interceptors.response.use(
-  (response: AxiosResponse<ApiResponse>) => {
-    // 如果响应是二进制数据，则直接返回response对象（用于文件下载、Excel导出、图片显示等）
-    if (response.config.responseType === "blob" || response.config.responseType === "arraybuffer") {
-      return response;
-    }
-
-    // 新增：处理204状态码（无内容）的DELETE请求
-    if (response.status === 204 && response.config.method?.toUpperCase() === "DELETE") {
-      // 返回模拟的成功响应数据
-      return { success: true };
-    }
-
-    const { code, data } = response.data || {}; // 增加空对象默认值防止解构错误
-
-    // 请求成功
-    if (code === ApiCodeEnum.SUCCESS) {
-      return data;
-    }
-
-    // 业务错误
-    const errorMessage = getApiErrorMessage(response.data, "系统出错");
-    ElMessage.error(errorMessage);
-    return Promise.reject(new Error(errorMessage));
-  },
+  // Axios 类型定义不表达业务 data 解包，这里只在注册点适配拦截器签名。
+  handleBusinessResponse as unknown as AxiosResponseInterceptor,
   async (error) => {
     requestLogger.error("响应拦截器异常:", error);
 
