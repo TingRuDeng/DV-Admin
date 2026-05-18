@@ -38,3 +38,17 @@
 ## Review 小结
 
 终态：finished。P4 已将 `useTokenRefresh.ts` 的 P2 遗留 `any` 类型边界收口为最小函数接口和 `unknown`，并新增类型治理守卫测试；目标测试、原行为测试、前端质量聚合、文档校验和 diff 检查均通过。
+
+---
+
+# P5 API 请求泛型收口
+
+- [x] 新增 API 请求泛型治理测试，并确认当前代码会失败
+- [x] 将 `frontend/src/api` 的 `request<any, T>` 改为 `request<unknown, T>`
+- [x] 运行目标测试和前端类型检查
+- [x] 运行前端质量、文档校验和 diff 检查
+- [x] 使用 `review-gate` 做交付前审查
+
+## Review 小结
+
+终态：finished。P5 已将 API 层 `request<any, T>` 收口为 `request<unknown, T>`，并新增 API 请求泛型治理守卫测试；目标测试、前端类型检查、前端质量聚合、文档校验和 diff 检查均通过。
