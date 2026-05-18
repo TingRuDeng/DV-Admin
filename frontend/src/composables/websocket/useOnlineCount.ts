@@ -48,7 +48,7 @@ function createOnlineCountHook() {
   let subscriptionId = "";
 
   // 连接超时计时器
-  let connectionTimeoutTimer: any = null;
+  let connectionTimeoutTimer: ReturnType<typeof setTimeout> | undefined;
 
   // 监听Stomp连接状态
   watch(stompConnected, (connected) => {
@@ -162,7 +162,7 @@ function createOnlineCountHook() {
     // 清除连接超时计时器
     if (connectionTimeoutTimer) {
       clearTimeout(connectionTimeoutTimer);
-      connectionTimeoutTimer = null;
+      connectionTimeoutTimer = undefined;
     }
 
     disconnect();
