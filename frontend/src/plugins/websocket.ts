@@ -3,8 +3,14 @@ import { AuthStorage } from "@/utils/auth";
 import { createLogger } from "@/utils/logger";
 // 不直接导入 store 或 userStore
 
+// 注册表只依赖清理生命周期能力，不绑定具体 WebSocket 实现。
+interface WebSocketRegistryInstance {
+  disconnect?: () => void;
+  closeWebSocket?: () => void;
+}
+
 // 全局 WebSocket 实例管理
-const websocketInstances = new Map<string, any>();
+const websocketInstances = new Map<string, WebSocketRegistryInstance>();
 
 // 用于防止重复初始化的状态标记
 let isInitialized = false;
@@ -14,7 +20,7 @@ const logger = createLogger("WebSocketPlugin");
 /**
  * 注册 WebSocket 实例
  */
-export function registerWebSocketInstance(key: string, instance: any) {
+export function registerWebSocketInstance(key: string, instance: WebSocketRegistryInstance) {
   websocketInstances.set(key, instance);
   logger.debug(`Registered WebSocket instance: ${key}`);
 }
@@ -106,10 +112,10 @@ export function cleanupWebSocket() {
   // 清理所有注册的 WebSocket 实例
   websocketInstances.forEach((instance, key) => {
     try {
-      if (instance && typeof instance.disconnect === "function") {
+      if (typeof instance.disconnect === "function") {
         instance.disconnect();
         logger.info(`${key} WebSocket连接已断开`);
-      } else if (instance && typeof instance.closeWebSocket === "function") {
+      } else if (typeof instance.closeWebSocket === "function") {
         instance.closeWebSocket();
         logger.info(`${key} WebSocket连接已断开`);
       }
