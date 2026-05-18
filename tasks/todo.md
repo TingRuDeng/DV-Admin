@@ -66,3 +66,17 @@
 ## Review 小结
 
 终态：finished。P6 已将 `Storage.set/sessionSet` 写入参数从 `any` 收口为 `unknown`，并新增 Storage 类型治理守卫测试；目标测试、原有存储行为测试、前端类型检查、前端质量聚合、文档校验和 diff 检查均通过。
+
+---
+
+# P7 WebSocket 定时器类型收口
+
+- [x] 新增 WebSocket 定时器类型治理测试，并确认当前代码会失败
+- [x] 将 WebSocket 组合式函数定时器句柄改为显式类型
+- [x] 运行目标测试和前端类型检查
+- [x] 运行前端质量、文档校验和 diff 检查
+- [x] 使用 `review-gate` 做交付前审查
+
+## Review 小结
+
+终态：finished。P7 已将 WebSocket 组合式函数中的定时器句柄从 `any` 收口为 `ReturnType<typeof setTimeout> | undefined`，并新增定时器类型治理守卫测试；红绿测试、前端类型检查、前端质量聚合、文档校验、diff 检查和生产构建均通过。
