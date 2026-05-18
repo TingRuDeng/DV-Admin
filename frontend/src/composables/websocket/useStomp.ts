@@ -43,9 +43,9 @@ export function useStomp(options: UseStompOptions = {}) {
   // 重连尝试次数
   const reconnectCount = ref(0);
   // 重连计时器
-  let reconnectTimer: any = null;
+  let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
   // 连接超时计时器
-  let connectionTimeoutTimer: any = null;
+  let connectionTimeoutTimer: ReturnType<typeof setTimeout> | undefined;
   // 存储所有订阅
   const subscriptions = new Map<string, StompSubscription>();
 
@@ -324,12 +324,12 @@ export function useStomp(options: UseStompOptions = {}) {
     // 清除所有计时器
     if (reconnectTimer) {
       clearTimeout(reconnectTimer);
-      reconnectTimer = null;
+      reconnectTimer = undefined;
     }
 
     if (connectionTimeoutTimer) {
       clearTimeout(connectionTimeoutTimer);
-      connectionTimeoutTimer = null;
+      connectionTimeoutTimer = undefined;
     }
 
     // 清除所有订阅
