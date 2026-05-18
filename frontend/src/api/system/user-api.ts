@@ -10,7 +10,7 @@ const UserAPI = {
    * @param queryParams 查询参数
    */
   getPage(queryParams: UserPageQuery) {
-    return request<any, PageResult<UserPageVO[]>>({
+    return request<unknown, PageResult<UserPageVO[]>>({
       url: `${USER_BASE_URL}/`,
       method: "get",
       params: queryParams,
@@ -24,7 +24,7 @@ const UserAPI = {
    * @returns 用户表单详情
    */
   getFormData(userId: string) {
-    return request<any, UserForm>({
+    return request<unknown, UserForm>({
       url: `${USER_BASE_URL}/${userId}/`,
       method: "get",
     });
@@ -86,7 +86,7 @@ const UserAPI = {
 
   /** 下载用户导入模板 */
   downloadTemplate() {
-    return request<any, AxiosResponse<Blob>>({
+    return request<unknown, AxiosResponse<Blob>>({
       url: `${USER_BASE_URL}/template`,
       method: "get",
       responseType: "blob",
@@ -99,7 +99,7 @@ const UserAPI = {
    * @param queryParams 查询参数
    */
   export(queryParams?: UserPageQuery) {
-    return request<any, Blob>({
+    return request<unknown, Blob>({
       url: `${USER_BASE_URL}/export/`,
       method: "get",
       params: queryParams,
@@ -116,7 +116,7 @@ const UserAPI = {
   import(deptId: string, file: File) {
     const formData = new FormData();
     formData.append("file", file);
-    return request<any, ExcelResult>({
+    return request<unknown, ExcelResult>({
       url: `${USER_BASE_URL}/import`,
       method: "post",
       params: { deptId },
@@ -129,7 +129,7 @@ const UserAPI = {
 
   // /** 获取个人中心用户信息 */
   // getProfile() {
-  //   return request<any, UserProfileVO>({
+  //   return request<unknown, UserProfileVO>({
   //     url: `${USER_BASE_URL}/profile/`,
   //     method: "get",
   //   });
@@ -193,7 +193,7 @@ const UserAPI = {
    *  获取用户下拉列表
    */
   getOptions() {
-    return request<any, OptionType[]>({
+    return request<unknown, OptionType[]>({
       url: `${USER_BASE_URL}/options`,
       method: "get",
     });

@@ -80,7 +80,7 @@ const CaseAPI = {
    * @returns {Promise} 用例表格数据
    */
   getList(queryParams?: CaseQuery) {
-    return request<any, CaseVO[]>({
+    return request<unknown, CaseVO[]>({
       url: `${CASE_BASE_URL}/`,
       method: "get",
       params: queryParams,
@@ -92,7 +92,7 @@ const CaseAPI = {
    * @returns {Promise} 用例下拉列表数据
    */
   getOptions() {
-    return request<any, OptionType[]>({
+    return request<unknown, OptionType[]>({
       url: `${CASE_BASE_URL}/options/`,
       method: "get",
     });
@@ -104,7 +104,7 @@ const CaseAPI = {
    * @returns {Promise} 用例表单数据
    */
   getFormData(id: string) {
-    return request<any, CaseForm>({
+    return request<unknown, CaseForm>({
       url: `${CASE_BASE_URL}/${id}/`,
       method: "get",
     });
