@@ -5,7 +5,7 @@ const DICT_BASE_URL = "/api/system/dict-items";
 const DictItemAPI = {
   /** 获取字典项分页列表 */
   getDictItemPage(queryParams: DictItemPageQuery) {
-    return request<any, PageResult<DictItemPageVO[]>>({
+    return request<unknown, PageResult<DictItemPageVO[]>>({
       url: `${DICT_BASE_URL}/`,
       method: "get",
       params: queryParams,
@@ -13,7 +13,7 @@ const DictItemAPI = {
   },
   /** 根据字典编码获取字典项列表 */
   getDictItems(queryParams: DictItemQuery) {
-    return request<any, DictItemOption[]>({
+    return request<unknown, DictItemOption[]>({
       url: `${DICT_BASE_URL}/`,
       method: "get",
       params: queryParams,
@@ -25,7 +25,7 @@ const DictItemAPI = {
   },
   /** 获取字典项表单数据 */
   getDictItemFormData(id: string | number) {
-    return request<any, DictItemForm>({
+    return request<unknown, DictItemForm>({
       url: `${DICT_BASE_URL}/${id}/`,
       method: "get",
     });

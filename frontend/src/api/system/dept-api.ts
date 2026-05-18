@@ -5,15 +5,19 @@ const DEPT_BASE_URL = "/api/system/departments";
 const DeptAPI = {
   /** 获取部门树形列表 */
   getList(queryParams?: DeptQuery) {
-    return request<any, DeptVO[]>({ url: `${DEPT_BASE_URL}/`, method: "get", params: queryParams });
+    return request<unknown, DeptVO[]>({
+      url: `${DEPT_BASE_URL}/`,
+      method: "get",
+      params: queryParams,
+    });
   },
   /** 获取部门下拉数据源 */
   getOptions() {
-    return request<any, OptionType[]>({ url: `${DEPT_BASE_URL}/`, method: "get" });
+    return request<unknown, OptionType[]>({ url: `${DEPT_BASE_URL}/`, method: "get" });
   },
   /** 获取部门表单数据 */
   getFormData(id: string) {
-    return request<any, DeptForm>({ url: `${DEPT_BASE_URL}/${id}/`, method: "get" });
+    return request<unknown, DeptForm>({ url: `${DEPT_BASE_URL}/${id}/`, method: "get" });
   },
   /** 新增部门 */
   create(data: DeptForm) {

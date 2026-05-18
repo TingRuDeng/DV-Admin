@@ -4,21 +4,25 @@ const MENU_BASE_URL = "/api/system/menus";
 const MenuAPI = {
   /** 获取菜单树形列表 */
   getList(queryParams: MenuQuery) {
-    return request<any, MenuVO[]>({ url: `${MENU_BASE_URL}/`, method: "get", params: queryParams });
+    return request<unknown, MenuVO[]>({
+      url: `${MENU_BASE_URL}/`,
+      method: "get",
+      params: queryParams,
+    });
   },
   /**
    * 获取菜单下拉列表
    */
   getOptions(_includeRoot?: boolean) {
     void _includeRoot;
-    return request<any, OptionType[]>({
+    return request<unknown, OptionType[]>({
       url: `${MENU_BASE_URL}/options/`,
       method: "get",
     });
   },
   /** 获取菜单表单数据 */
   getFormData(id: string) {
-    return request<any, MenuForm>({ url: `${MENU_BASE_URL}/${id}/`, method: "get" });
+    return request<unknown, MenuForm>({ url: `${MENU_BASE_URL}/${id}/`, method: "get" });
   },
   /** 新增菜单 */
   create(data: MenuForm) {
