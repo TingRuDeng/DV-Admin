@@ -5,6 +5,8 @@ import { createLogger } from "@/utils/logger";
 
 const tokenRefreshLogger = createLogger("useTokenRefresh");
 
+type TokenRefreshHttpRequest = (config: InternalAxiosRequestConfig) => Promise<unknown>;
+
 /**
  * 等待刷新结果的请求队列项
  */
@@ -20,8 +22,8 @@ interface TokenRefreshState {
 
 interface PendingRequestOptions {
   config: InternalAxiosRequestConfig;
-  httpRequest: any;
-  resolve: (value: any) => void;
+  httpRequest: TokenRefreshHttpRequest;
+  resolve: (value: unknown) => void;
   reject: (reason?: unknown) => void;
 }
 
@@ -95,8 +97,8 @@ export function useTokenRefresh() {
    */
   async function refreshTokenAndRetry(
     config: InternalAxiosRequestConfig,
-    httpRequest: any
-  ): Promise<any> {
+    httpRequest: TokenRefreshHttpRequest
+  ): Promise<unknown> {
     return new Promise((resolve, reject) => {
       // 队列项必须保留 reject，刷新失败时才能显式结束每个等待请求。
       state.pendingRequests.push(
