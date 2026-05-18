@@ -64,7 +64,7 @@ const ProjectApi = {
    * @returns {Promise} 项目树形表格数据
    */
   getList(queryParams?: ProjectQuery) {
-    return request<any, ProjectVO[]>({
+    return request<unknown, ProjectVO[]>({
       url: `${PROJECT_BASE_URL}/`,
       method: "get",
       params: queryParams,
@@ -76,7 +76,7 @@ const ProjectApi = {
    * @returns {Promise} 项目下拉列表数据
    */
   getOptions() {
-    return request<any, OptionType[]>({
+    return request<unknown, OptionType[]>({
       url: `${PROJECT_BASE_URL}/`,
       method: "get",
     });
@@ -88,7 +88,7 @@ const ProjectApi = {
    * @returns {Promise} 项目表单数据
    */
   getFormData(id: string) {
-    return request<any, ProjectForm>({
+    return request<unknown, ProjectForm>({
       url: `${PROJECT_BASE_URL}/${id}/`,
       method: "get",
     });

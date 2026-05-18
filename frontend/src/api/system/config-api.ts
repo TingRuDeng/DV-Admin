@@ -5,7 +5,7 @@ const CONFIG_BASE_URL = "/api/v1/config";
 const ConfigAPI = {
   /** 获取配置分页数据 */
   getPage(queryParams?: ConfigPageQuery) {
-    return request<any, PageResult<ConfigPageVO[]>>({
+    return request<unknown, PageResult<ConfigPageVO[]>>({
       url: `${CONFIG_BASE_URL}/page`,
       method: "get",
       params: queryParams,
@@ -13,7 +13,7 @@ const ConfigAPI = {
   },
   /** 获取配置表单数据 */
   getFormData(id: string) {
-    return request<any, ConfigForm>({
+    return request<unknown, ConfigForm>({
       url: `${CONFIG_BASE_URL}/${id}/form`,
       method: "get",
     });

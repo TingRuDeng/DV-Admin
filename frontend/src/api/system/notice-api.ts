@@ -5,7 +5,7 @@ const NOTICE_BASE_URL = "/api/system/notices";
 const NoticeAPI = {
   /** 获取通知公告分页数据 */
   getPage(queryParams?: NoticePageQuery) {
-    return request<any, PageResult<NoticePageVO[]>>({
+    return request<unknown, PageResult<NoticePageVO[]>>({
       url: `${NOTICE_BASE_URL}/page`,
       method: "get",
       params: queryParams,
@@ -13,7 +13,7 @@ const NoticeAPI = {
   },
   /** 获取通知公告表单数据 */
   getFormData(id: string) {
-    return request<any, NoticeForm>({ url: `${NOTICE_BASE_URL}/${id}/form`, method: "get" });
+    return request<unknown, NoticeForm>({ url: `${NOTICE_BASE_URL}/${id}/form`, method: "get" });
   },
   /** 添加通知公告 */
   create(data: NoticeForm) {
@@ -37,7 +37,10 @@ const NoticeAPI = {
   },
   /** 查看通知 */
   getDetail(id: string) {
-    return request<any, NoticeDetailVO>({ url: `${NOTICE_BASE_URL}/${id}/detail`, method: "get" });
+    return request<unknown, NoticeDetailVO>({
+      url: `${NOTICE_BASE_URL}/${id}/detail`,
+      method: "get",
+    });
   },
   /** 全部已读 */
   readAll() {
@@ -45,7 +48,7 @@ const NoticeAPI = {
   },
   /** 获取我的通知分页列表 */
   getMyNoticePage(queryParams?: NoticePageQuery) {
-    return request<any, PageResult<NoticePageVO[]>>({
+    return request<unknown, PageResult<NoticePageVO[]>>({
       url: `${NOTICE_BASE_URL}/my-page/`,
       method: "get",
       params: queryParams,

@@ -5,7 +5,7 @@ const INFO_BASE_URL = "/api/information";
 const InformationApi = {
   /** 获取个人中心用户信息 */
   getProfile() {
-    return request<any, UserProfile>({
+    return request<unknown, UserProfile>({
       url: `${INFO_BASE_URL}/profile/`,
       method: "get",
     });
@@ -37,7 +37,7 @@ const InformationApi = {
   updateAvatar(file: FormData | File) {
     // 如果传入的已经是FormData对象，直接使用
     if (file instanceof FormData) {
-      return request<any, AvatarInfo>({
+      return request<unknown, AvatarInfo>({
         url: `${INFO_BASE_URL}/change-avatar/`,
         method: "post",
         data: file,
@@ -49,7 +49,7 @@ const InformationApi = {
     // 如果传入的是文件对象，创建FormData
     const formData = new FormData();
     formData.append("image", file);
-    return request<any, AvatarInfo>({
+    return request<unknown, AvatarInfo>({
       url: `${INFO_BASE_URL}/change-avatar/`,
       method: "post",
       data: formData,
