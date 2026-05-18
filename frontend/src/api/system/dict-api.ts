@@ -5,7 +5,7 @@ const DICT_BASE_URL = "/api/system/dicts";
 const DictAPI = {
   /** 字典分页列表 */
   getPage(queryParams?: DictPageQuery) {
-    return request<any, PageResult<DictPageVO[]>>({
+    return request<unknown, PageResult<DictPageVO[]>>({
       url: `${DICT_BASE_URL}/`,
       method: "get",
       params: queryParams,
@@ -13,11 +13,11 @@ const DictAPI = {
   },
   /** 字典列表 */
   getList() {
-    return request<any, OptionType[]>({ url: `${DICT_BASE_URL}/`, method: "get" });
+    return request<unknown, OptionType[]>({ url: `${DICT_BASE_URL}/`, method: "get" });
   },
   /** 字典表单数据 */
   getFormData(id: string) {
-    return request<any, DictForm>({ url: `${DICT_BASE_URL}/${id}/`, method: "get" });
+    return request<unknown, DictForm>({ url: `${DICT_BASE_URL}/${id}/`, method: "get" });
   },
   /** 新增字典 */
   create(data: DictForm) {

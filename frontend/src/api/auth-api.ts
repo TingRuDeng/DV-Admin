@@ -4,7 +4,7 @@ const AUTH_BASE_URL = "/api/oauth";
 const AuthAPI = {
   /** 登录接口*/
   login(data: LoginFormData) {
-    return request<any, LoginResult>({
+    return request<unknown, LoginResult>({
       url: `${AUTH_BASE_URL}/login/`,
       method: "post",
       data,
@@ -13,7 +13,7 @@ const AuthAPI = {
 
   /** 刷新 token 接口*/
   refreshToken(refreshToken: string) {
-    return request<any, LoginResult>({
+    return request<unknown, LoginResult>({
       url: `${AUTH_BASE_URL}/refresh-token/`,
       method: "post",
       params: { refreshToken },
@@ -37,7 +37,7 @@ const AuthAPI = {
    * @returns 登录用户昵称、头像信息，包括角色和权限
    */
   getInfo() {
-    return request<any, UserInfo>({
+    return request<unknown, UserInfo>({
       url: `${AUTH_BASE_URL}/info/`,
       method: "get",
     });
@@ -45,12 +45,12 @@ const AuthAPI = {
 
   /** 获取当前用户的路由列表 */
   getRoutes() {
-    return request<any, RouteVO[]>({ url: `${AUTH_BASE_URL}/menus/routes/`, method: "get" });
+    return request<unknown, RouteVO[]>({ url: `${AUTH_BASE_URL}/menus/routes/`, method: "get" });
   },
 
   /** 获取验证码接口*/
   getCaptcha() {
-    return request<any, CaptchaInfo>({
+    return request<unknown, CaptchaInfo>({
       url: `${AUTH_BASE_URL}/captcha/`,
       method: "get",
     });
