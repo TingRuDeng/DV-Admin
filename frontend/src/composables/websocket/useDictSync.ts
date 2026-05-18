@@ -41,7 +41,7 @@ function createDictSyncHook() {
   const messageCallbacks = ref<DictMessageCallback[]>([]);
 
   // 重试定时器
-  let retryTimer: any = null;
+  let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
   /**
    * 注册字典消息回调
@@ -87,7 +87,7 @@ function createDictSyncHook() {
     // 清理重试定时器
     if (retryTimer) {
       clearTimeout(retryTimer);
-      retryTimer = null;
+      retryTimer = undefined;
     }
 
     // 取消所有订阅
@@ -125,7 +125,7 @@ function createDictSyncHook() {
         }
         // 10秒后再次尝试
         retryTimer = setTimeout(() => {
-          retryTimer = null;
+          retryTimer = undefined;
           attemptSubscribe();
         }, 10000);
         return;
@@ -134,7 +134,7 @@ function createDictSyncHook() {
       // 清理重试定时器
       if (retryTimer) {
         clearTimeout(retryTimer);
-        retryTimer = null;
+        retryTimer = undefined;
       }
 
       // 检查是否已订阅
