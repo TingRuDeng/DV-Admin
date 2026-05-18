@@ -80,3 +80,17 @@
 ## Review 小结
 
 终态：finished。P7 已将 WebSocket 组合式函数中的定时器句柄从 `any` 收口为 `ReturnType<typeof setTimeout> | undefined`，并新增定时器类型治理守卫测试；红绿测试、前端类型检查、前端质量聚合、文档校验、diff 检查和生产构建均通过。
+
+---
+
+# P8 WebSocket 实例注册表类型收口
+
+- [x] 新增 WebSocket 实例注册表类型治理测试，并确认当前代码会失败
+- [x] 为 WebSocket 注册表定义最小实例接口
+- [x] 运行目标测试和前端类型检查
+- [x] 运行前端质量、文档校验和 diff 检查
+- [x] 使用 `review-gate` 做交付前审查
+
+## Review 小结
+
+终态：finished。P8 已将 WebSocket 插件实例注册表从 `Map<string, any>` 收口为最小生命周期接口，并新增实例注册表类型治理守卫测试；红绿测试、前端类型检查、前端质量聚合、文档校验、diff 检查和生产构建均通过。
