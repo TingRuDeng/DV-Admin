@@ -1,5 +1,10 @@
 import { appendCacheKeyWithLimit, getRouteCacheKey, getTagCacheKey } from "@/utils/view-cache";
 
+export interface TagsViewChangeResult {
+  visitedViews: TagView[];
+  cachedViews?: string[];
+}
+
 export const useTagsViewStore = defineStore("tagsView", () => {
   const visitedViews = ref<TagView[]>([]);
   const cachedViews = ref<string[]>([]);
@@ -47,7 +52,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
    * 从已访问视图列表中删除指定的视图
    */
   function delVisitedView(view: TagView) {
-    return new Promise((resolve) => {
+    return new Promise<TagView[]>((resolve) => {
       for (const [i, v] of visitedViews.value.entries()) {
         // 找到与指定视图路径匹配的视图，在已访问视图列表中删除该视图
         if (v.path === view.path) {
@@ -61,7 +66,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
 
   function delCachedView(view: TagView) {
     const cacheKey = getTagCacheKey(view);
-    return new Promise((resolve) => {
+    return new Promise<string[]>((resolve) => {
       const index = cachedViews.value.indexOf(cacheKey);
       if (index > -1) {
         cachedViews.value.splice(index, 1);
@@ -70,7 +75,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     });
   }
   function delOtherVisitedViews(view: TagView) {
-    return new Promise((resolve) => {
+    return new Promise<TagView[]>((resolve) => {
       visitedViews.value = visitedViews.value.filter((v) => {
         return v?.affix || v.path === view.path;
       });
@@ -80,7 +85,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
 
   function delOtherCachedViews(view: TagView) {
     const cacheKey = getTagCacheKey(view);
-    return new Promise((resolve) => {
+    return new Promise<string[]>((resolve) => {
       const index = cachedViews.value.indexOf(cacheKey);
       if (index > -1) {
         cachedViews.value = cachedViews.value.slice(index, index + 1);
@@ -141,7 +146,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   }
 
   function delView(view: TagView) {
-    return new Promise((resolve) => {
+    return new Promise<TagsViewChangeResult>((resolve) => {
       delVisitedView(view);
       delCachedView(view);
       resolve({
@@ -152,7 +157,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   }
 
   function delOtherViews(view: TagView) {
-    return new Promise((resolve) => {
+    return new Promise<TagsViewChangeResult>((resolve) => {
       delOtherVisitedViews(view);
       delOtherCachedViews(view);
       resolve({
@@ -163,7 +168,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   }
 
   function delLeftViews(view: TagView) {
-    return new Promise((resolve) => {
+    return new Promise<TagsViewChangeResult>((resolve) => {
       const currIndex = visitedViews.value.findIndex((v) => v.path === view.path);
       if (currIndex === -1) {
         return;
@@ -186,7 +191,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   }
 
   function delRightViews(view: TagView) {
-    return new Promise((resolve) => {
+    return new Promise<TagsViewChangeResult>((resolve) => {
       const currIndex = visitedViews.value.findIndex((v) => v.path === view.path);
       if (currIndex === -1) {
         return;
@@ -208,7 +213,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   }
 
   function delAllViews() {
-    return new Promise((resolve) => {
+    return new Promise<TagsViewChangeResult>((resolve) => {
       const affixTags = visitedViews.value.filter((tag) => tag?.affix);
       visitedViews.value = affixTags;
       cachedViews.value = [];
@@ -220,7 +225,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   }
 
   function delAllVisitedViews() {
-    return new Promise((resolve) => {
+    return new Promise<TagView[]>((resolve) => {
       const affixTags = visitedViews.value.filter((tag) => tag?.affix);
       visitedViews.value = affixTags;
       resolve([...visitedViews.value]);
@@ -228,7 +233,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   }
 
   function delAllCachedViews() {
-    return new Promise((resolve) => {
+    return new Promise<string[]>((resolve) => {
       cachedViews.value = [];
       resolve([...cachedViews.value]);
     });
@@ -248,7 +253,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
       keepAlive: route.meta?.keepAlive,
       query: route.query,
     };
-    delView(tags).then((res: any) => {
+    delView(tags).then((res) => {
       if (isActive(tags)) {
         toLastView(res.visitedViews, tags);
       }
