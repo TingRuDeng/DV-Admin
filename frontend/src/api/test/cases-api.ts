@@ -13,7 +13,7 @@ export interface CaseQuery {
   /** 项目ID */
   projectId?: string;
   /** 其他可选查询参数 */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -43,7 +43,7 @@ export interface CaseForm {
   /** 排序 */
   sort?: number;
   /** 其他用例字段 */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -61,7 +61,7 @@ export interface CaseVO extends CaseForm {
   /** 项目名称 */
   projectName?: string;
   /** 其他展示字段 */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -70,7 +70,7 @@ export interface CaseVO extends CaseForm {
 export interface OptionType {
   value: string | number;
   label: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 const CaseAPI = {
