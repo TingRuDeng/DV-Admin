@@ -49,7 +49,7 @@ export interface DictItemOption {
   label: string;
   /** 标签类型 */
   tagType?: "" | "success" | "info" | "warning" | "danger";
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface DictItemQuery {
