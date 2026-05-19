@@ -11,7 +11,7 @@ export interface ProjectQuery {
   /** 状态 */
   status?: number;
   /** 其他可选查询参数 */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -31,7 +31,7 @@ export interface ProjectForm {
   /** 父项目ID */
   parentId?: string;
   /** 其他项目字段 */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -45,7 +45,7 @@ export interface ProjectVO extends ProjectForm {
   /** 修改时间 */
   updateTime?: string;
   /** 其他展示字段 */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -54,7 +54,7 @@ export interface ProjectVO extends ProjectForm {
 export interface OptionType {
   value: string | number;
   label: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 const ProjectApi = {
