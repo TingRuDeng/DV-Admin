@@ -80,6 +80,10 @@ interface ContextMenu {
   y: number;
 }
 
+interface LegacyWheelEvent extends WheelEvent {
+  wheelDelta?: number;
+}
+
 const router = useRouter();
 const route = useRoute();
 
@@ -257,7 +261,8 @@ const handleScroll = (event: WheelEvent) => {
   const hasHorizontalScroll = scrollWrapper.scrollWidth > scrollWrapper.clientWidth;
   if (!hasHorizontalScroll) return;
 
-  const deltaY = event.deltaY || -(event as any).wheelDelta || 0;
+  const legacyWheelDelta = (event as LegacyWheelEvent).wheelDelta ?? 0;
+  const deltaY = event.deltaY || -legacyWheelDelta;
   const newScrollLeft = scrollWrapper.scrollLeft + deltaY;
 
   scrollbarRef.value.setScrollLeft(newScrollLeft);
@@ -281,7 +286,7 @@ const refreshSelectedTag = (tag: TagView | null) => {
 const closeSelectedTag = (tag: TagView | null) => {
   if (!tag) return;
 
-  tagsViewStore.delView(tag).then((result: any) => {
+  tagsViewStore.delView(tag).then((result) => {
     if (tagsViewStore.isActive(tag)) {
       tagsViewStore.toLastView(result.visitedViews, tag);
     }
@@ -294,7 +299,7 @@ const closeSelectedTag = (tag: TagView | null) => {
 const closeLeftTags = () => {
   if (!selectedTag.value) return;
 
-  tagsViewStore.delLeftViews(selectedTag.value).then((result: any) => {
+  tagsViewStore.delLeftViews(selectedTag.value).then((result) => {
     const hasCurrentRoute = result.visitedViews.some((item: TagView) => item.path === route.path);
 
     if (!hasCurrentRoute) {
@@ -309,7 +314,7 @@ const closeLeftTags = () => {
 const closeRightTags = () => {
   if (!selectedTag.value) return;
 
-  tagsViewStore.delRightViews(selectedTag.value).then((result: any) => {
+  tagsViewStore.delRightViews(selectedTag.value).then((result) => {
     const hasCurrentRoute = result.visitedViews.some((item: TagView) => item.path === route.path);
 
     if (!hasCurrentRoute) {
@@ -334,7 +339,7 @@ const closeOtherTags = () => {
  * 关闭所有标签
  */
 const closeAllTags = (tag: TagView | null) => {
-  tagsViewStore.delAllViews().then((result: any) => {
+  tagsViewStore.delAllViews().then((result) => {
     tagsViewStore.toLastView(result.visitedViews, tag || undefined);
   });
 };
