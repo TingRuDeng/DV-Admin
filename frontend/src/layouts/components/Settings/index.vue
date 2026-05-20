@@ -163,6 +163,9 @@ interface LayoutOption {
   className: string;
 }
 
+type SidebarColorScheme = AppSettings["sidebarColorScheme"];
+type RadioGroupChangeValue = string | number | boolean | undefined;
+
 const layoutOptions: LayoutOption[] = [
   { value: LayoutMode.LEFT, label: t("settings.leftLayout"), className: "left" },
   { value: LayoutMode.TOP, label: t("settings.topLayout"), className: "top" },
@@ -175,7 +178,7 @@ const colorPresets = themeColorPresets;
 const settingsStore = useSettingsStore();
 
 const isDark = ref<boolean>(settingsStore.theme === ThemeMode.DARK);
-const sidebarColor = ref(settingsStore.sidebarColorScheme);
+const sidebarColor = ref<SidebarColorScheme>(settingsStore.sidebarColorScheme);
 
 const selectedThemeColor = computed({
   get: () => settingsStore.themeColor,
@@ -196,12 +199,20 @@ const handleThemeChange = (isDark: string | number | boolean) => {
   settingsStore.updateTheme(isDark ? ThemeMode.DARK : ThemeMode.LIGHT);
 };
 
+function isSidebarColorScheme(value: RadioGroupChangeValue): value is SidebarColorScheme {
+  return value === SidebarColor.CLASSIC_BLUE || value === SidebarColor.MINIMAL_WHITE;
+}
+
 /**
  * 更改侧边栏颜色
  *
  * @param val 颜色方案名称
  */
-const changeSidebarColor = (val: any) => {
+const changeSidebarColor = (val: RadioGroupChangeValue) => {
+  if (!isSidebarColorScheme(val)) {
+    throw new Error(`不支持的侧边栏配色方案：${String(val)}`);
+  }
+
   settingsStore.updateSidebarColorScheme(val);
 };
 
