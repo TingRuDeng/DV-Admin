@@ -4,6 +4,8 @@ import type { LayoutMode } from "@/enums/settings/layout-enum";
 import { applyTheme, generateThemeColors, toggleDarkMode, toggleSidebarColor } from "@/utils/theme";
 import { STORAGE_KEYS } from "@/constants";
 
+type SidebarColorScheme = AppSettings["sidebarColorScheme"];
+
 // 🎯 设置项类型定义
 interface SettingsState {
   // 界面显示设置
@@ -14,16 +16,24 @@ interface SettingsState {
 
   // 布局设置
   layout: LayoutMode;
-  sidebarColorScheme: string;
+  sidebarColorScheme: SidebarColorScheme;
 
   // 主题设置
   theme: ThemeMode;
   themeColor: string;
 }
 
-// 🎯 可变更的设置项类型
-type MutableSetting = Exclude<keyof SettingsState, "settingsVisible">;
-type SettingValue<K extends MutableSetting> = SettingsState[K];
+interface SettingsRefMap {
+  showTagsView: Ref<SettingsState["showTagsView"]>;
+  showAppLogo: Ref<SettingsState["showAppLogo"]>;
+  showWatermark: Ref<SettingsState["showWatermark"]>;
+  sidebarColorScheme: Ref<SettingsState["sidebarColorScheme"]>;
+  layout: Ref<SettingsState["layout"]>;
+}
+
+// 🎯 设置项写入值和 key 保持关联，避免通用更新入口绕过类型约束
+type SettingValue<K extends keyof SettingsRefMap> =
+  SettingsRefMap[K] extends Ref<infer Value> ? Value : never;
 
 export const useSettingsStore = defineStore("setting", () => {
   // 设置面板可见性
@@ -45,7 +55,7 @@ export const useSettingsStore = defineStore("setting", () => {
   );
 
   // 侧边栏配色方案
-  const sidebarColorScheme = useStorage<string>(
+  const sidebarColorScheme = useStorage<SidebarColorScheme>(
     STORAGE_KEYS.SIDEBAR_COLOR_SCHEME,
     defaultSettings.sidebarColorScheme
   );
@@ -60,7 +70,7 @@ export const useSettingsStore = defineStore("setting", () => {
   const theme = useStorage<ThemeMode>(STORAGE_KEYS.THEME, defaultSettings.theme);
 
   // 设置项映射，用于统一管理
-  const settingsMap = {
+  const settingsMap: SettingsRefMap = {
     showTagsView,
     showAppLogo,
     showWatermark,
@@ -89,11 +99,9 @@ export const useSettingsStore = defineStore("setting", () => {
   );
 
   // 通用设置更新方法
-  function updateSetting<K extends keyof typeof settingsMap>(key: K, value: SettingValue<K>): void {
-    const setting = settingsMap[key];
-    if (setting) {
-      (setting as Ref<any>).value = value;
-    }
+  function updateSetting<K extends keyof SettingsRefMap>(key: K, value: SettingValue<K>): void {
+    const setting = settingsMap[key] as Ref<SettingValue<K>>;
+    setting.value = value;
   }
 
   // 主题更新方法
@@ -105,7 +113,7 @@ export const useSettingsStore = defineStore("setting", () => {
     themeColor.value = newColor;
   }
 
-  function updateSidebarColorScheme(newScheme: string): void {
+  function updateSidebarColorScheme(newScheme: SidebarColorScheme): void {
     sidebarColorScheme.value = newScheme;
   }
 

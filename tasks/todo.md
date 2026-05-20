@@ -136,3 +136,17 @@
 ## Review 小结
 
 终态：finished。P11 已将 `TagsView` 与 `tags-view-store` 的标签关闭返回值类型收口为显式结构，并用旧版滚轮事件最小类型替代 `as any`；红绿测试、前端类型检查、前端质量聚合、文档校验、diff 检查和生产构建均通过。
+
+---
+
+# P12 设置面板类型边界收口
+
+- [x] 新增设置类型治理测试，并确认当前代码会失败
+- [x] 为设置仓库映射和侧边栏配色定义显式类型
+- [x] 移除 Settings 面板和 settings-store 中的 `any`
+- [x] 运行目标测试、前端类型检查、质量聚合、文档校验、diff 检查和生产构建
+- [x] 使用 `review-gate` 做交付前审查
+
+## Review 小结
+
+终态：finished。P12 已将 `settings-store` 的设置项映射收口为按 key 关联的显式类型，并将设置面板侧边栏配色事件收口到 `AppSettings["sidebarColorScheme"]`；红绿测试、前端类型检查、前端质量聚合、文档校验、diff 检查和生产构建均通过。
