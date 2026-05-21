@@ -1,7 +1,8 @@
 
+from django.urls import include, path
+
+from drf_admin.apps.system.views import departments, dicts, menus, notices, roles, users
 from drf_admin.utils import routers
-from django.urls import path, include
-from drf_admin.apps.system.views import users, roles, departments, menus, notices, dicts
 
 router = routers.AdminRouter()
 router.register(r'users', users.UsersViewSet, basename="users")  # 用户管理

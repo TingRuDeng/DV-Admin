@@ -2,9 +2,8 @@
 
 from rest_framework import serializers
 
-from drf_admin.utils.views import TreeSerializer
-from drf_admin.common.models import get_child_ids
 from drf_admin.apps.system.models import Departments
+from drf_admin.common.models import get_child_ids
 
 
 class DepartmentsSerializer(serializers.ModelSerializer):

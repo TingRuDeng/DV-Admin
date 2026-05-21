@@ -5,10 +5,12 @@
 - 用户 (Users)
 """
 
+from __future__ import annotations
+
 from tortoise import fields
 
 from app.db.models.base import BaseModel
-from app.db.models.system import Roles
+from app.db.models.system import Departments, Roles
 
 
 class Users(BaseModel):
@@ -54,16 +56,17 @@ class Users(BaseModel):
     is_staff = fields.BooleanField(default=False, description="是否 staff")
 
     # 外键关系
-    dept = fields.ForeignKeyField(
+    dept: fields.ForeignKeyNullableRelation[Departments] = fields.ForeignKeyField(
         "models.Departments",
         related_name="users",
         null=True,
         on_delete=fields.SET_NULL,
         description="直属部门",
     )
+    dept_id: int | None
 
     # 多对多关系：角色
-    roles = fields.ManyToManyField(
+    roles: fields.ManyToManyRelation[Roles] = fields.ManyToManyField(
         "models.Roles",
         related_name="users",
         through="system_users_roles",

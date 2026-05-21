@@ -9,7 +9,7 @@ import os
 import sys
 from contextvars import ContextVar
 from datetime import datetime
-from typing import Any
+from typing import Any, cast
 
 from loguru import logger
 
@@ -135,7 +135,7 @@ def setup_logger(
         logger.add(
             sys.stdout,
             level=log_level,
-            format=formatter.format,
+            format=cast(Any, formatter.format),
             enqueue=use_async_queue,
             backtrace=True,
             diagnose=environment == "development",
@@ -165,7 +165,7 @@ def setup_logger(
             logger.add(
                 log_file,
                 level=log_level,
-                format=formatter.format,
+                format=cast(Any, formatter.format),
                 rotation=rotation,
                 retention=retention,
                 enqueue=use_async_queue,
@@ -192,9 +192,9 @@ class RequestContextLogger:
 
     def __init__(self, name: str = "app"):
         self.name = name
-        self._logger = logger.bind(name=name)
+        self._logger: Any = logger.bind(name=name)
 
-    def _bind_context(self) -> "logger":
+    def _bind_context(self) -> Any:
         """绑定请求上下文"""
         request_id = get_request_id()
         if request_id:

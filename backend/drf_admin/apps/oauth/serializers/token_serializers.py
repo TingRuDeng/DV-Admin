@@ -2,8 +2,8 @@
 """
 自定义Token序列化器，实现细粒度的登录校验规则
 """
-from rest_framework import serializers
 from django.contrib.auth import authenticate
+from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from drf_admin.apps.system.models import Users

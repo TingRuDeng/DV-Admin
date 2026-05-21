@@ -140,7 +140,7 @@ class RoleService:
             raise NotFound("角色不存在")
 
         # 更新字段
-        update_fields = {}
+        update_fields: dict[str, Any] = {}
         if role_data.name is not None:
             update_fields["name"] = role_data.name
         if role_data.code is not None:

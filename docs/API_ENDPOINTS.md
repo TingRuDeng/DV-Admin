@@ -7,14 +7,18 @@ ai_summary:
   source_of_truth:
     - "backend/drf_admin/apps/oauth/urls.py"
     - "backend/drf_admin/apps/oauth/views/oauth.py"
+    - "backend/drf_admin/apps/system/views/health.py"
     - "backend/drf_admin/utils/middleware.py"
     - "fastapi/app/api/v1/oauth/auth.py"
     - "fastapi/app/api/health.py"
     - "fastapi/app/schemas/base.py"
     - "frontend/src/api/auth-api.ts"
     - "frontend/src/utils/request.ts"
+    - "scripts/api_contracts.py"
+    - "scripts/validate_api_contracts.py"
   verify_with:
     - "python3 scripts/validate_docs.py . --profile generic"
+    - "python3 scripts/validate_api_contracts.py ."
     - "git ls-files backend/drf_admin/apps/oauth/urls.py fastapi/app/api/v1/oauth/auth.py frontend/src/api/auth-api.ts"
   stale_when:
     - "接口路径、请求参数或响应包裹字段变化"
@@ -45,10 +49,12 @@ ai_summary:
 - 两套后端共享 `/api/v1/` 契约前缀，但仍存在局部差异端点。
 - 前端成功分支主要依赖 `code/data`，错误分支会读取 `errors`、`msg` 或 `message`。
 - 刷新 token、验证码和健康检查端点是契约差异高风险区域。
+- 共享响应与分页契约由 `scripts/api_contracts.py`、Django/FastAPI 后端测试和前端契约测试共同锁定。
 
 ## How to verify
 
 - quick: `python3 scripts/validate_docs.py . --profile generic`
+- quick: `python3 scripts/validate_api_contracts.py .`
 - full: `pnpm --dir frontend run quality`
 - full: `make -C fastapi quality`
 
@@ -92,7 +98,7 @@ ai_summary:
 
 **关键差异：**
 - 部分端点路径不同（见下文详细说明）
-- FastAPI 有额外的健康检查端点（`/health`）
+- Django 与 FastAPI 均提供根级健康检查端点（`/health`）
 - 验证码端点仅存在于 FastAPI
 
 ---
@@ -130,6 +136,16 @@ ai_summary:
 - Django 响应中间件统一输出 `{code, msg, errors, data}`（见 `backend/drf_admin/utils/middleware.py`）。
 - FastAPI `ResponseModel` 默认输出 `{code, message, data}`（见 `fastapi/app/schemas/base.py`）。
 - 前端成功分支仅依赖 `code/data`，错误分支当前优先读取 `errors` 与 `msg`（见 `frontend/src/utils/request.ts`）。
+
+### 共享 API 契约验证
+
+共享契约不是靠字段名已经完全一致来保证，而是靠前端真实依赖的公共语义来约束：
+
+- `scripts/api_contracts.py` 定义成功响应、错误响应和分页载荷的跨后端断言。
+- `backend/drf_admin/utils/test_response_contract.py` 覆盖 Django 响应中间件的成功、错误和幂等包裹。
+- `fastapi/tests/test_api_contracts.py` 覆盖 FastAPI `ResponseModel` 与 `PageResult`。
+- `frontend/src/utils/__tests__/api-contract.test.ts` 覆盖前端对 Django `msg/errors` 与 FastAPI `message` 的兼容读取。
+- `scripts/validate_api_contracts.py` 校验契约定义、测试文件和本文档入口是否同步。
 
 ---
 
@@ -399,13 +415,17 @@ DELETE /api/v1/files/upload/   # 删除文件
 
 ---
 
-## 健康检查（仅 FastAPI）
+## 健康检查（Django & FastAPI）
 
 ```
 GET /health        # 基本健康检查
 GET /health/ready  # 就绪检查（含数据库、Redis）
 GET /health/live   # 存活检查
 ```
+
+**实现说明：**
+- Django：`backend/drf_admin/apps/system/views/health.py`，响应头会携带 `X-Request-ID`。
+- FastAPI：`fastapi/app/api/health.py`，响应中包含结构化依赖检查。
 
 ---
 
@@ -427,6 +447,9 @@ GET /api/redoc/         # ReDoc
 - `POST /api/v1/oauth/refresh-token/`
 - `GET /api/v1/oauth/captcha/`（仅 FastAPI）
 - `GET /api/v1/system/dict-items/`
+- `GET /health`
+- `GET /health/live`
+- `GET /health/ready`
 
 ---
 
@@ -462,7 +485,7 @@ GET /api/redoc/         # ReDoc
 
 ---
 
-**最后更新：** 2026-04-11
+**最后更新：** 2026-05-21
 **维护者：** DV-Admin Team
 
 **重要提醒：** 本文档不保证完整性，实际开发请以代码为准。

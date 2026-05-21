@@ -14,7 +14,7 @@ lint:
 	uv run isort . --check-only
 
 typecheck:
-	uv run mypy app/schemas
+	uv run mypy app
 
 test:
 	uv run pytest --cov=app --cov-report=term-missing --cov-fail-under=80
