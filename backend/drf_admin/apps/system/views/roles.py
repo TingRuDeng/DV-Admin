@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 
 from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.response import Response
 
 from drf_admin.apps.system.models import Roles
+from drf_admin.apps.system.serializers.roles import (
+    RolesOptionsSerializer,
+    RolesPartialSerializer,
+    RolesSerializer,
+)
 from drf_admin.utils.views import AdminViewSet, AutoPermissionAPIView
-from drf_admin.apps.system.serializers.roles import RolesSerializer, RolesPartialSerializer, RolesOptionsSerializer
 
 
 class RolesViewSet(AdminViewSet):

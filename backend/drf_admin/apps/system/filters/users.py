@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import django_filters
-from drf_admin.common.models import get_child_ids
+
 from drf_admin.apps.system.models import Departments, Users
+from drf_admin.common.models import get_child_ids
 
 
 class UsersFilter(django_filters.rest_framework.FilterSet):

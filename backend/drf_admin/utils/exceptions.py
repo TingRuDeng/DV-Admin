@@ -1,18 +1,17 @@
 import logging
 import traceback
 
-from django.http import Http404
+from django.core.exceptions import PermissionDenied
 from django.db import DatabaseError
+from django.http import Http404
 from redis.exceptions import RedisError
+from rest_framework import exceptions, status
+from rest_framework.exceptions import ErrorDetail
 from rest_framework.response import Response
 from rest_framework.views import set_rollback
-from rest_framework import status, exceptions
-from rest_framework.exceptions import ErrorDetail
-from django.core.exceptions import PermissionDenied
 
 # 获取在配置文件中定义的logger，用来记录日志
 # from drf_admin.apps.monitor.models import ErrorLogs
-from drf_admin.apps.oauth.utils import get_request_ip
 
 logger = logging.getLogger('error')
 

@@ -1,11 +1,12 @@
-import os
 import json
+import os
 import uuid
 
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
+
 from drf_admin.utils.models import BaseModel
-from django.contrib.auth.models import AbstractUser
 
 
 # 自定义头像上传路径函数，生成随机文件名

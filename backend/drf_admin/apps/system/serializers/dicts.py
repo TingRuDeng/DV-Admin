@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from rest_framework import serializers
-from drf_admin.apps.system.models import Dicts, DictItems
+
+from drf_admin.apps.system.models import DictItems, Dicts
 
 
 class DictsSerializer(serializers.ModelSerializer):

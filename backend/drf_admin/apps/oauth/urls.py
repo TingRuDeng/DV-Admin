@@ -1,6 +1,6 @@
 from django.urls import path
 
-from drf_admin.apps.oauth.views import oauth, home
+from drf_admin.apps.oauth.views import home, oauth
 
 urlpatterns = [
     path('home/', home.HomeAPIView.as_view()),

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from rest_framework.routers import SimpleRouter, Route, DynamicRoute
+from rest_framework.routers import DynamicRoute, Route, SimpleRouter
 
 
 class AdminRouter(SimpleRouter):

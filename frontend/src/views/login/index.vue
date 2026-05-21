@@ -14,7 +14,7 @@
       </el-tooltip>
     </div>
     <!-- 登录页主体 -->
-    <div flex-1 flex-center>
+    <main flex-1 flex-center aria-labelledby="login-page-title">
       <div class="login-card">
         <div w-full flex flex-col items-center>
           <!-- logo -->
@@ -26,7 +26,7 @@
           </div>
 
           <!-- 标题 -->
-          <h2 class="login-title">
+          <h2 id="login-page-title" class="login-title">
             <el-badge :value="`v ${defaultSettings.version}`" type="primary">
               {{ defaultSettings.title }}
             </el-badge>
@@ -42,7 +42,7 @@
       <el-text size="small" class="login-footer">
         Copyright © 2021 - 2025 {{ defaultSettings.title }} All Rights Reserved.
       </el-text>
-    </div>
+    </main>
   </div>
 </template>
 

@@ -108,7 +108,7 @@ class MenuService:
         if menu_data.parent_id == menu_id:
             raise ValidationError("不能将自己设为父菜单")
 
-        update_fields = {}
+        update_fields: dict[str, Any] = {}
         for field, value in menu_data.model_dump(exclude_unset=True).items():
             if value is not None:
                 update_fields[field] = value
@@ -158,7 +158,7 @@ class MenuService:
         获取所有权限标识
         """
         perms = await Permissions.filter(perm__isnull=False).values_list("perm", flat=True)
-        return [p for p in perms if p]
+        return [str(p) for p in perms if p]
 
     async def get_options(self) -> list[dict[str, Any]]:
         """
@@ -169,37 +169,38 @@ class MenuService:
 
     def _build_menu_tree(self, menus: list[Permissions], parent_id: int | None = None) -> list[MenuTree]:
         """构建菜单树"""
-        tree = []
+        tree: list[MenuTree] = []
         for menu in menus:
             if menu.parent_id == parent_id:
                 children = self._build_menu_tree(menus, menu.id)
-                menu_data = {
-                    "id": menu.id,
-                    "name": menu.name,
-                    "type": menu.type,
-                    "route_name": menu.route_name,
-                    "route_path": menu.route_path,
-                    "component": menu.component,
-                    "sort": menu.sort,
-                    "visible": menu.visible,
-                    "icon": menu.icon,
-                    "redirect": menu.redirect,
-                    "perm": menu.perm,
-                    "keep_alive": menu.keep_alive,
-                    "always_show": menu.always_show,
-                    "params": menu.params,
-                    "desc": menu.desc,
-                    "parent_id": menu.parent_id,
-                    "created_at": menu.created_at,
-                    "updated_at": menu.updated_at,
-                    "children": children if children else [],
-                }
-                tree.append(menu_data)
-        return sorted(tree, key=lambda x: x["sort"])
+                tree.append(
+                    MenuTree(
+                        id=menu.id,
+                        name=menu.name,
+                        type=menu.type,
+                        route_name=menu.route_name,
+                        route_path=menu.route_path,
+                        component=menu.component,
+                        sort=menu.sort,
+                        visible=menu.visible,
+                        icon=menu.icon,
+                        redirect=menu.redirect,
+                        perm=menu.perm,
+                        keep_alive=menu.keep_alive,
+                        always_show=menu.always_show,
+                        params=menu.params,
+                        desc=menu.desc,
+                        parent_id=menu.parent_id,
+                        created_at=menu.created_at,
+                        updated_at=menu.updated_at,
+                        children=children,
+                    )
+                )
+        return sorted(tree, key=lambda item: item.sort)
 
     def _build_options(self, menus: list[Permissions], parent_id: int | None = None, level: int = 0) -> list[dict[str, Any]]:
         """构建菜单选项"""
-        options = []
+        options: list[dict[str, Any]] = []
         for menu in menus:
             if menu.parent_id == parent_id:
                 prefix = "  " * level

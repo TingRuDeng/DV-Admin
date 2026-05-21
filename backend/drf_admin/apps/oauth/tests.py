@@ -3,13 +3,13 @@
 OAuth 认证接口测试
 """
 
-from django.test import TestCase
 from django.db import connection
+from django.test import TestCase
 from django.test.utils import CaptureQueriesContext
-from rest_framework.test import APIClient
 from rest_framework import status
+from rest_framework.test import APIClient
 
-from drf_admin.apps.system.models import Users, Roles, Departments, Permissions
+from drf_admin.apps.system.models import Permissions, Roles, Users
 
 
 def create_admin_user():

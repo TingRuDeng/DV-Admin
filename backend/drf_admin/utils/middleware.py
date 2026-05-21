@@ -6,14 +6,14 @@ import re
 from typing import Any
 
 from django.http import HttpRequest, HttpResponse
+from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import gettext_lazy as _
+from django_redis import get_redis_connection
 from rest_framework import status
 from rest_framework.response import Response
-from django_redis import get_redis_connection
-from django.utils.deprecation import MiddlewareMixin
 
-from drf_admin.apps.oauth.utils import get_request_browser, get_request_os, get_request_ip
-
+from drf_admin.apps.oauth.utils import get_request_ip
+from drf_admin.utils.request_id import get_request_id
 
 SENSITIVE_KEYWORDS = ["password", "token", "secret", "key", "authorization"]
 MAX_LOG_LENGTH = 4096
@@ -72,9 +72,11 @@ class OperationLogMiddleware:
             response_body = {}
 
         request_ip = get_request_ip(request)
+        request_id = get_request_id() or "-"
 
         log_info = (
             f"[{request.user}@{request_ip} "
+            f"[RequestId: {request_id}] "
             f"[Request: {request.method} {request.path} {self._truncate_log(request_body)}] "
             f"[Response: {response.status_code} {response.reason_phrase} "
             f"{self._truncate_log(response_body)}]]"
@@ -194,8 +196,8 @@ class IpBlackListMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         request_ip = get_request_ip(request)
-        from django.core.cache import cache
         from django.conf import settings
+        from django.core.cache import cache
 
         redis_host = getattr(settings, "REDIS_HOST", None)
         redis_port = getattr(settings, "REDIS_PORT", None)

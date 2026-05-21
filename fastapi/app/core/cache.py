@@ -8,6 +8,8 @@
 import json
 import time
 from abc import ABC, abstractmethod
+from collections.abc import Callable
+from inspect import isawaitable
 from typing import Any
 
 from loguru import logger
@@ -245,9 +247,9 @@ class CacheService:
     """
 
     def __init__(self):
-        self._backend: CacheBackend | None = None
         self._memory_cache = MemoryCache()
         self._redis_cache = RedisCache()
+        self._backend: CacheBackend = self._memory_cache
         self._use_redis = False
 
     async def init(self) -> None:
@@ -288,9 +290,7 @@ class CacheService:
         """清除缓存"""
         return await self._backend.clear(pattern)
 
-    async def get_or_set(
-        self, key: str, factory: callable, ttl: int | None = None
-    ) -> Any:
+    async def get_or_set(self, key: str, factory: Callable[[], Any] | Any, ttl: int | None = None) -> Any:
         """
         获取缓存，不存在则通过工厂函数创建
 
@@ -306,8 +306,9 @@ class CacheService:
         if value is not None:
             return value
 
-        # 通过工厂函数创建值
-        value = await factory() if callable(factory) else factory
+        # 兼容历史调用：factory 可以是直接值、同步工厂或异步工厂。
+        produced = factory() if callable(factory) else factory
+        value = await produced if isawaitable(produced) else produced
         await self.set(key, value, ttl)
         return value
 

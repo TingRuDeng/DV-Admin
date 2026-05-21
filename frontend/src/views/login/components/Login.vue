@@ -10,7 +10,13 @@
     >
       <!-- 用户名 -->
       <el-form-item prop="username">
-        <el-input v-model.trim="loginFormData.username" :placeholder="t('login.username')">
+        <label class="sr-only" for="login-username-input">{{ t("login.username") }}</label>
+        <el-input
+          id="login-username-input"
+          v-model.trim="loginFormData.username"
+          :aria-label="t('login.username')"
+          :placeholder="t('login.username')"
+        >
           <template #prefix>
             <el-icon><User /></el-icon>
           </template>
@@ -20,8 +26,11 @@
       <!-- 密码 -->
       <el-tooltip :visible="isCapsLock" :content="t('login.capsLock')" placement="right">
         <el-form-item prop="password">
+          <label class="sr-only" for="login-password-input">{{ t("login.password") }}</label>
           <el-input
+            id="login-password-input"
             v-model.trim="loginFormData.password"
+            :aria-label="t('login.password')"
             :placeholder="t('login.password')"
             type="password"
             show-password
@@ -246,6 +255,20 @@ function checkCapsLock(event: KeyboardEvent) {
 //   emit("update:modelValue", type);
 // }
 </script>
+
+<style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  white-space: nowrap;
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+}
+</style>
 <style lang="scss" scoped>
 .third-party-login {
   .divider-container {

@@ -5,6 +5,7 @@ DV-Admin FastAPI 主应用入口
 """
 
 from contextlib import asynccontextmanager
+from typing import Any, cast
 
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -122,12 +123,12 @@ def create_app() -> FastAPI:
     app.mount("/media", StaticFiles(directory=settings.upload_dir), name="media")
 
     # 注册异常处理器
-    app.add_exception_handler(APIException, api_exception_handler)
-    app.add_exception_handler(AuthenticationError, api_exception_handler)
-    app.add_exception_handler(PermissionDenied, api_exception_handler)
-    app.add_exception_handler(ValidationError, api_exception_handler)
-    app.add_exception_handler(status.HTTP_422_UNPROCESSABLE_CONTENT, validation_exception_handler)
-    app.add_exception_handler(Exception, general_exception_handler)
+    app.add_exception_handler(APIException, cast(Any, api_exception_handler))
+    app.add_exception_handler(AuthenticationError, cast(Any, api_exception_handler))
+    app.add_exception_handler(PermissionDenied, cast(Any, api_exception_handler))
+    app.add_exception_handler(ValidationError, cast(Any, api_exception_handler))
+    app.add_exception_handler(status.HTTP_422_UNPROCESSABLE_CONTENT, cast(Any, validation_exception_handler))
+    app.add_exception_handler(Exception, cast(Any, general_exception_handler))
 
     # 注册 API 路由
     app.include_router(api_v1_router)

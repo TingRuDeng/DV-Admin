@@ -7,8 +7,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "happy-dom",
+    setupFiles: ["./vitest.setup.ts"],
     include: ["src/**/*.{test,spec}.{js,ts}"],
-    exclude: ["node_modules", "dist", "e2e", "src/store/**", "src/router/**"],
+    exclude: ["node_modules", "dist", "e2e"],
     pool: "forks",
     fileParallelism: false,
     deps: {
@@ -25,8 +26,6 @@ export default defineConfig({
         "**/*.config.{js,ts}",
         "src/main.ts",
         "src/App.vue",
-        "src/store/**",
-        "src/router/**",
       ],
     },
   },

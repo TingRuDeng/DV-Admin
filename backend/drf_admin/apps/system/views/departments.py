@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.filters import OrderingFilter, SearchFilter
 
 from drf_admin.apps.system.models import Departments
+from drf_admin.apps.system.serializers.departments import (
+    DepartmentsSerializer,
+    DepartmentsTreeSerializer,
+)
 from drf_admin.utils.views import AdminViewSet, TreeAPIView
-from drf_admin.apps.system.serializers.departments import DepartmentsSerializer, DepartmentsTreeSerializer
 
 
 class DepartmentsViewSet(AdminViewSet, TreeAPIView):

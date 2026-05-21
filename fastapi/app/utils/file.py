@@ -88,11 +88,12 @@ def format_file_size(size: int) -> str:
     Returns:
         格式化后的大小字符串
     """
+    display_size = float(size)
     for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-        if size < 1024.0:
-            return f"{size:.1f} {unit}"
-        size /= 1024.0
-    return f"{size:.1f} PB"
+        if display_size < 1024.0:
+            return f"{display_size:.1f} {unit}"
+        display_size /= 1024.0
+    return f"{display_size:.1f} PB"
 
 
 async def save_upload_file(file, subdir: str = "") -> str:

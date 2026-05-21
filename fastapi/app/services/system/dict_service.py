@@ -83,6 +83,8 @@ class DictService:
 
         await dict_data.fetch_related("items")
 
+        items = await dict_data.items.all()
+
         return DictWithItems(
             id=dict_data.id,
             name=dict_data.name,
@@ -104,7 +106,7 @@ class DictService:
                     created_at=item.created_at,
                     updated_at=item.updated_at,
                 )
-                for item in dict_data.items
+                for item in items
             ],
         )
 

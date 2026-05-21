@@ -10,6 +10,11 @@
 - 操作日志 (OperationLog)
 """
 
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Any
+
 from tortoise import fields
 
 from app.db.models.base import BaseModel
@@ -36,9 +41,7 @@ class Permissions(BaseModel):
     ]
 
     name = fields.CharField(max_length=30, description="名称")
-    type = fields.CharField(
-        max_length=8, default="", null=True, description="权限类型"
-    )
+    type = fields.CharField(max_length=8, default="", description="权限类型")
     route_name = fields.CharField(
         max_length=30, null=True, description="路由名"
     )
@@ -55,17 +58,18 @@ class Permissions(BaseModel):
     perm = fields.CharField(max_length=200, null=True, description="权限标识")
     keep_alive = fields.BooleanField(null=True, description="是否缓存")
     always_show = fields.BooleanField(null=True, description="是否一直显示")
-    params = fields.JSONField(default=list, description="参数")
+    params: fields.Field[list[dict[str, Any]]] = fields.JSONField(default=list, description="参数")
     desc = fields.CharField(max_length=30, null=True, description="权限描述")
 
     # 自关联：父菜单
-    parent = fields.ForeignKeyField(
+    parent: fields.ForeignKeyNullableRelation[Permissions] = fields.ForeignKeyField(
         "models.Permissions",
         related_name="children",
         null=True,
         on_delete=fields.CASCADE,
         description="父菜单",
     )
+    parent_id: int | None
 
     class Meta:
         table = "system_permissions"
@@ -101,7 +105,7 @@ class Roles(BaseModel):
     desc = fields.CharField(max_length=50, default="", description="描述")
 
     # 多对多关系：权限
-    permissions = fields.ManyToManyField(
+    permissions: fields.ManyToManyRelation[Permissions] = fields.ManyToManyField(
         "models.Permissions",
         related_name="roles",
         through="system_roles_permissions",
@@ -137,13 +141,14 @@ class Departments(BaseModel):
     sort = fields.IntField(default=0, description="排序")
 
     # 自关联：父部门
-    parent = fields.ForeignKeyField(
+    parent: fields.ForeignKeyNullableRelation[Departments] = fields.ForeignKeyField(
         "models.Departments",
         related_name="children",
         null=True,
         on_delete=fields.CASCADE,
         description="父部门",
     )
+    parent_id: int | None
 
     class Meta:
         table = "system_departments"
@@ -170,14 +175,14 @@ class Notices(BaseModel):
     type = fields.IntField(default=0, description="类型")
     level = fields.CharField(max_length=10, default="L", description="级别")
     target_type = fields.IntField(default=1, description="目标类型(1:全体;2:指定)")
-    target_user_ids = fields.JSONField(default=list, description="目标用户ID列表")
+    target_user_ids: fields.Field[list[int]] = fields.JSONField(default=list, description="目标用户ID列表")
 
     publisher_id = fields.IntField(null=True, description="发布人ID")
     publisher_name = fields.CharField(max_length=50, default="", description="发布人名称")
 
     publish_status = fields.IntField(default=0, description="发布状态(0:未发布;1:已发布;-1:已撤回)")
-    publish_time = fields.DatetimeField(null=True, description="发布时间")
-    revoke_time = fields.DatetimeField(null=True, description="撤回时间")
+    publish_time: datetime | None = fields.DatetimeField(null=True, description="发布时间")
+    revoke_time: datetime | None = fields.DatetimeField(null=True, description="撤回时间")
 
     class Meta:
         table = "system_notices"
@@ -197,12 +202,13 @@ class NoticeReads(BaseModel):
     通知已读记录
     """
 
-    notice = fields.ForeignKeyField(
+    notice: fields.ForeignKeyRelation[Notices] = fields.ForeignKeyField(
         "models.Notices",
         related_name="reads",
         on_delete=fields.CASCADE,
         description="通知ID",
     )
+    notice_id: int
     user_id = fields.IntField(description="用户ID")
     read_time = fields.DatetimeField(auto_now_add=True, description="已读时间")
 
@@ -227,6 +233,7 @@ class DictData(BaseModel):
     code = fields.CharField(max_length=50, unique=True, description="字典编码")
     status = fields.IntField(default=1, description="状态")
     desc = fields.CharField(max_length=100, default="", description="描述")
+    items: fields.BackwardFKRelation[DictItems]
 
     class Meta:
         table = "system_dict_data"
@@ -257,12 +264,13 @@ class DictItems(BaseModel):
     remark = fields.CharField(max_length=100, default="", description="备注")
 
     # 外键：字典类型
-    dict_data = fields.ForeignKeyField(
+    dict_data: fields.ForeignKeyRelation[DictData] = fields.ForeignKeyField(
         "models.DictData",
         related_name="items",
         on_delete=fields.CASCADE,
         description="字典类型",
     )
+    dict_data_id: int
 
     class Meta:
         table = "system_dict_items"
