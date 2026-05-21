@@ -41,9 +41,7 @@ class Permissions(BaseModel):
     ]
 
     name = fields.CharField(max_length=30, description="名称")
-    type = fields.CharField(
-        max_length=8, default="", null=True, description="权限类型"
-    )
+    type = fields.CharField(max_length=8, default="", description="权限类型")
     route_name = fields.CharField(
         max_length=30, null=True, description="路由名"
     )
