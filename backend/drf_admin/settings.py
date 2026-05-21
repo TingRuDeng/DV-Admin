@@ -11,11 +11,11 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
-import psutil
-import environ
-from pathlib import Path
 from datetime import timedelta
+from pathlib import Path
 
+import environ
+import psutil
 
 # 初始化 django-environ
 env = environ.Env()
@@ -98,6 +98,8 @@ MIDDLEWARE = [
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',  # 禁用，允许 iframe 嵌入
     # django_user_agents
     "django_user_agents.middleware.UserAgentMiddleware",
+    # request id 链路追踪
+    "drf_admin.utils.request_id.RequestIdMiddleware",
     # IP黑名单校验
     "drf_admin.utils.middleware.IpBlackListMiddleware",
     # 在线用户监控

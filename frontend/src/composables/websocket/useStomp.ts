@@ -1,6 +1,7 @@
-import { Client, type IMessage, type StompSubscription } from "@stomp/stompjs";
+import type { IMessage } from "@stomp/stompjs";
 import { AuthStorage } from "@/utils/auth";
 import { createLogger } from "@/utils/logger";
+import { createStompConnectionManager } from "@/composables/websocket/stomp-connection-manager";
 
 export interface UseStompOptions {
   /** WebSocket 地址，不传时使用 VITE_APP_WS_ENDPOINT 环境变量 */
@@ -21,350 +22,51 @@ export interface UseStompOptions {
   debug?: boolean;
 }
 
+const DEFAULT_RECONNECT_DELAY = 15000;
+const DEFAULT_CONNECTION_TIMEOUT = 10000;
+const DEFAULT_MAX_RECONNECT_ATTEMPTS = 3;
+const DEFAULT_MAX_RECONNECT_DELAY = 60000;
+
 /**
- * STOMP WebSocket连接组合式函数
- * 用于管理WebSocket连接的建立、断开、重连和消息订阅
+ * STOMP WebSocket 组合式函数，负责把 Vue 响应式状态映射到连接管理器。
  */
 export function useStomp(options: UseStompOptions = {}) {
   const logger = createLogger("useStomp", { debugEnabled: options.debug });
-  // 默认值：brokerURL 从环境变量中获取，token 从 getAccessToken() 获取
-  const defaultBrokerURL = import.meta.env.VITE_APP_WS_ENDPOINT || "";
-
-  const brokerURL = ref(options.brokerURL ?? defaultBrokerURL);
-  // 默认配置参数
-  const reconnectDelay = options.reconnectDelay ?? 15000; // 默认15秒重连间隔
-  const connectionTimeout = options.connectionTimeout ?? 10000;
-  const useExponentialBackoff = options.useExponentialBackoff ?? false;
-  const maxReconnectAttempts = options.maxReconnectAttempts ?? 3; // 最多重连3次
-  const maxReconnectDelay = options.maxReconnectDelay ?? 60000;
-
-  // 连接状态标记
+  const brokerURL = ref(options.brokerURL ?? import.meta.env.VITE_APP_WS_ENDPOINT ?? "");
   const isConnected = ref(false);
-  // 重连尝试次数
   const reconnectCount = ref(0);
-  // 重连计时器
-  let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
-  // 连接超时计时器
-  let connectionTimeoutTimer: ReturnType<typeof setTimeout> | undefined;
-  // 存储所有订阅
-  const subscriptions = new Map<string, StompSubscription>();
 
-  // 用于保存 STOMP 客户端的实例
-  const client = ref<Client | null>(null);
-  // 防止重复连接的标志
-  let isConnecting = false;
-  let isManualDisconnect = false;
-
-  /**
-   * 初始化 STOMP 客户端
-   */
-  const initializeClient = () => {
-    // 如果客户端已存在且正在连接或已连接，直接返回
-    if (client.value && (client.value.active || client.value.connected)) {
-      logger.debug("STOMP客户端已存在且处于活动状态，跳过初始化");
-      return;
-    }
-
-    // 检查WebSocket端点是否配置
-    if (!brokerURL.value) {
-      logger.warn("WebSocket连接失败: 未配置WebSocket端点URL");
-      return;
-    }
-
-    // 每次连接前重新获取最新令牌，不依赖之前的token值
-    const currentToken = AuthStorage.getAccessToken();
-
-    // 检查令牌是否为空，如果为空则不进行连接
-    if (!currentToken) {
-      logger.warn("WebSocket连接失败：授权令牌为空，请先登录");
-      return;
-    }
-
-    // 如果有旧的客户端，先清理
-    if (client.value) {
-      try {
-        client.value.deactivate();
-      } catch (error) {
-        logger.warn("清理旧客户端时出错:", error);
-      }
-      client.value = null;
-    }
-
-    // 创建 STOMP 客户端
-    client.value = new Client({
-      brokerURL: brokerURL.value,
-      connectHeaders: {
-        Authorization: `Bearer ${currentToken}`,
-      },
-      debug: options.debug ? (message) => logger.debug(message) : () => {},
-      reconnectDelay: 0, // 禁用内置重连机制，使用自定义重连
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
-    });
-
-    // 设置连接监听器
-    client.value.onConnect = () => {
-      isConnected.value = true;
-      isConnecting = false;
-      reconnectCount.value = 0;
-      clearTimeout(connectionTimeoutTimer);
-      clearTimeout(reconnectTimer);
-      logger.info("WebSocket连接已建立");
-    };
-
-    // 设置断开连接监听器
-    client.value.onDisconnect = () => {
-      isConnected.value = false;
-      isConnecting = false;
-      logger.info("WebSocket连接已断开");
-
-      // 如果不是手动断开且未达到最大重连次数，则尝试重连
-      if (!isManualDisconnect && reconnectCount.value < maxReconnectAttempts) {
-        handleReconnect();
-      }
-    };
-
-    // 设置 Web Socket 关闭监听器
-    client.value.onWebSocketClose = (event) => {
-      isConnected.value = false;
-      isConnecting = false;
-      logger.info(`WebSocket已关闭: ${event?.code} ${event?.reason}`);
-
-      // 如果是手动断开，不要重连
-      if (isManualDisconnect) {
-        logger.debug("手动断开连接，不进行重连");
-        return;
-      }
-
-      // 如果是授权问题导致的关闭，尝试重连
-      if (
-        (event?.code === 1000 || event?.code === 1006 || event?.code === 1008) &&
-        reconnectCount.value < maxReconnectAttempts
-      ) {
-        logger.info("检测到连接异常关闭，将尝试重连");
-
-        // 通过 handleReconnect 统一处理重连，避免重复计数
-        handleReconnect();
-      }
-    };
-
-    // 设置错误监听器
-    client.value.onStompError = (frame) => {
-      logger.error("STOMP错误:", frame.headers, frame.body);
-      isConnecting = false;
-
-      // 检查是否是授权错误
-      if (
-        frame.headers?.message?.includes("Unauthorized") ||
-        frame.body?.includes("Unauthorized") ||
-        frame.body?.includes("Token")
-      ) {
-        logger.warn("WebSocket授权错误，请检查登录状态");
-        // 授权错误不进行重连
-        isManualDisconnect = true;
-      }
-    };
-  };
-
-  /**
-   * 处理重连逻辑
-   */
-  const handleReconnect = () => {
-    // 如果已经在连接中或手动断开，不重连
-    if (isConnecting || isManualDisconnect) {
-      return;
-    }
-
-    if (reconnectCount.value >= maxReconnectAttempts) {
-      logger.error(`已达到最大重连次数(${maxReconnectAttempts})，停止重连`);
-      return;
-    }
-
-    reconnectCount.value++;
-    logger.info(`准备重连(${reconnectCount.value}/${maxReconnectAttempts})...`);
-
-    // 使用指数退避策略增加重连间隔
-    const delay = useExponentialBackoff
-      ? Math.min(reconnectDelay * Math.pow(2, reconnectCount.value - 1), maxReconnectDelay)
-      : reconnectDelay;
-
-    // 清除之前的计时器
-    if (reconnectTimer) {
-      clearTimeout(reconnectTimer);
-    }
-
-    // 设置重连计时器
-    reconnectTimer = setTimeout(() => {
-      if (!isConnected.value && !isManualDisconnect && !isConnecting) {
-        logger.info("开始重连...");
-        connect();
-      }
-    }, delay);
-  };
-
-  // 监听 brokerURL 的变化，若地址改变则重新初始化
-  watch(brokerURL, (newURL, oldURL) => {
-    if (newURL !== oldURL) {
-      logger.info(`brokerURL changed from ${oldURL} to ${newURL}`);
-      // 断开当前连接，重新激活客户端
-      if (client.value && client.value.connected) {
-        client.value.deactivate();
-      }
-      brokerURL.value = newURL;
-      initializeClient(); // 重新初始化客户端
-    }
+  const manager = createStompConnectionManager({
+    brokerURL: brokerURL.value,
+    connectionTimeout: options.connectionTimeout ?? DEFAULT_CONNECTION_TIMEOUT,
+    debug: options.debug,
+    getToken: () => options.token || AuthStorage.getAccessToken(),
+    logger,
+    maxReconnectAttempts: options.maxReconnectAttempts ?? DEFAULT_MAX_RECONNECT_ATTEMPTS,
+    maxReconnectDelay: options.maxReconnectDelay ?? DEFAULT_MAX_RECONNECT_DELAY,
+    onConnectedChange: (value) => {
+      isConnected.value = value;
+    },
+    onReconnectCountChange: (value) => {
+      reconnectCount.value = value;
+    },
+    reconnectDelay: options.reconnectDelay ?? DEFAULT_RECONNECT_DELAY,
+    useExponentialBackoff: options.useExponentialBackoff ?? false,
   });
 
-  // 初始化客户端
-  initializeClient();
+  watch(brokerURL, (newURL) => {
+    manager.updateBrokerURL(newURL);
+  });
 
-  /**
-   * 激活连接（如果已经连接或正在激活则直接返回）
-   */
-  const connect = () => {
-    // 重置手动断开标志
-    isManualDisconnect = false;
-
-    // 检查是否有配置WebSocket端点
-    if (!brokerURL.value) {
-      logger.error("WebSocket连接失败: 未配置WebSocket端点URL");
-      return;
-    }
-
-    // 防止重复连接
-    if (isConnecting) {
-      logger.debug("WebSocket正在连接中，跳过重复连接请求");
-      return;
-    }
-
-    if (!client.value) {
-      initializeClient();
-    }
-
-    if (!client.value) {
-      logger.error("STOMP客户端初始化失败");
-      return;
-    }
-
-    // 避免重复连接:检查是否已连接
-    if (client.value.connected) {
-      logger.debug("WebSocket已经连接,跳过重复连接");
-      isConnected.value = true;
-      return;
-    }
-
-    // 设置连接标志
-    isConnecting = true;
-
-    // 设置连接超时
-    clearTimeout(connectionTimeoutTimer);
-    connectionTimeoutTimer = setTimeout(() => {
-      if (!isConnected.value && isConnecting) {
-        logger.warn("WebSocket连接超时");
-        isConnecting = false;
-        if (!isManualDisconnect && reconnectCount.value < maxReconnectAttempts) {
-          handleReconnect();
-        }
-      }
-    }, connectionTimeout);
-
-    try {
-      client.value.activate();
-      logger.info("正在建立WebSocket连接...");
-    } catch (error) {
-      logger.error("激活WebSocket连接失败:", error);
-      isConnecting = false;
-    }
-  };
-
-  /**
-   * 订阅指定主题
-   * @param destination 目标主题地址
-   * @param callback 接收到消息时的回调函数
-   * @returns 返回订阅 id，用于后续取消订阅
-   */
   const subscribe = (destination: string, callback: (_message: IMessage) => void): string => {
-    if (!client.value || !client.value.connected) {
-      logger.warn(`尝试订阅 ${destination} 失败: 客户端未连接`);
-      return "";
-    }
-
-    try {
-      const subscription = client.value.subscribe(destination, callback);
-      const subscriptionId = subscription.id;
-      subscriptions.set(subscriptionId, subscription);
-      logger.info(`订阅成功: ${destination}, ID: ${subscriptionId}`);
-      return subscriptionId;
-    } catch (error) {
-      logger.error(`订阅 ${destination} 失败:`, error);
-      return "";
-    }
-  };
-
-  /**
-   * 取消订阅
-   * @param subscriptionId 订阅 id
-   */
-  const unsubscribe = (subscriptionId: string) => {
-    const subscription = subscriptions.get(subscriptionId);
-    if (subscription) {
-      subscription.unsubscribe();
-      subscriptions.delete(subscriptionId);
-      logger.debug(`已取消订阅: ${subscriptionId}`);
-    }
-  };
-
-  /**
-   * 断开WebSocket连接
-   */
-  const disconnect = () => {
-    // 设置手动断开标志
-    isManualDisconnect = true;
-
-    // 清除所有计时器
-    if (reconnectTimer) {
-      clearTimeout(reconnectTimer);
-      reconnectTimer = undefined;
-    }
-
-    if (connectionTimeoutTimer) {
-      clearTimeout(connectionTimeoutTimer);
-      connectionTimeoutTimer = undefined;
-    }
-
-    // 清除所有订阅
-    for (const [id, subscription] of subscriptions.entries()) {
-      try {
-        subscription.unsubscribe();
-      } catch (error) {
-        logger.warn(`取消订阅 ${id} 时出错:`, error);
-      }
-    }
-    subscriptions.clear();
-
-    // 断开连接
-    if (client.value) {
-      try {
-        if (client.value.connected || client.value.active) {
-          client.value.deactivate();
-          logger.info("WebSocket连接已主动断开");
-        }
-      } catch (error) {
-        logger.error("断开WebSocket连接时出错:", error);
-      }
-      client.value = null;
-    }
-
-    isConnected.value = false;
-    isConnecting = false;
-    reconnectCount.value = 0;
+    return manager.subscribe(destination, callback);
   };
 
   return {
     isConnected,
-    connect,
+    connect: manager.connect,
     subscribe,
-    unsubscribe,
-    disconnect,
+    unsubscribe: manager.unsubscribe,
+    disconnect: manager.disconnect,
   };
 }

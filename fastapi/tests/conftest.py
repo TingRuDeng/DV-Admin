@@ -4,6 +4,7 @@ Pytest 配置和 fixtures
 提供测试数据库初始化、认证等辅助功能。
 """
 import asyncio
+import sys
 import uuid
 from pathlib import Path
 from tempfile import gettempdir
@@ -15,6 +16,9 @@ from tortoise import Tortoise
 from tortoise.exceptions import ConfigurationError
 
 TEST_DB_PATH = Path(gettempdir()) / f"dv_admin_fastapi_test_{uuid.uuid4().hex}.sqlite3"
+ROOT_DIR = Path(__file__).resolve().parents[2]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 
 class SyncASGIClient:

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import base64
-from Crypto.Cipher import AES
 
-from django.db import models
+from Crypto.Cipher import AES
 from django.conf import settings
+from django.db import models
 
 
 class BaseModel(models.Model):

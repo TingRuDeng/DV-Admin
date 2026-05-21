@@ -14,6 +14,8 @@ REQUIRED_AUTHORITY_HEADINGS = ("## Purpose", "## Source of truth", "## Key facts
 LEGACY_AUTHORITY_HEADINGS = ("## Purpose", "## Source Of Truth", "## Key Facts", "## How To Verify", "## Stale When")
 REQUIRED_AI_KEYS = ("purpose", "read_when", "source_of_truth", "verify_with", "stale_when")
 AI_CONTEXT_SECTIONS = ("## Project Snapshot", "## Core Directories", "## Documentation Map", "## Common Task Reading Paths", "## High-Risk Areas", "## Validation Commands", "## Stale when")
+CONTRACT_REQUIRED_FILES = ("scripts/api_contracts.py", "scripts/validate_api_contracts.py")
+CONTRACT_DOC_SNIPPETS = ("共享 API 契约验证", "scripts/validate_api_contracts.py")
 GENERIC_SECTION_VALUES = {
     "tbd", "todo", "n/a", "coming soon", "run tests", "check manually",
     "follow best practices", "use proper architecture",
@@ -40,6 +42,7 @@ def validate_root(root, profile=DEFAULT_PROFILE):
     if issues:
         return issues
     issues.extend(validate_profile_files(base, profile))
+    issues.extend(validate_contract_entrypoints(base))
     issues.extend(validate_authority_docs(base, legacy_detail_docs(base)))
     issues.extend(validate_ai_context(base))
     issues.extend(validate_links(base))
@@ -60,6 +63,21 @@ def validate_profile_files(base, profile):
     return issues
 def required_files_for(profile):
     return GENERIC_REQUIRED_FILES + (ANDROID_REQUIRED_FILES if profile == "android" else ())
+def validate_contract_entrypoints(base):
+    issues = []
+    for rel in CONTRACT_REQUIRED_FILES:
+        if not (base / rel).exists():
+            issues.append(f"{rel}: 缺少 API 契约校验入口")
+    api_doc = base / "docs/API_ENDPOINTS.md"
+    if api_doc.exists():
+        text = read_text(api_doc)
+        for snippet in CONTRACT_DOC_SNIPPETS:
+            if snippet not in text:
+                issues.append(f"docs/API_ENDPOINTS.md: 缺少 API 契约说明 {snippet}")
+    workflow = base / ".github/workflows/quality-gates.yml"
+    if workflow.exists() and "scripts/validate_api_contracts.py" not in read_text(workflow):
+        issues.append(".github/workflows/quality-gates.yml: 未运行 API 契约校验")
+    return issues
 def validate_authority_docs(base, legacy_docs=()):
     issues = []
     for path in sorted((base / "docs").glob("*.md")):

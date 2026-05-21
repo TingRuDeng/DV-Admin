@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from rest_framework.filters import SearchFilter, OrderingFilter
-from rest_framework.generics import ListAPIView
+from rest_framework.filters import OrderingFilter, SearchFilter
 
 from drf_admin.apps.system.models import Permissions
-from drf_admin.utils.views import AdminViewSet, TreeAPIView, AutoPermissionAPIView
-from drf_admin.apps.system.serializers.permissions import MenusSerializer, MenusTreeSerializer, MenusOptionsSerializer
+from drf_admin.apps.system.serializers.permissions import (
+    MenusOptionsSerializer,
+    MenusSerializer,
+    MenusTreeSerializer,
+)
+from drf_admin.utils.views import AdminViewSet, AutoPermissionAPIView, TreeAPIView
 
 
 class MenusViewSet(AdminViewSet, TreeAPIView):

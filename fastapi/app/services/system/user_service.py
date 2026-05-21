@@ -164,7 +164,7 @@ class UserService:
                 raise ValidationError("手机号已存在")
 
         # 更新用户字段
-        update_fields = {}
+        update_fields: dict[str, Any] = {}
         if user_in.name is not None:
             update_fields["name"] = user_in.name
         if user_in.email is not None:
@@ -325,12 +325,10 @@ class UserService:
         all_roles = {role.id: role for role in await Roles.filter(status=1).all()}
 
         # 预加载已存在的用户名和手机号
-        existing_usernames = set(
-            await Users.all().values_list("username", flat=True)
-        )
-        existing_mobiles = set(
-            await Users.filter(mobile__isnull=False).values_list("mobile", flat=True)
-        )
+        username_values = await Users.all().values_list("username", flat=True)
+        mobile_values = await Users.filter(mobile__isnull=False).values_list("mobile", flat=True)
+        existing_usernames = {str(username) for username in username_values}
+        existing_mobiles = {str(mobile) for mobile in mobile_values if mobile}
 
         # 批量创建用户列表
         users_to_create = []

@@ -3,10 +3,10 @@
 系统管理 - 部门接口测试
 """
 from django.test import TestCase
-from rest_framework.test import APIClient
 from rest_framework import status
+from rest_framework.test import APIClient
 
-from drf_admin.apps.system.models import Users, Roles, Permissions, Departments
+from drf_admin.apps.system.models import Departments, Permissions, Roles, Users
 
 
 def create_admin_user():

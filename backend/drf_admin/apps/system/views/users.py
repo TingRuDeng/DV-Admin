@@ -1,19 +1,22 @@
 # -*- coding: utf-8 -*-
 
-from rest_framework import mixins
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.generics import GenericAPIView, ListAPIView
-from rest_framework.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework import mixins
+from rest_framework.exceptions import ValidationError
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.generics import GenericAPIView, ListAPIView
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from drf_admin.utils.views import AdminViewSet, AutoPermissionAPIView
 from drf_admin.apps.system.filters.users import UsersFilter
-from drf_admin.apps.system.models import Users, Permissions
+from drf_admin.apps.system.models import Permissions, Users
 from drf_admin.apps.system.serializers.users import (
-    UsersSerializer, UsersPartialSerializer, ResetPasswordSerializer, UsersOptionsSerializer
+    ResetPasswordSerializer,
+    UsersOptionsSerializer,
+    UsersPartialSerializer,
+    UsersSerializer,
 )
+from drf_admin.utils.views import AdminViewSet, AutoPermissionAPIView
 
 
 class UsersViewSet(AdminViewSet):

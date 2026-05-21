@@ -3,8 +3,8 @@
 个人中心接口测试
 """
 from django.test import TestCase
-from rest_framework.test import APIClient
 from rest_framework import status
+from rest_framework.test import APIClient
 
 from drf_admin.apps.system.models import Users
 

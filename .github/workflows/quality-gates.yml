@@ -34,7 +34,9 @@ jobs:
           node-version: 22.12.0
           package-manager-cache: false
       - name: Validate docs
-        run: python3 scripts/validate_docs.py . --profile generic
+        run: |
+          python3 scripts/validate_docs.py . --profile generic
+          python3 scripts/validate_api_contracts.py .
       - name: Install dependencies
         working-directory: frontend
         run: pnpm install --frozen-lockfile
@@ -91,6 +93,9 @@ jobs:
       - name: Run tests
         working-directory: backend
         run: .venv/bin/pytest
+      - name: Run API contract tests
+        working-directory: backend
+        run: .venv/bin/pytest drf_admin/utils/test_response_contract.py
 
   fastapi:
     name: FastAPI Backend Quality
@@ -128,5 +133,5 @@ jobs:
         run: |
           .venv/bin/ruff check . --ignore I
           .venv/bin/isort . --check-only
-          .venv/bin/mypy app/schemas
+          .venv/bin/mypy app
           .venv/bin/pytest --cov=app --cov-report=term-missing --cov-fail-under=80

@@ -2,17 +2,17 @@
 
 import logging
 
-from rest_framework import status, mixins
+from rest_framework import mixins, status
 from rest_framework.exceptions import ValidationError
-from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
 
 from drf_admin.apps.information.serializers.centre import (
-    ChangePasswordSerializer,
-    ChangeInformationSerializer,
     ChangeAvatarSerializer,
+    ChangeInformationSerializer,
+    ChangePasswordSerializer,
     InformationSerializer,
 )
 

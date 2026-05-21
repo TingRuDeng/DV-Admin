@@ -150,3 +150,20 @@
 ## Review 小结
 
 终态：finished。P12 已将 `settings-store` 的设置项映射收口为按 key 关联的显式类型，并将设置面板侧边栏配色事件收口到 `AppSettings["sidebarColorScheme"]`；红绿测试、前端类型检查、前端质量聚合、文档校验、diff 检查和生产构建均通过。
+
+---
+
+# P0-P3 产品化治理全量收口
+
+- [x] 建立隔离分支并写入全量收口计划
+- [x] P0：补齐共享 API 契约测试和 CI 入口
+- [x] P1：补 store/router 直接测试并抽出 WebSocket 连接管理器
+- [x] P1：收紧 Django Ruff 与 FastAPI mypy 门禁
+- [x] P2：补 Django request id、健康检查、前端可访问性和性能 smoke
+- [x] P3：补 API 契约校验、双后端策略文档和技术债清理
+- [x] 运行完整验证矩阵
+- [x] 使用 `review-gate` 做交付前审查
+
+## Review 小结
+
+终态：finished。P0-P3 全量收口完成；文档/API 契约校验、前端 quality/build/e2e smoke、Django ruff/pytest、FastAPI make quality/mypy app 和 diff 检查均通过。
