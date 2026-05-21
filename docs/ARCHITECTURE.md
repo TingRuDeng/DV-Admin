@@ -10,10 +10,14 @@ ai_summary:
     - "frontend/src/store/modules/tags-view-store.ts"
     - "backend/drf_admin/settings.py"
     - "backend/drf_admin/utils/middleware.py"
+    - "backend/drf_admin/utils/request_id.py"
+    - "backend/drf_admin/apps/system/views/health.py"
     - "fastapi/app/main.py"
     - "fastapi/app/schemas/base.py"
+    - "scripts/api_contracts.py"
   verify_with:
     - "python3 scripts/validate_docs.py . --profile generic"
+    - "python3 scripts/validate_api_contracts.py ."
     - "git ls-files frontend/src/utils/route-meta.ts backend/drf_admin/settings.py fastapi/app/main.py"
   stale_when:
     - "前后端目录结构变化"
@@ -44,10 +48,12 @@ ai_summary:
 - 前端为 Vue 3 + TypeScript + Element Plus + Vite 7。
 - `backend/` 是 Django/DRF 实现，`fastapi/` 是 FastAPI/Tortoise ORM 替代实现。
 - 共享 API 或数据契约变化时，需要同时考虑两套后端兼容性。
+- Django 与 FastAPI 都提供健康检查能力；Django 请求链路会通过 `X-Request-ID` 串联响应和操作日志。
 
 ## How to verify
 
 - quick: `python3 scripts/validate_docs.py . --profile generic`
+- quick: `python3 scripts/validate_api_contracts.py .`
 - full: `pnpm --dir frontend run quality`
 - full: `make -C fastapi quality`
 
@@ -194,10 +200,17 @@ backend/drf_admin/
 
 **核心中间件（按顺序）：**
 1. `CorsMiddleware` - CORS 跨域处理
-2. `IpBlackListMiddleware` - IP 黑名单
-3. `OperationLogMiddleware` - 操作日志
-4. `ResponseMiddleware` - 响应格式化
-5. `CamelCaseMiddleWare` - 驼峰/蛇形命名转换
+2. `RequestIdMiddleware` - 注入 `X-Request-ID` 链路标识
+3. `IpBlackListMiddleware` - IP 黑名单
+4. `OperationLogMiddleware` - 操作日志
+5. `ResponseMiddleware` - 响应格式化
+6. `CamelCaseMiddleWare` - 驼峰/蛇形命名转换
+
+**可观测性约定：**
+- Django request id 来源优先级：复用请求头 `X-Request-ID`，缺失时生成新值。
+- Django 响应头固定回写 `X-Request-ID`，操作日志同步输出 `RequestId` 字段。
+- Django 健康检查端点位于 `/health`、`/health/live`、`/health/ready`。
+- FastAPI 已有结构化日志、慢请求日志和 `/health` 探针，二者都可被部署探针直接调用。
 
 ---
 
@@ -239,6 +252,20 @@ fastapi/app/
 - 健康检查端点
 - 慢查询监控
 - 结构化日志
+
+---
+
+## 双后端契约治理
+
+Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,msg,errors,data}`，FastAPI 输出 `{code,message,data}`。前端请求层以 `code/data` 作为成功公共语义，并在错误分支兼容读取 `errors/msg/message`。
+
+本仓库用以下可执行入口约束共享契约：
+
+- `scripts/api_contracts.py`：跨后端响应与分页断言。
+- `backend/drf_admin/utils/test_response_contract.py`：Django 响应包裹契约测试。
+- `fastapi/tests/test_api_contracts.py`：FastAPI 响应与分页契约测试。
+- `frontend/src/utils/__tests__/api-contract.test.ts`：前端兼容读取契约测试。
+- `scripts/validate_api_contracts.py`：文档、脚本和测试入口一致性检查。
 
 ---
 

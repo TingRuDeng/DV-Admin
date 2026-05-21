@@ -4,6 +4,7 @@
 提供服务健康检查、就绪检查和存活检查端点。
 """
 
+import inspect
 from datetime import datetime
 from typing import Any
 
@@ -99,8 +100,10 @@ async def check_redis() -> dict[str, Any] | None:
             decode_responses=True,
         )
 
-        # 执行 PING 命令测试连接
-        await client.ping()
+        # Redis 新旧类型标注存在差异，运行时只等待真正的异步结果。
+        ping_result = client.ping()
+        if inspect.isawaitable(ping_result):
+            await ping_result
         await client.close()
 
         return {

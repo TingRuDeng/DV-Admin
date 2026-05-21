@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from django_redis import get_redis_connection
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from drf_admin.apps.system.models import Users
+
 # from drf_admin.apps.monitor.models import OnlineUsers
 
 

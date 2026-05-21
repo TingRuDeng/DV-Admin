@@ -4,18 +4,18 @@ import json
 import logging
 
 from django.conf import settings
-from rest_framework import status
 from django.core.cache import cache
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from django_redis import get_redis_connection
+from rest_framework import status
 from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 
-from drf_admin.apps.system.models import Permissions, Users
 from drf_admin.apps.oauth.serializers.token_serializers import CustomTokenObtainPairSerializer
+from drf_admin.apps.system.models import Users
 
 logger = logging.getLogger("info")
 

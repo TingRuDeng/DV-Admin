@@ -4,10 +4,10 @@
 """
 
 from django.test import TestCase
-from rest_framework.test import APIClient
 from rest_framework import status
+from rest_framework.test import APIClient
 
-from drf_admin.apps.system.models import Users, Roles, Permissions
+from drf_admin.apps.system.models import Permissions, Roles, Users
 
 
 def create_admin_user():

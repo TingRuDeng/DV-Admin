@@ -75,7 +75,7 @@ class DeptService:
         if dept_data.parent_id == dept_id:
             raise ValidationError("不能将自己设为父部门")
 
-        update_fields = {}
+        update_fields: dict[str, Any] = {}
         if dept_data.name is not None:
             update_fields["name"] = dept_data.name
         if dept_data.status is not None:
@@ -130,27 +130,28 @@ class DeptService:
 
     def _build_dept_tree(self, depts: list[Departments], parent_id: int | None = None) -> list[DeptTree]:
         """构建部门树"""
-        tree = []
+        tree: list[DeptTree] = []
         for dept in depts:
             if dept.parent_id == parent_id:
                 children = self._build_dept_tree(depts, dept.id)
-                dept_data = {
-                    "id": dept.id,
-                    "name": dept.name,
-                    "label": dept.name,
-                    "status": dept.status,
-                    "sort": dept.sort,
-                    "parent_id": dept.parent_id,
-                    "created_at": dept.created_at,
-                    "updated_at": dept.updated_at,
-                    "children": children if children else [],
-                }
-                tree.append(dept_data)
-        return sorted(tree, key=lambda x: x["sort"])
+                tree.append(
+                    DeptTree(
+                        id=dept.id,
+                        name=dept.name,
+                        label=dept.name,
+                        status=dept.status,
+                        sort=dept.sort,
+                        parent_id=dept.parent_id,
+                        created_at=dept.created_at,
+                        updated_at=dept.updated_at,
+                        children=children,
+                    )
+                )
+        return sorted(tree, key=lambda item: item.sort)
 
     def _build_options(self, depts: list[Departments], parent_id: int | None = None, level: int = 0) -> list[dict[str, Any]]:
         """构建部门选项"""
-        options = []
+        options: list[dict[str, Any]] = []
         for dept in depts:
             if dept.parent_id == parent_id:
                 prefix = "  " * level

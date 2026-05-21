@@ -14,14 +14,15 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.conf import settings
+from django.conf.urls.static import static
+from django.urls import include, path, re_path
+from django.views.decorators.clickjacking import xframe_options_exempt
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
-from django.conf.urls.static import static
-from django.urls import path, include, re_path
-from django.views.decorators.clickjacking import xframe_options_exempt
 
-from drf_admin.settings import DEBUG, env
+from drf_admin.apps.system.views.health import health_check, liveness_check, readiness_check
+from drf_admin.settings import env
 
 # swagger API文档配置 https://github.com/axnsan12/drf-yasg
 schema_view = get_schema_view(
@@ -38,6 +39,12 @@ schema_view = get_schema_view(
 base_api = settings.BASE_API
 
 urlpatterns = [
+    path('health', health_check, name='health'),
+    path('health/', health_check, name='health-slash'),
+    path('health/live', liveness_check, name='health-live'),
+    path('health/live/', liveness_check, name='health-live-slash'),
+    path('health/ready', readiness_check, name='health-ready'),
+    path('health/ready/', readiness_check, name='health-ready-slash'),
     # 加载项目模块
     path(f'{base_api}oauth/', include('drf_admin.apps.oauth.urls')),  # 用户鉴权模块
     path(f'{base_api}system/', include('drf_admin.apps.system.urls')),  # 系统管理模块

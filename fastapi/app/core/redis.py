@@ -4,7 +4,8 @@ Redis 连接管理模块
 提供 Redis 连接池管理和基础操作。
 """
 
-from typing import Optional
+from inspect import isawaitable
+from typing import Any, Optional
 
 from loguru import logger
 from redis.asyncio import Redis
@@ -12,6 +13,11 @@ from redis.asyncio.connection import ConnectionPool
 from redis.exceptions import RedisError
 
 from app.core.config import settings
+
+
+async def _resolve_ping_result(value: Any) -> bool:
+    """兼容 redis 类型标注里可能同步或异步返回的 ping 结果。"""
+    return bool(await value) if isawaitable(value) else bool(value)
 
 
 class RedisManager:
@@ -46,7 +52,7 @@ class RedisManager:
             )
             self._client = Redis(connection_pool=self._pool)
             # 测试连接
-            await self._client.ping()
+            await _resolve_ping_result(self._client.ping())
             logger.info("Redis 连接池初始化成功")
         except RedisError as e:
             logger.error(f"Redis 连接池初始化失败: {e}")
@@ -93,8 +99,7 @@ class RedisManager:
         if self._client is None:
             return False
         try:
-            await self._client.ping()
-            return True
+            return await _resolve_ping_result(self._client.ping())
         except RedisError:
             return False
 
