@@ -307,3 +307,19 @@
 ## Review 小结
 
 终态：finished。已将 TagsView 从 549 行拆为父级路由/store 编排、标签项、右键菜单和两个组合式函数，父组件降到 293 行；标签关闭、刷新、左右/其他/全部关闭和滚轮横向滚动逻辑保持原行为。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
+
+---
+
+# 前端超大组件拆分 P1：菜单搜索组件
+
+- [x] P1 串行：补充 MenuSearch 拆分守卫测试，确保 `index.vue` 只做弹窗和搜索编排
+- [x] P1 串行：抽出 `MenuSearchHistory.vue`，封装搜索历史列表和清理事件出口
+- [x] P1 串行：抽出 `MenuSearchResultList.vue`，封装搜索结果列表、图标和选中态
+- [x] P1 串行：抽出 `MenuSearchFooter.vue`，封装底部快捷键提示和样式
+- [x] P1 串行：抽出 `menu-search-routes.ts` 和 `useMenuSearchHistory.ts`，收口路由扁平化和历史存储逻辑
+- [x] P2 串行：运行目标测试、前端类型检查、质量门禁和生产构建
+- [x] P3 串行：运行文档/API 契约校验、diff 检查和 review-gate
+
+## Review 小结
+
+终态：finished。已将 MenuSearch 从 526 行拆为父级弹窗/搜索编排、搜索历史、结果列表、底部快捷键提示、路由扁平化工具和历史存储组合式函数，父组件降到 195 行；Ctrl+K、上下键选择、搜索历史、外链打开和路由跳转行为保持原逻辑。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
