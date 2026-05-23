@@ -46,6 +46,12 @@ frontend/dist
 fastapi/dv_admin_fastapi.egg-info
 find-skills
 .env
+.env.*
+!.env.example
+!.env.test
+!.env.development
+!.env.production
+!.env.staging
 .envrc
 dv_admin.db
 .coverage
