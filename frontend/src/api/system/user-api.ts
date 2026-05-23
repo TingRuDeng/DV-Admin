@@ -62,12 +62,16 @@ const UserAPI = {
    *
    * @param id 用户ID
    * @param password 新密码
+   * @param confirmPassword 确认新密码
    */
-  resetPassword(id: string, password: string) {
+  resetPassword(id: string, password: string, confirmPassword: string) {
     return request({
       url: `${USER_BASE_URL}/${id}/password/reset/`,
       method: "put",
-      params: { password },
+      data: {
+        password,
+        confirm_password: confirmPassword,
+      },
     });
   },
 
