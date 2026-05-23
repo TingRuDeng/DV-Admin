@@ -230,3 +230,19 @@
 ## Review 小结
 
 终态：finished。已将角色管理页的角色表单和权限分配抽屉分别抽为 `RoleFormDrawer.vue` 与 `RolePermissionDrawer.vue`，页面本体降到 207 行并保留查询、表格动作和删除编排；新增拆分守卫测试先红后绿。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
+
+---
+
+# 前端超大组件拆分 P1：通知表单与详情弹窗
+
+- [x] P1 串行：新增通知页拆分守卫测试，先确认当前代码仍内联 `ProFormDrawer`
+- [x] P1 串行：抽出 `frontend/src/views/system/notice/components/NoticeFormDrawer.vue`
+- [x] P1 串行：抽出 `frontend/src/views/system/notice/components/NoticeDetailDialog.vue`
+- [x] P1 串行：同步通知默认值和富文本安全守卫测试到新组件边界
+- [x] P1 串行：让 `frontend/src/views/system/notice/index.vue` 只保留查询、表格动作、发布/撤回/删除编排
+- [x] P2 串行：运行目标测试、前端类型检查、质量门禁和生产构建
+- [x] P3 串行：运行文档/API 契约校验、diff 检查和 review-gate
+
+## Review 小结
+
+终态：finished。已将通知管理页的通知表单和详情弹窗分别抽为 `NoticeFormDrawer.vue` 与 `NoticeDetailDialog.vue`，页面本体降到 291 行并继续保留查询、表格动作、发布/撤回/删除编排；同步默认值和富文本安全守卫测试到新组件边界。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
