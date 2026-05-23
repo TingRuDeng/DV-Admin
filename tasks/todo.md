@@ -215,3 +215,18 @@
 ## Review 小结
 
 终态：finished。已将用户管理页的表单抽屉抽为 `UserFormDrawer.vue`，页面本体降到 300 行以内并继续保留查询、表格动作和导入入口；新增拆分守卫测试先红后绿。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
+
+---
+
+# 前端超大组件拆分 P1：角色表单与权限抽屉
+
+- [x] P1 串行：新增角色页拆分守卫测试，先确认当前代码仍内联 `ProFormDrawer` 和 `ProDrawer`
+- [x] P1 串行：抽出 `frontend/src/views/system/role/components/RoleFormDrawer.vue`
+- [x] P1 串行：抽出 `frontend/src/views/system/role/components/RolePermissionDrawer.vue`
+- [x] P1 串行：让 `frontend/src/views/system/role/index.vue` 只保留页面编排、查询、表格动作和删除入口
+- [x] P2 串行：运行目标测试、前端类型检查、质量门禁和生产构建
+- [x] P3 串行：运行文档/API 契约校验、diff 检查和 review-gate
+
+## Review 小结
+
+终态：finished。已将角色管理页的角色表单和权限分配抽屉分别抽为 `RoleFormDrawer.vue` 与 `RolePermissionDrawer.vue`，页面本体降到 207 行并保留查询、表格动作和删除编排；新增拆分守卫测试先红后绿。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
