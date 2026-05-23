@@ -187,3 +187,17 @@
 ## Review 小结
 
 终态：finished。已完成项目深度审查 P0/P1 修复与 P2 门禁收口：FastAPI 文件上传/删除鉴权、上传大小和类型校验、敏感请求日志排除、共享路由契约、前端 refresh token 请求体、权限空状态和通知默认值均有测试覆盖；前端质量门禁改为只读检查并同步文档。验证通过：前端 quality/build、Django ruff/pytest、FastAPI make quality、共享路由契约测试、文档校验、API 契约校验和 diff 检查。
+
+---
+
+# 项目深度审查剩余后端修复
+
+- [x] P1 串行：修正 Django 重置密码测试，覆盖真实 `PUT /password/reset/` 成功语义
+- [x] P1 串行：收口 FastAPI 日志/通知服务 naive datetime warning
+- [x] P2 串行：修正 Redis cache 错误分支测试中的 unawaited coroutine warning
+- [x] P2 串行：隔离请求日志中间件实例级排除路径配置
+- [x] P3 串行：运行 Django/FastAPI 最小充分验证与 review-gate
+
+## Review 小结
+
+终态：finished。已完成剩余高价值后端修复：Django 重置密码测试不再允许旧路由 404 混过；FastAPI 日志和通知时间写入统一为 UTC aware；Redis cache 错误分支测试不再产生未等待 coroutine；请求日志中间件自定义排除路径不再污染其他实例。验证通过：Django ruff/pytest、FastAPI make quality、文档校验、API 契约校验和 diff 检查。

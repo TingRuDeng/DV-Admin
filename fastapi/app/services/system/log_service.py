@@ -1,7 +1,7 @@
 """
 操作日志 Service
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from app.db.models.system import OperationLog
@@ -11,6 +11,18 @@ from app.schemas.system import (
     VisitStatsOut,
     VisitTrendOut,
 )
+
+
+def utc_now() -> datetime:
+    """生成与 Tortoise 时区配置兼容的 UTC aware 时间。"""
+    return datetime.now(timezone.utc)
+
+
+def ensure_aware(value: datetime) -> datetime:
+    """将外部传入时间统一为 UTC aware，避免 ORM 时区告警。"""
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 
 class LogService:
@@ -40,9 +52,9 @@ class LogService:
         if status is not None:
             query = query.filter(status=status)
         if start_time:
-            query = query.filter(created_at__gte=start_time)
+            query = query.filter(created_at__gte=ensure_aware(start_time))
         if end_time:
-            query = query.filter(created_at__lte=end_time)
+            query = query.filter(created_at__lte=ensure_aware(end_time))
 
         # 查询总数
         total = await query.count()
@@ -90,9 +102,13 @@ class LogService:
     ) -> list[VisitTrendOut]:
         """获取访问趋势统计"""
         if not start_date:
-            start_date = datetime.now() - timedelta(days=7)
+            start_date = utc_now() - timedelta(days=7)
+        else:
+            start_date = ensure_aware(start_date)
         if not end_date:
-            end_date = datetime.now()
+            end_date = utc_now()
+        else:
+            end_date = ensure_aware(end_date)
 
         # 按日期分组统计
         logs = await OperationLog.filter(
@@ -124,7 +140,7 @@ class LogService:
 
     async def get_visit_stats(self) -> VisitStatsOut:
         """获取访问统计"""
-        now = datetime.now()
+        now = utc_now()
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         week_start = today_start - timedelta(days=now.weekday())
         month_start = today_start.replace(day=1)
@@ -227,7 +243,7 @@ class LogService:
 
     async def clear_old_logs(self, days: int = 30) -> int:
         """清理指定天数之前的日志"""
-        threshold = datetime.now() - timedelta(days=days)
+        threshold = utc_now() - timedelta(days=days)
         deleted_count = await OperationLog.filter(created_at__lt=threshold).delete()
         return deleted_count
 
