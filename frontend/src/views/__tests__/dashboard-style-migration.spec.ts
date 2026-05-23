@@ -9,5 +9,9 @@ describe("dashboard style migration", () => {
     expect(source).toContain("<PageShell");
     expect(source).toContain('class="ff-page-shell__hero');
     expect(source).not.toContain("glass-panel");
+    expect(source).not.toContain("visitTrend");
+    expect(source).not.toContain("visitStats");
+    expect(source).not.toContain("fetchVisit");
+    expect(source).not.toContain("useOnlineCount");
   });
 });
