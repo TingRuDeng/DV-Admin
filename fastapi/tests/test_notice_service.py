@@ -251,6 +251,7 @@ class TestNoticeServicePublish:
         updated = await Notices.get(id=notice.id)
         assert updated.publish_status == 1
         assert updated.publish_time is not None
+        assert updated.publish_time.tzinfo is None
 
     @pytest.mark.asyncio
     async def test_publish_nonexistent(self, db):
@@ -276,6 +277,7 @@ class TestNoticeServiceRevoke:
         updated = await Notices.get(id=test_published_notice.id)
         assert updated.publish_status == -1
         assert updated.revoke_time is not None
+        assert updated.revoke_time.tzinfo is None
 
     @pytest.mark.asyncio
     async def test_revoke_nonexistent(self, db):
