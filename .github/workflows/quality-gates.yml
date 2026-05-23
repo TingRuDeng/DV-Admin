@@ -87,6 +87,7 @@ jobs:
           echo "DATABASE_URL=sqlite:///./test.sqlite3" >> .env.test
           echo "CORS_ALLOWED_ORIGINS=http://localhost:9527,http://127.0.0.1:9527" >> .env.test
           echo "EXTRA_INSTALLED_APPS=" >> .env.test
+          echo "DEFAULT_PWD=test-default-password" >> .env.test
       - name: Run lint
         working-directory: backend
         run: .venv/bin/ruff check .
