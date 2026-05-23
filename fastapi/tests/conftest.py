@@ -79,12 +79,24 @@ async def ensure_test_db_initialized() -> None:
         pass
 
     await Tortoise.init(
-        db_url=f"sqlite://{TEST_DB_PATH}",
-        modules={
-            "models": [
-                "app.db.models.oauth",
-                "app.db.models.system",
-            ]
+        config={
+            "connections": {
+                "default": {
+                    "engine": "tortoise.backends.sqlite",
+                    "credentials": {"file_path": str(TEST_DB_PATH)},
+                }
+            },
+            "apps": {
+                "models": {
+                    "models": [
+                        "app.db.models.oauth",
+                        "app.db.models.system",
+                    ],
+                    "default_connection": "default",
+                }
+            },
+            "use_tz": False,
+            "timezone": "Asia/Shanghai",
         },
         _enable_global_fallback=True,
     )
