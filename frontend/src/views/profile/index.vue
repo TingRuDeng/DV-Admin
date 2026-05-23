@@ -1,342 +1,92 @@
 <template>
   <PageShell class="ff-profile-page">
     <div class="ff-profile-page__grid">
-      <section class="ff-side-panel ff-profile-page__sidebar">
-        <div class="ff-profile-user">
-          <div class="ff-profile-user__avatar">
-            <el-avatar :src="userStore.userInfo.avatar" :size="100" />
-            <el-button
-              type="info"
-              class="ff-profile-user__avatar-button"
-              circle
-              :icon="Camera"
-              size="small"
-              @click="triggerFileUpload"
-            />
-            <input
-              ref="fileInput"
-              type="file"
-              style="display: none"
-              accept="image/*"
-              @change="handleFileChange"
-            />
-          </div>
-          <div class="ff-profile-user__name">
-            <span class="ff-profile-user__display-name">{{ userProfile.name }}</span>
-            <el-icon class="ff-profile-user__edit" @click="handleOpenDialog(DialogType.ACCOUNT)">
-              <Edit />
-            </el-icon>
-          </div>
-          <div class="ff-profile-user__role">{{ userProfile.roleNames }}</div>
-        </div>
-      </section>
+      <ProfileSidebar
+        ref="profileSidebarRef"
+        :avatar="userStore.userInfo.avatar"
+        :profile="userProfile"
+        @edit-account="handleOpenDialog(ProfileDialogType.ACCOUNT)"
+        @file-change="handleFileChange"
+        @upload-avatar="triggerFileUpload"
+      />
 
       <div class="ff-profile-page__main">
-        <DataPanel title="账号信息">
-          <el-descriptions :column="1" border>
-            <el-descriptions-item label="用户名">
-              {{ userProfile.username }}
-              <el-icon v-if="userProfile.gender === 1" class="ff-profile-gender male">
-                <Male />
-              </el-icon>
-              <el-icon v-else class="ff-profile-gender female">
-                <Female />
-              </el-icon>
-            </el-descriptions-item>
-            <el-descriptions-item label="手机号码">
-              {{ userProfile.mobile || "未绑定" }}
-            </el-descriptions-item>
-            <el-descriptions-item label="邮箱">
-              {{ userProfile.email || "未绑定" }}
-            </el-descriptions-item>
-            <el-descriptions-item label="部门">
-              {{ userProfile.deptName }}
-            </el-descriptions-item>
-          </el-descriptions>
-        </DataPanel>
-
-        <DataPanel title="安全设置">
-          <div class="ff-profile-security-item">
-            <div class="ff-profile-security-item__copy">
-              <div class="ff-profile-security-item__title">账户密码</div>
-              <div class="ff-profile-security-item__desc">定期修改密码有助于保护账户安全</div>
-            </div>
-            <el-button type="primary" link @click="() => handleOpenDialog(DialogType.PASSWORD)">
-              修改
-            </el-button>
-          </div>
-        </DataPanel>
+        <ProfileInfoPanel :profile="userProfile" />
+        <ProfileSecurityPanel @change-password="handleOpenDialog(ProfileDialogType.PASSWORD)" />
       </div>
     </div>
 
-    <!-- 弹窗 -->
-    <ProDialog
-      v-model="dialog.visible"
-      :title="dialog.title"
-      :width="500"
+    <ProfileEditDialog
+      ref="profileEditDialogRef"
+      :dialog="dialog"
+      :password-form="passwordChangeForm"
+      :profile-form="userProfileForm"
+      @update:visible="dialog.visible = $event"
       @submit="handleSubmit"
       @cancel="handleCancel"
-      @close="handleCancel"
-    >
-      <!-- 账号资料 -->
-      <el-form
-        v-if="dialog.type === DialogType.ACCOUNT"
-        ref="userProfileFormRef"
-        :model="userProfileForm"
-        :label-width="100"
-        class="ff-form"
-      >
-        <el-form-item label="昵称">
-          <el-input v-model="userProfileForm.name" />
-        </el-form-item>
-        <!--        <el-form-item label="性别">-->
-        <!--          <Dict v-model="userProfileForm.gender" code="gender" />-->
-        <!--        </el-form-item>-->
-      </el-form>
-
-      <!-- 修改密码 -->
-      <el-form
-        v-if="dialog.type === DialogType.PASSWORD"
-        ref="passwordChangeFormRef"
-        :model="passwordChangeForm"
-        :rules="passwordChangeRules"
-        :label-width="100"
-        class="ff-form"
-      >
-        <el-form-item label="原密码" prop="currentPassword">
-          <el-input v-model="passwordChangeForm.currentPassword" type="password" show-password />
-        </el-form-item>
-        <el-form-item label="新密码" prop="newPassword">
-          <el-input v-model="passwordChangeForm.newPassword" type="password" show-password />
-        </el-form-item>
-        <el-form-item label="确认密码" prop="confirmPassword">
-          <el-input v-model="passwordChangeForm.confirmPassword" type="password" show-password />
-        </el-form-item>
-      </el-form>
-
-      <!-- 绑定手机 -->
-      <!--      <el-form-->
-      <!--        v-else-if="dialog.type === DialogType.MOBILE"-->
-      <!--        ref="mobileBindingFormRef"-->
-      <!--        :model="mobileUpdateForm"-->
-      <!--        :rules="mobileBindingRules"-->
-      <!--        :label-width="100"-->
-      <!--      >-->
-      <!--        <el-form-item label="手机号码" prop="mobile">-->
-      <!--          <el-input v-model="mobileUpdateForm.mobile" style="width: 250px" />-->
-      <!--        </el-form-item>-->
-      <!--        <el-form-item label="验证码" prop="code">-->
-      <!--          <el-input v-model="mobileUpdateForm.code" style="width: 250px">-->
-      <!--            <template #append>-->
-      <!--              <el-button :disabled="mobileCountdown > 0" @click="handleSendMobileCode">-->
-      <!--                {{ mobileCountdown > 0 ? `${mobileCountdown}s后重新发送` : "发送验证码" }}-->
-      <!--              </el-button>-->
-      <!--            </template>-->
-      <!--          </el-input>-->
-      <!--        </el-form-item>-->
-      <!--      </el-form>-->
-
-      <!-- 绑定邮箱 -->
-      <!--      <el-form-->
-      <!--        v-else-if="dialog.type === DialogType.EMAIL"-->
-      <!--        ref="emailBindingFormRef"-->
-      <!--        :model="emailUpdateForm"-->
-      <!--        :rules="emailBindingRules"-->
-      <!--        :label-width="100"-->
-      <!--      >-->
-      <!--        <el-form-item label="邮箱" prop="email">-->
-      <!--          <el-input v-model="emailUpdateForm.email" style="width: 250px" />-->
-      <!--        </el-form-item>-->
-      <!--        <el-form-item label="验证码" prop="code">-->
-      <!--          <el-input v-model="emailUpdateForm.code" style="width: 250px">-->
-      <!--            <template #append>-->
-      <!--              <el-button :disabled="emailCountdown > 0" @click="handleSendEmailCode">-->
-      <!--                {{ emailCountdown > 0 ? `${emailCountdown}s后重新发送` : "发送验证码" }}-->
-      <!--              </el-button>-->
-      <!--            </template>-->
-      <!--          </el-input>-->
-      <!--        </el-form-item>-->
-      <!--      </el-form>-->
-    </ProDialog>
+    />
   </PageShell>
 </template>
 
 <script lang="ts" setup>
-// import UserAPI from "@/api/system/user-api";
-
-import ProDialog from "@/components/ProDialog/index.vue";
 import FileAPI from "@/api/file-api";
 import InformationAPI, { UserProfile, ProfileForm, PasswordForm } from "@/api/information-api";
 import { useUserStoreHook } from "@/store";
 import { createLogger } from "@/utils/logger";
-import type { FormInstance } from "element-plus";
-
-import { Camera } from "@element-plus/icons-vue";
+import ProfileEditDialog from "./components/ProfileEditDialog.vue";
+import ProfileInfoPanel from "./components/ProfileInfoPanel.vue";
+import ProfileSecurityPanel from "./components/ProfileSecurityPanel.vue";
+import ProfileSidebar from "./components/ProfileSidebar.vue";
+import { ProfileDialogType, type ProfileDialogState } from "./types";
 
 const profileLogger = createLogger("Profile");
 const userStore = useUserStoreHook();
 
 const userProfile = ref<UserProfile>({});
 
-const enum DialogType {
-  ACCOUNT = "account",
-  PASSWORD = "password",
-  MOBILE = "mobile",
-  EMAIL = "email",
-}
-
-const dialog = reactive({
+const dialog = reactive<ProfileDialogState>({
   visible: false,
   title: "",
-  type: "" as DialogType, // 修改账号资料,修改密码、绑定手机、绑定邮箱
+  type: "",
 });
-const userProfileFormRef = ref<FormInstance>();
-const passwordChangeFormRef = ref<FormInstance>();
-const mobileBindingFormRef = ref<FormInstance>();
-const emailBindingFormRef = ref<FormInstance>();
 
 const userProfileForm = reactive<ProfileForm>({});
 const passwordChangeForm = reactive<PasswordForm>({});
-// const mobileUpdateForm = reactive<MobileUpdateForm>({});
-// const emailUpdateForm = reactive<EmailUpdateForm>({});
 
-// const mobileCountdown = ref(0);
-const mobileTimer = ref();
-
-// const emailCountdown = ref(0);
-const emailTimer = ref();
-
-// 修改密码校验规则
-const passwordChangeRules = {
-  currentPassword: [{ required: true, message: "请输入原密码", trigger: "blur" }],
-  newPassword: [{ required: true, message: "请输入新密码", trigger: "blur" }],
-  confirmPassword: [{ required: true, message: "请再次输入新密码", trigger: "blur" }],
-};
-
-// // 手机号校验规则
-// const mobileBindingRules = {
-//   mobile: [
-//     { required: true, message: "请输入手机号", trigger: "blur" },
-//     {
-//       pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/,
-//       message: "请输入正确的手机号码",
-//       trigger: "blur",
-//     },
-//   ],
-//   code: [{ required: true, message: "请输入验证码", trigger: "blur" }],
-// };
-//
-// // 邮箱校验规则
-// const emailBindingRules = {
-//   email: [
-//     { required: true, message: "请输入邮箱", trigger: "blur" },
-//     {
-//       pattern: /\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}/,
-//       message: "请输入正确的邮箱地址",
-//       trigger: "blur",
-//     },
-//   ],
-//   code: [{ required: true, message: "请输入验证码", trigger: "blur" }],
-// };
+const profileSidebarRef = ref<InstanceType<typeof ProfileSidebar> | null>(null);
+const profileEditDialogRef = ref<InstanceType<typeof ProfileEditDialog> | null>(null);
 
 /**
  * 打开弹窗
- * @param type 弹窗类型 ACCOUNT: 账号资料 PASSWORD: 修改密码 MOBILE: 绑定手机 EMAIL: 绑定邮箱
+ * @param type 弹窗类型 ACCOUNT: 账号资料 PASSWORD: 修改密码
  */
-const handleOpenDialog = (type: DialogType) => {
+const handleOpenDialog = (type: ProfileDialogType) => {
   dialog.type = type;
   dialog.visible = true;
   switch (type) {
-    case DialogType.ACCOUNT:
+    case ProfileDialogType.ACCOUNT:
       dialog.title = "账号资料";
-      // 初始化表单数据
       userProfileForm.id = userProfile.value.id;
       userProfileForm.name = userProfile.value.name;
       userProfileForm.gender = userProfile.value.gender;
       break;
-    case DialogType.PASSWORD:
+    case ProfileDialogType.PASSWORD:
       dialog.title = "修改密码";
-      break;
-    case DialogType.MOBILE:
-      dialog.title = "绑定手机";
-      break;
-    case DialogType.EMAIL:
-      dialog.title = "绑定邮箱";
       break;
   }
 };
 
 /**
- * 发送手机验证码
- */
-// function handleSendMobileCode() {
-//   if (!mobileUpdateForm.mobile) {
-//     ElMessage.error("请输入手机号");
-//     return;
-//   }
-//   // 验证手机号格式
-//   const reg = /^1[3-9]\d{9}$/;
-//   if (!reg.test(mobileUpdateForm.mobile)) {
-//     ElMessage.error("手机号格式不正确");
-//     return;
-//   }
-//   // 发送短信验证码
-//   UserAPI.sendMobileCode(mobileUpdateForm.mobile).then(() => {
-//     ElMessage.success("验证码发送成功");
-//
-//     // 倒计时 60s 重新发送
-//     mobileCountdown.value = 60;
-//     mobileTimer.value = setInterval(() => {
-//       if (mobileCountdown.value > 0) {
-//         mobileCountdown.value -= 1;
-//       } else {
-//         clearInterval(mobileTimer.value!);
-//       }
-//     }, 1000);
-//   });
-// }
-//
-// /**
-//  * 发送邮箱验证码
-//  */
-// function handleSendEmailCode() {
-//   if (!emailUpdateForm.email) {
-//     ElMessage.error("请输入邮箱");
-//     return;
-//   }
-//   // 验证邮箱格式
-//   const reg = /\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}/;
-//   if (!reg.test(emailUpdateForm.email)) {
-//     ElMessage.error("邮箱格式不正确");
-//     return;
-//   }
-//
-//   // 发送邮箱验证码
-//   UserAPI.sendEmailCode(emailUpdateForm.email).then(() => {
-//     ElMessage.success("验证码发送成功");
-//     // 倒计时 60s 重新发送
-//     emailCountdown.value = 60;
-//     emailTimer.value = setInterval(() => {
-//       if (emailCountdown.value > 0) {
-//         emailCountdown.value -= 1;
-//       } else {
-//         clearInterval(emailTimer.value!);
-//       }
-//     }, 1000);
-//   });
-// }
-
-/**
  * 提交表单
  */
 const handleSubmit = async () => {
-  if (dialog.type === DialogType.ACCOUNT) {
+  if (dialog.type === ProfileDialogType.ACCOUNT) {
     await InformationAPI.updateProfile(userProfileForm);
     ElMessage.success("账号资料修改成功");
     handleCancel();
     await loadUserProfile();
-  } else if (dialog.type === DialogType.PASSWORD) {
-    const isValid = await passwordChangeFormRef.value?.validate().catch(() => false);
+  } else if (dialog.type === ProfileDialogType.PASSWORD) {
+    const isValid = await profileEditDialogRef.value?.validatePasswordForm();
     if (!isValid) {
       return;
     }
@@ -347,18 +97,6 @@ const handleSubmit = async () => {
     await InformationAPI.changePassword(passwordChangeForm);
     ElMessage.success("密码修改成功");
     handleCancel();
-    // } else if (dialog.type === DialogType.MOBILE) {
-    //   InformationAPI.bindOrChangeMobile(mobileUpdateForm).then(() => {
-    //     ElMessage.success("手机号绑定成功");
-    //     dialog.visible = false;
-    //     loadUserProfile();
-    //   });
-    // } else if (dialog.type === DialogType.EMAIL) {
-    //   InformationAPI.bindOrChangeEmail(emailUpdateForm).then(() => {
-    //     ElMessage.success("邮箱绑定成功");
-    //     dialog.visible = false;
-    //     loadUserProfile();
-    //   });
   }
 };
 
@@ -367,21 +105,15 @@ const handleSubmit = async () => {
  */
 const handleCancel = () => {
   dialog.visible = false;
-  if (dialog.type === DialogType.ACCOUNT) {
-    userProfileFormRef.value?.resetFields();
-  } else if (dialog.type === DialogType.PASSWORD) {
-    passwordChangeFormRef.value?.resetFields();
-  } else if (dialog.type === DialogType.MOBILE) {
-    mobileBindingFormRef.value?.resetFields();
-  } else if (dialog.type === DialogType.EMAIL) {
-    emailBindingFormRef.value?.resetFields();
+  if (dialog.type === ProfileDialogType.ACCOUNT) {
+    profileEditDialogRef.value?.resetProfileForm();
+  } else if (dialog.type === ProfileDialogType.PASSWORD) {
+    profileEditDialogRef.value?.resetPasswordForm();
   }
 };
 
-const fileInput = ref<HTMLInputElement | null>(null);
-
 const triggerFileUpload = () => {
-  fileInput.value?.click();
+  profileSidebarRef.value?.triggerFileUpload();
 };
 
 const handleFileChange = async (event: Event) => {
@@ -410,12 +142,6 @@ const loadUserProfile = async () => {
 };
 
 onMounted(async () => {
-  if (mobileTimer.value) {
-    clearInterval(mobileTimer.value);
-  }
-  if (emailTimer.value) {
-    clearInterval(emailTimer.value);
-  }
   await loadUserProfile();
 });
 </script>
