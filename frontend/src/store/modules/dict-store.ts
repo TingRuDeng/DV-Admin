@@ -26,12 +26,13 @@ export const useDictStore = defineStore("dict", () => {
     if (dictCache.value[dictCode]) return;
     // 防止重复请求
     if (!requestQueue[dictCode]) {
-      requestQueue[dictCode] = DictItemAPI.getDictItems({ dict__dict_code: dictCode }).then(
-        (data) => {
+      requestQueue[dictCode] = DictItemAPI.getDictItems({ dict__dict_code: dictCode })
+        .then((data) => {
           cacheDictItems(dictCode, data);
+        })
+        .finally(() => {
           Reflect.deleteProperty(requestQueue, dictCode);
-        }
-      );
+        });
     }
     await requestQueue[dictCode];
   };
