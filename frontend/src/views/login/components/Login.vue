@@ -131,6 +131,7 @@ import { useUserStore } from "@/store";
 import { AuthStorage } from "@/utils/auth";
 import { createLogger } from "@/utils/logger";
 import { defaultSettings } from "@/settings";
+import { getLoginDefaultCredentials } from "./login-defaults";
 
 const loginLogger = createLogger("Login");
 const { t } = useI18n();
@@ -155,10 +156,11 @@ const isCapsLock = ref(false);
 const captchaBase64 = ref();
 // 记住我
 const rememberMe = AuthStorage.getRememberMe();
+const defaultCredentials = getLoginDefaultCredentials();
 
 const loginFormData = ref<LoginFormData>({
-  username: "admin",
-  password: "123456",
+  username: defaultCredentials.username,
+  password: defaultCredentials.password,
   captchaKey: "",
   captchaCode: "",
   rememberMe,

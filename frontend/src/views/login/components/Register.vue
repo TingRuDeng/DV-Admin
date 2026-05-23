@@ -100,6 +100,7 @@ import { Lock } from "@element-plus/icons-vue";
 import { useI18n } from "vue-i18n";
 import AuthAPI, { type LoginFormData } from "@/api/auth-api";
 import { defaultSettings } from "@/settings";
+import { getLoginDefaultCredentials } from "./login-defaults";
 
 const { t } = useI18n();
 
@@ -126,9 +127,11 @@ interface Model extends LoginFormData {
   confirmPassword: string;
 }
 
+const defaultCredentials = getLoginDefaultCredentials();
+
 const model = ref<Model>({
-  username: "admin",
-  password: "123456",
+  username: defaultCredentials.username,
+  password: defaultCredentials.password,
   confirmPassword: "",
   captchaKey: "",
   captchaCode: "",
