@@ -128,66 +128,7 @@
       </section>
     </div>
 
-    <ProFormDrawer
-      ref="userFormRef"
-      v-model="dialog.visible"
-      :title="dialog.title"
-      :model="formData"
-      :rules="rules"
-      :loading="formLoading"
-      :size="drawerSize"
-      @submit="handleSubmitWrapper"
-      @close="handleCloseDialog"
-    >
-      <el-form-item label="用户名" prop="username">
-        <el-input
-          v-model="formData.username"
-          :readonly="!!formData.id"
-          placeholder="请输入用户名"
-        />
-      </el-form-item>
-      <el-form-item label="用户昵称" prop="name">
-        <el-input v-model="formData.name" placeholder="请输入用户昵称" />
-      </el-form-item>
-      <el-form-item label="所属部门" prop="deptId">
-        <el-tree-select
-          v-model="formData.deptId"
-          placeholder="请选择所属部门"
-          :data="deptOptions"
-          node-key="id"
-          filterable
-          check-strictly
-          :render-after-expand="false"
-          class="w-full"
-        />
-      </el-form-item>
-      <el-form-item label="角色" prop="roles">
-        <el-select v-model="formData.roles" multiple placeholder="请选择" class="w-full">
-          <el-option
-            v-for="item in roleOptions"
-            :key="item.id"
-            :label="item.label"
-            :value="item.id"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="手机号码" prop="mobile">
-        <el-input v-model="formData.mobile" placeholder="请输入手机号码" maxlength="11" />
-      </el-form-item>
-      <el-form-item label="邮箱" prop="email">
-        <el-input v-model="formData.email" placeholder="请输入邮箱" maxlength="50" />
-      </el-form-item>
-      <el-form-item label="状态" prop="isActive">
-        <el-switch
-          v-model="formData.isActive"
-          inline-prompt
-          active-text="正常"
-          inactive-text="禁用"
-          :active-value="1"
-          :inactive-value="0"
-        />
-      </el-form-item>
-    </ProFormDrawer>
+    <UserFormDrawer ref="userFormDrawerRef" @success="handleQuery" />
 
     <UserImport v-model="importDialogVisible" @import-success="handleQuery()" />
   </PageShell>
@@ -195,21 +136,17 @@
 
 <script setup lang="ts">
 import PageShell from "@/components/PageShell/index.vue";
-import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
-import { useAppStore } from "@/store/modules/app-store";
-import { DeviceEnum } from "@/enums/settings/device-enum";
 
 import type { UserInfo } from "@/api/auth-api";
-import UserAPI, { UserForm, UserPageQuery, UserPageVO } from "@/api/system/user-api";
-import DeptAPI from "@/api/system/dept-api";
-import RoleAPI from "@/api/system/role-api";
+import UserAPI, { UserPageQuery, UserPageVO } from "@/api/system/user-api";
 
 import DeptTree from "./components/DeptTree.vue";
 import UserImport from "./components/UserImport.vue";
+import UserFormDrawer from "./components/UserFormDrawer.vue";
 import { useUserStore } from "@/store";
 const userStore = useUserStore();
 defineOptions({
@@ -217,54 +154,16 @@ defineOptions({
   inheritAttrs: false,
 });
 
-const appStore = useAppStore();
-
 const queryFormRef = ref<InstanceType<typeof ProSearch> | null>(null);
-const userFormRef = ref<InstanceType<typeof ProFormDrawer> | null>(null);
+const userFormDrawerRef = ref<InstanceType<typeof UserFormDrawer> | null>(null);
 const tableRef = ref<ProTableExpose | null>(null);
 
 const queryParams = reactive<Omit<UserPageQuery, "pageNum" | "pageSize">>({});
 
 const loading = ref(false);
-const formLoading = ref(false);
-
-const dialog = reactive({
-  visible: false,
-  title: "新增用户",
-});
-const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "600px" : "90%"));
-
-const formData = reactive<UserForm>({
-  isActive: 1,
-});
-
-const rules = reactive({
-  username: [{ required: true, message: "用户名不能为空", trigger: "blur" }],
-  name: [{ required: true, message: "用户昵称不能为空", trigger: "blur" }],
-  deptId: [{ required: true, message: "所属部门不能为空", trigger: "blur" }],
-  roles: [{ required: true, message: "用户角色不能为空", trigger: "blur" }],
-  email: [
-    {
-      pattern: /\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}/,
-      message: "请输入正确的邮箱地址",
-      trigger: "blur",
-    },
-  ],
-  mobile: [
-    {
-      pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/,
-      message: "请输入正确的手机号码",
-      trigger: "blur",
-    },
-  ],
-});
 
 // 选中的用户ID
 const selectIds = ref<string[]>([]);
-// 部门下拉数据源
-const deptOptions = ref<OptionType[]>();
-// 角色下拉数据源
-const roleOptions = ref<OptionType[]>();
 // 导入弹窗显示状态
 const importDialogVisible = ref(false);
 
@@ -315,66 +214,11 @@ function hancleResetPassword(row: UserPageVO) {
  * @param id 用户ID
  */
 async function handleOpenDialog(id?: string) {
-  dialog.visible = true;
-  // 加载角色下拉数据源
-  roleOptions.value = await RoleAPI.getOptions();
-  // 加载部门下拉数据源
-  deptOptions.value = await DeptAPI.getOptions();
-
   if (id) {
-    dialog.title = "修改用户";
-    UserAPI.getFormData(id).then((data) => {
-      Object.assign(formData, { ...data });
-    });
+    await userFormDrawerRef.value?.openEdit(id);
   } else {
-    dialog.title = "新增用户";
+    await userFormDrawerRef.value?.openCreate();
   }
-}
-
-// 关闭弹窗
-function handleCloseDialog() {
-  dialog.visible = false;
-  userFormRef.value?.resetFields();
-  userFormRef.value?.clearValidate();
-
-  formData.id = undefined;
-  formData.deptId = undefined;
-  formData.isActive = 1;
-}
-
-// 提交用户表单（防抖）
-const handleSubmit = useDebounceFn(() => {
-  userFormRef.value?.validate((valid: boolean) => {
-    if (valid) {
-      const userId = formData.id;
-      if (userId) {
-        UserAPI.update(userId, formData)
-          .then(() => {
-            ElMessage.success("修改用户成功");
-            handleCloseDialog();
-            tableRef.value?.reload(true);
-          })
-          .finally(() => (formLoading.value = false));
-      } else {
-        UserAPI.create(formData)
-          .then(() => {
-            ElMessage.success("新增用户成功");
-            handleCloseDialog();
-            tableRef.value?.reload(true);
-          })
-          .finally(() => (formLoading.value = false));
-      }
-    } else {
-      // 验证失败时也要重置loading状态
-      formLoading.value = false;
-    }
-  });
-}, 300);
-
-// 立即设置loading状态的包装函数
-function handleSubmitWrapper() {
-  formLoading.value = true;
-  handleSubmit();
 }
 
 /**
