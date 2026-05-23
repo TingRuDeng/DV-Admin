@@ -195,6 +195,20 @@
 
 ---
 
+# 前端 Demo 页面拆分 P1：字典同步演示
+
+- [x] P1 串行：分析字典同步 demo 的编辑、预览、缓存展示职责
+- [x] P1 串行：抽出 `DictItemEditorCard`、`DictPreviewCard`、`DictCacheCard`
+- [x] P1 串行：让 `dict-sync.vue` 只保留 WebSocket、接口和状态编排
+- [x] P2 串行：运行目标测试、前端类型检查和质量门禁
+- [x] P3 串行：运行文档/API 契约校验、diff 检查和 review-gate
+
+## Review 小结
+
+终态：finished。已将字典同步 demo 的字典项编辑、字典预览和缓存展示拆成三个子组件，父页面从 312 行降到 163 行并只保留 WebSocket、接口和状态编排；新增拆分守卫测试覆盖父页不再内联表单、缓存 `<pre>` 和卡片样式。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
+
+---
+
 # P0-P3 产品化治理全量收口
 
 - [x] 建立隔离分支并写入全量收口计划
