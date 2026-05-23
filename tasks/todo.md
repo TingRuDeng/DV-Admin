@@ -323,3 +323,18 @@
 ## Review 小结
 
 终态：finished。已将 MenuSearch 从 526 行拆为父级弹窗/搜索编排、搜索历史、结果列表、底部快捷键提示、路由扁平化工具和历史存储组合式函数，父组件降到 195 行；Ctrl+K、上下键选择、搜索历史、外链打开和路由跳转行为保持原逻辑。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
+
+---
+
+# 前端超大组件拆分 P1：文本滚动组件
+
+- [x] P1 串行：补充 TextScroll 拆分守卫测试，确保 `index.vue` 只保留渲染和关闭入口
+- [x] P1 串行：抽出 `frontend/src/components/TextScroll/types.ts`，收口组件 props 类型
+- [x] P1 串行：抽出 `frontend/src/components/TextScroll/useTextScroll.ts`，收口 hover、滚动时长、打字机和 HTML 净化逻辑
+- [x] P1 串行：让 `frontend/src/components/TextScroll/index.vue` 保留模板、样式和关闭按钮事件
+- [x] P2 串行：运行目标测试、前端类型检查、质量门禁和生产构建
+- [x] P3 串行：运行文档/API 契约校验、diff 检查和 review-gate
+
+## Review 小结
+
+终态：finished。已将 TextScroll 从 415 行拆为渲染组件、props 类型和滚动/打字机组合式函数，父组件降到 270 行；保留原有滚动、悬停暂停、HTML 净化、打字机和关闭按钮行为。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
