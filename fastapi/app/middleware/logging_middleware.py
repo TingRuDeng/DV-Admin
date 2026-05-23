@@ -40,6 +40,10 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     EXCLUDED_BODY_PATHS: set[str] = {
         "/api/v1/auth/login",
         "/api/v1/auth/password",
+        "/api/v1/oauth/login",
+        "/api/v1/oauth/refresh-token",
+        "/api/v1/information/password",
+        "/api/v1/information/change-avatar",
         "/api/v1/files",
         "/api/v1/profile/avatar",
     }

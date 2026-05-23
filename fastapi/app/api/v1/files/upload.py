@@ -8,10 +8,12 @@ import os
 
 from fastapi import APIRouter, File, Query, Request, UploadFile
 
+from app.api.deps import CurrentUser
 from app.core.config import settings
 from app.core.exceptions import ValidationError
+from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
-from app.utils.file import save_upload_file
+from app.utils.file import allowed_file, save_upload_file
 
 router = APIRouter()
 
@@ -20,12 +22,18 @@ router = APIRouter()
 async def upload_file(
     request: Request,
     file: UploadFile = File(...),
+    current_user: Users = CurrentUser,
 ) -> ResponseModel[dict]:
     """
     上传文件
     """
+    if not file.filename:
+        raise ValidationError("文件名不能为空")
+    if not allowed_file(file.filename):
+        raise ValidationError("不支持的文件类型")
+
     # 保存文件
-    relative_path = await save_upload_file(file, "files")
+    relative_path = await save_upload_file(file, "files", max_size=settings.max_upload_size)
     if not relative_path:
         raise ValidationError("文件上传失败")
 
@@ -46,6 +54,7 @@ async def upload_file(
 async def delete_file(
     request: Request,
     filePath: str = Query(..., alias="filePath"),
+    current_user: Users = CurrentUser,
 ) -> ResponseModel[None]:
     """
     删除文件

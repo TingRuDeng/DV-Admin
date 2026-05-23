@@ -52,13 +52,15 @@ export const AuthStorage = {
  */
 export function hasPerm(value: string | string[], type: "button" | "role" = "button"): boolean {
   const { roles, perms } = useUserStoreHook().userInfo;
+  const safeRoles = Array.isArray(roles) ? roles : [];
+  const safePerms = Array.isArray(perms) ? perms : [];
 
   // 超级管理员拥有所有权限
-  if (type === "button" && roles.includes(ROLE_ROOT)) {
+  if (type === "button" && safeRoles.includes(ROLE_ROOT)) {
     return true;
   }
 
-  const auths = type === "button" ? perms : roles;
+  const auths = type === "button" ? safePerms : safeRoles;
   return typeof value === "string"
     ? auths.includes(value)
     : value.some((perm) => auths.includes(perm));
