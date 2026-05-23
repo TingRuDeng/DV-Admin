@@ -131,68 +131,6 @@ const UserAPI = {
     });
   },
 
-  // /** 获取个人中心用户信息 */
-  // getProfile() {
-  //   return request<unknown, UserProfileVO>({
-  //     url: `${USER_BASE_URL}/profile/`,
-  //     method: "get",
-  //   });
-  // },
-
-  // /** 修改个人中心用户信息 */
-  // updateProfile(data: UserProfileForm) {
-  //   return request({
-  //     url: `${USER_BASE_URL}/profile`,
-  //     method: "put",
-  //     data,
-  //   });
-  // },
-
-  // /** 修改个人中心用户密码 */
-  // changePassword(data: PasswordChangeForm) {
-  //   return request({
-  //     url: `${USER_BASE_URL}/password`,
-  //     method: "put",
-  //     data,
-  //   });
-  // },
-
-  // /** 发送短信验证码（绑定或更换手机号）*/
-  // sendMobileCode(mobile: string) {
-  //   return request({
-  //     url: `${USER_BASE_URL}/mobile/code`,
-  //     method: "post",
-  //     params: { mobile },
-  //   });
-  // },
-  //
-  // /** 绑定或更换手机号 */
-  // bindOrChangeMobile(data: MobileUpdateForm) {
-  //   return request({
-  //     url: `${USER_BASE_URL}/mobile`,
-  //     method: "put",
-  //     data,
-  //   });
-  // },
-  //
-  // /** 发送邮箱验证码（绑定或更换邮箱）*/
-  // sendEmailCode(email: string) {
-  //   return request({
-  //     url: `${USER_BASE_URL}/email/code`,
-  //     method: "post",
-  //     params: { email },
-  //   });
-  // },
-  //
-  // /** 绑定或更换邮箱 */
-  // bindOrChangeEmail(data: EmailUpdateForm) {
-  //   return request({
-  //     url: `${USER_BASE_URL}/email`,
-  //     method: "put",
-  //     data,
-  //   });
-  // },
-
   /**
    *  获取用户下拉列表
    */
@@ -220,7 +158,6 @@ export interface UserPageQuery extends PageQuery {
   deptId?: string;
 
   /** 开始时间 */
-  // createTime?: [string, string];
 }
 
 /** 用户分页对象 */
@@ -230,7 +167,6 @@ export interface UserPageVO {
   /** 用户头像URL */
   avatar?: string;
   /** 创建时间 */
-  // createTime?: Date;
   /** 部门名称 */
   deptName?: string;
   /** 用户邮箱 */
@@ -272,86 +208,3 @@ export interface UserForm {
   /** 用户名 */
   username?: string;
 }
-
-// /** 个人中心用户信息 */
-// export interface UserProfileVO {
-//   /** 用户ID */
-//   id?: string;
-//
-//   /** 用户名 */
-//   username?: string;
-//
-//   /** 昵称 */
-//   name?: string;
-//
-//   /** 头像URL */
-//   avatar?: string;
-//
-//   /** 性别 */
-//   gender?: number;
-//
-//   /** 手机号 */
-//   mobile?: string;
-//
-//   /** 邮箱 */
-//   email?: string;
-//
-//   /** 部门名称 */
-//   deptName?: string;
-//
-//   /** 角色名称，多个使用英文逗号(,)分割 */
-//   roleNames?: string;
-//
-//   /** 创建时间 */
-//   // createTime?: Date;
-// }
-//
-// /** 个人中心用户信息表单 */
-// export interface UserProfileForm {
-//   /** 用户ID */
-//   id?: string;
-//
-//   /** 用户名 */
-//   username?: string;
-//
-//   /** 昵称 */
-//   name?: string;
-//
-//   /** 头像URL */
-//   avatar?: string;
-//
-//   /** 性别 */
-//   gender?: number;
-//
-//   /** 手机号 */
-//   mobile?: string;
-//
-//   /** 邮箱 */
-//   email?: string;
-// }
-//
-// /** 修改密码表单 */
-// export interface PasswordChangeForm {
-//   /** 原密码 */
-//   oldPassword?: string;
-//   /** 新密码 */
-//   newPassword?: string;
-//   /** 确认新密码 */
-//   confirmPassword?: string;
-// }
-//
-// /** 修改手机表单 */
-// export interface MobileUpdateForm {
-//   /** 手机号 */
-//   mobile?: string;
-//   /** 验证码 */
-//   code?: string;
-// }
-//
-// /** 修改邮箱表单 */
-// export interface EmailUpdateForm {
-//   /** 邮箱 */
-//   email?: string;
-//   /** 验证码 */
-//   code?: string;
-// }
