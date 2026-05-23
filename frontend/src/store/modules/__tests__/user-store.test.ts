@@ -83,7 +83,10 @@ describe("useUserStore", () => {
 
     expect(clearAuthSpy).toHaveBeenCalled();
     expect(cleanupWebSocket).toHaveBeenCalled();
-    expect(userStore.userInfo).toEqual({});
+    expect(userStore.userInfo).toEqual({
+      roles: [],
+      perms: [],
+    });
   });
 
   it("refreshes token with current remember-me preference", async () => {

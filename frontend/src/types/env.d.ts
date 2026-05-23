@@ -12,6 +12,10 @@ interface ImportMetaEnv {
   VITE_APP_API_URL: string;
   /** 是否开启 Mock 服务 */
   VITE_MOCK_DEV_SERVER: boolean;
+  /** 登录页默认用户名，仅开发演示环境可配置 */
+  VITE_LOGIN_DEFAULT_USERNAME?: string;
+  /** 登录页默认密码，仅开发演示环境可配置 */
+  VITE_LOGIN_DEFAULT_PASSWORD?: string;
 }
 
 interface ImportMeta {
