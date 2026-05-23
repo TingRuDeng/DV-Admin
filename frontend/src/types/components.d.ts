@@ -9,7 +9,6 @@ declare module "vue" {
     AppLink: (typeof import("./../components/AppLink/index.vue"))["default"];
     Breadcrumb: (typeof import("./../components/Breadcrumb/index.vue"))["default"];
     CopyButton: (typeof import("./../components/CopyButton/index.vue"))["default"];
-    CURD: (typeof import("./../components/CURD/index.vue"))["default"];
     Dict: (typeof import("./../components/Dict/index.vue"))["default"];
     DictLabel: (typeof import("./../components/Dict/DictLabel.vue"))["default"];
     ECharts: (typeof import("./../components/ECharts/index.vue"))["default"];
@@ -64,7 +63,6 @@ declare module "vue" {
     ElWatermark: (typeof import("element-plus/es"))["ElWatermark"];
     ElSkeleton: (typeof import("element-plus/es"))["ElSkeleton"];
     FileUpload: (typeof import("./../components/Upload/FileUpload.vue"))["default"];
-    Form: (typeof import("./../components/CURD/Form.vue"))["default"];
     Fullscreen: (typeof import("./../components/Fullscreen/index.vue"))["default"];
     GithubCorner: (typeof import("./../components/GithubCorner/index.vue"))["default"];
     Hamburger: (typeof import("./../components/Hamburger/index.vue"))["default"];
@@ -73,9 +71,6 @@ declare module "vue" {
     MenuSearch: (typeof import("./../components/MenuSearch/index.vue"))["default"];
     MultiImageUpload: (typeof import("./../components/Upload/MultiImageUpload.vue"))["default"];
     Notification: (typeof import("./../components/Notification/index.vue"))["default"];
-    PageContent: (typeof import("./../components/CURD/PageContent.vue"))["default"];
-    PageModal: (typeof import("./../components/CURD/PageModal.vue"))["default"];
-    PageSearch: (typeof import("./../components/CURD/PageSearch.vue"))["default"];
     Pagination: (typeof import("./../components/Pagination/index.vue"))["default"];
     RouterLink: (typeof import("vue-router"))["RouterLink"];
     RouterView: (typeof import("vue-router"))["RouterView"];

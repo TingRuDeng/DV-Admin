@@ -58,4 +58,12 @@ describe("curd deprecation governance", () => {
       `Found CURD usage outside compatibility layer:\n${offenders.join("\n")}`
     ).toEqual([]);
   });
+
+  it("keeps CURD components out of generated global component declarations", () => {
+    const declarations = readFileSync(resolve(SRC_ROOT, "types/components.d.ts"), "utf8");
+
+    expect(declarations).not.toMatch(
+      /CURD:|Form:.*components\/CURD|PageContent:|PageModal:|PageSearch:/
+    );
+  });
 });
