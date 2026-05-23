@@ -49,6 +49,17 @@ class TestConfig:
         assert hasattr(settings, "allowed_origins")
         assert isinstance(settings.allowed_origins, list)
 
+    def test_default_allowed_origins_match_frontend_dev_port(self):
+        """默认 CORS 来源应匹配前端开发端口。"""
+        from app.core.config import Settings
+
+        default_settings = Settings(_env_file=None, ALLOWED_ORIGINS="")
+
+        assert default_settings.allowed_origins == [
+            "http://localhost:9527",
+            "http://127.0.0.1:9527",
+        ]
+
     def test_tortoise_config(self):
         """测试 Tortoise 配置"""
         assert hasattr(settings, "tortoise_orm_config")

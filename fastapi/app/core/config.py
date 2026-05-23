@@ -80,7 +80,7 @@ class Settings(BaseSettings):
 
     # CORS 配置 - 使用字符串类型避免解析问题
     allowed_origins_str: str = Field(
-        default="http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173,http://localhost:9528,http://127.0.0.1:9528",
+        default="http://localhost:9527,http://127.0.0.1:9527",
         alias="ALLOWED_ORIGINS",
     )
 
@@ -131,7 +131,7 @@ class Settings(BaseSettings):
     def allowed_origins(self) -> list[str]:
         """解析允许的来源列表"""
         if not self.allowed_origins_str or self.allowed_origins_str.strip() == "":
-            return ["http://localhost:3000", "http://localhost:5173"]
+            return ["http://localhost:9527", "http://127.0.0.1:9527"]
         return [origin.strip() for origin in self.allowed_origins_str.split(",") if origin.strip()]
 
     @property
