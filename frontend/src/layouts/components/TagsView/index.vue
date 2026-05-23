@@ -8,77 +8,44 @@
       @wheel="handleScroll"
     >
       <div h-full flex-y-center gap-8px>
-        <el-tag
+        <TagItem
           v-for="tag in visitedViews"
           :key="tag.fullPath"
-          h-26px
-          cursor-pointer
-          :closable="!tag.affix"
-          :effect="tagsViewStore.isActive(tag) ? 'dark' : 'light'"
-          :type="tagsViewStore.isActive(tag) ? 'primary' : 'info'"
-          @click.middle="handleMiddleClick(tag)"
-          @contextmenu.prevent="(event: MouseEvent) => openContextMenu(tag, event)"
+          :tag="tag"
+          :is-active="tagsViewStore.isActive(tag)"
           @close="closeSelectedTag(tag)"
-          @click="
-            router.push({
-              path: tag.fullPath,
-              query: tag.query,
-            })
-          "
-        >
-          {{ translateRouteTitle(tag.title) }}
-        </el-tag>
+          @middle-click="handleMiddleClick(tag)"
+          @navigate="navigateToTag(tag)"
+          @open-menu="openContextMenu"
+        />
       </div>
     </el-scrollbar>
 
-    <!-- 标签右键菜单 -->
-    <Teleport to="body">
-      <ul
-        v-show="contextMenu.visible"
-        class="contextmenu"
-        :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }"
-      >
-        <li @click="refreshSelectedTag(selectedTag)">
-          <div class="i-svg:refresh" />
-          刷新
-        </li>
-        <li v-if="!selectedTag?.affix" @click="closeSelectedTag(selectedTag)">
-          <div class="i-svg:close" />
-          关闭
-        </li>
-        <li @click="closeOtherTags">
-          <div class="i-svg:close_other" />
-          关闭其它
-        </li>
-        <li v-if="!isFirstView" @click="closeLeftTags">
-          <div class="i-svg:close_left" />
-          关闭左侧
-        </li>
-        <li v-if="!isLastView" @click="closeRightTags">
-          <div class="i-svg:close_right" />
-          关闭右侧
-        </li>
-        <li @click="closeAllTags(selectedTag)">
-          <div class="i-svg:close_all" />
-          关闭所有
-        </li>
-      </ul>
-    </Teleport>
+    <TagsContextMenu
+      :is-first-view="isFirstView"
+      :is-last-view="isLastView"
+      :selected-tag="selectedTag"
+      :visible="contextMenu.visible"
+      :x="contextMenu.x"
+      :y="contextMenu.y"
+      @refresh="refreshSelectedTag(selectedTag)"
+      @close="closeSelectedTag(selectedTag)"
+      @close-other="closeOtherTags"
+      @close-left="closeLeftTags"
+      @close-right="closeRightTags"
+      @close-all="closeAllTags(selectedTag)"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { useRoute, useRouter, type RouteRecordRaw } from "vue-router";
-import { resolve } from "path-browserify";
-import { translateRouteTitle } from "@/utils/i18n";
+import { useRoute, useRouter } from "vue-router";
 import { getRouteCacheKey } from "@/utils/view-cache";
 import { usePermissionStore, useTagsViewStore } from "@/store";
-
-interface ContextMenu {
-  visible: boolean;
-  x: number;
-  y: number;
-}
+import TagItem from "./TagItem.vue";
+import TagsContextMenu from "./TagsContextMenu.vue";
+import { extractAffixTags } from "./useAffixTags";
+import { useTagsContextMenu } from "./useTagsContextMenu";
 
 interface LegacyWheelEvent extends WheelEvent {
   wheelDelta?: number;
@@ -93,18 +60,18 @@ const tagsViewStore = useTagsViewStore();
 
 const { visitedViews } = storeToRefs(tagsViewStore);
 
-// 当前选中的标签
-const selectedTag = ref<TagView | null>(null);
-
-// 右键菜单状态
-const contextMenu = reactive<ContextMenu>({
-  visible: false,
-  x: 0,
-  y: 0,
-});
-
 // 滚动条引用
 const scrollbarRef = ref();
+
+const {
+  closeContextMenu,
+  contextMenu,
+  isFirstView,
+  isLastView,
+  openContextMenu,
+  selectedTag,
+  useContextMenuManager,
+} = useTagsContextMenu(visitedViews);
 
 // 路由映射缓存，提升查找性能
 const routePathMap = computed(() => {
@@ -114,60 +81,6 @@ const routePathMap = computed(() => {
   });
   return map;
 });
-
-// 判断是否为第一个标签
-const isFirstView = computed(() => {
-  if (!selectedTag.value) return false;
-  return (
-    selectedTag.value.path === "/dashboard" ||
-    selectedTag.value.fullPath === visitedViews.value[1]?.fullPath
-  );
-});
-
-// 判断是否为最后一个标签
-const isLastView = computed(() => {
-  if (!selectedTag.value) return false;
-  return selectedTag.value.fullPath === visitedViews.value[visitedViews.value.length - 1]?.fullPath;
-});
-
-/**
- * 递归提取固定标签
- */
-const extractAffixTags = (routes: RouteRecordRaw[], basePath = "/"): TagView[] => {
-  const affixTags: TagView[] = [];
-
-  const traverse = (routeList: RouteRecordRaw[], currentBasePath: string) => {
-    routeList.forEach((route) => {
-      const fullPath = resolve(currentBasePath, route.path);
-
-      // 如果是固定标签，添加到列表
-      if (route.meta?.affix) {
-        affixTags.push({
-          path: fullPath,
-          fullPath,
-          name: String(route.name || ""),
-          title: route.meta.title || "no-name",
-          cacheKey: getRouteCacheKey({
-            name: route.name,
-            path: fullPath,
-            fullPath,
-            meta: route.meta,
-          }),
-          affix: true,
-          keepAlive: route.meta.keepAlive || false,
-        });
-      }
-
-      // 递归处理子路由
-      if (route.children?.length) {
-        traverse(route.children, fullPath);
-      }
-    });
-  };
-
-  traverse(routes, basePath);
-  return affixTags;
-};
 
 /**
  * 初始化固定标签
@@ -232,21 +145,13 @@ const handleMiddleClick = (tag: TagView) => {
 };
 
 /**
- * 打开右键菜单
+ * 跳转到标签对应路由
  */
-const openContextMenu = (tag: TagView, event: MouseEvent) => {
-  contextMenu.x = event.clientX;
-  contextMenu.y = event.clientY;
-  contextMenu.visible = true;
-
-  selectedTag.value = tag;
-};
-
-/**
- * 关闭右键菜单
- */
-const closeContextMenu = () => {
-  contextMenu.visible = false;
+const navigateToTag = (tag: TagView) => {
+  router.push({
+    path: tag.fullPath,
+    query: tag.query,
+  });
 };
 
 /**
@@ -344,26 +249,6 @@ const closeAllTags = (tag: TagView | null) => {
   });
 };
 
-// 右键菜单管理
-const useContextMenuManager = () => {
-  const handleOutsideClick = () => {
-    closeContextMenu();
-  };
-
-  watchEffect(() => {
-    if (contextMenu.visible) {
-      document.addEventListener("click", handleOutsideClick);
-    } else {
-      document.removeEventListener("click", handleOutsideClick);
-    }
-  });
-
-  // 组件卸载时清理
-  onBeforeUnmount(() => {
-    document.removeEventListener("click", handleOutsideClick);
-  });
-};
-
 // 监听路由变化
 watch(
   route,
@@ -396,102 +281,6 @@ useContextMenuManager();
   .scroll-container {
     white-space: nowrap;
   }
-
-  /* 标签样式优化 */
-  :deep(.el-tag) {
-    height: 28px;
-    padding: 0 12px;
-    margin: 0 4px;
-    font-size: 13px;
-    font-weight: 500;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-
-    /* 默认状态 */
-    &.el-tag--info {
-      color: #64748b;
-      background: rgba(255, 255, 255, 0.8);
-      border-color: rgba(0, 0, 0, 0.06);
-
-      &:hover {
-        color: #3b82f6;
-        background: rgba(255, 255, 255, 1);
-        border-color: rgba(59, 130, 246, 0.3);
-      }
-    }
-
-    /* 激活状态 */
-    &.el-tag--primary {
-      color: #3b82f6;
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
-      border-color: rgba(59, 130, 246, 0.3);
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
-
-      &:hover {
-        background: linear-gradient(
-          135deg,
-          rgba(59, 130, 246, 0.15) 0%,
-          rgba(99, 102, 241, 0.15) 100%
-        );
-        border-color: rgba(59, 130, 246, 0.5);
-      }
-    }
-
-    /* 关闭按钮 */
-    .el-tag__close {
-      margin-left: 6px;
-      font-size: 12px;
-      color: inherit;
-      opacity: 0.6;
-
-      &:hover {
-        background: transparent;
-        opacity: 1;
-      }
-    }
-  }
-}
-
-/* 右键菜单优化 */
-.contextmenu {
-  position: absolute;
-  z-index: 3000;
-  padding: 8px 0;
-  margin: 0;
-  font-size: 13px;
-  font-weight: 500;
-  color: #334155;
-  list-style-type: none;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-
-  li {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    padding: 10px 16px;
-    margin: 0;
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    &:hover {
-      color: #3b82f6;
-      background: rgba(59, 130, 246, 0.08);
-    }
-
-    &:first-child {
-      border-radius: 12px 12px 0 0;
-    }
-
-    &:last-child {
-      border-radius: 0 0 12px 12px;
-    }
-  }
 }
 
 /* 深色模式适配 */
@@ -499,51 +288,6 @@ html.dark {
   .tags-container {
     background: rgba(30, 41, 59, 0.6);
     border-bottom-color: rgba(255, 255, 255, 0.05);
-
-    :deep(.el-tag) {
-      &.el-tag--info {
-        color: #cbd5e1;
-        background: rgba(30, 41, 59, 0.8);
-        border-color: rgba(255, 255, 255, 0.08);
-
-        &:hover {
-          color: #60a5fa;
-          background: rgba(30, 41, 59, 1);
-          border-color: rgba(96, 165, 250, 0.3);
-        }
-      }
-
-      &.el-tag--primary {
-        color: #60a5fa;
-        background: linear-gradient(
-          135deg,
-          rgba(96, 165, 250, 0.15) 0%,
-          rgba(139, 92, 246, 0.15) 100%
-        );
-        border-color: rgba(96, 165, 250, 0.3);
-        box-shadow: 0 2px 8px rgba(96, 165, 250, 0.2);
-
-        &:hover {
-          background: linear-gradient(
-            135deg,
-            rgba(96, 165, 250, 0.2) 0%,
-            rgba(139, 92, 246, 0.2) 100%
-          );
-          border-color: rgba(96, 165, 250, 0.5);
-        }
-      }
-    }
-  }
-
-  .contextmenu {
-    color: #e2e8f0;
-    background: rgba(30, 41, 59, 0.95);
-    border-color: rgba(255, 255, 255, 0.08);
-
-    li:hover {
-      color: #60a5fa;
-      background: rgba(96, 165, 250, 0.15);
-    }
   }
 }
 </style>
