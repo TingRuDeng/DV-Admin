@@ -195,14 +195,15 @@ cp .env.example .env
 **前端测试：**
 ```bash
 cd frontend
-pnpm run quality       # 聚合质量检查 (lint + type-check + test:unit)
+pnpm run quality       # 只读聚合质量检查 (lint:check + type-check + test:unit)
 pnpm run build         # 构建检查（含类型检查）
-pnpm run lint          # 代码检查（eslint + prettier + stylelint）
+pnpm run lint:check    # 只读代码检查（eslint + prettier + stylelint）
+pnpm run lint          # 本地自动修复（eslint --fix + prettier --write + stylelint --fix）
 pnpm run test:unit     # 单元测试
 ```
 
 **后端测试（Django）：**
-Django 后端已接入可执行的 Ruff + pytest 门禁；为避免历史问题一次性阻塞 CI，当前对 E501、F401、I001、F403、F405 采用临时 defer，后续再分阶段收紧规则。
+Django 后端已接入可执行的 Ruff + pytest 门禁；当前全局仅 defer `E501`，`settings_test.py` 单文件保留 `F403/F405` 例外。
 ```bash
 cd backend
 uv sync --group dev
@@ -211,7 +212,7 @@ uv run pytest          # 运行测试
 ```
 
 **后端测试（FastAPI）：**
-FastAPI 已提供可执行的质量门禁入口 `make quality`；当前类型检查覆盖 schema 层。其分页响应契约已与 frontend / Django 对齐为 `list/total`，内部保留少量只读兼容访问器用于过渡。
+FastAPI 已提供可执行的质量门禁入口 `make quality`；当前类型检查覆盖 `app` 包。其分页响应契约已与 frontend / Django 对齐为 `list/total`，内部保留少量只读兼容访问器用于过渡。
 ```bash
 cd fastapi
 uv sync --group dev

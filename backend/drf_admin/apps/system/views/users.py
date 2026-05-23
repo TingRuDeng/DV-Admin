@@ -92,6 +92,9 @@ class ResetPasswordAPIView(mixins.UpdateModelMixin, GenericAPIView):
     queryset = Users.objects.all()
     serializer_class = ResetPasswordSerializer
 
+    def put(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
 
