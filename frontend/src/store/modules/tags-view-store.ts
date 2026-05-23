@@ -5,56 +5,48 @@ export interface TagsViewChangeResult {
   cachedViews?: string[];
 }
 
+function createChangeResult(visitedViews: TagView[], cachedViews: string[]): TagsViewChangeResult {
+  return {
+    visitedViews: [...visitedViews],
+    cachedViews: [...cachedViews],
+  };
+}
+
 export const useTagsViewStore = defineStore("tagsView", () => {
   const visitedViews = ref<TagView[]>([]);
   const cachedViews = ref<string[]>([]);
   const router = useRouter();
   const route = useRoute();
 
-  /**
-   * 添加已访问视图到已访问视图列表中
-   */
   function addVisitedView(view: TagView) {
-    // 如果已经存在于已访问的视图列表中或者是重定向地址，则不再添加
     if (view.path.startsWith("/redirect")) {
       return;
     }
     if (visitedViews.value.some((v) => v.path === view.path)) {
       return;
     }
-    // 如果视图是固定的（affix），则在已访问的视图列表的开头添加
     if (view.affix) {
       visitedViews.value.unshift(view);
     } else {
-      // 如果视图不是固定的，则在已访问的视图列表的末尾添加
       visitedViews.value.push(view);
     }
   }
 
-  /**
-   * 添加缓存视图到缓存视图列表中
-   */
   function addCachedView(view: TagView) {
     const cacheKey = getTagCacheKey(view);
 
-    // 如果缓存视图名称已经存在于缓存视图列表中，则不再添加
     if (cachedViews.value.includes(cacheKey)) {
       return;
     }
 
-    // 如果视图需要缓存（keepAlive），则将其路由名称添加到缓存视图列表中
     if (view.keepAlive && cacheKey) {
       cachedViews.value = appendCacheKeyWithLimit(cachedViews.value, cacheKey);
     }
   }
 
-  /**
-   * 从已访问视图列表中删除指定的视图
-   */
   function delVisitedView(view: TagView) {
     return new Promise<TagView[]>((resolve) => {
       for (const [i, v] of visitedViews.value.entries()) {
-        // 找到与指定视图路径匹配的视图，在已访问视图列表中删除该视图
         if (v.path === view.path) {
           visitedViews.value.splice(i, 1);
           break;
@@ -97,6 +89,13 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     });
   }
 
+  function removeCachedView(view: TagView) {
+    const cacheIndex = cachedViews.value.indexOf(getTagCacheKey(view));
+    if (cacheIndex > -1) {
+      cachedViews.value.splice(cacheIndex, 1);
+    }
+  }
+
   function updateVisitedView(view: TagView) {
     const targetView = visitedViews.value.find((item) => item.path === view.path);
     if (!targetView) {
@@ -127,11 +126,6 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     }
   }
 
-  /**
-   * 根据路径更新标签名称
-   * @param fullPath 路径
-   * @param title 标签名称
-   */
   function updateTagName(fullPath: string, title: string) {
     const tag = visitedViews.value.find((tag: TagView) => tag.fullPath === fullPath);
 
@@ -149,10 +143,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     return new Promise<TagsViewChangeResult>((resolve) => {
       delVisitedView(view);
       delCachedView(view);
-      resolve({
-        visitedViews: [...visitedViews.value],
-        cachedViews: [...cachedViews.value],
-      });
+      resolve(createChangeResult(visitedViews.value, cachedViews.value));
     });
   }
 
@@ -160,10 +151,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     return new Promise<TagsViewChangeResult>((resolve) => {
       delOtherVisitedViews(view);
       delOtherCachedViews(view);
-      resolve({
-        visitedViews: [...visitedViews.value],
-        cachedViews: [...cachedViews.value],
-      });
+      resolve(createChangeResult(visitedViews.value, cachedViews.value));
     });
   }
 
@@ -171,6 +159,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     return new Promise<TagsViewChangeResult>((resolve) => {
       const currIndex = visitedViews.value.findIndex((v) => v.path === view.path);
       if (currIndex === -1) {
+        resolve(createChangeResult(visitedViews.value, cachedViews.value));
         return;
       }
       visitedViews.value = visitedViews.value.filter((item, index) => {
@@ -178,15 +167,10 @@ export const useTagsViewStore = defineStore("tagsView", () => {
           return true;
         }
 
-        const cacheIndex = cachedViews.value.indexOf(getTagCacheKey(item));
-        if (cacheIndex > -1) {
-          cachedViews.value.splice(cacheIndex, 1);
-        }
+        removeCachedView(item);
         return false;
       });
-      resolve({
-        visitedViews: [...visitedViews.value],
-      });
+      resolve(createChangeResult(visitedViews.value, cachedViews.value));
     });
   }
 
@@ -194,21 +178,17 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     return new Promise<TagsViewChangeResult>((resolve) => {
       const currIndex = visitedViews.value.findIndex((v) => v.path === view.path);
       if (currIndex === -1) {
+        resolve(createChangeResult(visitedViews.value, cachedViews.value));
         return;
       }
       visitedViews.value = visitedViews.value.filter((item, index) => {
         if (index <= currIndex || item?.affix) {
           return true;
         }
-        const cacheIndex = cachedViews.value.indexOf(getTagCacheKey(item));
-        if (cacheIndex > -1) {
-          cachedViews.value.splice(cacheIndex, 1);
-        }
+        removeCachedView(item);
         return false;
       });
-      resolve({
-        visitedViews: [...visitedViews.value],
-      });
+      resolve(createChangeResult(visitedViews.value, cachedViews.value));
     });
   }
 
@@ -217,10 +197,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
       const affixTags = visitedViews.value.filter((tag) => tag?.affix);
       visitedViews.value = affixTags;
       cachedViews.value = [];
-      resolve({
-        visitedViews: [...visitedViews.value],
-        cachedViews: [...cachedViews.value],
-      });
+      resolve(createChangeResult(visitedViews.value, cachedViews.value));
     });
   }
 
@@ -239,9 +216,6 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     });
   }
 
-  /**
-   * 关闭当前tagView
-   */
   function closeCurrentView() {
     const tags: TagView = {
       name: route.name as string,

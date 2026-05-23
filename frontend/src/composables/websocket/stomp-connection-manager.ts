@@ -1,51 +1,29 @@
-import { Client, type IMessage, type StompConfig, type StompSubscription } from "@stomp/stompjs";
+import type { IMessage } from "@stomp/stompjs";
+import {
+  calculateReconnectDelay,
+  isUnauthorizedFrame,
+  isRecoverableCloseCode,
+} from "@/composables/websocket/stomp-connection-helpers";
+import { buildStompClient } from "@/composables/websocket/stomp-client-factory";
+import { createStompSubscriptionRegistry } from "@/composables/websocket/stomp-subscription-registry";
+import type {
+  StompClientLike,
+  StompConnectionManagerOptions,
+  StompConnectionSnapshot,
+  StompErrorFrame,
+} from "@/composables/websocket/stomp-connection-types";
 
-interface StompLogger {
-  debug: (...args: unknown[]) => void;
-  error: (...args: unknown[]) => void;
-  info: (...args: unknown[]) => void;
-  warn: (...args: unknown[]) => void;
-}
-
-interface StompErrorFrame {
-  body?: string;
-  headers?: Record<string, string | undefined>;
-}
-
-export interface StompClientLike {
-  active: boolean;
-  connected: boolean;
-  onConnect?: (..._args: unknown[]) => void;
-  onDisconnect?: (..._args: unknown[]) => void;
-  onStompError?: (_frame: StompErrorFrame) => void;
-  onWebSocketClose?: (_event: CloseEvent) => void;
-  activate: () => void;
-  deactivate: () => void;
-  subscribe: (destination: string, callback: (_message: IMessage) => void) => StompSubscription;
-}
-
-export interface StompConnectionManagerOptions {
-  brokerURL: string;
-  clientFactory?: (_config: StompConfig) => StompClientLike;
-  connectionTimeout: number;
-  debug?: boolean;
-  getToken: () => string;
-  logger: StompLogger;
-  maxReconnectAttempts: number;
-  maxReconnectDelay?: number;
-  onConnectedChange?: (_value: boolean) => void;
-  onReconnectCountChange?: (_value: number) => void;
-  reconnectDelay: number;
-  useExponentialBackoff?: boolean;
-}
-
-export interface StompConnectionSnapshot {
-  isConnected: boolean;
-  reconnectCount: number;
-}
-
-const DEFAULT_HEARTBEAT_MS = 4000;
-const NO_RECONNECT_DELAY = 0;
+export {
+  calculateReconnectDelay,
+  isRecoverableCloseCode,
+  isUnauthorizedFrame,
+} from "./stomp-connection-helpers";
+export type {
+  StompClientLike,
+  StompConnectionManagerOptions,
+  StompConnectionSnapshot,
+  StompErrorFrame,
+} from "./stomp-connection-types";
 
 export function createStompConnectionManager(options: StompConnectionManagerOptions) {
   let brokerURL = options.brokerURL;
@@ -56,7 +34,7 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
   let reconnectCount = 0;
   let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
   let connectionTimeoutTimer: ReturnType<typeof setTimeout> | undefined;
-  const subscriptions = new Map<string, StompSubscription>();
+  const subscriptionRegistry = createStompSubscriptionRegistry(options.logger);
 
   const setConnected = (value: boolean) => {
     isConnected = value;
@@ -86,7 +64,13 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
     }
 
     cleanupOldClient();
-    client = buildClient(currentToken);
+    client = buildStompClient({
+      brokerURL,
+      clientFactory: options.clientFactory,
+      debug: options.debug,
+      logger: options.logger,
+      token: currentToken,
+    });
     bindClientEvents(client);
   };
 
@@ -101,20 +85,6 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
       options.logger.warn("清理旧客户端时出错:", error);
     }
     client = null;
-  };
-
-  const buildClient = (token: string) => {
-    const config: StompConfig = {
-      brokerURL,
-      connectHeaders: { Authorization: `Bearer ${token}` },
-      debug: options.debug ? (message) => options.logger.debug(message) : () => {},
-      heartbeatIncoming: DEFAULT_HEARTBEAT_MS,
-      heartbeatOutgoing: DEFAULT_HEARTBEAT_MS,
-      reconnectDelay: NO_RECONNECT_DELAY,
-    };
-    return options.clientFactory
-      ? options.clientFactory(config)
-      : (new Client(config) as StompClientLike);
   };
 
   const bindClientEvents = (targetClient: StompClientLike) => {
@@ -155,7 +125,7 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
       return;
     }
 
-    if ([1000, 1006, 1008].includes(event?.code) && reconnectCount < options.maxReconnectAttempts) {
+    if (isRecoverableCloseCode(event?.code) && reconnectCount < options.maxReconnectAttempts) {
       options.logger.info("检测到连接异常关闭，将尝试重连");
       scheduleReconnect();
     }
@@ -195,13 +165,12 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
   };
 
   const getReconnectDelay = () => {
-    if (!options.useExponentialBackoff) {
-      return options.reconnectDelay;
-    }
-    return Math.min(
-      options.reconnectDelay * Math.pow(2, reconnectCount - 1),
-      options.maxReconnectDelay ?? Number.POSITIVE_INFINITY
-    );
+    return calculateReconnectDelay({
+      maxReconnectDelay: options.maxReconnectDelay,
+      reconnectCount,
+      reconnectDelay: options.reconnectDelay,
+      useExponentialBackoff: options.useExponentialBackoff,
+    });
   };
 
   const connect = () => {
@@ -260,36 +229,17 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
   };
 
   const subscribe = (destination: string, callback: (_message: IMessage) => void): string => {
-    if (!client || !client.connected) {
-      options.logger.warn(`尝试订阅 ${destination} 失败: 客户端未连接`);
-      return "";
-    }
-
-    try {
-      const subscription = client.subscribe(destination, callback);
-      subscriptions.set(subscription.id, subscription);
-      options.logger.info(`订阅成功: ${destination}, ID: ${subscription.id}`);
-      return subscription.id;
-    } catch (error) {
-      options.logger.error(`订阅 ${destination} 失败:`, error);
-      return "";
-    }
+    return subscriptionRegistry.subscribe(client, destination, callback);
   };
 
   const unsubscribe = (subscriptionId: string) => {
-    const subscription = subscriptions.get(subscriptionId);
-    if (!subscription) {
-      return;
-    }
-    subscription.unsubscribe();
-    subscriptions.delete(subscriptionId);
-    options.logger.debug(`已取消订阅: ${subscriptionId}`);
+    subscriptionRegistry.unsubscribe(subscriptionId);
   };
 
   const disconnect = () => {
     isManualDisconnect = true;
     clearManagedTimers();
-    clearSubscriptions();
+    subscriptionRegistry.clear();
     deactivateClient();
     setConnected(false);
     isConnecting = false;
@@ -301,17 +251,6 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
     clearTimeout(connectionTimeoutTimer);
     reconnectTimer = undefined;
     connectionTimeoutTimer = undefined;
-  };
-
-  const clearSubscriptions = () => {
-    for (const [id, subscription] of subscriptions.entries()) {
-      try {
-        subscription.unsubscribe();
-      } catch (error) {
-        options.logger.warn(`取消订阅 ${id} 时出错:`, error);
-      }
-    }
-    subscriptions.clear();
   };
 
   const deactivateClient = () => {
@@ -357,12 +296,4 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
     unsubscribe,
     updateBrokerURL,
   };
-}
-
-function isUnauthorizedFrame(frame: StompErrorFrame) {
-  return (
-    frame.headers?.message?.includes("Unauthorized") ||
-    frame.body?.includes("Unauthorized") ||
-    frame.body?.includes("Token")
-  );
 }

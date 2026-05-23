@@ -209,6 +209,20 @@
 
 ---
 
+# 前端共享组件与测试收口 P1-P4
+
+- [x] P1 串行：修复 `tags-view-store` 左右关闭目标不存在时 Promise 不 resolve 的边界
+- [x] P2 串行：拆分 `TableSelect` 类型、搜索表单、数据表和底部动作
+- [x] P3 串行：拆分 `stomp-connection-manager` 纯 helper 并补测试
+- [x] P4 串行：按职责拆分 `theme-styles` 治理测试
+- [x] P5 串行：运行前端质量、构建、文档/API 契约校验和 review-gate
+
+## Review 小结
+
+终态：finished。已修复标签页左右关闭缺失目标时 Promise 不 resolve 的边界，将 `TableSelect` 拆为类型、搜索表单、数据表和底部动作组件，拆出 WebSocket STOMP 连接 helper / 类型 / client factory / 订阅注册表，并把主题样式治理测试按职责拆分。验证通过：前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
+
+---
+
 # P0-P3 产品化治理全量收口
 
 - [x] 建立隔离分支并写入全量收口计划
