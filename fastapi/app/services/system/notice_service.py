@@ -1,7 +1,8 @@
 """
 通知公告 Service
 """
-from datetime import datetime, timezone
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from tortoise.expressions import Q
 
@@ -18,10 +19,12 @@ from app.schemas.system import (
     NoticeUpdate,
 )
 
+LOCAL_TIMEZONE = ZoneInfo("Asia/Shanghai")
 
-def utc_now() -> datetime:
-    """生成与 Tortoise 时区配置兼容的 UTC aware 时间。"""
-    return datetime.now(timezone.utc)
+
+def local_now() -> datetime:
+    """生成与 Tortoise 本地时区配置兼容的上海时间。"""
+    return datetime.now(LOCAL_TIMEZONE).replace(tzinfo=None)
 
 
 class NoticeService:
@@ -189,7 +192,7 @@ class NoticeService:
             return
 
         notice.publish_status = 1
-        notice.publish_time = utc_now()
+        notice.publish_time = local_now()
         notice.revoke_time = None
         await notice.save()
 
@@ -202,7 +205,7 @@ class NoticeService:
             return
 
         notice.publish_status = -1
-        notice.revoke_time = utc_now()
+        notice.revoke_time = local_now()
         await notice.save()
 
     async def read_all(self, user_id: int) -> None:
