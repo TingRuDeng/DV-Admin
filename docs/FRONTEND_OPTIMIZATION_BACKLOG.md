@@ -158,6 +158,13 @@ ai_summary:
 - `components/CURD` 继续作为历史页面兼容层保留，不作为新一轮 Pro 抽象基座
 - 新增或重构页面统一使用 `ProSearch` / `ProTable` / `ProFormDrawer`，不再新增 `CURD` 调用点
 
+**复核结论（2026-05-23）**
+
+- 兼容层外已无业务调用点，系统管理页已迁移到 Pro 组件体系
+- `components/CURD` 暂继续保留为历史兼容层，避免一次性删除旧抽象带来不可见回归
+- `src/types/components.d.ts` 已移除 CURD 全局组件声明，避免 IDE 和模板类型继续暗示可直接使用 `<CURD>` / `<PageContent>` / `<PageSearch>` / `<PageModal>`
+- 后续只有出现真实调用点、迁移遗漏或明确退场窗口时，才继续拆分或删除 `frontend/src/components/CURD/`
+
 **收口结果（2026-04-14）**
 
 - 系统管理域列表页已统一为 `ProTable(request)` 驱动
