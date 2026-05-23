@@ -262,3 +262,18 @@
 ## Review 小结
 
 终态：finished。已将菜单管理页的菜单表单抽屉、路由字段和路由参数编辑器分别抽为 `MenuFormDrawer.vue`、`MenuRouteFields.vue` 与 `MenuRouteParamsEditor.vue`，页面本体降到 214 行并保留查询、表格动作、删除和刷新编排；新增拆分守卫测试先红后绿。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
+
+---
+
+# 前端超大组件拆分 P1：字典表单抽屉
+
+- [x] P1 串行：新增字典页和字典项页拆分守卫测试，确认父页面不再内联 `ProFormDrawer`
+- [x] P1 串行：抽出 `frontend/src/views/system/dict/components/DictFormDrawer.vue`
+- [x] P1 串行：抽出 `frontend/src/views/system/dict/components/DictItemFormDrawer.vue`
+- [x] P1 串行：让 `frontend/src/views/system/dict/index.vue` 和 `frontend/src/views/system/dict/dict-item.vue` 只保留查询、表格动作、删除和跳转编排
+- [x] P2 串行：运行目标测试、前端类型检查、质量门禁和生产构建
+- [x] P3 串行：运行文档/API 契约校验、diff 检查和 review-gate
+
+## Review 小结
+
+终态：finished。已将字典管理页和字典项管理页的表单抽屉分别抽为 `DictFormDrawer.vue` 与 `DictItemFormDrawer.vue`，页面本体降到 207 行和 197 行；字典项新增入口在抽屉组件边界将数字字典 ID 显式转为表单契约需要的字符串。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。

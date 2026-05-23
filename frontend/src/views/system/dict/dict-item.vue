@@ -106,92 +106,27 @@
       </template>
     </ProTable>
 
-    <!--字典项弹窗-->
-    <ProFormDrawer
-      ref="dataFormRef"
-      v-model="dialog.visible"
-      :title="dialog.title"
-      :model="formData"
-      :rules="computedRules"
-      :loading="loading"
-      size="600px"
-      label-width="100px"
-      @close="handleCloseDialog"
-      @submit="handleSubmitClick"
-    >
-      <el-form-item label="归属字典" prop="dict">
-        <el-select v-model="formData.dict" placeholder="请选择归属字典" filterable class="w-full">
-          <el-option v-for="item in dictList" :key="item.id" :label="item.name" :value="item.id" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="字典项标签" prop="label">
-        <el-input v-model="formData.label" placeholder="请输入字典标签" />
-      </el-form-item>
-      <el-form-item label="字典项值" prop="value">
-        <el-input v-model="formData.value" placeholder="请输入字典值" />
-      </el-form-item>
-      <el-form-item label="状态">
-        <el-radio-group v-model="formData.status">
-          <el-radio :value="1">启用</el-radio>
-          <el-radio :value="0">禁用</el-radio>
-        </el-radio-group>
-      </el-form-item>
-      <el-form-item label="标签类型">
-        <el-tag v-if="formData.tagType" :type="formData.tagType" class="mr-2">
-          {{ formData.label }}
-        </el-tag>
-        <el-radio-group v-model="formData.tagType">
-          <el-radio value="success" border size="small">success</el-radio>
-          <el-radio value="warning" border size="small">warning</el-radio>
-          <el-radio value="info" border size="small">info</el-radio>
-          <el-radio value="primary" border size="small">primary</el-radio>
-          <el-radio value="danger" border size="small">danger</el-radio>
-          <el-radio value="" border size="small">清空</el-radio>
-        </el-radio-group>
-      </el-form-item>
-    </ProFormDrawer>
+    <DictItemFormDrawer ref="dictItemFormDrawerRef" :dict-list="dictList" @success="handleQuery" />
   </PageShell>
 </template>
 
 <script setup lang="ts">
-import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
 import DictAPI, { DictPageVO } from "@/api/system/dict-api";
-import DictItemAPI, {
-  DictItemForm,
-  DictItemPageQuery,
-  DictItemPageVO,
-} from "@/api/system/dict-items-api";
-import type { FormRules } from "element-plus";
+import DictItemAPI, { DictItemPageQuery, DictItemPageVO } from "@/api/system/dict-items-api";
+import DictItemFormDrawer from "./components/DictItemFormDrawer.vue";
 
 const route = useRoute();
 
 const dict = route.query.dict as string;
-const dataFormRef = ref<InstanceType<typeof ProFormDrawer> | null>(null);
+const dictItemFormDrawerRef = ref<InstanceType<typeof DictItemFormDrawer> | null>(null);
 const queryFormRef = ref<{ resetFields: () => void } | null>(null);
 const tableRef = ref<ProTableExpose | null>(null);
 const dictList = ref<DictPageVO[]>([]);
-const formData = reactive<DictItemForm>({});
 
-const loading = ref(false);
 const ids = ref<number[]>([]);
 const queryParams = reactive<Omit<DictItemPageQuery, "pageNum" | "pageSize">>({});
-
-const dialog = reactive({
-  title: "",
-  visible: false,
-});
-
-const computedRules = computed(() => {
-  const rules: FormRules<DictItemForm> = {
-    dict: [{ required: true, message: "请选择归属字典", trigger: "change" }],
-    value: [{ required: true, message: "请输入字典值", trigger: "blur" }],
-    label: [{ required: true, message: "请输入字典标签", trigger: "blur" }],
-  };
-
-  return rules;
-});
 
 const requestTableData = createPageRequest<DictItemPageQuery, DictItemPageVO>(
   DictItemAPI.getDictItemPage
@@ -214,54 +149,12 @@ function handleSelectionChange(selection: DictItemPageVO[]) {
 }
 
 // 打开弹窗
-function handleOpenDialog(id?: number) {
-  dialog.visible = true;
-  dialog.title = id ? "编辑字典项" : "新增字典项";
-
+async function handleOpenDialog(id?: number) {
   if (id) {
-    DictItemAPI.getDictItemFormData(id).then((data) => {
-      Object.assign(formData, data);
-    });
+    await dictItemFormDrawerRef.value?.openEdit(id);
+    return;
   }
-}
-
-// 提交表单
-function handleSubmitClick() {
-  dataFormRef.value?.validate((isValid: boolean) => {
-    if (isValid) {
-      loading.value = true;
-      const id = formData.id;
-      if (id) {
-        DictItemAPI.updateDictItem(id, formData)
-          .then(() => {
-            ElMessage.success("修改成功");
-            handleCloseDialog();
-            tableRef.value?.reload(true);
-          })
-          .finally(() => (loading.value = false));
-      } else {
-        DictItemAPI.createDictItem(formData)
-          .then(() => {
-            ElMessage.success("新增成功");
-            handleCloseDialog();
-            tableRef.value?.reload(true);
-          })
-          .finally(() => (loading.value = false));
-      }
-    }
-  });
-}
-
-// 关闭弹窗
-function handleCloseDialog() {
-  dataFormRef.value?.resetFields();
-  dataFormRef.value?.clearValidate();
-
-  formData.id = undefined;
-  formData.status = 1;
-  formData.tagType = "";
-
-  dialog.visible = false;
+  await dictItemFormDrawerRef.value?.openCreate(queryParams.dict);
 }
 /**
  * 删除字典
