@@ -80,8 +80,6 @@ DV-Admin/
 │   └── README.md               # [模块] Django 后端说明
 ├── fastapi/
 │   └── README.md               # [模块] FastAPI 后端说明
-├── 后续优化/
-│   └── README.md               # [历史] 旧前端优化方案说明
 ├── scripts/
 │   └── validate_docs.py        # [校验] 文档结构与链接校验
 └── frontend/
@@ -197,7 +195,7 @@ cp .env.example .env
 | **权威-跟踪** | 已确认且持续维护的治理事项 | `docs/TECH_DEBT.md`, `docs/DOC_SYNC_CHECKLIST.md` |
 | **跟踪** | 迭代规划与待办，不作为当前事实规范 | `docs/FRONTEND_OPTIMIZATION_BACKLOG.md` |
 | **模块** | 模块级说明，模块内权威 | 各子目录 `README.md` |
-| **历史** | 归档文档，仅供参考 | `docs/archive/`, `后续优化/` |
+| **历史** | 归档文档，仅供参考 | `docs/archive/` |
 
 ---
 
@@ -459,10 +457,10 @@ cp .env.example .env
 - 使用 `DOC_SYNC_CHECKLIST.md` 检查
 - 提交 PR 前确认文档已更新
 
-### 4. 归档而非删除
+### 4. 归档与清理
 
-- 过时文档移入 `docs/archive/`
-- 保留历史信息供参考
+- 有长期背景价值的过时文档移入 `docs/archive/`
+- 已被当前权威文档和 `tasks/todo.md` 摘要吸收的临时执行计划可删除
 - 在归档文档中注明"已过时"
 
 ---
