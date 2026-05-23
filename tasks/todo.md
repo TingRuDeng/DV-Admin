@@ -277,3 +277,18 @@
 ## Review 小结
 
 终态：finished。已将字典管理页和字典项管理页的表单抽屉分别抽为 `DictFormDrawer.vue` 与 `DictItemFormDrawer.vue`，页面本体降到 207 行和 197 行；字典项新增入口在抽屉组件边界将数字字典 ID 显式转为表单契约需要的字符串。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
+
+---
+
+# 前端超大组件拆分 P1：设置面板区块
+
+- [x] P1 串行：补充设置面板拆分守卫测试，确保 `index.vue` 只做抽屉编排
+- [x] P1 串行：抽出 `ThemeSection.vue`、`InterfaceSection.vue`、`LayoutSection.vue` 和 `SettingsActions.vue`
+- [x] P1 串行：将设置面板共享类型收口到 `frontend/src/layouts/components/Settings/types.ts`
+- [x] P1 串行：迁移原有区块样式到对应子组件，保留父组件抽屉壳样式
+- [x] P2 串行：运行目标测试、前端类型检查、质量门禁和生产构建
+- [x] P3 串行：运行文档/API 契约校验、diff 检查和 review-gate
+
+## Review 小结
+
+终态：finished。已将设置面板从单文件 593 行拆为父级抽屉编排和 4 个职责明确的子组件，父组件降到 157 行；重置后通过子组件公开的 `syncLocalState` 同步本地主题/侧边栏选择状态。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
