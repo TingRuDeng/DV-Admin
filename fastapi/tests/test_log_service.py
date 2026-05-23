@@ -4,13 +4,32 @@
 """
 import uuid
 import warnings
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 import pytest_asyncio
 
 from app.db.models.system import OperationLog
-from app.services.system.log_service import log_service
+from app.services.system.log_service import local_now, log_service, normalize_local_time
+
+
+class TestLogServiceTimeHelpers:
+    """测试日志时间转换辅助函数"""
+
+    def test_normalize_local_time_converts_utc_to_shanghai_naive(self):
+        """UTC aware 时间要转换为上海本地 naive 时间，避免前端显示少 8 小时。"""
+        utc_time = datetime(2026, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+
+        result = normalize_local_time(utc_time)
+
+        assert result == datetime(2026, 1, 1, 8, 0, 0)
+        assert result.tzinfo is None
+
+    def test_local_now_returns_naive_datetime(self):
+        """当前业务时间沿用 ORM 的本地 naive 契约。"""
+        result = local_now()
+
+        assert result.tzinfo is None
 
 
 @pytest_asyncio.fixture

@@ -1,8 +1,9 @@
 """
 操作日志 Service
 """
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from app.db.models.system import OperationLog
 from app.schemas.system import (
@@ -12,17 +13,19 @@ from app.schemas.system import (
     VisitTrendOut,
 )
 
-
-def utc_now() -> datetime:
-    """生成与 Tortoise 时区配置兼容的 UTC aware 时间。"""
-    return datetime.now(timezone.utc)
+LOCAL_TIMEZONE = ZoneInfo("Asia/Shanghai")
 
 
-def ensure_aware(value: datetime) -> datetime:
-    """将外部传入时间统一为 UTC aware，避免 ORM 时区告警。"""
+def local_now() -> datetime:
+    """生成与 Tortoise 本地时区配置兼容的上海时间。"""
+    return datetime.now(LOCAL_TIMEZONE).replace(tzinfo=None)
+
+
+def normalize_local_time(value: datetime) -> datetime:
+    """将外部时间统一为上海本地 naive 时间，保持接口展示不偏移。"""
     if value.tzinfo is None:
-        return value.replace(tzinfo=timezone.utc)
-    return value.astimezone(timezone.utc)
+        return value
+    return value.astimezone(LOCAL_TIMEZONE).replace(tzinfo=None)
 
 
 class LogService:
@@ -52,9 +55,9 @@ class LogService:
         if status is not None:
             query = query.filter(status=status)
         if start_time:
-            query = query.filter(created_at__gte=ensure_aware(start_time))
+            query = query.filter(created_at__gte=normalize_local_time(start_time))
         if end_time:
-            query = query.filter(created_at__lte=ensure_aware(end_time))
+            query = query.filter(created_at__lte=normalize_local_time(end_time))
 
         # 查询总数
         total = await query.count()
@@ -102,13 +105,13 @@ class LogService:
     ) -> list[VisitTrendOut]:
         """获取访问趋势统计"""
         if not start_date:
-            start_date = utc_now() - timedelta(days=7)
+            start_date = local_now() - timedelta(days=7)
         else:
-            start_date = ensure_aware(start_date)
+            start_date = normalize_local_time(start_date)
         if not end_date:
-            end_date = utc_now()
+            end_date = local_now()
         else:
-            end_date = ensure_aware(end_date)
+            end_date = normalize_local_time(end_date)
 
         # 按日期分组统计
         logs = await OperationLog.filter(
@@ -140,7 +143,7 @@ class LogService:
 
     async def get_visit_stats(self) -> VisitStatsOut:
         """获取访问统计"""
-        now = utc_now()
+        now = local_now()
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         week_start = today_start - timedelta(days=now.weekday())
         month_start = today_start.replace(day=1)
@@ -243,7 +246,7 @@ class LogService:
 
     async def clear_old_logs(self, days: int = 30) -> int:
         """清理指定天数之前的日志"""
-        threshold = utc_now() - timedelta(days=days)
+        threshold = local_now() - timedelta(days=days)
         deleted_count = await OperationLog.filter(created_at__lt=threshold).delete()
         return deleted_count
 
