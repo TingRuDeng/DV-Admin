@@ -338,3 +338,19 @@
 ## Review 小结
 
 终态：finished。已将 TextScroll 从 415 行拆为渲染组件、props 类型和滚动/打字机组合式函数，父组件降到 270 行；保留原有滚动、悬停暂停、HTML 净化、打字机和关闭按钮行为。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
+
+---
+
+# 前端超大组件拆分 P1：个人中心页面
+
+- [x] P1 串行：更新 profile 拆分守卫测试，确保 `index.vue` 只做页面和 API 编排
+- [x] P1 串行：抽出 `ProfileSidebar.vue`，封装头像、昵称、角色和文件选择入口
+- [x] P1 串行：抽出 `ProfileInfoPanel.vue` 和 `ProfileSecurityPanel.vue`，封装账号信息和安全设置展示
+- [x] P1 串行：抽出 `ProfileEditDialog.vue` 和 `types.ts`，封装账号资料和密码表单弹窗
+- [x] P1 串行：删除已注释的手机/邮箱绑定旧代码和无效 timer/ref
+- [x] P2 串行：运行目标测试、前端类型检查、质量门禁和生产构建
+- [x] P3 串行：运行文档/API 契约校验、diff 检查和 review-gate
+
+## Review 小结
+
+终态：finished。已将个人中心页面从 421 行拆为父级页面编排、头像侧栏、账号信息、安全设置和账号/密码弹窗组件，父组件降到 147 行；删除已注释的手机/邮箱绑定旧代码和无效 timer/ref。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。

@@ -7,8 +7,21 @@ describe("profile style migration", () => {
     const source = readFileSync(resolve(process.cwd(), "src/views/profile/index.vue"), "utf8");
 
     expect(source).toContain("<PageShell");
-    expect(source).toContain("ff-side-panel");
-    expect(source).toContain("<DataPanel");
+    expect(source).toContain("<ProfileSidebar");
+    expect(source).toContain("<ProfileInfoPanel");
+    expect(source).toContain("<ProfileSecurityPanel");
+    expect(source).toContain("<ProfileEditDialog");
     expect(source).not.toContain("glass-panel");
+  });
+
+  it("keeps Profile index as the orchestration surface", () => {
+    const source = readFileSync(resolve(process.cwd(), "src/views/profile/index.vue"), "utf8");
+
+    expect(source).not.toContain("<el-descriptions");
+    expect(source).not.toContain("<ProDialog");
+    expect(source).not.toContain("mobileBinding");
+    expect(source).not.toContain("emailBinding");
+    expect(source).not.toContain("handleSendMobileCode");
+    expect(source).not.toContain("handleSendEmailCode");
   });
 });
