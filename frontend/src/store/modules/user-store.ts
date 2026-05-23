@@ -11,9 +11,16 @@ import { createLogger } from "@/utils/logger";
 
 const userStoreLogger = createLogger("userStore");
 
+function createEmptyUserInfo(): UserInfo {
+  return {
+    roles: [],
+    perms: [],
+  };
+}
+
 export const useUserStore = defineStore("user", () => {
   // 用户信息
-  const userInfo = ref<UserInfo>({} as UserInfo);
+  const userInfo = ref<UserInfo>(createEmptyUserInfo());
   // 记住我状态
   const rememberMe = ref(AuthStorage.getRememberMe());
 
@@ -52,7 +59,11 @@ export const useUserStore = defineStore("user", () => {
             reject("Verification failed, please Login again.");
             return;
           }
-          Object.assign(userInfo.value, { ...data });
+          userInfo.value = {
+            ...data,
+            roles: Array.isArray(data.roles) ? data.roles : [],
+            perms: Array.isArray(data.perms) ? data.perms : [],
+          };
           resolve(data);
         })
         .catch((error) => {
@@ -108,7 +119,7 @@ export const useUserStore = defineStore("user", () => {
     // 清除用户凭证
     AuthStorage.clearAuth();
     // 重置用户信息
-    userInfo.value = {} as UserInfo;
+    userInfo.value = createEmptyUserInfo();
   }
 
   /**

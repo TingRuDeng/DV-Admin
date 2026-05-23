@@ -47,6 +47,7 @@ DEBUG = env.bool("DEBUG")
 
 # Swagger API docs - independent of DEBUG to prevent accidental exposure in production
 ENABLE_SWAGGER = env.bool("ENABLE_SWAGGER", default=False)
+SWAGGER_USE_COMPAT_RENDERERS = False
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
@@ -242,8 +243,6 @@ TIME_ZONE = "Asia/Shanghai"
 
 USE_I18N = True
 
-USE_L10N = True
-
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
@@ -315,7 +314,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # 新增用户默认密码
-DEFAULT_PWD = env.str("DEFAULT_PWD", default="123456")
+DEFAULT_PWD = env.str("DEFAULT_PWD")
 
 # API版本
 API_VERSION = env.str("API_VERSION", default="v1")
