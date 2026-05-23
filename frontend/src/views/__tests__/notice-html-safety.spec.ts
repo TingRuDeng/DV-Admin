@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const NOTICE_HTML_FILES = [
-  "src/views/system/notice/index.vue",
+  "src/views/system/notice/components/NoticeDetailDialog.vue",
   "src/views/system/notice/components/MyNotice.vue",
   "src/components/Notification/index.vue",
 ];

@@ -186,118 +186,9 @@
       </template>
     </ProTable>
 
-    <!-- 通知公告表单弹窗 -->
-    <ProFormDrawer
-      ref="dataFormRef"
-      v-model="dialog.visible"
-      :title="dialog.title"
-      :model="formData"
-      :rules="rules"
-      :loading="loading"
-      size="80%"
-      label-width="100px"
-      @close="handleCloseDialog"
-      @submit="handleSubmit"
-    >
-      <el-form-item label="通知标题" prop="title">
-        <el-input v-model="formData.title" placeholder="通知标题" clearable />
-      </el-form-item>
+    <NoticeFormDrawer ref="noticeFormDrawerRef" @success="handleQuery" />
 
-      <el-form-item label="通知类型" prop="type">
-        <Dict v-model="formData.type" code="notice_type" />
-      </el-form-item>
-      <el-form-item label="通知等级" prop="level">
-        <Dict v-model="formData.level" code="notice_level" />
-      </el-form-item>
-      <el-form-item label="目标类型" prop="targetType">
-        <el-radio-group v-model="formData.targetType">
-          <el-radio :value="1">全体</el-radio>
-          <el-radio :value="2">指定</el-radio>
-        </el-radio-group>
-      </el-form-item>
-      <el-form-item v-if="formData.targetType == 2" label="指定用户" prop="targetUserIds">
-        <el-select
-          v-model="formData.targetUserIds"
-          multiple
-          search
-          placeholder="请选择指定用户"
-          class="w-full"
-        >
-          <el-option
-            v-for="item in userOptions"
-            :key="item.id"
-            :label="item.label"
-            :value="item.id"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="通知内容" prop="content">
-        <WangEditor v-model="formData.content" />
-      </el-form-item>
-    </ProFormDrawer>
-    <!-- 通知公告详情 -->
-    <ProDialog
-      v-model="detailDialog.visible"
-      :show-close="false"
-      :show-footer="false"
-      width="50%"
-      append-to-body
-      class="ff-notice-detail-dialog"
-      @close="closeDetailDialog"
-    >
-      <template #header>
-        <div class="flex justify-between items-center">
-          <span class="font-semibold text-slate-700">通知公告详情</span>
-          <div class="dialog-toolbar">
-            <el-button circle @click="closeDetailDialog">
-              <template #icon>
-                <Close />
-              </template>
-            </el-button>
-          </div>
-        </div>
-      </template>
-      <el-descriptions :column="1">
-        <el-descriptions-item label="标题：">
-          {{ currentNotice.title }}
-        </el-descriptions-item>
-        <el-descriptions-item label="发布状态：">
-          <el-tag
-            v-if="currentNotice.publishStatus == 0"
-            type="info"
-            effect="light"
-            class="ff-status-tag info"
-          >
-            未发布
-          </el-tag>
-          <el-tag
-            v-else-if="currentNotice.publishStatus == 1"
-            type="success"
-            effect="light"
-            class="ff-status-tag success"
-          >
-            已发布
-          </el-tag>
-          <el-tag
-            v-else-if="currentNotice.publishStatus == -1"
-            type="warning"
-            effect="light"
-            class="ff-status-tag warning"
-          >
-            已撤回
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="发布人：">
-          {{ currentNotice.publisherName }}
-        </el-descriptions-item>
-        <el-descriptions-item label="发布时间：">
-          {{ currentNotice.publishTime }}
-        </el-descriptions-item>
-        <el-descriptions-item label="公告内容：">
-          <SafeHtml class="ff-notice-content" :content="currentNotice.content" />
-        </el-descriptions-item>
-      </el-descriptions>
-    </ProDialog>
+    <NoticeDetailDialog ref="noticeDetailDialogRef" />
   </PageShell>
 </template>
 
@@ -307,66 +198,21 @@ defineOptions({
   inheritAttrs: false,
 });
 
-import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
-import ProDialog from "@/components/ProDialog/index.vue";
-import SafeHtml from "@/components/SafeHtml/index.vue";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
-import NoticeAPI, {
-  NoticeForm,
-  NoticePageQuery,
-  NoticeDetailVO,
-  NoticePageVO,
-} from "@/api/system/notice-api";
-import UserAPI from "@/api/system/user-api";
+import NoticeAPI, { NoticePageQuery, NoticePageVO } from "@/api/system/notice-api";
+import NoticeDetailDialog from "./components/NoticeDetailDialog.vue";
+import NoticeFormDrawer from "./components/NoticeFormDrawer.vue";
 
 const queryFormRef = ref<{ resetFields: () => void } | null>(null);
-const dataFormRef = ref<InstanceType<typeof ProFormDrawer> | null>(null);
+const noticeDetailDialogRef = ref<InstanceType<typeof NoticeDetailDialog> | null>(null);
+const noticeFormDrawerRef = ref<InstanceType<typeof NoticeFormDrawer> | null>(null);
 const tableRef = ref<ProTableExpose | null>(null);
 
 const loading = ref(false);
 const selectIds = ref<string[]>([]);
 
 const queryParams = reactive<Omit<NoticePageQuery, "pageNum" | "pageSize">>({});
-
-const userOptions = ref<OptionType[]>([]);
-
-// 弹窗
-const dialog = reactive({
-  title: "",
-  visible: false,
-});
-
-// 通知公告表单数据
-const formData = reactive<NoticeForm>({
-  level: "L", // 默认优先级为低
-  targetType: 1, // 默认目标类型为全体
-});
-
-// 通知公告表单校验规则
-const rules = reactive({
-  title: [{ required: true, message: "请输入通知标题", trigger: "blur" }],
-  content: [
-    {
-      required: true,
-      message: "请输入通知内容",
-      trigger: "blur",
-      validator: (_rule: unknown, value: string, callback: (error?: Error) => void) => {
-        if (!value.replace(/<[^>]+>/g, "").trim()) {
-          callback(new Error("请输入通知内容"));
-        } else {
-          callback();
-        }
-      },
-    },
-  ],
-  type: [{ required: true, message: "请选择通知类型", trigger: "change" }],
-});
-
-const detailDialog = reactive({
-  visible: false,
-});
-const currentNotice = ref<NoticeDetailVO>({});
 
 // 查询通知公告
 function handleQuery() {
@@ -386,22 +232,13 @@ function handleSelectionChange(selection: NoticePageVO[]) {
   selectIds.value = selection.map((item) => item.id).filter((id): id is string => Boolean(id));
 }
 
-// 打开通知公告弹窗
-function handleOpenDialog(id?: string) {
-  UserAPI.getOptions().then((data) => {
-    userOptions.value = data;
-  });
-
-  dialog.visible = true;
+async function handleOpenDialog(id?: string) {
   if (id) {
-    dialog.title = "修改公告";
-    NoticeAPI.getFormData(id).then((data) => {
-      Object.assign(formData, data);
-    });
-  } else {
-    Object.assign(formData, { level: "L", targetType: 1 }); // 默认目标类型为全体
-    dialog.title = "新增公告";
+    await noticeFormDrawerRef.value?.openEdit(id);
+    return;
   }
+
+  await noticeFormDrawerRef.value?.openCreate();
 }
 
 // 发布通知公告
@@ -418,47 +255,6 @@ function handleRevoke(id: string) {
     ElMessage.success("撤回成功");
     tableRef.value?.reload(true);
   });
-}
-
-// 通知公告表单提交
-function handleSubmit() {
-  dataFormRef.value?.validate((valid: boolean) => {
-    if (valid) {
-      loading.value = true;
-      const id = formData.id;
-      if (id) {
-        NoticeAPI.update(id, formData)
-          .then(() => {
-            ElMessage.success("修改成功");
-            handleCloseDialog();
-            tableRef.value?.reload(true);
-          })
-          .finally(() => (loading.value = false));
-      } else {
-        NoticeAPI.create(formData)
-          .then(() => {
-            ElMessage.success("新增成功");
-            handleCloseDialog();
-            tableRef.value?.reload(true);
-          })
-          .finally(() => (loading.value = false));
-      }
-    }
-  });
-}
-
-// 重置表单
-function resetForm() {
-  dataFormRef.value?.resetFields();
-  dataFormRef.value?.clearValidate();
-  formData.id = undefined;
-  formData.targetType = 1;
-}
-
-// 关闭通知公告弹窗
-function handleCloseDialog() {
-  dialog.visible = false;
-  resetForm();
 }
 
 // 删除通知公告
@@ -489,13 +285,7 @@ function handleDelete(id?: string) {
   );
 }
 
-const closeDetailDialog = () => {
-  detailDialog.visible = false;
-};
-
 const openDetailDialog = async (id: string) => {
-  const noticeDetail = await NoticeAPI.getDetail(id);
-  currentNotice.value = noticeDetail;
-  detailDialog.visible = true;
+  await noticeDetailDialogRef.value?.open(id);
 };
 </script>
