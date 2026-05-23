@@ -52,6 +52,14 @@ class UserLogin(BaseSchema):
     captcha_code: str | None = Field(default=None, description="验证码")
 
 
+class RefreshTokenRequest(BaseSchema):
+    """
+    刷新令牌请求模型
+    """
+
+    refresh_token: str = Field(description="刷新令牌")
+
+
 class UserInfo(TimestampSchema):
     """
     用户信息模型

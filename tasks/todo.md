@@ -167,3 +167,23 @@
 ## Review 小结
 
 终态：finished。P0-P3 全量收口完成；文档/API 契约校验、前端 quality/build/e2e smoke、Django ruff/pytest、FastAPI make quality/mypy app 和 diff 检查均通过。
+
+---
+
+# 项目深度审查 P0/P1 修复
+
+- [x] P0 串行：补 FastAPI 文件接口鉴权、上传大小和类型边界测试
+- [x] P0 串行：实现 FastAPI 文件接口鉴权、大小和类型边界
+- [x] P1 串行：补 FastAPI 敏感请求日志排除路径测试
+- [x] P1 串行：修正 FastAPI 敏感请求日志排除路径
+- [x] P1 串行：补共享路由契约测试覆盖用户重置密码、角色菜单、头像路径
+- [x] P1 串行：对齐 Django/FastAPI/前端/文档共享路由契约
+- [x] P1 并行可验证：补前端权限空状态、refresh token 请求体、通知默认值测试
+- [x] P1 串行：实现前端权限空状态、refresh token 请求体、通知默认值修复
+- [x] P2 串行：拆分前端只读质量门禁并同步 CI/文档
+- [x] P2 串行：更新治理文档中过期门禁和 Playwright 陷阱描述
+- [x] P3 串行：运行最小充分验证并执行 review-gate
+
+## Review 小结
+
+终态：finished。已完成项目深度审查 P0/P1 修复与 P2 门禁收口：FastAPI 文件上传/删除鉴权、上传大小和类型校验、敏感请求日志排除、共享路由契约、前端 refresh token 请求体、权限空状态和通知默认值均有测试覆盖；前端质量门禁改为只读检查并同步文档。验证通过：前端 quality/build、Django ruff/pytest、FastAPI make quality、共享路由契约测试、文档校验、API 契约校验和 diff 检查。

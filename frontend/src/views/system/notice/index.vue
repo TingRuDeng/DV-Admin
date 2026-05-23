@@ -399,7 +399,7 @@ function handleOpenDialog(id?: string) {
       Object.assign(formData, data);
     });
   } else {
-    Object.assign(formData, { level: 0, targetType: 0 });
+    Object.assign(formData, { level: "L", targetType: 1 }); // 默认目标类型为全体
     dialog.title = "新增公告";
   }
 }

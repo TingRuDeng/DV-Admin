@@ -305,7 +305,7 @@ DELETE /api/v1/system/users/{id}/     # 删除
 **Django & FastAPI：**
 ```
 GET  /api/v1/system/users/options/              # 用户下拉选项
-POST /api/v1/system/users/reset-password/{id}/  # 重置密码
+PUT  /api/v1/system/users/{id}/password/reset/  # 重置密码
 GET  /api/v1/system/users/{id}/permissions/     # 用户权限ID列表
 ```
 
@@ -321,7 +321,7 @@ GET    /api/v1/system/roles/{id}/     # 详情
 PUT    /api/v1/system/roles/{id}/     # 更新
 DELETE /api/v1/system/roles/{id}/     # 删除
 GET    /api/v1/system/roles/options/  # 角色下拉选项
-GET    /api/v1/system/roles/{id}/menuIds/  # 角色菜单ID列表
+GET    /api/v1/system/roles/{id}/menu-ids/ # 角色菜单ID列表
 ```
 
 ---
@@ -401,7 +401,7 @@ GET /api/v1/system/logs/stats/ # 访问统计
 | 获取个人信息 | `GET /api/v1/information/profile/` | `GET /api/v1/information/profile/` |
 | 更新个人信息 | `PUT /api/v1/information/change-information/` | `PUT /api/v1/information/profile/` |
 | 修改密码 | `PUT /api/v1/information/change-password/` | `PUT /api/v1/information/password/` |
-| 上传头像 | `POST /api/v1/information/change-avatar/` | `POST /api/v1/information/avatar/` |
+| 上传头像 | `POST /api/v1/information/change-avatar/` | `POST /api/v1/information/change-avatar/` |
 
 ---
 

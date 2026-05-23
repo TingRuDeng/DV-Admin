@@ -9,6 +9,8 @@ import os
 import re
 from pathlib import Path
 
+from app.core.exceptions import ValidationError
+
 # 允许的文件扩展名
 ALLOWED_EXTENSIONS = {
     # 图片文件
@@ -96,7 +98,7 @@ def format_file_size(size: int) -> str:
     return f"{display_size:.1f} PB"
 
 
-async def save_upload_file(file, subdir: str = "") -> str:
+async def save_upload_file(file, subdir: str = "", max_size: int | None = None) -> str:
     """
     保存上传的文件
 
@@ -129,8 +131,10 @@ async def save_upload_file(file, subdir: str = "") -> str:
 
     file_path = os.path.join(save_dir, new_filename)
 
-    # 保存文件
     content = await file.read()
+    if max_size is not None and len(content) > max_size:
+        raise ValidationError(f"文件大小不能超过 {format_file_size(max_size)}")
+
     with open(file_path, "wb") as f:
         f.write(content)
 
