@@ -1,6 +1,10 @@
 import type { IMessage, StompConfig } from "@stomp/stompjs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createStompConnectionManager } from "@/composables/websocket/stomp-connection-manager";
+import {
+  calculateReconnectDelay,
+  createStompConnectionManager,
+  isRecoverableCloseCode,
+} from "@/composables/websocket/stomp-connection-manager";
 
 class FakeClient {
   active = false;
@@ -120,5 +124,42 @@ describe("createStompConnectionManager", () => {
 
     expect(clients).toHaveLength(1);
     expect(clients[0].activate).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("stomp connection helpers", () => {
+  it("treats only known close codes as recoverable", () => {
+    expect(isRecoverableCloseCode(1000)).toBe(true);
+    expect(isRecoverableCloseCode(1006)).toBe(true);
+    expect(isRecoverableCloseCode(1008)).toBe(true);
+    expect(isRecoverableCloseCode(1001)).toBe(false);
+    expect(isRecoverableCloseCode(undefined)).toBe(false);
+  });
+
+  it("calculates fixed and exponential reconnect delay", () => {
+    expect(
+      calculateReconnectDelay({
+        maxReconnectDelay: 10_000,
+        reconnectCount: 3,
+        reconnectDelay: 500,
+        useExponentialBackoff: false,
+      })
+    ).toBe(500);
+    expect(
+      calculateReconnectDelay({
+        maxReconnectDelay: 10_000,
+        reconnectCount: 3,
+        reconnectDelay: 500,
+        useExponentialBackoff: true,
+      })
+    ).toBe(2_000);
+    expect(
+      calculateReconnectDelay({
+        maxReconnectDelay: 1_500,
+        reconnectCount: 4,
+        reconnectDelay: 500,
+        useExponentialBackoff: true,
+      })
+    ).toBe(1_500);
   });
 });
