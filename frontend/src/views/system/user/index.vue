@@ -299,7 +299,7 @@ function hancleResetPassword(row: UserPageVO) {
         ElMessage.warning("密码至少需要6位字符，请重新输入");
         return false;
       }
-      UserAPI.resetPassword(row.id, value).then(() => {
+      UserAPI.resetPassword(row.id, value, value).then(() => {
         ElMessage.success("密码重置成功，新密码是：" + value);
       });
     },

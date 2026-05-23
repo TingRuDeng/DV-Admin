@@ -6,7 +6,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from drf_admin.apps.system.filters.users import UsersFilter
 from drf_admin.apps.system.models import Permissions, Users
@@ -82,7 +81,7 @@ class UsersOptionsViewSet(AutoPermissionAPIView, ListAPIView):
     pagination_class = None  # 禁用分页
 
 
-class ResetPasswordAPIView(mixins.UpdateModelMixin, GenericAPIView):
+class ResetPasswordAPIView(mixins.UpdateModelMixin, AutoPermissionAPIView, GenericAPIView):
     """
     patch:
     用户--重置密码
@@ -144,13 +143,15 @@ class ResetPasswordAPIView(mixins.UpdateModelMixin, GenericAPIView):
 #         return UpdateUserProfileSerializer
 
 
-class PermissionsAPIView(APIView):
+class PermissionsAPIView(AutoPermissionAPIView):
     """
     get:
     用户--获取用户拥有权限ID列表
 
     获取用户拥有权限ID列表, status: 200(成功), return: 用户拥有权限ID列表
     """
+
+    queryset = Users.objects.all()
 
     def get(self, request, pk):
         try:
