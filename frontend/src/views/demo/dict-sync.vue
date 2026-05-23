@@ -16,122 +16,25 @@
 
       <el-row :gutter="16">
         <el-col :span="8">
-          <el-card shadow="hover" class="dict-card">
-            <template #header>
-              <div class="flex justify-between items-center">
-                <span>性别字典项 - 男</span>
-                <el-button type="warning" size="small" @click="loadMaleDict">重新加载</el-button>
-              </div>
-            </template>
-            <div>
-              <div v-if="dictForm" class="dict-form">
-                <el-form :model="dictForm" label-width="80px">
-                  <el-form-item label="字典编码">
-                    <el-input v-model="dictForm.dictCode" disabled />
-                  </el-form-item>
-                  <el-form-item label="字典标签">
-                    <el-input v-model="dictForm.label" />
-                  </el-form-item>
-                  <el-form-item label="字典值">
-                    <el-input v-model="dictForm.value" disabled />
-                  </el-form-item>
-                  <el-form-item label="标记颜色">
-                    <el-select
-                      v-model="dictForm.tagType"
-                      placeholder="选择标签类型"
-                      style="width: 100%"
-                    >
-                      <el-option value="success" label="success">
-                        <el-tag type="success">success</el-tag>
-                      </el-option>
-                      <el-option value="warning" label="warning">
-                        <el-tag type="warning">warning</el-tag>
-                      </el-option>
-                      <el-option value="danger" label="danger">
-                        <el-tag type="danger">danger</el-tag>
-                      </el-option>
-                      <el-option value="info" label="info">
-                        <el-tag type="info">info</el-tag>
-                      </el-option>
-                      <el-option value="primary" label="primary">
-                        <el-tag type="primary">primary</el-tag>
-                      </el-option>
-                    </el-select>
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" :loading="saving" @click="saveDict">保存</el-button>
-                    <el-button @click="loadMaleDict">重置</el-button>
-                  </el-form-item>
-                </el-form>
-              </div>
-              <el-empty v-else description="暂无字典数据" />
-            </div>
-          </el-card>
+          <DictItemEditorCard
+            :model="dictForm"
+            :saving="saving"
+            @reload="loadMaleDict"
+            @save="saveDict"
+          />
         </el-col>
 
-        <!-- 列2: 字典组件展示 -->
         <el-col :span="8">
-          <el-card shadow="hover" class="dict-card">
-            <template #header>
-              <div class="flex justify-between items-center">
-                <span>字典组件展示</span>
-                <el-button type="primary" size="small" @click="refreshDictComponent">
-                  手动刷新
-                </el-button>
-              </div>
-            </template>
-            <div class="dict-component-demo">
-              <h4 class="mt-4 mb-3">性别组件</h4>
-              <el-radio-group v-model="selectedGender">
-                <el-radio
-                  v-for="item in dictStore.getDictItems('gender')"
-                  :key="item.value"
-                  :value="item.value"
-                >
-                  {{ item.label }}
-                </el-radio>
-              </el-radio-group>
-
-              <h4 class="mt-4 mb-3">性别标签</h4>
-              <div>
-                <el-tag
-                  v-for="item in dictStore.getDictItems('gender')"
-                  :key="item.value"
-                  :type="item.tagType || undefined"
-                  class="mr-2"
-                >
-                  {{ item.label }}
-                </el-tag>
-              </div>
-
-              <div class="mt-4 pt-3 border-top">
-                <div class="text-muted mb-2">已选择值: {{ selectedGender }}</div>
-                <div class="text-muted">最后更新: {{ lastUpdateTime }}</div>
-              </div>
-            </div>
-          </el-card>
+          <DictPreviewCard
+            v-model="selectedGender"
+            :dict-items="dictItems"
+            :last-update-time="lastUpdateTime"
+            @refresh="refreshDictComponent"
+          />
         </el-col>
 
-        <!-- 列3: 字典缓存数据 -->
         <el-col :span="8">
-          <el-card shadow="hover" class="dict-card">
-            <template #header>
-              <div class="flex justify-between items-center">
-                <span>字典缓存数据</span>
-                <div>
-                  <el-tag v-if="dictCacheStatus" type="success" class="ml-2" size="small">
-                    已缓存
-                  </el-tag>
-                  <el-tag v-else type="danger" class="ml-2" size="small">未缓存</el-tag>
-                </div>
-              </div>
-            </template>
-            <div class="cache-content">
-              <pre class="cache-data">{{
-                JSON.stringify(dictStore.getDictItems("gender"), null, 2)
-              }}</pre>
-            </div>
-          </el-card>
+          <DictCacheCard :cached="dictCacheStatus" :dict-items="dictItems" />
         </el-col>
       </el-row>
     </el-card>
@@ -145,6 +48,9 @@ import { DictItemForm } from "@/api/system/dict-items-api";
 import { useDictSync, DictMessage } from "@/composables";
 import DictItemsApi from "@/api/system/dict-items-api";
 import { createLogger } from "@/utils/logger";
+import DictCacheCard from "./components/dict-sync/DictCacheCard.vue";
+import DictItemEditorCard from "./components/dict-sync/DictItemEditorCard.vue";
+import DictPreviewCard from "./components/dict-sync/DictPreviewCard.vue";
 
 const dictSyncDemoLogger = createLogger("DictSyncDemo");
 
@@ -176,10 +82,12 @@ const wsStatusText = computed(() => (wsConnected.value ? "已连接" : "未连�
 // 保存WebSocket清理函数
 let unregisterCallback: (() => void) | null = null;
 
+const dictItems = computed(() => dictStore.getDictItems(DICT_CODE));
+
 // 当前选中字典的缓存状态
 const dictCacheStatus = computed(() => {
   // 检查字典是否在缓存中
-  return dictStore.getDictItems(DICT_CODE).length > 0;
+  return dictItems.value.length > 0;
 });
 
 // 设置WebSocket
@@ -253,60 +161,3 @@ onUnmounted(() => {
   unregisterCallback?.();
 });
 </script>
-
-<style scoped>
-.dict-card {
-  display: flex;
-  flex-direction: column;
-  height: 600px;
-  overflow: hidden;
-}
-
-.dict-card :deep(.el-card__body) {
-  flex: 1;
-  overflow: auto;
-}
-
-.dict-component-demo {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 12px;
-}
-
-.cache-content {
-  height: 100%;
-  overflow: hidden;
-}
-
-pre {
-  padding: 8px;
-  overflow-y: auto;
-  word-wrap: break-word;
-  white-space: pre-wrap;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-}
-
-.cache-data {
-  height: 100%;
-  padding: 8px;
-  overflow-y: auto;
-  font-size: 12px;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-}
-
-.dict-form {
-  margin-bottom: 20px;
-}
-
-.text-muted {
-  font-size: 0.9em;
-  color: #909399;
-}
-
-.border-top {
-  border-top: 1px solid #ebeef5;
-}
-</style>
