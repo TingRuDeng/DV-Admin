@@ -3,6 +3,7 @@
 测试 LogService 的所有方法，包括分页查询、访问趋势、访问统计、删除等操作
 """
 import uuid
+import warnings
 from datetime import datetime, timedelta
 
 import pytest
@@ -110,11 +111,14 @@ class TestLogServiceGetPage:
     async def test_get_page_with_time_range(self, db, test_logs):
         """测试按时间范围过滤"""
         now = datetime.now()
-        result = await log_service.get_page(
-            page=1, page_size=10,
-            start_time=now - timedelta(days=1),
-            end_time=now + timedelta(days=1),
-        )
+        with warnings.catch_warnings():
+            warnings.filterwarnings("error", message=".*naive datetime.*")
+            result = await log_service.get_page(
+                page=1,
+                page_size=10,
+                start_time=now - timedelta(days=1),
+                end_time=now + timedelta(days=1),
+            )
         assert result.total >= 1
 
     @pytest.mark.asyncio

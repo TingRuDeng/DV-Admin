@@ -163,9 +163,12 @@ class UsersPasswordTestCase(TestCase):
 
     def test_reset_password(self):
         """测试重置密码"""
-        response = self.client.post(f"/api/v1/system/users/{self.user.id}/reset-password/")
+        response = self.client.put(
+            f"/api/v1/system/users/{self.user.id}/password/reset/",
+            {"password": "Newpass123", "confirm_password": "Newpass123"},
+        )
 
-        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class UsersPermissionsTestCase(TestCase):
