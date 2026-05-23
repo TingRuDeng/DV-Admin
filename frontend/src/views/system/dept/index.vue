@@ -114,48 +114,17 @@
       </template>
     </ProTable>
 
-    <ProFormDrawer
+    <DeptFormDrawer
       ref="deptFormRef"
       v-model="dialog.visible"
       :title="dialog.title"
       :model="formData"
       :rules="rules"
       :loading="formLoading"
-      size="600px"
-      label-width="80px"
+      :dept-options="deptOptions"
       @submit="handleSubmit"
       @close="handleCloseDialog"
-    >
-      <el-form-item label="上级部门" prop="parentId">
-        <el-tree-select
-          v-model="formData.parentId"
-          placeholder="选择上级部门"
-          :data="deptOptions"
-          filterable
-          node-key="id"
-          check-strictly
-          :render-after-expand="false"
-          class="w-full"
-        />
-      </el-form-item>
-      <el-form-item label="部门名称" prop="name">
-        <el-input v-model="formData.name" placeholder="请输入部门名称" />
-      </el-form-item>
-      <el-form-item label="显示排序" prop="sort">
-        <el-input-number
-          v-model="formData.sort"
-          controls-position="right"
-          style="width: 120px"
-          :min="0"
-        />
-      </el-form-item>
-      <el-form-item label="部门状态">
-        <el-radio-group v-model="formData.status">
-          <el-radio :value="1">正常</el-radio>
-          <el-radio :value="0">禁用</el-radio>
-        </el-radio-group>
-      </el-form-item>
-    </ProFormDrawer>
+    />
   </PageShell>
 </template>
 
@@ -165,15 +134,15 @@ defineOptions({
   inheritAttrs: false,
 });
 
-import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createListRequest } from "@/utils/pro-table-request";
 import DeptAPI, { DeptForm, DeptQuery, DeptVO } from "@/api/system/dept-api";
+import DeptFormDrawer from "./components/DeptFormDrawer.vue";
 
 const queryFormRef = ref<InstanceType<typeof ProSearch> | null>(null);
-const deptFormRef = ref<InstanceType<typeof ProFormDrawer> | null>(null);
+const deptFormRef = ref<InstanceType<typeof DeptFormDrawer> | null>(null);
 const tableRef = ref<ProTableExpose | null>(null);
 
 const formLoading = ref(false);
