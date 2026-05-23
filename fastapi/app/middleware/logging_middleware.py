@@ -69,24 +69,26 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             max_body_length: 最大记录的 body 长度
         """
         super().__init__(app)
+        self.excluded_paths = set(self.EXCLUDED_PATHS)
+        self.excluded_body_paths = set(self.EXCLUDED_BODY_PATHS)
         if exclude_paths:
-            self.EXCLUDED_PATHS.update(exclude_paths)
+            self.excluded_paths.update(exclude_paths)
         if exclude_body_paths:
-            self.EXCLUDED_BODY_PATHS.update(exclude_body_paths)
+            self.excluded_body_paths.update(exclude_body_paths)
         self.log_request_body = log_request_body
         self.log_response_body = log_response_body
         self.max_body_length = max_body_length
 
     def _should_skip_logging(self, path: str) -> bool:
         """判断是否应该跳过日志记录"""
-        for excluded in self.EXCLUDED_PATHS:
+        for excluded in self.excluded_paths:
             if path.startswith(excluded):
                 return True
         return False
 
     def _should_exclude_body(self, path: str) -> bool:
         """判断是否应该排除请求体记录"""
-        for excluded in self.EXCLUDED_BODY_PATHS:
+        for excluded in self.excluded_body_paths:
             if path.startswith(excluded):
                 return True
         return False

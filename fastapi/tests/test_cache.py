@@ -3,6 +3,7 @@
 测试 app/core/cache.py 的功能
 """
 import time
+import warnings
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -13,6 +14,26 @@ from app.core.cache import (
     MemoryCache,
     RedisCache,
 )
+
+
+class FailingAsyncIterator:
+    """模拟 Redis scan_iter 在迭代阶段抛错。"""
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        raise Exception("Connection lost")
+
+
+class FailingScanRedis:
+    """模拟 scan_iter 返回异步迭代器的 Redis 客户端。"""
+
+    def scan_iter(self, match):
+        return FailingAsyncIterator()
+
+    async def delete(self, *keys):
+        return 0
 
 
 class TestMemoryCache:
@@ -181,7 +202,7 @@ class TestRedisCache:
         """测试获取缓存成功"""
         cache = RedisCache()
 
-        mock_redis = AsyncMock()
+        mock_redis = MagicMock()
         mock_redis.get = AsyncMock(return_value='{"key": "value"}')
         cache._redis = mock_redis
 
@@ -376,15 +397,11 @@ class TestRedisCache:
         """测试清除缓存错误"""
         cache = RedisCache()
 
-        mock_redis = AsyncMock()
+        cache._redis = FailingScanRedis()
 
-        async def mock_scan_iter(match):
-            raise Exception("Connection lost")
-
-        mock_redis.scan_iter = mock_scan_iter
-        cache._redis = mock_redis
-
-        count = await cache.clear()
+        with warnings.catch_warnings():
+            warnings.filterwarnings("error", message=".*was never awaited.*")
+            count = await cache.clear()
         assert count == 0
 
 
