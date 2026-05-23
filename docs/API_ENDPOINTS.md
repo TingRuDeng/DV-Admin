@@ -37,11 +37,14 @@ ai_summary:
 
 - `backend/drf_admin/apps/oauth/urls.py`
 - `backend/drf_admin/apps/oauth/views/oauth.py`
+- `backend/drf_admin/apps/system/urls.py`
 - `backend/drf_admin/utils/middleware.py`
 - `fastapi/app/api/v1/oauth/auth.py`
+- `fastapi/app/api/v1/system/users.py`
 - `fastapi/app/api/health.py`
 - `fastapi/app/schemas/base.py`
 - `frontend/src/api/auth-api.ts`
+- `frontend/src/api/system/user-api.ts`
 - `frontend/src/utils/request.ts`
 
 ## Key facts
@@ -309,6 +312,8 @@ PUT  /api/v1/system/users/{id}/password/reset/  # 重置密码
 GET  /api/v1/system/users/{id}/permissions/     # 用户权限ID列表
 ```
 
+> Django 该端点读取请求体中的 `password` 与 `confirm_password`，敏感字段不得放入 URL query。FastAPI 当前额外保留 `POST /api/v1/system/users/{id}/password/reset/` 兼容入口，并按 `DEFAULT_PASSWORD` 重置；共享前端契约以 `PUT` 方法为准。
+
 ---
 
 ### 角色管理
@@ -485,7 +490,7 @@ GET /api/redoc/         # ReDoc
 
 ---
 
-**最后更新：** 2026-05-21
+**最后更新：** 2026-05-23
 **维护者：** DV-Admin Team
 
 **重要提醒：** 本文档不保证完整性，实际开发请以代码为准。

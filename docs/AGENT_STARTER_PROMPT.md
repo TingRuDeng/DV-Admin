@@ -26,7 +26,7 @@
 - 两套后端是替代实现，日常开发/部署通常二选一
 - 共享 API 契约需保持 Django / FastAPI 兼容
 
-默认账户：admin/123456
+开发种子账号：admin/123456、visitor/123456。登录页预填只由 `frontend/.env.development` 中的 `VITE_LOGIN_DEFAULT_USERNAME` / `VITE_LOGIN_DEFAULT_PASSWORD` 控制，生产和预发环境默认不预填。
 
 请先阅读上述文档，然后告诉我你已准备好，我将描述具体任务。
 ```
@@ -130,5 +130,5 @@ API 路径：[路径]
 
 ---
 
-**最后更新：** 2026-04-09
+**最后更新：** 2026-05-23
 **维护者：** DV-Admin Team
