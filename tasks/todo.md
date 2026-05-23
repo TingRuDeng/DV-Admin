@@ -246,3 +246,19 @@
 ## Review 小结
 
 终态：finished。已将通知管理页的通知表单和详情弹窗分别抽为 `NoticeFormDrawer.vue` 与 `NoticeDetailDialog.vue`，页面本体降到 291 行并继续保留查询、表格动作、发布/撤回/删除编排；同步默认值和富文本安全守卫测试到新组件边界。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
+
+---
+
+# 前端超大组件拆分 P1：菜单表单抽屉
+
+- [x] P1 串行：新增菜单页拆分守卫测试，先确认当前代码仍内联 `ProFormDrawer`
+- [x] P1 串行：抽出 `frontend/src/views/system/menu/components/MenuFormDrawer.vue`
+- [x] P1 串行：抽出 `frontend/src/views/system/menu/components/MenuRouteFields.vue`
+- [x] P1 串行：抽出 `frontend/src/views/system/menu/components/MenuRouteParamsEditor.vue`
+- [x] P1 串行：让 `frontend/src/views/system/menu/index.vue` 只保留查询、表格动作、删除和刷新编排
+- [x] P2 串行：运行目标测试、前端类型检查、质量门禁和生产构建
+- [x] P3 串行：运行文档/API 契约校验、diff 检查和 review-gate
+
+## Review 小结
+
+终态：finished。已将菜单管理页的菜单表单抽屉、路由字段和路由参数编辑器分别抽为 `MenuFormDrawer.vue`、`MenuRouteFields.vue` 与 `MenuRouteParamsEditor.vue`，页面本体降到 214 行并保留查询、表格动作、删除和刷新编排；新增拆分守卫测试先红后绿。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
