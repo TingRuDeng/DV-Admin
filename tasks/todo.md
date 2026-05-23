@@ -153,6 +153,20 @@
 
 ---
 
+# 前端超大组件拆分 P1：部门表单抽屉
+
+- [x] P1 串行：分析部门管理页内联表单抽屉与既有拆分组件模式
+- [x] P1 串行：抽出 `frontend/src/views/system/dept/components/DeptFormDrawer.vue`
+- [x] P1 串行：让 `frontend/src/views/system/dept/index.vue` 只保留页面编排、查询和表格动作
+- [x] P2 串行：运行目标测试、前端类型检查和质量门禁
+- [x] P3 串行：运行文档/API 契约校验、diff 检查和 review-gate
+
+## Review 小结
+
+终态：finished。已将部门管理页内联表单抽屉抽为 `DeptFormDrawer.vue`，页面本体从 301 行降到 270 行并继续保留查询、表格动作和提交编排；新增拆分守卫测试覆盖父页面不再内联 `ProFormDrawer`。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
+
+---
+
 # P0-P3 产品化治理全量收口
 
 - [x] 建立隔离分支并写入全量收口计划
