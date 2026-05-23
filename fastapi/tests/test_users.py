@@ -18,6 +18,17 @@ def test_reset_password_returns_success(client: TestClient):
     assert response.status_code in [200, 401], f"Expected 200 or 401, got {response.status_code}"
 
 
+def test_reset_password_accepts_put_method(auth_client: TestClient, test_user):
+    """密码重置接口应与 Django 契约一致，支持 PUT 方法。"""
+    response = auth_client.put(
+        f"/api/v1/system/users/{test_user['id']}/password/reset/",
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data.get("code") == 20000
+
+
 def test_import_template_returns_csv(client: TestClient):
     """
     测试导入模板接口返回CSV格式

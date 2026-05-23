@@ -545,8 +545,9 @@ async def batch_delete_users(
     return ResponseModel.success(message="批量删除成功")
 
 
-@router.post(
+@router.api_route(
     "/{user_id}/password/reset/",
+    methods=["PUT", "POST"],
     response_model=ResponseModel[None],
     summary="重置用户密码",
     description="""
