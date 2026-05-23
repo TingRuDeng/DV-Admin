@@ -39,7 +39,7 @@ ai_summary:
 ## Key facts
 
 - 本文档是跟踪入口，不是架构权威。
-- `后续优化/` 下旧文档保留为历史参考。
+- 旧前端优化方案已被本文档、`docs/ARCHITECTURE.md` 和 `docs/archive/superpowers/` 吸收。
 - 已完成治理基线不应重复规划为新增项。
 
 ## How to verify
@@ -57,7 +57,7 @@ ai_summary:
 ## 文档定位
 
 - 本文档是当前前端优化 backlog 的跟踪入口
-- `后续优化/` 目录下的旧文档保留为**历史参考**，不再作为现行实施依据
+- 旧前端优化方案不再作为现行实施依据；仍有历史价值的内容已进入 `docs/archive/superpowers/`
 - 当前现状、既有规范与已落地能力，仍以 `docs/ARCHITECTURE.md`、`frontend/src/styles/README.md` 及实际代码为准
 
 ---
@@ -73,6 +73,18 @@ ai_summary:
 - 系统管理域已有多页完成新页面骨架迁移
 - `components/CURD` 已提供一批可复用雏形组件，但尚未演进为统一 Pro 层
 - 页面层弹层已完成抽象收敛：`frontend/src/views` 不再直接使用 `el-dialog` / `el-drawer`
+- `tags-view-store`、`TableSelect`、WebSocket STOMP manager 和主题样式测试已完成 P1-P4 收口
+- `components/CURD` 兼容层已完成复核：兼容层外无业务调用点，旧全局组件声明已移除，新增调用由测试守卫阻断
+
+---
+
+## 2026-05-23 前端治理收口摘要
+
+- `frontend/src/store/modules/tags-view-store.ts` 已修复关闭左右标签时目标不存在导致 Promise 不 resolve 的边界，并用 store 单测覆盖。
+- `frontend/src/components/TableSelect/` 已拆出类型、搜索表单、数据表和底部动作组件，并补充类型治理和黑盒行为测试。
+- `frontend/src/composables/websocket/stomp-connection-manager.ts` 已拆出纯逻辑 helper、类型、client factory 和订阅注册表，连接管理行为由 fake client 单测覆盖。
+- 原 `theme-styles` 大测试已按职责拆分为暗色工具、表单 chrome、弹层样式和共享测试工具。
+- `components/CURD` 暂作为历史兼容层冻结保留；新页面和重构页面继续使用 `ProSearch` / `ProTable` / `ProFormDrawer`。
 
 ---
 
