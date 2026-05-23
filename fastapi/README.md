@@ -46,7 +46,7 @@ fastapi/
 │   └── main.py           # 应用入口
 ├── scripts/              # 脚本文件
 │   └── dev.sh            # 开发环境启动脚本
-├── tests/                # 测试 (475+ 测试用例)
+├── tests/                # 测试（490+ 测试用例）
 ├── uploads/              # 上传文件目录
 ├── pyproject.toml        # 依赖管理 (uv)
 ├── .env.example          # 环境变量示例
@@ -175,6 +175,7 @@ FastAPI 后端保持与原有 Django 前端 API 接口完全兼容：
 | `SECRET_KEY` | JWT 密钥（生产环境必填） | 开发环境自动生成 |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | 访问令牌过期时间（分钟） | `30` |
 | `REFRESH_TOKEN_EXPIRE_DAYS` | 刷新令牌过期时间（天） | `7` |
+| `DEFAULT_PASSWORD` | 新增、导入和重置用户时使用的默认密码 | `Admin@123456` |
 | `LOG_LEVEL` | 日志级别 | `INFO` |
 | `LOG_FORMAT` | 日志格式（json/text） | `json` |
 | `SLOW_QUERY_THRESHOLD_MS` | 慢查询阈值（毫秒） | `1000` |
@@ -255,8 +256,9 @@ docker-compose up -d
 1. 修改 `.env` 文件中的配置
 2. 设置 `APP_ENV=production`
 3. 使用强密码的 `SECRET_KEY`（必须设置）
-4. 配置正确的数据库和 Redis 连接
-5. 配置日志文件路径
+4. 显式配置安全的 `DEFAULT_PASSWORD`
+5. 配置正确的数据库和 Redis 连接
+6. 配置日志文件路径
 
 ### 健康检查
 

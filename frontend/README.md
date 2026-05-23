@@ -48,9 +48,10 @@ pnpm run dev
 - 开发环境下，前端会将 `/dev-api` 代理到 `http://127.0.0.1:8769`
 - 本地联调时，请在 Django `backend/` 和 FastAPI `fastapi/` 两套后端实现中选择一套启动即可
 - 如果你修改了后端端口，需要同步更新 [.env.development](.env.development) 中的 `VITE_APP_API_URL`
-- 默认可用账户：
+- 开发种子数据默认可用账户：
   - `admin/123456`
   - `visitor/123456`
+- 登录/注册表单不会在生产或预发环境硬编码预填账号密码；本地演示预填由 [.env.development](.env.development) 中的 `VITE_LOGIN_DEFAULT_USERNAME` 与 `VITE_LOGIN_DEFAULT_PASSWORD` 显式控制
 
 ## 质量检查命令
 
