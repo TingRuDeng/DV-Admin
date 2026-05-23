@@ -181,6 +181,20 @@
 
 ---
 
+# 前端 API 文件收口 P1：用户 API 旧注释清理
+
+- [x] P1 串行：确认个人中心 API 已迁移到 `frontend/src/api/information-api.ts`
+- [x] P1 串行：删除 `frontend/src/api/system/user-api.ts` 中纯注释的旧个人中心接口和旧类型定义
+- [x] P1 串行：更新用户 API 守卫测试，防止旧注释残留回流
+- [x] P2 串行：运行目标测试、前端类型检查和质量门禁
+- [x] P3 串行：运行文档/API 契约校验、diff 检查和 review-gate
+
+## Review 小结
+
+终态：finished。已删除用户 API 模块中纯注释的旧个人中心接口和旧类型定义，`user-api.ts` 从 357 行降到 210 行；个人中心现用接口仍由 `information-api.ts` 承载，用户 API 守卫测试已覆盖旧注释残留不再回流。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
+
+---
+
 # P0-P3 产品化治理全量收口
 
 - [x] 建立隔离分支并写入全量收口计划
