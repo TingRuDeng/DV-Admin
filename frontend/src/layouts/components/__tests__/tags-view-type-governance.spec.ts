@@ -5,6 +5,10 @@ import { describe, expect, it } from "vitest";
 const TAGS_VIEW_TYPE_FILES = [
   "src/store/modules/tags-view-store.ts",
   "src/layouts/components/TagsView/index.vue",
+  "src/layouts/components/TagsView/TagItem.vue",
+  "src/layouts/components/TagsView/TagsContextMenu.vue",
+  "src/layouts/components/TagsView/useAffixTags.ts",
+  "src/layouts/components/TagsView/useTagsContextMenu.ts",
 ];
 
 const TAGS_VIEW_ANY_PATTERNS = [
@@ -28,5 +32,18 @@ describe("tags view type governance", () => {
         .map(({ file, line, source }) => `${file}:${line}: ${source}`)
         .join("\n")}`
     ).toEqual([]);
+  });
+
+  it("keeps TagsView index as the orchestration surface", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "src/layouts/components/TagsView/index.vue"),
+      "utf8"
+    );
+
+    expect(source).toContain("<TagItem");
+    expect(source).toContain("<TagsContextMenu");
+    expect(source).not.toContain("<el-tag");
+    expect(source).not.toContain("<Teleport");
+    expect(source).not.toContain("RouteRecordRaw");
   });
 });
