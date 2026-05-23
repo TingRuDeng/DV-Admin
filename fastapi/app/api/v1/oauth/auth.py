@@ -6,7 +6,7 @@
 
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.api.deps import CurrentUser
@@ -22,7 +22,7 @@ from app.core.security import (
 )
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
-from app.schemas.oauth import Token, UserInfo, UserLogin
+from app.schemas.oauth import RefreshTokenRequest, Token, UserInfo, UserLogin
 from app.services.token_blacklist import token_blacklist_service
 
 router = APIRouter()
@@ -331,10 +331,10 @@ async def login(
 )
 async def refresh_token(
     request: Request,
-    refresh_token: str = Query(..., alias="refreshToken"),
+    token_data: RefreshTokenRequest,
 ) -> ResponseModel[Token]:
     # 解码刷新令牌
-    payload = decode_token(refresh_token)
+    payload = decode_token(token_data.refresh_token)
     if not payload:
         raise AuthenticationError(message="无效的刷新令牌", code=40002)
 

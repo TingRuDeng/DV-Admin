@@ -444,18 +444,18 @@ async def test_async_function():
 
 ---
 
-### 陷阱 19：Playwright 默认端口与 Vite 开发端口不一致
+### 陷阱 19：不要硬编码 Playwright 默认端口
 
 **问题描述：**
-执行 `pnpm run test:e2e` 时，E2E 用例访问的地址与本地前端实际端口不一致，导致登录页超时或页面元素找不到。
+执行 `pnpm run test:e2e` 时，如果测试配置或脚本硬编码 Vite 默认端口，E2E 用例可能访问错误地址，导致登录页超时或页面元素找不到。
 
 **已验证事实：**
 - 前端开发端口来自 `frontend/.env.development` 的 `VITE_APP_PORT=9527`
-- Playwright 配置当前使用 `http://localhost:5173`（`frontend/playwright.config.ts`）
+- Playwright 配置当前通过 `frontend/playwright.config.ts` 读取 `VITE_APP_PORT` 并生成 `baseURL`
 
 **解决方案：**
-1. 运行 E2E 前先统一端口策略（修改 Playwright 配置或启动端口）
-2. 将端口约定同步到团队文档，避免环境漂移
+1. 运行 E2E 前先确认 `frontend/.env.development` 与 `frontend/playwright.config.ts` 使用同一端口来源
+2. 禁止在新脚本中硬编码 `5173` 或其他默认端口
 3. CI 与本地保持同一端口配置
 
 ---

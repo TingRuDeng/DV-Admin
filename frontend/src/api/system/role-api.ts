@@ -23,7 +23,7 @@ const RoleAPI = {
    */
   getRoleMenuIds(roleId: string | number) {
     return request<unknown, number[]>({
-      url: `${ROLE_BASE_URL}/${roleId}/menuIds/`,
+      url: `${ROLE_BASE_URL}/${roleId}/menu-ids/`,
       method: "get",
     });
   },

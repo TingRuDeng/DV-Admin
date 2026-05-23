@@ -150,6 +150,6 @@ class RolesMenuTestCase(TestCase):
 
     def test_get_role_menu_ids(self):
         """测试获取角色菜单ID列表"""
-        response = self.client.get(f"/api/v1/system/roles/{self.role.id}/menuIds/")
-        
+        response = self.client.get(f"/api/v1/system/roles/{self.role.id}/menu-ids/")
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
