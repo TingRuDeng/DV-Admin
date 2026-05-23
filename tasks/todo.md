@@ -292,3 +292,18 @@
 ## Review 小结
 
 终态：finished。已将设置面板从单文件 593 行拆为父级抽屉编排和 4 个职责明确的子组件，父组件降到 157 行；重置后通过子组件公开的 `syncLocalState` 同步本地主题/侧边栏选择状态。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
+
+---
+
+# 前端超大组件拆分 P1：TagsView 标签页组件
+
+- [x] P1 串行：补充 TagsView 拆分守卫测试，确保 `index.vue` 只做标签页编排
+- [x] P1 串行：抽出 `TagItem.vue`，封装单个标签渲染、翻译和事件出口
+- [x] P1 串行：抽出 `TagsContextMenu.vue`，封装右键菜单 UI 和菜单事件出口
+- [x] P1 串行：抽出 `useAffixTags.ts` 和 `useTagsContextMenu.ts`，收口固定标签提取和右键菜单状态管理
+- [x] P2 串行：运行目标测试、前端类型检查、质量门禁和生产构建
+- [x] P3 串行：运行文档/API 契约校验、diff 检查和 review-gate
+
+## Review 小结
+
+终态：finished。已将 TagsView 从 549 行拆为父级路由/store 编排、标签项、右键菜单和两个组合式函数，父组件降到 293 行；标签关闭、刷新、左右/其他/全部关闭和滚轮横向滚动逻辑保持原行为。验证通过：目标测试、前端 type-check、前端 quality、前端 build、文档校验、API 契约校验和 diff 检查。
