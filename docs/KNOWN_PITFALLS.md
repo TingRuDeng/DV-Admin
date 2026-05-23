@@ -460,9 +460,26 @@ async def test_async_function():
 
 ---
 
+### 陷阱 20：环境变量样例与 CI 动态 env 必须同步
+
+**问题描述：**
+当代码要求某个环境变量必须显式配置时，如果只更新 `.env.example` 或 `.env.test`，但忘记同步 `.github/workflows/quality-gates.yml` 中动态生成的测试环境文件，Django CI 会在读取 settings 阶段提前失败。
+
+**已验证事实：**
+- Django `DEFAULT_PWD` 当前通过 `backend/drf_admin/settings.py` 的 `env.str("DEFAULT_PWD")` 读取，不再回退到 `123456`
+- 本地测试环境使用 `backend/.env.test`
+- GitHub Actions 的 Django job 会重新生成 `backend/.env.test`，必须同步写入 `DEFAULT_PWD`
+
+**解决方案：**
+1. 新增必填环境变量时，同时检查 `backend/.env.example`、`backend/.env.test` 和 `.github/workflows/quality-gates.yml`
+2. 对 settings 层新增回归测试，确保默认值不会退回弱口令或已弃用配置
+3. 修改环境变量后至少运行 `cd backend && uv run pytest`，确认全量测试会收集到 settings 回归测试
+
+---
+
 ## 部署陷阱
 
-### 陷阱 20：静态文件 404
+### 陷阱 21：静态文件 404
 
 **问题描述：**
 部署后访问静态文件（CSS、JS、图片）返回 404。
@@ -504,7 +521,7 @@ server {
 
 ---
 
-**最后更新：** 2026-04-09
+**最后更新：** 2026-05-23
 **维护者：** DV-Admin Team
 
 **贡献指南：** 发现新陷阱时，请及时更新此文档。

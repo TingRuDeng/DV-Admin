@@ -115,7 +115,7 @@ DV-Admin/
 1. 先确定本次联调使用 Django 还是 FastAPI
 2. 启动选中的后端实现，并确认 http://localhost:8769 可访问
 3. 启动前端开发服务器，打开 http://localhost:9527
-4. 使用 admin/123456 或 visitor/123456 登录验证
+4. 使用开发种子账号登录验证；登录页预填仅由 `frontend/.env.development` 中的 `VITE_LOGIN_DEFAULT_USERNAME` / `VITE_LOGIN_DEFAULT_PASSWORD` 控制
 5. 如需切换后端实现，先停掉当前后端再切换
 ```
 
@@ -500,5 +500,5 @@ cp .env.example .env
 
 ---
 
-**最后更新：** 2026-04-09
+**最后更新：** 2026-05-23
 **维护者：** DV-Admin Team

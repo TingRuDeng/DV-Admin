@@ -562,7 +562,7 @@ async def batch_delete_users(
 - 需要 `system:users:edit` 权限
 
 ### 业务规则
-1. 重置后的密码为系统默认密码（通常是 `123456`）
+1. 重置后的密码来自系统默认密码配置 `DEFAULT_PASSWORD`
 2. 重置后用户需要使用新密码登录
 3. 建议用户登录后立即修改密码
 
