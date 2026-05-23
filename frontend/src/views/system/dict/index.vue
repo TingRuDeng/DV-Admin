@@ -101,38 +101,7 @@
       </template>
     </ProTable>
 
-    <!--字典弹窗-->
-    <ProFormDrawer
-      ref="dataFormRef"
-      v-model="dialog.visible"
-      :title="dialog.title"
-      :model="formData"
-      :rules="computedRules"
-      :loading="loading"
-      size="500px"
-      label-width="80px"
-      @submit="handleSubmitClick"
-      @close="handleCloseDialog"
-    >
-      <el-form-item label="字典名称" prop="name">
-        <el-input v-model="formData.name" placeholder="请输入字典名称" />
-      </el-form-item>
-
-      <el-form-item label="字典编码" prop="dictCode">
-        <el-input v-model="formData.dictCode" placeholder="请输入字典编码" />
-      </el-form-item>
-
-      <el-form-item label="状态">
-        <el-radio-group v-model="formData.status">
-          <el-radio :value="1">启用</el-radio>
-          <el-radio :value="0">禁用</el-radio>
-        </el-radio-group>
-      </el-form-item>
-
-      <el-form-item label="备注">
-        <el-input v-model="formData.remark" type="textarea" placeholder="请输入备注" />
-      </el-form-item>
-    </ProFormDrawer>
+    <DictFormDrawer ref="dictFormDrawerRef" @success="handleQuery" />
   </PageShell>
 </template>
 
@@ -144,52 +113,21 @@ defineOptions({
 
 import DictAPI, { DictPageQuery, DictPageVO } from "@/api/system/dict-api";
 import PageShell from "@/components/PageShell/index.vue";
-import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
-import type { FormRules } from "element-plus";
 
 import router from "@/router";
+import DictFormDrawer from "./components/DictFormDrawer.vue";
 
 const queryFormRef = ref<InstanceType<typeof ProSearch> | null>(null);
-const dataFormRef = ref<InstanceType<typeof ProFormDrawer> | null>(null);
+const dictFormDrawerRef = ref<InstanceType<typeof DictFormDrawer> | null>(null);
 const tableRef = ref<ProTableExpose | null>(null);
 
-const loading = ref(false);
 const ids = ref<number[]>([]);
 
 const queryParams = reactive<Omit<DictPageQuery, "pageNum" | "pageSize">>({});
-
-const dialog = reactive({
-  title: "",
-  visible: false,
-});
-
-interface DictFormData {
-  id?: string;
-  name: string;
-  dictCode: string;
-  status: number;
-  remark: string;
-}
-
-const formData = reactive<DictFormData>({
-  id: undefined,
-  name: "",
-  dictCode: "",
-  status: 1,
-  remark: "",
-});
-
-const computedRules = computed(() => {
-  const rules: FormRules<DictFormData> = {
-    name: [{ required: true, message: "请输入字典名称", trigger: "blur" }],
-    dictCode: [{ required: true, message: "请输入字典编码", trigger: "blur" }],
-  };
-  return rules;
-});
 
 const requestTableData = createPageRequest<DictPageQuery, DictPageVO>(DictAPI.getPage);
 
@@ -211,9 +149,8 @@ function handleSelectionChange(selection: unknown[]) {
 }
 
 // 新增字典
-function handleAddClick() {
-  dialog.visible = true;
-  dialog.title = "新增字典";
+async function handleAddClick() {
+  await dictFormDrawerRef.value?.openCreate();
 }
 
 /**
@@ -221,53 +158,8 @@ function handleAddClick() {
  *
  * @param id 字典ID
  */
-function handleEditClick(id: string) {
-  dialog.visible = true;
-  dialog.title = "修改字典";
-  DictAPI.getFormData(id).then((data) => {
-    Object.assign(formData, data);
-  });
-}
-
-// 提交字典表单
-function handleSubmitClick() {
-  dataFormRef.value?.validate((isValid: boolean) => {
-    if (isValid) {
-      loading.value = true;
-      const id = formData.id;
-      if (id) {
-        DictAPI.update(id, formData)
-          .then(() => {
-            ElMessage.success("修改成功");
-            handleCloseDialog();
-            tableRef.value?.reload(true);
-          })
-          .finally(() => (loading.value = false));
-      } else {
-        DictAPI.create(formData)
-          .then(() => {
-            ElMessage.success("新增成功");
-            handleCloseDialog();
-            tableRef.value?.reload(true);
-          })
-          .finally(() => (loading.value = false));
-      }
-    }
-  });
-}
-
-// 关闭字典弹窗
-function handleCloseDialog() {
-  dialog.visible = false;
-
-  dataFormRef.value?.resetFields();
-  dataFormRef.value?.clearValidate();
-
-  formData.id = undefined;
-  formData.status = 1;
-  formData.name = "";
-  formData.remark = "";
-  formData.dictCode = "";
+async function handleEditClick(id: string) {
+  await dictFormDrawerRef.value?.openEdit(id);
 }
 /**
  * 删除字典

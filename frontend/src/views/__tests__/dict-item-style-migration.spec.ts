@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("system dict item style migration", () => {
-  it("uses PageShell, ProSearch, ProTable and ProFormDrawer without minimal-* classes", () => {
+  it("uses PageShell, ProSearch, ProTable and split form drawer without minimal-* classes", () => {
     const source = readFileSync(
       resolve(process.cwd(), "src/views/system/dict/dict-item.vue"),
       "utf8"
@@ -12,13 +12,26 @@ describe("system dict item style migration", () => {
     expect(source).toContain("<PageShell");
     expect(source).toContain("<ProSearch");
     expect(source).toContain("<ProTable");
-    expect(source).toContain("<ProFormDrawer");
+    expect(source).toContain("<DictItemFormDrawer");
     expect(source).toContain(':request="requestTableData"');
     expect(source).toContain('ref="tableRef"');
+    expect(source).not.toContain("<ProFormDrawer");
     expect(source).not.toContain("<el-dialog");
     expect(source).not.toContain("<FilterPanel");
     expect(source).not.toContain("<DataPanel");
     expect(source).not.toContain("minimal-");
     expect(source).not.toContain("glass-panel");
+  });
+
+  it("keeps dict item form implementation behind explicit component APIs", () => {
+    const drawerSource = readFileSync(
+      resolve(process.cwd(), "src/views/system/dict/components/DictItemFormDrawer.vue"),
+      "utf8"
+    );
+
+    expect(drawerSource).toContain("<ProFormDrawer");
+    expect(drawerSource).toContain("defineExpose");
+    expect(drawerSource).toContain("openCreate");
+    expect(drawerSource).toContain("openEdit");
   });
 });
