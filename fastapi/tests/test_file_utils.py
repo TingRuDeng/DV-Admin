@@ -24,6 +24,10 @@ class TestFileUtils:
         assert allowed_file("test.xyz") is False
         assert allowed_file("no_extension") is False
 
+    def test_allowed_file_rejects_svg(self):
+        """通用上传禁止 SVG，避免同源静态托管执行脚本。"""
+        assert allowed_file("payload.svg") is False
+
     def test_secure_filename(self):
         """测试安全文件名"""
         assert secure_filename("test.txt") == "test.txt"

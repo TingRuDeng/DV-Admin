@@ -75,4 +75,5 @@ package-lock.json
 
 # Frontend E2E local artifacts
 frontend/test-results/
+frontend/playwright-report/
 frontend/e2e/*.local.spec.ts

@@ -3,7 +3,7 @@ import { loadEnv } from "vite";
 
 const env = loadEnv("development", process.cwd(), "");
 const appPort = Number(process.env.VITE_APP_PORT || env.VITE_APP_PORT || 9527);
-const appBaseUrl = `http://localhost:${appPort}`;
+const appBaseUrl = `http://127.0.0.1:${appPort}`;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -23,8 +23,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "pnpm dev -- --host 127.0.0.1",
+    command: "pnpm dev -- --host 127.0.0.1 --strictPort",
     url: appBaseUrl,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
   },
 });

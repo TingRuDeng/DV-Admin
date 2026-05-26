@@ -14,7 +14,7 @@ from app.core.exceptions import ValidationError
 # 允许的文件扩展名
 ALLOWED_EXTENSIONS = {
     # 图片文件
-    '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp', '.svg',
+    '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp',
     # 文档文件
     '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt',
     # 压缩文件

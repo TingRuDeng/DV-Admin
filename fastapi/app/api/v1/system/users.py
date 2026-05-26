@@ -559,7 +559,7 @@ async def batch_delete_users(
 - `userId` (必填): 用户ID
 
 ### 权限要求
-- 需要 `system:users:edit` 权限
+- 需要 `system:users:password:reset` 权限
 
 ### 业务规则
 1. 重置后的密码来自系统默认密码配置 `DEFAULT_PASSWORD`
@@ -594,7 +594,7 @@ async def batch_delete_users(
 async def reset_user_password(
     request: Request,
     user_id: int,
-    current_user: Users = require_permissions("system:users:edit"),
+    current_user: Users = require_permissions("system:users:password:reset"),
 ) -> ResponseModel[None]:
     await user_service.reset_password(user_id)
     return ResponseModel.success(message="密码重置成功")
@@ -603,7 +603,7 @@ async def reset_user_password(
 @router.get("/template", response_model=ResponseModel[dict])
 async def get_import_template(
     request: Request,
-    current_user: Users = require_permissions("system:users:add"),
+    current_user: Users = require_permissions("system:users:import"),
 ):
     """
     获取用户导入模板
@@ -614,7 +614,7 @@ async def get_import_template(
 @router.post("/export/", response_model=ResponseModel[dict])
 async def export_users(
     request: Request,
-    current_user: Users = require_permissions("system:users:query"),
+    current_user: Users = require_permissions("system:users:export"),
 ):
     """
     导出用户
@@ -636,7 +636,7 @@ async def export_users(
 - `file` (必填): Excel 文件，支持 `.xlsx` 或 `.xls` 格式
 
 ### 权限要求
-- 需要 `system:users:add` 权限
+- 需要 `system:users:import` 权限
 
 ### 文件格式要求
 Excel 文件必须包含以下列：
@@ -706,7 +706,7 @@ async def import_users(
     request: Request,
     dept_id: int | None = Query(None, description="部门ID"),
     file: UploadFile = File(..., description="Excel文件"),
-    current_user: Users = require_permissions("system:users:add"),
+    current_user: Users = require_permissions("system:users:import"),
 ) -> ResponseModel[UserImportResult]:
     # 验证文件类型
     if not file.filename or not (
