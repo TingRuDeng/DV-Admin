@@ -27,6 +27,12 @@ class TestFileUpload:
         assert response.status_code == 400
         assert response.json()["code"] != 20000
 
+    def test_upload_rejects_svg_file(self, auth_client: TestClient):
+        files = {"file": ("payload.svg", BytesIO(b"<svg></svg>"), "image/svg+xml")}
+        response = auth_client.post("/api/v1/files/", files=files)
+        assert response.status_code == 400
+        assert response.json()["code"] != 20000
+
     def test_upload_rejects_file_over_size_limit(self, auth_client: TestClient, monkeypatch):
         from app.core.config import settings
 

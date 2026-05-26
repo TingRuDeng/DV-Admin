@@ -26,7 +26,7 @@ async def get_dict_item_page(
     dict_id: int | None = Query(None, alias="dict", description="字典ID"),
     label: str | None = Query(None, description="标签"),
     code: str | None = Query(None, alias="dictCode", description="字典编码"),
-    current_user=require_permissions("system:dicts:query"),
+    current_user=require_permissions("system:dictitems:query"),
 ):
     """获取字典项分页列表"""
     result = await dict_service.get_item_page(
@@ -43,7 +43,7 @@ async def get_dict_item_page(
 async def create_dict_item(
     request: Request,
     item_data: DictItemCreate,
-    current_user=require_permissions("system:dicts:add"),
+    current_user=require_permissions("system:dictitems:add"),
 ):
     """创建字典项"""
     item = await dict_service.create_item_flat(item_data)
@@ -55,7 +55,7 @@ async def update_dict_item(
     request: Request,
     item_id: int,
     item_data: DictItemUpdate,
-    current_user=require_permissions("system:dicts:edit"),
+    current_user=require_permissions("system:dictitems:edit"),
 ):
     """更新字典项"""
     item = await dict_service.update_item_flat(item_id, item_data)
@@ -66,7 +66,7 @@ async def update_dict_item(
 async def delete_dict_item(
     request: Request,
     item_id: int,
-    current_user=require_permissions("system:dicts:delete"),
+    current_user=require_permissions("system:dictitems:delete"),
 ):
     """删除字典项"""
     await dict_service.delete_item_flat(item_id)
@@ -77,7 +77,7 @@ async def delete_dict_item(
 async def batch_delete_dict_items(
     request: Request,
     delete_req: BulkDelete,
-    current_user=require_permissions("system:dicts:delete"),
+    current_user=require_permissions("system:dictitems:delete"),
 ):
     """批量删除字典项"""
     await dict_service.batch_delete_items_flat(delete_req.ids)

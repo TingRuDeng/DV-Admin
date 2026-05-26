@@ -245,7 +245,7 @@ async def test_permissions(db):
         component="system/menus/index",
         sort=3,
         parent=system_catalog,
-        perm="system:menus:query",
+        perm="system:permissions:query",
     )
     dept_menu = await Permissions.create(
         name="部门管理",
@@ -307,6 +307,24 @@ async def test_permissions(db):
         parent=user_menu,
         perm="system:users:delete",
     )
+    user_reset_password = await Permissions.create(
+        name="重置密码",
+        type="BUTTON",
+        parent=user_menu,
+        perm="system:users:password:reset",
+    )
+    user_import = await Permissions.create(
+        name="用户导入",
+        type="BUTTON",
+        parent=user_menu,
+        perm="system:users:import",
+    )
+    user_export = await Permissions.create(
+        name="用户导出",
+        type="BUTTON",
+        parent=user_menu,
+        perm="system:users:export",
+    )
 
     role_add = await Permissions.create(
         name="角色新增",
@@ -331,19 +349,19 @@ async def test_permissions(db):
         name="菜单新增",
         type="BUTTON",
         parent=menu_menu,
-        perm="system:menus:add",
+        perm="system:permissions:add",
     )
     menu_edit = await Permissions.create(
         name="菜单编辑",
         type="BUTTON",
         parent=menu_menu,
-        perm="system:menus:edit",
+        perm="system:permissions:edit",
     )
     menu_delete = await Permissions.create(
         name="菜单删除",
         type="BUTTON",
         parent=menu_menu,
-        perm="system:menus:delete",
+        perm="system:permissions:delete",
     )
 
     dept_add = await Permissions.create(
@@ -382,6 +400,34 @@ async def test_permissions(db):
         type="BUTTON",
         parent=dict_menu,
         perm="system:dicts:delete",
+    )
+    dict_item_menu = await Permissions.create(
+        name="字典项",
+        type="MENU",
+        route_name="DictData",
+        route_path="/system/dict-item",
+        component="system/dict/dict-item",
+        sort=6,
+        parent=system_catalog,
+        perm="system:dictitems:query",
+    )
+    dict_item_add = await Permissions.create(
+        name="字典项新增",
+        type="BUTTON",
+        parent=dict_item_menu,
+        perm="system:dictitems:add",
+    )
+    dict_item_edit = await Permissions.create(
+        name="字典项编辑",
+        type="BUTTON",
+        parent=dict_item_menu,
+        perm="system:dictitems:edit",
+    )
+    dict_item_delete = await Permissions.create(
+        name="字典项删除",
+        type="BUTTON",
+        parent=dict_item_menu,
+        perm="system:dictitems:delete",
     )
 
     notice_add = await Permissions.create(
@@ -440,12 +486,16 @@ async def test_permissions(db):
         "menu_menu": menu_menu,
         "dept_menu": dept_menu,
         "dict_menu": dict_menu,
+        "dict_item_menu": dict_item_menu,
         "notice_menu": notice_menu,
         "file_menu": file_menu,
         "log_menu": log_menu,
         "user_add": user_add,
         "user_edit": user_edit,
         "user_delete": user_delete,
+        "user_reset_password": user_reset_password,
+        "user_import": user_import,
+        "user_export": user_export,
         "role_add": role_add,
         "role_edit": role_edit,
         "role_delete": role_delete,
@@ -458,6 +508,9 @@ async def test_permissions(db):
         "dict_add": dict_add,
         "dict_edit": dict_edit,
         "dict_delete": dict_delete,
+        "dict_item_add": dict_item_add,
+        "dict_item_edit": dict_item_edit,
+        "dict_item_delete": dict_item_delete,
         "notice_add": notice_add,
         "notice_edit": notice_edit,
         "notice_delete": notice_delete,
@@ -490,6 +543,7 @@ async def test_role(db, test_permissions):
         test_permissions["menu_menu"],
         test_permissions["dept_menu"],
         test_permissions["dict_menu"],
+        test_permissions["dict_item_menu"],
         test_permissions["notice_menu"],
         test_permissions["file_menu"],
         test_permissions["log_menu"],
@@ -497,6 +551,9 @@ async def test_role(db, test_permissions):
         test_permissions["user_add"],
         test_permissions["user_edit"],
         test_permissions["user_delete"],
+        test_permissions["user_reset_password"],
+        test_permissions["user_import"],
+        test_permissions["user_export"],
         test_permissions["role_add"],
         test_permissions["role_edit"],
         test_permissions["role_delete"],
@@ -509,6 +566,9 @@ async def test_role(db, test_permissions):
         test_permissions["dict_add"],
         test_permissions["dict_edit"],
         test_permissions["dict_delete"],
+        test_permissions["dict_item_add"],
+        test_permissions["dict_item_edit"],
+        test_permissions["dict_item_delete"],
         test_permissions["notice_add"],
         test_permissions["notice_edit"],
         test_permissions["notice_delete"],
