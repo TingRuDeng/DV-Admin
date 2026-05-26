@@ -20,7 +20,7 @@ def create_admin_user():
     perm_codes = [
         "system:users:query", "system:users:add", "system:users:edit", "system:users:delete",
         "system:roles:query", "system:roles:add", "system:roles:edit", "system:roles:delete",
-        "system:menus:query", "system:menus:add", "system:menus:edit", "system:menus:delete",
+        "system:permissions:query", "system:permissions:add", "system:permissions:edit", "system:permissions:delete",
         "system:departments:query", "system:departments:add", "system:departments:edit", "system:departments:delete",
         "system:dicts:query", "system:dicts:add", "system:dicts:edit", "system:dicts:delete",
         "system:notices:query", "system:notices:add", "system:notices:edit", "system:notices:delete",
