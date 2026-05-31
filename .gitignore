@@ -66,6 +66,7 @@ dv_admin.db-shm
 dv_admin.db-wal
 !frontend/package.json
 !frontend/pnpm-lock.yaml
+!fastapi/uv.lock
 
 # IDE and tool configs
 .arts/
