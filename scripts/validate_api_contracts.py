@@ -50,7 +50,13 @@ REQUIRED_TEST_SNIPPETS = {
         "PageResult.create",
         "assert_endpoint_contract_catalog",
     ),
-    "frontend/src/utils/__tests__/api-contract.test.ts": ("Django", "FastAPI", "list", "total"),
+    "frontend/src/utils/__tests__/api-contract.test.ts": (
+        "Django",
+        "FastAPI",
+        "normalizeApiErrorEnvelope",
+        "list",
+        "total",
+    ),
 }
 
 REQUIRED_FILE_ROUTE_SNIPPETS = {
