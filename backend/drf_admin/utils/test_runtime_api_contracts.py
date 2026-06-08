@@ -23,6 +23,7 @@ READ_SAMPLE_KEYS = (
     "dicts_page",
     "dict_items_page",
 )
+USER_WRITE_SAMPLE_KEYS = ("users_create", "users_update", "users_delete")
 
 
 def contracts_by_key() -> dict[str, Any]:
@@ -30,9 +31,9 @@ def contracts_by_key() -> dict[str, Any]:
     return {contract.key: contract for contract in iter_critical_endpoint_contracts()}
 
 
-def assert_success_payload(response, contract) -> Any:
+def assert_success_payload(response, contract, expected_status=HTTP_OK) -> Any:
     """断言运行时响应满足 Django 成功信封，并返回 data 载荷。"""
-    assert response.status_code == HTTP_OK
+    assert response.status_code == expected_status
     payload = response.json()
     assert_success_envelope(payload, backend="django")
     data = payload["data"]
@@ -88,6 +89,9 @@ def create_runtime_contract_permissions() -> list[Permissions]:
     """创建按钮权限和菜单层级，覆盖授权接口与动态路由字段契约。"""
     button_codes = [
         "system:users:query",
+        "system:users:add",
+        "system:users:edit",
+        "system:users:delete",
         "system:permissions:query",
         "system:dicts:query",
         "system:dictitems:query",
@@ -168,3 +172,42 @@ class DjangoRuntimeApiContractTestCase(TestCase):
         values = {item["value"] for item in data["list"]}
         assert data["total"] == 2
         assert values == {"enabled", "disabled"}
+
+    def test_django_user_write_runtime_samples_match_endpoint_catalog(self):
+        """用户写接口运行时响应必须满足端点目录声明的路径、方法和请求体契约。"""
+        contracts = contracts_by_key()
+        assert all(key in contracts for key in USER_WRITE_SAMPLE_KEYS)
+
+        created_user_id = self.assert_user_create_contract(contracts["users_create"])
+        self.assert_user_update_contract(contracts["users_update"], created_user_id)
+        self.assert_user_delete_contract(contracts["users_delete"], created_user_id)
+
+    def assert_user_create_contract(self, contract) -> int:
+        """验证用户创建接口成功信封，并返回新用户 ID。"""
+        response = self.client.post(
+            contract.path,
+            {"username": "runtime-writer", "password": "testpass123", "name": "运行时写入用户"},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        data = assert_success_payload(response, contract, status.HTTP_201_CREATED)
+        assert data["username"] == "runtime-writer"
+        assert Users.objects.filter(id=data["id"]).exists()
+        return data["id"]
+
+    def assert_user_update_contract(self, contract, user_id: int) -> None:
+        """验证用户更新接口成功信封和关键字段落库。"""
+        response = self.client.put(
+            contract.path.replace("{id}", str(user_id)),
+            {"username": "runtime-writer", "name": "运行时写入用户已更新"},
+            format="json",
+        )
+        data = assert_success_payload(response, contract)
+        assert data["name"] == "运行时写入用户已更新"
+        assert Users.objects.get(id=user_id).name == "运行时写入用户已更新"
+
+    def assert_user_delete_contract(self, contract, user_id: int) -> None:
+        """验证用户批量删除接口接受共享契约声明的 ids 请求体。"""
+        response = self.client.delete(contract.path, {"ids": [user_id]}, format="json")
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Users.objects.filter(id=user_id).exists()
