@@ -4,12 +4,12 @@
 
 ## 活跃任务
 
-- [x] P1 串行：补 FastAPI `DEFAULT_PASSWORD` 必须显式配置的失败测试
-- [x] P2 串行：移除 `Settings.default_password` 代码默认值并更新样例配置
-- [x] P3 串行：同步默认密码相关接口说明与技术债记录
-- [x] P4 串行：执行 FastAPI 目标测试、质量门禁、文档校验与 review gate
+- [x] P1 串行：在 `backend/drf_admin/utils/test_runtime_api_contracts.py` 补 Django 关键端点运行时契约失败测试
+- [x] P2 串行：复用 `scripts/api_contracts.py` 的信封、分页和字段断言，必要时补充 Django 测试数据 helper
+- [x] P3 串行：按运行时契约测试暴露的问题修正 Django 契约漂移或测试数据边界
+- [x] P4 串行：执行 Django 目标测试、FastAPI 对照测试、根目录契约/文档校验与 review gate
 
-并行判断：本轮会同时触达 FastAPI 配置、配置测试、样例环境文件、接口说明和技术债记录；默认密码配置是单一安全边界，存在强顺序依赖，为避免测试和文档状态错位，采用串行推进。
+并行判断：本轮会触达 Django 运行时测试、共享 API 契约断言和可能的 Django 路由/测试数据边界；这些文件围绕同一双后端契约，存在强顺序依赖，为避免测试目录和真实运行时行为脱节，采用串行推进。
 
 ## 已完成摘要
 
@@ -49,3 +49,5 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 本轮动态路由组件契约治理已完成：前端动态路由解析缺失组件时改为显式抛错，不再静默落到 404；新增 `scripts/validate_route_components.py` 校验 FastAPI 测试权限种子、golden fixture 和 Django 初始化数据中默认角色可访问菜单组件必须存在于 `frontend/src/views`；CI 质量门禁已接入该校验。验证通过：前端 `pnpm run quality`（64 files / 166 tests）、前端 `pnpm run build`、FastAPI `make quality`（511 passed，覆盖率 83.71%）、文档/API/路由组件契约校验、脚本编译和 `git diff --check`。
 
 本轮 FastAPI 默认密码配置治理已完成：`Settings.default_password` 已移除代码默认弱口令，`DEFAULT_PASSWORD` 必须由环境变量或 `.env` 显式提供；`.env.example` 改为非弱占位值，用户新增/重置密码接口说明和技术债统计已同步。验证通过：`uv run pytest tests/test_config.py -q`（15 passed）、FastAPI `make quality`（512 passed，覆盖率 83.71%）、文档/API/路由组件契约校验、脚本编译和 `git diff --check`。
+
+本轮 Django 运行时 API 契约抽样治理已完成：新增 Django 关键读端点运行时抽样，复用共享端点目录校验认证信息、动态路由、用户/菜单/字典/字典项分页响应；RED 阶段暴露 `dictCode` 未真实过滤字典项，已通过 `DictItemsFilter` 显式映射到 `dict__dict_code` 修复，并把 Django 运行时测试纳入 `scripts/validate_api_contracts.py` 必备入口。验证通过：Django 目标测试（10 passed）、Django `uv run ruff check .`、Django `uv run pytest`（83 passed）、FastAPI 契约对照测试（6 passed）、文档/API/路由组件契约校验、脚本编译和 `git diff --check`。
