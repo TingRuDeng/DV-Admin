@@ -414,9 +414,11 @@ GET /api/v1/system/logs/stats/ # 访问统计
 
 **FastAPI：**
 ```
-POST   /api/v1/files/upload/   # 上传文件
-DELETE /api/v1/files/upload/   # 删除文件
+POST   /api/v1/files/   # 上传文件，返回 name/url/path
+DELETE /api/v1/files/?filePath=files/{user_id}/{filename}   # 删除当前用户文件
 ```
+
+> 删除接口的 `filePath` 必须使用上传响应 `data.path`，不能传完整 `data.url`。
 
 ---
 

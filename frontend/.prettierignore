@@ -11,3 +11,4 @@ src/assets
 stats.html
 pnpm-lock.yaml
 test-results/
+playwright-report/

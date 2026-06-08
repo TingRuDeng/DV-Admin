@@ -11,6 +11,7 @@ REQUIRED_FILES = (
     "fastapi/tests/test_api_contracts.py",
     "frontend/src/utils/__tests__/api-contract.test.ts",
     "docs/API_ENDPOINTS.md",
+    "fastapi/app/api/v1/README.md",
 )
 
 REQUIRED_CONTRACT_FUNCTIONS = (
@@ -31,6 +32,23 @@ REQUIRED_TEST_SNIPPETS = {
     "backend/drf_admin/utils/test_response_contract.py": ("assert_success_envelope", "assert_error_envelope"),
     "fastapi/tests/test_api_contracts.py": ("ResponseModel.success", "PageResult.create"),
     "frontend/src/utils/__tests__/api-contract.test.ts": ("Django", "FastAPI", "list", "total"),
+}
+
+REQUIRED_FILE_ROUTE_SNIPPETS = {
+    "docs/API_ENDPOINTS.md": (
+        "POST   /api/v1/files/",
+        "DELETE /api/v1/files/?filePath=files/{user_id}/{filename}",
+        "上传响应 `data.path`",
+    ),
+    "fastapi/app/api/v1/README.md": (
+        "POST /api/v1/files/",
+        "DELETE /api/v1/files/?filePath=files/{user_id}/{filename}",
+    ),
+}
+
+FORBIDDEN_FILE_ROUTE_SNIPPETS = {
+    "docs/API_ENDPOINTS.md": ("/api/v1/files/upload/",),
+    "fastapi/app/api/v1/README.md": ("/api/v1/files/upload/",),
 }
 
 
@@ -58,6 +76,16 @@ def validate(root: Path) -> list[str]:
         for snippet in snippets:
             if snippet not in text:
                 issues.append(f"{rel}: 缺少契约测试片段 {snippet}")
+    for rel, snippets in REQUIRED_FILE_ROUTE_SNIPPETS.items():
+        text = read_text(root / rel)
+        for snippet in snippets:
+            if snippet not in text:
+                issues.append(f"{rel}: 缺少文件接口契约片段 {snippet}")
+    for rel, snippets in FORBIDDEN_FILE_ROUTE_SNIPPETS.items():
+        text = read_text(root / rel)
+        for snippet in snippets:
+            if snippet in text:
+                issues.append(f"{rel}: 仍包含过期文件接口路径 {snippet}")
     return issues
 
 
