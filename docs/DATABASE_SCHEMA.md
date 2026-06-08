@@ -366,16 +366,17 @@ Django 和 FastAPI 后端在模型定义上存在一些差异：
 
 ### Django Fixture 导入约束
 
-FastAPI 的 Django fixture 导入入口为 `fastapi/app/db/import_django_data.py`。该脚本负责把 Django fixture 中的模型名、字段名和关系映射到 Tortoise ORM 模型：
+FastAPI 的 Django fixture 导入入口为 `fastapi/app/db/import_django_data.py`。共享模型契约目录为 `scripts/model_contracts.py`，根目录校验入口为 `scripts/validate_model_contracts.py`。导入脚本负责把 Django fixture 中的模型名、字段名和关系映射到 Tortoise ORM 模型：
 
 - `system.dicts` → `DictData`
 - `system.dictitems` → `DictItems`
 - `create_time/update_time` → `created_at/updated_at`
+- `keepAlive/alwaysShow` → `keep_alive/always_show`
 - `dict` → `dict_data`
 - `dict_code` → `code`
 - `remark` → `desc`（仅字典类型）
 
-导入必须 fail-fast：缺少 `backend/init_data.json`、单条模型导入失败、自关联外键更新失败、M2M 目标缺失时都必须抛出 `DjangoDataImportError`，禁止只打印错误后继续并误报成功。
+导入必须 fail-fast：缺少 `backend/init_data.json`、单条模型导入失败、自关联外键更新失败、M2M 目标缺失时都必须抛出 `DjangoDataImportError`，禁止只打印错误后继续并误报成功。模型名、表名和字段映射调整时，必须同步更新共享模型契约目录、导入脚本和 FastAPI 导入测试。
 
 ---
 
