@@ -4,11 +4,13 @@
 
 ## 活跃任务
 
-- [x] P1 串行：在 Django 运行时契约测试中覆盖 `users_create` 与 `users_update`
-- [x] P2 串行：在 Django 运行时契约测试中覆盖 `users_delete` 批量删除请求体契约
-- [x] P3 串行：同步测试覆盖率债务记录并执行 Django、根目录验证
+- [x] P1 串行：新增共享错误码契约目录，锁定成功、通用错误、Access Token 失效、Refresh Token 失效等公共语义
+- [x] P2 串行：用前端、Django、FastAPI 契约测试对齐错误码目录，先验证 RED 再实现
+- [x] P3 串行：修正 FastAPI 登录失败错误码，避免误触发前端 access token 刷新分支
+- [x] P4 串行：同步 API 文档、技术债进展和契约校验脚本
+- [x] P5 串行：执行前端、Django、FastAPI 与根目录最小充分验证
 
-并行判断：本轮主要触达同一个 Django 运行时契约测试文件和任务状态记录；用户创建、更新、删除共享同一测试数据生命周期，为避免写接口之间互相污染，采用串行推进。
+并行判断：本轮同时触达共享脚本、前端枚举、Django/FastAPI 契约测试和文档，多个改动围绕同一错误码目录存在顺序依赖；为避免并行写冲突和响应语义漂移，采用串行推进。
 
 ## 已完成摘要
 
@@ -58,3 +60,5 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 本轮 Django RBAC 权限边界契约治理已完成：新增 `backend/drf_admin/utils/test_rbac_permission_contract.py`，直接覆盖 `RBACPermission` 有权限放行、缺权限拒绝、无权限声明拒绝、白名单放行，并校验 `UsersViewSet` 自动生成的用户写操作权限码与共享端点契约一致。验证通过：目标测试（5 passed）、Django `uv run ruff check .`、Django `uv run pytest`（88 passed）、根目录文档/API/模型/路由组件契约校验、脚本编译和 `git diff --check`。
 
 本轮 Django 用户写接口运行时契约治理已完成：`backend/drf_admin/utils/test_runtime_api_contracts.py` 已覆盖 `users_create/users_update/users_delete`，验证创建成功信封、更新落库和批量删除 `ids` 请求体契约；`scripts/validate_api_contracts.py` 已强制检查这些 Django 写接口运行时测试片段。验证通过：目标运行时契约测试（3 passed）、Django `uv run ruff check .`、Django `uv run pytest`（89 passed）、根目录文档/API/模型/路由组件契约校验、脚本编译和 `git diff --check`。
+
+本轮错误码契约治理已完成：新增 `scripts/api_error_codes.py` 作为共享错误码契约目录，前端、Django、FastAPI 契约测试和 `scripts/validate_api_contracts.py` 已共同锁定 `40000/40001/40002` 的公共语义；FastAPI 登录失败、验证码失败已改为 `40000`，避免误触发前端 Access Token 刷新分支。验证通过：根目录文档/API/模型/路由组件契约校验、脚本编译、前端 `pnpm run quality`（64 files / 169 tests）、前端 `pnpm run build`、前端 `pnpm run test:e2e:smoke`（4 passed，沙箱监听失败后提权重跑通过）、Django `uv run ruff check .`、Django `uv run pytest`（90 passed）、FastAPI `make quality`（515 passed，覆盖率 83.76%）和 `git diff --check`。

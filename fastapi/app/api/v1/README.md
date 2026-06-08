@@ -73,7 +73,7 @@ from app.schemas.base import ResponseModel
 @router.get("/users/", response_model=ResponseModel[UserListResponse])
 async def get_users(...):
     return {
-        "code": 200,
+        "code": 20000,
         "message": "success",
         "data": {...}
     }
@@ -124,7 +124,7 @@ async def create_user(...):
 **端点：**
 - `POST /api/v1/oauth/login/` - 登录
 - `POST /api/v1/oauth/logout/` - 登出
-- `POST /api/v1/oauth/refresh/` - 刷新 Token
+- `POST /api/v1/oauth/refresh-token/` - 刷新 Token
 - `GET /api/v1/oauth/info/` - 获取用户信息
 - `GET /api/v1/oauth/menus/routes/` - 获取用户路由
 - `GET /api/v1/oauth/captcha/` - 获取验证码
@@ -185,6 +185,8 @@ async def create_user(...):
 - 请求参数名称
 - 响应格式
 - 错误码
+
+共享错误码契约目录由 `scripts/api_error_codes.py` 维护。FastAPI 登录失败、验证码失败等普通业务失败使用 `40000`；Access Token 无效或过期使用 `40001`；Refresh Token 无效或过期使用 `40002`。
 
 ### 差异说明
 

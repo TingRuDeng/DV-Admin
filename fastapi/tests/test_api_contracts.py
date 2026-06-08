@@ -6,6 +6,13 @@ from scripts.api_contracts import (
     assert_success_envelope,
     normalize_api_envelope,
 )
+from scripts.api_error_codes import (
+    ACCESS_TOKEN_INVALID_CODE,
+    ERROR_CODE,
+    REFRESH_TOKEN_INVALID_CODE,
+    SUCCESS_CODE,
+    assert_api_error_code_catalog,
+)
 
 from app.schemas.base import PageResult, ResponseModel
 
@@ -44,3 +51,12 @@ def test_fastapi_critical_endpoint_contract_catalog_matches_route_contracts():
     assert contracts["users_page"].permissions == ("system:users:query",)
     assert contracts["dict_items_page"].permissions == ("system:dictitems:query",)
     assert contracts["files_upload"].response_fields == ("name", "url", "path")
+
+
+def test_fastapi_error_codes_match_shared_catalog():
+    assert_api_error_code_catalog()
+
+    assert ResponseModel.success(data={"id": 1}).code == SUCCESS_CODE
+    assert ResponseModel.error(code=ERROR_CODE, message="参数错误").code == ERROR_CODE
+    assert ACCESS_TOKEN_INVALID_CODE == 40001
+    assert REFRESH_TOKEN_INVALID_CODE == 40002

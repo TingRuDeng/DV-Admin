@@ -138,7 +138,7 @@ ai_summary:
 **补充说明：**
 - Django 响应中间件统一输出 `{code, msg, errors, data}`（见 `backend/drf_admin/utils/middleware.py`）。
 - FastAPI `ResponseModel` 默认输出 `{code, message, data}`（见 `fastapi/app/schemas/base.py`）。
-- 前端成功分支仅依赖 `code/data`，错误分支当前优先读取 `errors` 与 `msg`（见 `frontend/src/utils/request.ts`）。
+- 前端成功分支仅依赖 `code/data`，错误分支通过 `normalizeApiErrorEnvelope` 统一读取 `data.errors`、`errors`、`msg` 与 `message`（见 `frontend/src/utils/request.ts`）。
 
 ### 共享 API 契约验证
 
@@ -146,10 +146,13 @@ ai_summary:
 
 - `scripts/api_contracts.py` 定义成功响应、错误响应和分页载荷的跨后端断言。
 - `scripts/api_endpoint_contracts.py` 定义关键端点契约目录，锁定路径、方法、权限、分页和关键字段。
+- `scripts/api_error_codes.py` 定义共享错误码契约目录，锁定前端刷新逻辑和双后端错误语义。
 - `backend/drf_admin/utils/test_response_contract.py` 覆盖 Django 响应中间件的成功、错误和幂等包裹。
 - `fastapi/tests/test_api_contracts.py` 覆盖 FastAPI `ResponseModel` 与 `PageResult`。
 - `frontend/src/utils/__tests__/api-contract.test.ts` 覆盖前端对 Django `msg/errors` 与 FastAPI `message` 的兼容读取。
 - `scripts/validate_api_contracts.py` 校验契约定义、测试文件和本文档入口是否同步。
+
+共享错误码契约目录只记录当前前端与双后端共同依赖的公共错误语义。登录失败、验证码失败等普通业务失败使用 `40000`；只有 Access Token 无效或过期才能使用 `40001`，避免前端误触发 token 刷新流程。
 
 ---
 
@@ -466,8 +469,8 @@ GET /api/redoc/         # ReDoc
 | 错误码 | 说明 |
 |-------|------|
 | 20000 | 成功 |
-| 40000 | 通用错误 |
-| 40001 | Token 无效或过期 |
+| 40000 | 通用业务错误 |
+| 40001 | Access Token 无效或过期 |
 | 40002 | Refresh Token 无效或过期 |
 | 401 | 未认证 |
 | 403 | 无权限 |

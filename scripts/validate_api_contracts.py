@@ -7,11 +7,13 @@ from typing import Sequence
 
 REQUIRED_FILES = (
     "scripts/api_contracts.py",
+    "scripts/api_error_codes.py",
     "scripts/api_endpoint_contracts.py",
     "backend/drf_admin/utils/test_runtime_api_contracts.py",
     "backend/drf_admin/utils/test_response_contract.py",
     "fastapi/tests/test_api_contracts.py",
     "frontend/src/utils/__tests__/api-contract.test.ts",
+    "frontend/src/enums/api/code-enum.ts",
     "docs/API_ENDPOINTS.md",
     "fastapi/app/api/v1/README.md",
 )
@@ -28,8 +30,10 @@ REQUIRED_CONTRACT_FUNCTIONS = (
 REQUIRED_DOC_SNIPPETS = (
     "共享 API 契约验证",
     "关键端点契约目录",
+    "共享错误码契约目录",
     "scripts/validate_api_contracts.py",
     "scripts/api_endpoint_contracts.py",
+    "scripts/api_error_codes.py",
     "Django 响应中间件统一输出",
     "FastAPI `ResponseModel` 默认输出",
 )
@@ -38,6 +42,7 @@ REQUIRED_TEST_SNIPPETS = {
     "backend/drf_admin/utils/test_response_contract.py": (
         "assert_success_envelope",
         "assert_error_envelope",
+        "assert_api_error_code_catalog",
         "assert_endpoint_contract_catalog",
     ),
     "backend/drf_admin/utils/test_runtime_api_contracts.py": (
@@ -52,11 +57,14 @@ REQUIRED_TEST_SNIPPETS = {
     "fastapi/tests/test_api_contracts.py": (
         "ResponseModel.success",
         "PageResult.create",
+        "assert_api_error_code_catalog",
         "assert_endpoint_contract_catalog",
     ),
     "frontend/src/utils/__tests__/api-contract.test.ts": (
         "Django",
         "FastAPI",
+        "ApiCodeEnum.ACCESS_TOKEN_INVALID",
+        "ApiCodeEnum.REFRESH_TOKEN_INVALID",
         "normalizeApiErrorEnvelope",
         "list",
         "total",
@@ -118,6 +126,7 @@ def validate(root: Path) -> list[str]:
                 issues.append(f"{rel}: 仍包含过期文件接口路径 {snippet}")
 
     issues.extend(validate_endpoint_contract_evidence(root))
+    issues.extend(validate_error_code_contract(root))
     return issues
 
 
@@ -151,6 +160,33 @@ def load_endpoint_contracts(root: Path):
 
     assert_endpoint_contract_catalog()
     return iter_critical_endpoint_contracts()
+
+
+def validate_error_code_contract(root: Path) -> list[str]:
+    """校验共享错误码目录与前端枚举是否保持同步。"""
+    issues: list[str] = []
+    try:
+        codes = load_error_codes(root)
+    except (AssertionError, ImportError) as exc:
+        return [f"scripts/api_error_codes.py: 错误码契约目录无效：{exc}"]
+
+    enum_text = read_text(root / "frontend/src/enums/api/code-enum.ts")
+    for code in codes:
+        enum_entry = f"{code.key} = {code.value}"
+        if enum_entry not in enum_text:
+            issues.append(f"frontend/src/enums/api/code-enum.ts: 缺少错误码枚举 {enum_entry}")
+    return issues
+
+
+def load_error_codes(root: Path):
+    """从仓库根目录加载共享错误码目录。"""
+    root_text = str(root)
+    if root_text not in sys.path:
+        sys.path.insert(0, root_text)
+    from scripts.api_error_codes import assert_api_error_code_catalog, iter_api_error_codes
+
+    assert_api_error_code_catalog()
+    return iter_api_error_codes()
 
 
 def read_text(path: Path) -> str:

@@ -211,6 +211,8 @@ API 文档目前手动维护，容易与代码不同步。
 **当前治理进展：**
 - 前端错误边界已新增 `normalizeApiErrorEnvelope`，请求拦截器统一消费归一化后的 `{ code, message, data, raw }`
 - FastAPI 参数校验明细 `data.errors[].message` 已优先展示，避免只显示泛化的“请求参数验证失败”
+- 已新增 `scripts/api_error_codes.py` 作为共享错误码契约目录，并用前端、Django、FastAPI 契约测试锁定 `40000/40001/40002` 的公共语义
+- FastAPI 登录失败和验证码失败已改为通用业务错误 `40000`，避免复用 Access Token 失效码 `40001` 后误触发前端 token 刷新流程
 
 **预计工作量：** 2-3 天
 

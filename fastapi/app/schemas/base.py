@@ -10,6 +10,8 @@ from typing import Generic, List, TypeVar
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
+from app.core.error_codes import SERVER_ERROR_CODE, SUCCESS_CODE
+
 T = TypeVar("T")
 
 
@@ -35,17 +37,17 @@ class ResponseModel(BaseSchema, Generic[T]):
     所有 API 响应的统一格式。
     """
 
-    code: int = Field(default=20000, description="状态码")
+    code: int = Field(default=SUCCESS_CODE, description="状态码")
     message: str = Field(default="success", description="消息")
     data: T | None = Field(default=None, description="数据")
 
     @classmethod
     def success(cls, data: T | None = None, message: str = "success") -> "ResponseModel[T]":
         """成功响应"""
-        return cls(code=20000, message=message, data=data)
+        return cls(code=SUCCESS_CODE, message=message, data=data)
 
     @classmethod
-    def error(cls, code: int = 500, message: str = "error") -> "ResponseModel[T]":
+    def error(cls, code: int = SERVER_ERROR_CODE, message: str = "error") -> "ResponseModel[T]":
         """错误响应"""
         return cls(code=code, message=message, data=None)
 
