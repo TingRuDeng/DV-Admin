@@ -44,6 +44,10 @@ REQUIRED_TEST_SNIPPETS = {
         "iter_critical_endpoint_contracts",
         "assert_success_envelope",
         "dictCode",
+        "test_django_user_write_runtime_samples_match_endpoint_catalog",
+        "users_create",
+        "users_update",
+        "users_delete",
     ),
     "fastapi/tests/test_api_contracts.py": (
         "ResponseModel.success",
