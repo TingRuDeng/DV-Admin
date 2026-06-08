@@ -7,9 +7,10 @@
 - [x] P1 串行：收口文件上传 / 删除契约治理分支
 - [x] P2 串行：收口双后端关键端点契约治理分支
 - [x] P3 串行：收口 Django fixture 导入 fail-fast 治理分支
-- [ ] P4 串行：执行汇总分支最小充分验证并完成 review gate
+- [x] P4 串行：新增 FastAPI 运行时 API 契约抽样测试
+- [x] P5 串行：执行汇总分支最小充分验证并完成 review gate
 
-并行判断：三轮治理都会触碰 API 文档、契约校验或任务状态；为避免提交间写冲突和契约漂移，汇总分支按既定顺序串行整合。
+并行判断：三轮治理和运行时抽样都会触碰 API 文档、契约校验、测试或任务状态；为避免提交间写冲突和契约漂移，汇总分支按既定顺序串行整合。
 
 ## 已完成摘要
 
@@ -39,3 +40,5 @@ FastAPI 依赖锁定治理已完成：`.gitignore` 已显式允许 `fastapi/uv.l
 本轮进入 Django fixture 导入 fail-fast 治理：`fastapi/app/db/import_django_data.py` 原先在 fixture 缺失、单条导入失败、FK/M2M 失败时会打印后继续，存在误报成功风险；本轮新增 fail-fast 测试并把导入流程拆成小 helper，确保关键失败抛出 `DjangoDataImportError`。
 
 Django fixture 导入 fail-fast 治理已完成：缺少 fixture、单条导入失败、M2M 目标缺失三类失败测试已覆盖；`make quality` 通过（505 passed，覆盖率 83.41%），文档校验、API 契约校验、脚本编译和 `git diff --check` 均通过。
+
+本轮进入运行时 API 契约抽样治理：新增 FastAPI 运行时抽样测试，复用 `scripts/api_endpoint_contracts.py` 中的关键端点目录校验认证信息、动态路由、用户/菜单/字典/字典项分页和文件上传删除闭环；同时修正 FastAPI 用户、字典和字典项分页路由，使其真实接受前端契约参数 `pageSize`。目标验证通过：`python3 scripts/validate_api_contracts.py .` 和 `uv run pytest tests/test_runtime_api_contracts.py -q`。

@@ -93,7 +93,10 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         paginated=True,
         evidence=(
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("users", "UsersViewSet")),
-            ContractEvidence("fastapi/app/api/v1/system/users.py", ("/", "system:users:query")),
+            ContractEvidence(
+                "fastapi/app/api/v1/system/users.py",
+                ("/", "system:users:query", 'alias="pageSize"'),
+            ),
             ContractEvidence("frontend/src/api/system/user-api.ts", ("getPage", "/api/system/users")),
         ),
     ),
@@ -159,7 +162,10 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         paginated=True,
         evidence=(
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("dicts", "DictsViewSet")),
-            ContractEvidence("fastapi/app/api/v1/system/dicts.py", ("/", "system:dicts:query")),
+            ContractEvidence(
+                "fastapi/app/api/v1/system/dicts.py",
+                ("/", "system:dicts:query", 'alias="pageSize"'),
+            ),
             ContractEvidence("frontend/src/api/system/dict-api.ts", ("getPage", "/api/system/dicts")),
         ),
     ),
@@ -174,7 +180,10 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         paginated=True,
         evidence=(
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("dict-items", "DictItemsViewSet")),
-            ContractEvidence("fastapi/app/api/v1/system/dict_items.py", ("/", "system:dictitems:query")),
+            ContractEvidence(
+                "fastapi/app/api/v1/system/dict_items.py",
+                ("/", "system:dictitems:query", 'alias="pageSize"'),
+            ),
             ContractEvidence("frontend/src/api/system/dict-items-api.ts", ("getDictItemPage", "/api/system/dict-items")),
         ),
     ),
