@@ -4,19 +4,12 @@
 
 ## 活跃任务
 
-- [x] P1 串行：补 FastAPI 文件上传 / 删除契约失败测试
-- [x] P2 串行：实现文件相对路径返回、归属校验和安全删除
-- [x] P3 串行：同步前端 `FileInfo` / 上传组件删除参数
-- [x] P4 串行：同步文件接口文档和契约校验
-- [x] P5 串行：修复本地 Playwright 报告污染前端 quality
-- [x] P6 串行：执行最小充分验证并完成 review gate
-- [x] P1 串行：补 Django/FastAPI 端点契约目录失败测试
-- [x] P2 串行：新增关键端点契约目录并保留共享入口
-- [x] P3 串行：扩展 `scripts/validate_api_contracts.py` 校验证据文件
-- [x] P4 串行：同步 API、架构上下文和任务状态文档
-- [x] P5 串行：执行最小充分验证并完成 review gate
+- [x] P1 串行：收口文件上传 / 删除契约治理分支
+- [x] P2 串行：收口双后端关键端点契约治理分支
+- [x] P3 串行：收口 Django fixture 导入 fail-fast 治理分支
+- [ ] P4 串行：执行汇总分支最小充分验证并完成 review gate
 
-并行判断：前两轮改动分别集中在文件上传 / 删除契约链路和双后端关键端点契约目录；两者都会修改 API 文档、契约校验和任务状态，因此在汇总分支中按提交顺序串行整合。
+并行判断：三轮治理都会触碰 API 文档、契约校验或任务状态；为避免提交间写冲突和契约漂移，汇总分支按既定顺序串行整合。
 
 ## 已完成摘要
 
@@ -42,3 +35,7 @@ FastAPI 依赖锁定治理已完成：`.gitignore` 已显式允许 `fastapi/uv.l
 本轮进入双后端关键端点契约治理：新增 `scripts/api_endpoint_contracts.py` 作为关键端点契约目录，覆盖认证、用户、菜单、字典、字典项和文件接口的路径、方法、权限、分页和关键字段；Django/FastAPI 契约测试已开始共同断言该目录，`scripts/validate_api_contracts.py` 会校验证据文件中的路径、权限和调用片段，避免契约目录脱离真实代码。
 
 双后端关键端点契约治理第一轮已完成：文档校验、API 契约校验、脚本编译、Django/FastAPI 目标契约测试、ruff 和 `git diff --check` 均通过；本轮未启动后端服务做运行时双实现对比，后续如继续推进应以该目录为输入补运行时采样契约测试。
+
+本轮进入 Django fixture 导入 fail-fast 治理：`fastapi/app/db/import_django_data.py` 原先在 fixture 缺失、单条导入失败、FK/M2M 失败时会打印后继续，存在误报成功风险；本轮新增 fail-fast 测试并把导入流程拆成小 helper，确保关键失败抛出 `DjangoDataImportError`。
+
+Django fixture 导入 fail-fast 治理已完成：缺少 fixture、单条导入失败、M2M 目标缺失三类失败测试已覆盖；`make quality` 通过（505 passed，覆盖率 83.41%），文档校验、API 契约校验、脚本编译和 `git diff --check` 均通过。
