@@ -8,6 +8,7 @@ from typing import Sequence
 REQUIRED_FILES = (
     "scripts/api_contracts.py",
     "scripts/api_endpoint_contracts.py",
+    "backend/drf_admin/utils/test_runtime_api_contracts.py",
     "backend/drf_admin/utils/test_response_contract.py",
     "fastapi/tests/test_api_contracts.py",
     "frontend/src/utils/__tests__/api-contract.test.ts",
@@ -38,6 +39,11 @@ REQUIRED_TEST_SNIPPETS = {
         "assert_success_envelope",
         "assert_error_envelope",
         "assert_endpoint_contract_catalog",
+    ),
+    "backend/drf_admin/utils/test_runtime_api_contracts.py": (
+        "iter_critical_endpoint_contracts",
+        "assert_success_envelope",
+        "dictCode",
     ),
     "fastapi/tests/test_api_contracts.py": (
         "ResponseModel.success",
