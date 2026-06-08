@@ -1,11 +1,27 @@
 # -*- coding: utf-8 -*-
 
+from django_filters import CharFilter, FilterSet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from drf_admin.apps.system.models import DictItems, Dicts
 from drf_admin.apps.system.serializers.dicts import DictItemsSerializer, DictsSerializer
 from drf_admin.utils.views import AdminViewSet
+
+
+class DictItemsFilter(FilterSet):
+    """
+    字典项查询过滤器。
+
+    `dictCode` 会在 Django camel-case 中间件中转换为 `dict_code`，这里显式映射到
+    真实外键字段，确保 Django 与 FastAPI 共享同一前端查询契约。
+    """
+
+    dict_code = CharFilter(field_name="dict__dict_code")
+
+    class Meta:
+        model = DictItems
+        fields = ("dict", "dict_code")
 
 
 class DictsViewSet(AdminViewSet):
@@ -93,7 +109,6 @@ class DictItemsViewSet(AdminViewSet):
     queryset = DictItems.objects.all()
     serializer_class = DictItemsSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
-
-    filterset_fields = ['dict', 'dict__dict_code']
+    filterset_class = DictItemsFilter
 
     search_fields = ('label', 'value')
