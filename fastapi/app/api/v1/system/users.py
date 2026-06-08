@@ -272,7 +272,7 @@ async def get_user(
 
 ### 请求参数
 - `username` (必填): 用户名，长度 3-50 字符，唯一
-- `password` (可选): 密码，长度 6-20 字符，不填则使用默认密码
+- `password` (可选): 密码，长度 6-20 字符，不填则使用显式配置的 `DEFAULT_PASSWORD`
 - `name` (可选): 真实姓名
 - `email` (可选): 邮箱地址
 - `mobile` (可选): 手机号
@@ -562,7 +562,7 @@ async def batch_delete_users(
 - 需要 `system:users:password:reset` 权限
 
 ### 业务规则
-1. 重置后的密码来自系统默认密码配置 `DEFAULT_PASSWORD`
+1. 重置后的密码来自系统显式配置的 `DEFAULT_PASSWORD`
 2. 重置后用户需要使用新密码登录
 3. 建议用户登录后立即修改密码
 

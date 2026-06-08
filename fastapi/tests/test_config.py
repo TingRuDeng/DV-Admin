@@ -3,6 +3,9 @@
 测试 config 模块的功能
 """
 
+import pytest
+from pydantic import ValidationError
+
 from app.core.config import settings
 
 
@@ -53,12 +56,25 @@ class TestConfig:
         """默认 CORS 来源应匹配前端开发端口。"""
         from app.core.config import Settings
 
-        default_settings = Settings(_env_file=None, ALLOWED_ORIGINS="")
+        default_settings = Settings(
+            _env_file=None,
+            ALLOWED_ORIGINS="",
+            DEFAULT_PASSWORD="ChangeMe!2026",
+        )
 
         assert default_settings.allowed_origins == [
             "http://localhost:9527",
             "http://127.0.0.1:9527",
         ]
+
+    def test_default_password_requires_explicit_configuration(self, monkeypatch):
+        """默认密码必须由环境或配置文件显式提供，避免代码内置弱口令。"""
+        from app.core.config import Settings
+
+        monkeypatch.delenv("DEFAULT_PASSWORD", raising=False)
+
+        with pytest.raises(ValidationError, match="DEFAULT_PASSWORD"):
+            Settings(_env_file=None)
 
     def test_tortoise_config(self):
         """测试 Tortoise 配置"""
