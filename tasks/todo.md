@@ -4,11 +4,11 @@
 
 ## 活跃任务
 
-- [x] P1 串行：新增 Django `RBACPermission` 权限边界测试，覆盖有权限、缺权限、无权限声明和白名单放行
-- [x] P2 串行：校验 `UsersViewSet` 自动生成的用户写操作权限码与共享端点契约一致
-- [x] P3 串行：执行 Django 目标测试、Django 门禁和根目录文档/契约验证
+- [x] P1 串行：在 Django 运行时契约测试中覆盖 `users_create` 与 `users_update`
+- [x] P2 串行：在 Django 运行时契约测试中覆盖 `users_delete` 批量删除请求体契约
+- [x] P3 串行：同步测试覆盖率债务记录并执行 Django、根目录验证
 
-并行判断：本轮主要触达 Django 权限工具测试与任务状态记录；测试数据、权限缓存和用户角色关系共享同一 Django 测试数据库状态，采用串行推进，避免并行测试设计造成状态判断噪音。
+并行判断：本轮主要触达同一个 Django 运行时契约测试文件和任务状态记录；用户创建、更新、删除共享同一测试数据生命周期，为避免写接口之间互相污染，采用串行推进。
 
 ## 已完成摘要
 
@@ -56,3 +56,5 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 本轮 Django/FastAPI 模型差异契约治理已完成：新增 `scripts/model_contracts.py` 集中声明 Django → FastAPI 模型、表名和字段映射；新增 `scripts/validate_model_contracts.py` 并纳入 CI 文档校验阶段；FastAPI 导入契约测试开始对照共享模型契约，权限菜单 `keepAlive/alwaysShow` 映射已显式补齐。验证通过：模型契约校验、FastAPI 导入目标测试（23 passed）、FastAPI `make quality`（513 passed，覆盖率 83.71%）、文档/API/路由组件契约校验、脚本编译和 `git diff --check`。
 
 本轮 Django RBAC 权限边界契约治理已完成：新增 `backend/drf_admin/utils/test_rbac_permission_contract.py`，直接覆盖 `RBACPermission` 有权限放行、缺权限拒绝、无权限声明拒绝、白名单放行，并校验 `UsersViewSet` 自动生成的用户写操作权限码与共享端点契约一致。验证通过：目标测试（5 passed）、Django `uv run ruff check .`、Django `uv run pytest`（88 passed）、根目录文档/API/模型/路由组件契约校验、脚本编译和 `git diff --check`。
+
+本轮 Django 用户写接口运行时契约治理已完成：`backend/drf_admin/utils/test_runtime_api_contracts.py` 已覆盖 `users_create/users_update/users_delete`，验证创建成功信封、更新落库和批量删除 `ids` 请求体契约；`scripts/validate_api_contracts.py` 已强制检查这些 Django 写接口运行时测试片段。验证通过：目标运行时契约测试（3 passed）、Django `uv run ruff check .`、Django `uv run pytest`（89 passed）、根目录文档/API/模型/路由组件契约校验、脚本编译和 `git diff --check`。
