@@ -105,7 +105,7 @@ router = APIRouter()
 async def get_users(
     request: Request,
     page: int = Query(1, ge=1, description="页码"),
-    page_size: int = Query(10, ge=1, le=100, description="每页数量"),
+    page_size: int = Query(10, alias="pageSize", ge=1, le=100, description="每页数量"),
     search: str | None = Query(None, description="搜索关键词"),
     is_active: int | None = Query(None, description="状态"),
     dept: int | None = Query(None, description="部门ID"),

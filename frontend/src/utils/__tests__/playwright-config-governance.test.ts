@@ -19,4 +19,10 @@ describe("playwright local server governance", () => {
 
     expect(gitignore).toContain("frontend/playwright-report/");
   });
+
+  it("keeps local html reports out of prettier checks", () => {
+    const prettierignore = readProjectFile("../../../.prettierignore");
+
+    expect(prettierignore).toContain("playwright-report/");
+  });
 });

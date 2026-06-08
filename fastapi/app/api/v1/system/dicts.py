@@ -26,7 +26,7 @@ router = APIRouter()
 async def get_dicts(
     request: Request,
     page: int = Query(1, ge=1, description="页码"),
-    page_size: int = Query(10, ge=1, le=100, description="每页数量"),
+    page_size: int = Query(10, alias="pageSize", ge=1, le=100, description="每页数量"),
     search: str | None = Query(None, description="搜索关键词"),
     current_user=require_permissions("system:dicts:query"),
 ):

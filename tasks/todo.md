@@ -4,12 +4,13 @@
 
 ## 活跃任务
 
-- [x] P1 串行：确认 `fastapi/uv.lock` 与 `fastapi/pyproject.toml` 匹配
-- [x] P2 串行：解除全局 ignore 对 `fastapi/uv.lock` 的影响并纳入仓库
-- [x] P3 串行：执行 FastAPI 锁文件与质量门禁验证
-- [x] P4 串行：提交并创建 PR
+- [x] P1 串行：收口文件上传 / 删除契约治理分支
+- [x] P2 串行：收口双后端关键端点契约治理分支
+- [x] P3 串行：收口 Django fixture 导入 fail-fast 治理分支
+- [x] P4 串行：新增 FastAPI 运行时 API 契约抽样测试
+- [x] P5 串行：执行汇总分支最小充分验证并完成 review gate
 
-并行判断：本轮聚焦依赖锁定和 CI 一致性，改动范围集中在 `.gitignore`、`fastapi/uv.lock` 和任务记录；验证必须按顺序确认锁文件、安装、FastAPI 门禁和文档校验，因此串行推进。
+并行判断：三轮治理和运行时抽样都会触碰 API 文档、契约校验、测试或任务状态；为避免提交间写冲突和契约漂移，汇总分支按既定顺序串行整合。
 
 ## 已完成摘要
 
@@ -29,3 +30,15 @@
 本轮进入 FastAPI 依赖锁定治理：`fastapi/uv.lock` 此前被全局 Git ignore 忽略，导致本地和 CI 依赖解析可能漂移；本轮将锁文件纳入仓库并补充验证记录。
 
 FastAPI 依赖锁定治理已完成：`.gitignore` 已显式允许 `fastapi/uv.lock`，锁文件已纳入仓库；`uv lock --check`、`uv sync --locked --group dev`、`make quality`、文档校验、脚本编译和 diff 检查均通过。
+
+本轮文件上传 / 删除契约治理已完成：FastAPI 上传响应新增 `path` 并按 `files/{user_id}` 隔离保存；删除接口改为只接受上传返回的相对路径，并校验目录边界与用户归属；前端文件上传和多图上传删除时改传 `path`，缺少路径时显式提示；文件接口文档、契约校验和 Playwright 报告的 Prettier ignore 治理已同步。验证通过：FastAPI `make quality`（504 passed，覆盖率 81.23%）、前端 `pnpm run quality`（64 files / 165 tests）、前端 `pnpm run build`、文档/API 契约校验和 `git diff --check`。
+
+本轮进入双后端关键端点契约治理：新增 `scripts/api_endpoint_contracts.py` 作为关键端点契约目录，覆盖认证、用户、菜单、字典、字典项和文件接口的路径、方法、权限、分页和关键字段；Django/FastAPI 契约测试已开始共同断言该目录，`scripts/validate_api_contracts.py` 会校验证据文件中的路径、权限和调用片段，避免契约目录脱离真实代码。
+
+双后端关键端点契约治理第一轮已完成：文档校验、API 契约校验、脚本编译、Django/FastAPI 目标契约测试、ruff 和 `git diff --check` 均通过；本轮未启动后端服务做运行时双实现对比，后续如继续推进应以该目录为输入补运行时采样契约测试。
+
+本轮进入 Django fixture 导入 fail-fast 治理：`fastapi/app/db/import_django_data.py` 原先在 fixture 缺失、单条导入失败、FK/M2M 失败时会打印后继续，存在误报成功风险；本轮新增 fail-fast 测试并把导入流程拆成小 helper，确保关键失败抛出 `DjangoDataImportError`。
+
+Django fixture 导入 fail-fast 治理已完成：缺少 fixture、单条导入失败、M2M 目标缺失三类失败测试已覆盖；`make quality` 通过（505 passed，覆盖率 83.41%），文档校验、API 契约校验、脚本编译和 `git diff --check` 均通过。
+
+本轮进入运行时 API 契约抽样治理：新增 FastAPI 运行时抽样测试，复用 `scripts/api_endpoint_contracts.py` 中的关键端点目录校验认证信息、动态路由、用户/菜单/字典/字典项分页和文件上传删除闭环；同时修正 FastAPI 用户、字典和字典项分页路由，使其真实接受前端契约参数 `pageSize`。目标验证通过：`python3 scripts/validate_api_contracts.py .` 和 `uv run pytest tests/test_runtime_api_contracts.py -q`。

@@ -58,13 +58,13 @@ ai_summary:
 - Django 后端：`AGENTS.md` -> `docs/README.md` -> `backend/README.md` -> `docs/API_ENDPOINTS.md` 或 `docs/DATABASE_SCHEMA.md` -> 目标代码。
 - FastAPI 后端：`AGENTS.md` -> `docs/README.md` -> `fastapi/README.md` -> `docs/API_ENDPOINTS.md` 或 `docs/DATABASE_SCHEMA.md` -> 目标代码。
 - 文档上下文包：`docs/README.md` -> `docs/AI_CONTEXT.md` -> `scripts/validate_docs.py`。
-- API 契约治理：`docs/API_ENDPOINTS.md` -> `scripts/api_contracts.py` -> Django/FastAPI/前端契约测试。
+- API 契约治理：`docs/API_ENDPOINTS.md` -> `scripts/api_contracts.py` -> `scripts/api_endpoint_contracts.py` -> Django/FastAPI/前端契约测试。
 
 ## High-Risk Areas
 
 - 不要把 `backend/` 与 `fastapi/` 理解成同一请求链路的上下游服务；本地联调通常二选一。
 - 共享 API、分页、认证和错误响应变化需要同时核对前端、Django 和 FastAPI。
-- 共享响应契约变化必须同步 `scripts/api_contracts.py`、`scripts/validate_api_contracts.py` 和三端契约测试。
+- 共享响应或关键端点契约变化必须同步 `scripts/api_contracts.py`、`scripts/api_endpoint_contracts.py`、`scripts/validate_api_contracts.py` 和三端契约测试。
 - 前端 Vite 端口来自 `frontend/.env.development`，Playwright 或脚本端口不能凭默认值推断。
 - 页面层 ProTable、RouteMeta、KeepAlive 缓存键已有治理约束，改动前先读架构文档。
 
@@ -72,7 +72,7 @@ ai_summary:
 
 - quick: `python3 scripts/validate_docs.py . --profile generic`
 - quick: `python3 scripts/validate_api_contracts.py .`
-- quick: `python3 -m py_compile scripts/validate_docs.py scripts/validate_api_contracts.py`
+- quick: `python3 -m py_compile scripts/validate_docs.py scripts/api_contracts.py scripts/api_endpoint_contracts.py scripts/validate_api_contracts.py`
 - full: `pnpm --dir frontend run quality`
 - full: `cd backend && uv run ruff check .`
 - full: `cd backend && uv run pytest`

@@ -90,19 +90,29 @@ const modelValue = defineModel("modelValue", {
   default: () => [],
 });
 
-const fileList = ref<UploadUserFile[]>([]);
+type UploadedImageFile = UploadUserFile & { path?: string };
+
+const fileList = ref<UploadedImageFile[]>([]);
+const uploadedFilePaths = reactive<Record<string, string>>({});
 
 /**
  * 删除图片
  */
 function handleRemove(imageUrl: string) {
-  FileAPI.delete(imageUrl).then(() => {
+  const filePath =
+    uploadedFilePaths[imageUrl] ?? fileList.value.find((file) => file.url === imageUrl)?.path;
+  if (!filePath) {
+    ElMessage.warning("缺少文件路径，无法删除");
+    return;
+  }
+  FileAPI.delete(filePath).then(() => {
     const index = modelValue.value.indexOf(imageUrl);
     if (index !== -1) {
       // 直接修改数组避免触发整体更新
       modelValue.value.splice(index, 1);
       fileList.value.splice(index, 1); // 同步更新 fileList
     }
+    delete uploadedFilePaths[imageUrl];
   });
 }
 
@@ -180,7 +190,9 @@ const handleSuccess = (fileInfo: FileInfo, uploadFile: UploadUserFile) => {
   const index = fileList.value.findIndex((file) => file.uid === uploadFile.uid);
   if (index !== -1) {
     fileList.value[index].url = fileInfo.url;
+    fileList.value[index].path = fileInfo.path;
     fileList.value[index].status = "success";
+    uploadedFilePaths[fileInfo.url] = fileInfo.path;
     modelValue.value[index] = fileInfo.url;
   }
 };
@@ -208,7 +220,7 @@ const handlePreviewClose = () => {
 };
 
 onMounted(() => {
-  fileList.value = modelValue.value.map((url) => ({ url }) as UploadUserFile);
+  fileList.value = modelValue.value.map((url) => ({ url }) as UploadedImageFile);
 });
 </script>
 <style lang="scss" scoped></style>

@@ -152,8 +152,8 @@ async def create_user(...):
 ### Files 模块
 
 **端点：**
-- `POST /api/v1/files/upload/` - 上传文件
-- `DELETE /api/v1/files/upload/` - 删除文件
+- `POST /api/v1/files/` - 上传文件，返回 `name/url/path`
+- `DELETE /api/v1/files/?filePath=files/{user_id}/{filename}` - 删除当前用户文件
 
 ---
 
