@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getApiErrorMessage } from "@/utils/api-error";
+import { getApiErrorMessage, normalizeApiErrorEnvelope } from "@/utils/api-error";
 
 describe("getApiErrorMessage", () => {
   it("prefers Django errors field", () => {
@@ -20,5 +20,26 @@ describe("getApiErrorMessage", () => {
 
   it("uses fallback when payload is empty", () => {
     expect(getApiErrorMessage(null, "兜底错误")).toBe("兜底错误");
+  });
+
+  it("normalizes FastAPI validation error details before generic message", () => {
+    const payload = {
+      code: 42200,
+      message: "请求参数验证失败",
+      data: {
+        errors: [
+          { field: "username", message: "用户名不能为空" },
+          { field: "password", message: "密码不能为空" },
+        ],
+      },
+    };
+
+    expect(normalizeApiErrorEnvelope(payload, "兜底错误")).toEqual({
+      code: 42200,
+      message: "用户名不能为空；密码不能为空",
+      data: payload.data,
+      raw: payload,
+    });
+    expect(getApiErrorMessage(payload, "兜底错误")).toBe("用户名不能为空；密码不能为空");
   });
 });
