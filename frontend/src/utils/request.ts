@@ -4,7 +4,7 @@ import { ApiCodeEnum } from "@/enums/api/code-enum";
 import { AuthStorage, redirectToLogin } from "@/utils/auth";
 import { useTokenRefresh } from "@/composables/auth/useTokenRefresh";
 import { authConfig } from "@/settings";
-import { getApiErrorMessage } from "@/utils/api-error";
+import { normalizeApiErrorEnvelope } from "@/utils/api-error";
 import { createLogger } from "@/utils/logger";
 
 // 初始化token刷新组合式函数
@@ -75,9 +75,9 @@ function handleBusinessResponse(response: AxiosResponse<ApiResponse<unknown>>) {
   }
 
   // 业务错误
-  const errorMessage = getApiErrorMessage(response.data, "系统出错");
-  ElMessage.error(errorMessage);
-  return Promise.reject(new Error(errorMessage));
+  const errorEnvelope = normalizeApiErrorEnvelope(response.data, "系统出错");
+  ElMessage.error(errorEnvelope.message);
+  return Promise.reject(new Error(errorEnvelope.message));
 }
 
 /**
@@ -98,11 +98,11 @@ httpRequest.interceptors.response.use(
     }
 
     const responseData = response.data as ApiResponse | undefined;
-    const code = responseData?.code;
-    const errorMessage = getApiErrorMessage(responseData, "请求失败");
+    const errorEnvelope = normalizeApiErrorEnvelope(responseData, "请求失败");
+    const code = errorEnvelope.code;
 
     switch (code) {
-      case ApiCodeEnum.ACCESS_TOKEN_INVALID:
+      case ApiCodeEnum.ACCESS_TOKEN_INVALID: {
         // Access Token 过期
         if (authConfig.enableTokenRefresh) {
           // 启用了token刷新，尝试刷新
@@ -110,20 +110,22 @@ httpRequest.interceptors.response.use(
         } else {
           // 未启用token刷新，直接跳转登录页
           await redirectToLogin("登录已过期");
-          return Promise.reject(
-            new Error(getApiErrorMessage(responseData, "Access Token Invalid"))
-          );
+          const accessTokenError = normalizeApiErrorEnvelope(responseData, "Access Token Invalid");
+          return Promise.reject(new Error(accessTokenError.message));
         }
+      }
 
-      case ApiCodeEnum.REFRESH_TOKEN_INVALID:
+      case ApiCodeEnum.REFRESH_TOKEN_INVALID: {
         // Refresh Token 过期，跳转登录页
         await redirectToLogin("登录已过期");
-        return Promise.reject(new Error(getApiErrorMessage(responseData, "Refresh Token Invalid")));
+        const refreshTokenError = normalizeApiErrorEnvelope(responseData, "Refresh Token Invalid");
+        return Promise.reject(new Error(refreshTokenError.message));
+      }
 
       default:
         requestLogger.error("响应业务错误:", response.data);
-        ElMessage.error(errorMessage);
-        return Promise.reject(new Error(errorMessage));
+        ElMessage.error(errorEnvelope.message);
+        return Promise.reject(new Error(errorEnvelope.message));
     }
   }
 );
