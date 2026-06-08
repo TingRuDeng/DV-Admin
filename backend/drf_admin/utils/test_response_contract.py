@@ -9,6 +9,13 @@ from scripts.api_contracts import (
     assert_error_envelope,
     assert_success_envelope,
 )
+from scripts.api_error_codes import (
+    ACCESS_TOKEN_INVALID_CODE,
+    ERROR_CODE,
+    REFRESH_TOKEN_INVALID_CODE,
+    SUCCESS_CODE,
+    assert_api_error_code_catalog,
+)
 
 from drf_admin.utils.middleware import ResponseMiddleware
 
@@ -74,3 +81,12 @@ def test_shared_endpoint_contract_catalog_covers_django_system_routes():
     assert contracts["auth_routes"].path == "/api/v1/oauth/menus/routes/"
     assert contracts["menus_tree"].permissions == ("system:permissions:query",)
     assert contracts["dicts_page"].permissions == ("system:dicts:query",)
+
+
+def test_shared_api_error_code_catalog_covers_django_response_contracts():
+    assert_api_error_code_catalog()
+
+    assert SUCCESS_CODE == 20000
+    assert ERROR_CODE == 40000
+    assert ACCESS_TOKEN_INVALID_CODE == 40001
+    assert REFRESH_TOKEN_INVALID_CODE == 40002

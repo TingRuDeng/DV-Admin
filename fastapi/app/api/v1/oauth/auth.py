@@ -11,6 +11,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from app.api.deps import CurrentUser
 from app.core.config import settings
+from app.core.error_codes import ERROR_CODE, REFRESH_TOKEN_INVALID_CODE
 from app.core.exceptions import AuthenticationError
 from app.core.security import (
     create_access_token,
@@ -54,9 +55,7 @@ router = APIRouter()
 - `refreshExpiresIn`: 刷新令牌过期时间（秒）
 
 ### 错误码
-- `40001`: 用户名或密码错误
-- `40002`: 用户已被禁用
-- `40003`: 认证失败
+- `40000`: 用户名或密码错误、用户已被禁用或认证失败
     """,
     responses={
         200: {
@@ -82,7 +81,7 @@ router = APIRouter()
             "content": {
                 "application/json": {
                     "example": {
-                        "code": 40001,
+                        "code": 40000,
                         "message": "用户名或密码错误",
                         "data": None
                     }
@@ -98,15 +97,15 @@ async def login_access_token(
     # 查询用户
     user = await Users.get_or_none(username=form_data.username)
     if not user:
-        raise AuthenticationError("用户名或密码错误")
+        raise AuthenticationError("用户名或密码错误", code=ERROR_CODE)
 
     # 验证密码
     if not verify_password(form_data.password, user.password):
-        raise AuthenticationError("用户名或密码错误")
+        raise AuthenticationError("用户名或密码错误", code=ERROR_CODE)
 
     # 检查用户状态
     if not user.is_active:
-        raise AuthenticationError("用户已被禁用")
+        raise AuthenticationError("用户已被禁用", code=ERROR_CODE)
 
     # 更新最后登录时间
     from datetime import datetime, timezone
@@ -168,9 +167,7 @@ async def login_access_token(
 3. 当 `accessToken` 过期时，使用 `/refresh-token/` 接口刷新令牌
 
 ### 错误码
-- `40001`: 用户名或密码错误
-- `40002`: 用户已被禁用
-- `40003`: 验证码错误
+- `40000`: 用户名或密码错误、用户已被禁用或验证码错误
     """,
     responses={
         200: {
@@ -196,7 +193,7 @@ async def login_access_token(
             "content": {
                 "application/json": {
                     "example": {
-                        "code": 40001,
+                        "code": 40000,
                         "message": "用户名或密码错误",
                         "data": None
                     }
@@ -219,20 +216,20 @@ async def login(
             delete=True  # 验证后删除验证码
         )
         if not is_valid:
-            raise AuthenticationError("验证码错误或已过期")
+            raise AuthenticationError("验证码错误或已过期", code=ERROR_CODE)
 
     # 查询用户
     user = await Users.get_or_none(username=login_data.username)
     if not user:
-        raise AuthenticationError("用户名或密码错误")
+        raise AuthenticationError("用户名或密码错误", code=ERROR_CODE)
 
     # 验证密码
     if not verify_password(login_data.password, user.password):
-        raise AuthenticationError("用户名或密码错误")
+        raise AuthenticationError("用户名或密码错误", code=ERROR_CODE)
 
     # 检查用户状态
     if not user.is_active:
-        raise AuthenticationError("用户已被禁用")
+        raise AuthenticationError("用户已被禁用", code=ERROR_CODE)
 
     # 更新最后登录时间
     from datetime import datetime, timezone
@@ -336,24 +333,24 @@ async def refresh_token(
     # 解码刷新令牌
     payload = decode_token(token_data.refresh_token)
     if not payload:
-        raise AuthenticationError(message="无效的刷新令牌", code=40002)
+        raise AuthenticationError(message="无效的刷新令牌", code=REFRESH_TOKEN_INVALID_CODE)
 
     # 验证令牌类型
     if not verify_token_type(payload, "refresh"):
-        raise AuthenticationError(message="无效的令牌类型", code=40002)
+        raise AuthenticationError(message="无效的令牌类型", code=REFRESH_TOKEN_INVALID_CODE)
 
     # 获取用户ID
     user_id = get_token_subject(payload)
     if not user_id:
-        raise AuthenticationError(message="无法获取用户信息", code=40002)
+        raise AuthenticationError(message="无法获取用户信息", code=REFRESH_TOKEN_INVALID_CODE)
 
     # 查询用户
     user = await Users.get_or_none(id=int(user_id))
     if not user:
-        raise AuthenticationError(message="用户不存在", code=40002)
+        raise AuthenticationError(message="用户不存在", code=REFRESH_TOKEN_INVALID_CODE)
 
     if not user.is_active:
-        raise AuthenticationError(message="用户已被禁用", code=40002)
+        raise AuthenticationError(message="用户已被禁用", code=REFRESH_TOKEN_INVALID_CODE)
 
     # 生成新的令牌
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)

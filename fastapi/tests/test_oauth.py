@@ -2,6 +2,7 @@
 OAuth 认证接口测试
 """
 from fastapi.testclient import TestClient
+from scripts.api_error_codes import ACCESS_TOKEN_INVALID_CODE, ERROR_CODE
 
 
 class TestOAuthLogin:
@@ -29,6 +30,22 @@ class TestOAuthLogin:
         if response.status_code == 200:
             data = response.json()
             assert data.get("code") != 20000
+
+    def test_login_invalid_credentials_uses_general_error_code(
+        self,
+        client: TestClient,
+        test_user_with_role,
+    ):
+        """登录失败不能复用 Access Token 失效错误码，避免前端误触发刷新流程。"""
+        response = client.post("/api/v1/oauth/login/", json={
+            "username": test_user_with_role["username"],
+            "password": "wrongpassword",
+        })
+
+        assert response.status_code == 401
+        data = response.json()
+        assert data.get("code") == ERROR_CODE
+        assert data.get("code") != ACCESS_TOKEN_INVALID_CODE
 
     def test_login_missing_fields(self, client: TestClient):
         """测试登录失败 - 缺少字段"""
