@@ -12,6 +12,7 @@ REQUIRED_FILES = (
     "backend/drf_admin/utils/test_runtime_api_contracts.py",
     "backend/drf_admin/utils/test_response_contract.py",
     "fastapi/tests/test_api_contracts.py",
+    "fastapi/tests/test_runtime_api_contracts.py",
     "frontend/src/utils/__tests__/api-contract.test.ts",
     "frontend/src/enums/api/code-enum.ts",
     "docs/API_ENDPOINTS.md",
@@ -59,6 +60,13 @@ REQUIRED_TEST_SNIPPETS = {
         "PageResult.create",
         "assert_api_error_code_catalog",
         "assert_endpoint_contract_catalog",
+    ),
+    "fastapi/tests/test_runtime_api_contracts.py": (
+        "iter_critical_endpoint_contracts",
+        "test_fastapi_user_write_runtime_samples_match_endpoint_catalog",
+        "users_create",
+        "users_update",
+        "users_delete",
     ),
     "frontend/src/utils/__tests__/api-contract.test.ts": (
         "Django",
