@@ -60,7 +60,7 @@ class Settings(BaseSettings):
     # 密码配置
     password_min_length: int = Field(default=8, alias="PASSWORD_MIN_LENGTH")  # 提高最小长度
     password_max_length: int = Field(default=128, alias="PASSWORD_MAX_LENGTH")  # 提高最大长度
-    default_password: str = Field(default="Admin@123456", alias="DEFAULT_PASSWORD")  # 更安全的默认密码
+    default_password: str = Field(alias="DEFAULT_PASSWORD")  # 新增/重置用户使用的显式默认密码
 
     # 分页配置
     default_page_size: int = Field(default=10, alias="DEFAULT_PAGE_SIZE")
@@ -223,7 +223,8 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     """获取配置实例（单例模式）"""
-    return Settings()
+    # BaseSettings 会从环境变量或 .env 注入必填项，mypy 无法从无参构造中推断这一点。
+    return Settings()  # type: ignore[call-arg]
 
 
 # 全局配置实例
