@@ -1,15 +1,14 @@
 """测试权限种子构造工具。"""
 
 MENU_SPECS = (
-    ("user_menu", "用户管理", "UserManagement", "/system/users", "system/users/index", 1, "system:users:query"),
-    ("role_menu", "角色管理", "RoleManagement", "/system/roles", "system/roles/index", 2, "system:roles:query"),
-    ("menu_menu", "菜单管理", "MenuManagement", "/system/menus", "system/menus/index", 3, "system:permissions:query"),
-    ("dept_menu", "部门管理", "DeptManagement", "/system/departments", "system/departments/index", 4, "system:departments:query"),
-    ("dict_menu", "字典管理", "DictManagement", "/system/dicts", "system/dicts/index", 5, "system:dicts:query"),
-    ("notice_menu", "通知公告", "NoticeManagement", "/system/notices", "system/notices/index", 6, "system:notices:query"),
-    ("file_menu", "文件管理", "FileManagement", "/system/files", "system/files/index", 7, "system:files:query"),
-    ("dict_item_menu", "字典项", "DictData", "/system/dict-item", "system/dict/dict-item", 8, "system:dictitems:query"),
-    ("log_menu", "日志管理", "LogManagement", "/system/logs", "system/logs/index", 9, "system:logs:query"),
+    ("user_menu", "用户管理", "UserManagement", "/system/users", "system/user/index", 1, "system:users:query"),
+    ("role_menu", "角色管理", "RoleManagement", "/system/roles", "system/role/index", 2, "system:roles:query"),
+    ("menu_menu", "菜单管理", "MenuManagement", "/system/menus", "system/menu/index", 3, "system:permissions:query"),
+    ("dept_menu", "部门管理", "DeptManagement", "/system/departments", "system/dept/index", 4, "system:departments:query"),
+    ("dict_menu", "字典管理", "DictManagement", "/system/dicts", "system/dict/index", 5, "system:dicts:query"),
+    ("notice_menu", "通知公告", "NoticeManagement", "/system/notices", "system/notice/index", 6, "system:notices:query"),
+    ("dict_item_menu", "字典项", "DictData", "/system/dict-item", "system/dict/dict-item", 7, "system:dictitems:query"),
+    ("log_menu", "日志管理", "LogManagement", "/system/logs", "system/log/index", 8, "system:logs:query"),
 )
 
 BUTTON_SPECS = (

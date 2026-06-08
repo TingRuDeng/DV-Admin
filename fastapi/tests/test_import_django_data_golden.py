@@ -40,7 +40,7 @@ GOLDEN_FIXTURE_ROWS = [
             "type": "MENU",
             "route_name": "UserManagement",
             "route_path": "/system/users",
-            "component": "system/users/index",
+            "component": "system/user/index",
             "sort": 2,
             "visible": 1,
             "parent": 10,
@@ -108,7 +108,7 @@ async def assert_permission_records() -> None:
     menu = await Permissions.get(id=11)
     assert catalog.component == "Layout"
     assert menu.parent_id == catalog.id
-    assert menu.component == "system/users/index"
+    assert menu.component == "system/user/index"
 
 
 async def assert_dict_records() -> None:

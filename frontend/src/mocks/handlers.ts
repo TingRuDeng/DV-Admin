@@ -57,7 +57,7 @@ export const handlers = [
               {
                 path: "/system/users",
                 name: "Users",
-                component: "/system/users/index",
+                component: "system/user/index",
               },
             ],
           },

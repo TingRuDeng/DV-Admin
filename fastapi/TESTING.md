@@ -77,7 +77,6 @@ fastapi/
 - system:departments:query, add, edit, delete
 - system:dicts:query, add, edit, delete
 - system:notices:query, add, edit, delete, publish, revoke
-- system:files:query
 - system:logs:query, delete
 ```
 
