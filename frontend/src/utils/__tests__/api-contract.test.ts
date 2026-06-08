@@ -47,6 +47,14 @@ describe("API envelope contract compatibility", () => {
     expect(fastapiError).toMatchObject({ code: 42200, message: "用户名不能为空" });
   });
 
+  it("keeps token refresh codes distinct from general business errors", () => {
+    expect(ApiCodeEnum.ERROR).toBe(40000);
+    expect(ApiCodeEnum.ACCESS_TOKEN_INVALID).toBe(40001);
+    expect(ApiCodeEnum.REFRESH_TOKEN_INVALID).toBe(40002);
+    expect(ApiCodeEnum.ERROR).not.toBe(ApiCodeEnum.ACCESS_TOKEN_INVALID);
+    expect(ApiCodeEnum.ERROR).not.toBe(ApiCodeEnum.REFRESH_TOKEN_INVALID);
+  });
+
   it("keeps shared pagination payload shape compatible with ProTable consumers", () => {
     const page = {
       list: [{ id: 1 }],
