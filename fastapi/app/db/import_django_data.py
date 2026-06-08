@@ -75,6 +75,8 @@ FIELD_MAPPING = {
     "update_time": "updated_at",
     "dict": "dict_data",  # DictItems 的外键: Django(dict) -> FastAPI(dict_data)
     "dict_code": "code",  # DictData: Django(dict_code) -> FastAPI(code)
+    "keepAlive": "keep_alive",  # Permissions: Django camel 字段 -> FastAPI snake 字段
+    "alwaysShow": "always_show",  # Permissions: Django camel 字段 -> FastAPI snake 字段
 }
 
 IMPORT_ORDER = (
