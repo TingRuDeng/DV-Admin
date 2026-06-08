@@ -16,8 +16,30 @@ interface MockState {
   createPayloads: unknown[];
 }
 
+interface AuthMockOptions {
+  username?: string;
+  name?: string;
+  roles?: string[];
+  perms?: string[];
+}
+
+interface MockRouteContext {
+  route: Route;
+  method: string;
+  path: string;
+  readBody: () => unknown;
+  state: MockState;
+  auth: AuthMockOptions;
+}
+
 const API_PREFIX = "/dev-api";
 const USERS_PATH = "/api/v1/system/users/";
+const DEFAULT_USER_PERMS = [
+  "system:users:query",
+  "system:users:add",
+  "system:users:edit",
+  "system:users:delete",
+];
 const USER_FORM = {
   username: "e2e_user",
   name: "E2E 用户",
@@ -55,28 +77,37 @@ function success(data: unknown) {
   return { code: 20000, message: "成功", data };
 }
 
-async function installUserManagementMocks(page: Page, state: MockState) {
+async function installUserManagementMocks(
+  page: Page,
+  state: MockState,
+  auth: AuthMockOptions = {}
+) {
   await page.route(`**${API_PREFIX}/api/v1/**`, async (route) => {
     const request = route.request();
-    const method = request.method();
-    const path = new URL(request.url()).pathname.replace(API_PREFIX, "");
+    const context = {
+      route,
+      method: request.method(),
+      path: new URL(request.url()).pathname.replace(API_PREFIX, ""),
+      readBody: request.postDataJSON.bind(request),
+      state,
+      auth,
+    };
 
-    if (await handleAuthRequest(route, method, path)) return;
-    if (await handleSystemRequest(route, request.postDataJSON.bind(request), method, path, state))
-      return;
+    if (await handleAuthRequest(context)) return;
+    if (await handleSystemRequest(context)) return;
 
     await fulfillJson(
       route,
-      { code: 404, message: `未 mock 的接口: ${method} ${path}`, data: null },
+      { code: 404, message: `未 mock 的接口: ${context.method} ${context.path}`, data: null },
       404
     );
   });
 }
 
-async function handleAuthRequest(route: Route, method: string, path: string) {
-  if (method === "POST" && path === "/api/v1/oauth/login/") {
+async function handleAuthRequest(context: MockRouteContext) {
+  if (context.method === "POST" && context.path === "/api/v1/oauth/login/") {
     await fulfillJson(
-      route,
+      context.route,
       success({
         accessToken: "test-access-token",
         refreshToken: "test-refresh-token",
@@ -87,58 +118,54 @@ async function handleAuthRequest(route: Route, method: string, path: string) {
     return true;
   }
 
-  if (method === "GET" && path === "/api/v1/oauth/info/") {
-    await fulfillJson(
-      route,
-      success({
-        id: "1",
-        username: "admin",
-        name: "管理员",
-        roles: ["admin"],
-        perms: [
-          "system:users:query",
-          "system:users:add",
-          "system:users:edit",
-          "system:users:delete",
-        ],
-      })
-    );
+  if (context.method === "GET" && context.path === "/api/v1/oauth/info/") {
+    await fulfillJson(context.route, success(createAuthInfo(context.auth)));
     return true;
   }
 
-  if (method === "GET" && path === "/api/v1/oauth/menus/routes/") {
-    await fulfillJson(route, success(buildRoutes()));
+  if (context.method === "GET" && context.path === "/api/v1/oauth/menus/routes/") {
+    await fulfillJson(context.route, success(buildRoutes()));
     return true;
   }
 
   return false;
 }
 
-async function handleSystemRequest(
-  route: Route,
-  readBody: () => unknown,
-  method: string,
-  path: string,
-  state: MockState
-) {
-  if (method === "GET" && path === "/api/v1/system/departments/") {
-    await fulfillJson(route, success([{ id: 1, label: "研发部", name: "研发部", children: [] }]));
+function createAuthInfo(auth: AuthMockOptions) {
+  return {
+    id: "1",
+    username: auth.username ?? "admin",
+    name: auth.name ?? "管理员",
+    roles: auth.roles ?? ["admin"],
+    perms: auth.perms ?? DEFAULT_USER_PERMS,
+  };
+}
+
+async function handleSystemRequest(context: MockRouteContext) {
+  if (context.method === "GET" && context.path === "/api/v1/system/departments/") {
+    await fulfillJson(
+      context.route,
+      success([{ id: 1, label: "研发部", name: "研发部", children: [] }])
+    );
     return true;
   }
 
-  if (method === "GET" && path === "/api/v1/system/roles/options/") {
-    await fulfillJson(route, success([{ id: 1, label: "管理员", value: 1 }]));
+  if (context.method === "GET" && context.path === "/api/v1/system/roles/options/") {
+    await fulfillJson(context.route, success([{ id: 1, label: "管理员", value: 1 }]));
     return true;
   }
 
-  if (method === "GET" && path === USERS_PATH) {
-    await fulfillJson(route, success({ list: state.users, total: state.users.length }));
+  if (context.method === "GET" && context.path === USERS_PATH) {
+    await fulfillJson(
+      context.route,
+      success({ list: context.state.users, total: context.state.users.length })
+    );
     return true;
   }
 
-  if (method === "POST" && path === USERS_PATH) {
-    state.createPayloads.push(readBody());
-    state.users.push({
+  if (context.method === "POST" && context.path === USERS_PATH) {
+    context.state.createPayloads.push(context.readBody());
+    context.state.users.push({
       id: "102",
       username: USER_FORM.username,
       name: USER_FORM.name,
@@ -148,7 +175,7 @@ async function handleSystemRequest(
       isActive: 1,
       roleNames: "管理员",
     });
-    await fulfillJson(route, success({ id: "102" }), 201);
+    await fulfillJson(context.route, success({ id: "102" }), 201);
     return true;
   }
 
@@ -212,5 +239,24 @@ test.describe("用户管理核心业务 smoke", () => {
 
     await expect.poll(() => state.createPayloads.length).toBe(1);
     await expect(page.getByText(USER_FORM.username, { exact: true })).toBeVisible();
+  });
+
+  test("只有查询权限时隐藏用户写操作", async ({ page }) => {
+    const state = createMockState();
+    await installUserManagementMocks(page, state, { perms: ["system:users:query"] });
+
+    await page.goto("/login?redirect=%2Fsystem%2Fusers");
+    await page.getByLabel("用户名").fill("viewer");
+    await page.getByLabel("密码").fill("123456");
+    await page.getByRole("button", { name: /登\s*录|Login/i }).click();
+
+    await expect(page).toHaveURL(/\/system\/users/);
+    await expect(page.getByText("用户数据")).toBeVisible();
+    await expect(page.getByText("admin_mock")).toBeVisible();
+    await expect(page.getByRole("button", { name: "新增用户" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "批量删除" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "编辑" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "删除" })).toHaveCount(0);
+    expect(state.createPayloads).toHaveLength(0);
   });
 });
