@@ -73,7 +73,7 @@ class TestImportDjangoData:
             type="MENU",
             route_name="UserManagement",
             route_path="/system/users",
-            component="system/users/index",
+            component="system/user/index",
             sort=1,
             parent_id=catalog.id,
             perm="system:users:query",

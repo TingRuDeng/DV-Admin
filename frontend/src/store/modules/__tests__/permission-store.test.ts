@@ -66,6 +66,26 @@ describe("usePermissionStore", () => {
     });
   });
 
+  it("rejects backend routes whose view component does not exist", async () => {
+    vi.mocked(AuthAPI.getRoutes).mockResolvedValue([
+      {
+        path: "/system/users",
+        name: "UserManagement",
+        component: "system/users/index",
+        meta: {
+          title: "用户管理",
+        },
+        children: [],
+      },
+    ] as unknown as RouteVO[]);
+    const permissionStore = usePermissionStore();
+
+    await expect(permissionStore.generateRoutes()).rejects.toThrow(
+      "动态路由组件不存在: system/users/index"
+    );
+    expect(permissionStore.isRouteGenerated).toBe(false);
+  });
+
   it("sets mix layout side menus from generated routes", () => {
     const permissionStore = usePermissionStore();
     const routes = [
