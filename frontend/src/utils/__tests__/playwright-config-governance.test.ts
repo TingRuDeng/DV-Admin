@@ -25,4 +25,10 @@ describe("playwright local server governance", () => {
 
     expect(prettierignore).toContain("playwright-report/");
   });
+
+  it("runs core business flow in smoke E2E", () => {
+    const packageJson = readProjectFile("../../../package.json");
+
+    expect(packageJson).toContain("e2e/user-management.spec.ts");
+  });
 });
