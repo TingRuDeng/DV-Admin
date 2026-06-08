@@ -24,7 +24,7 @@
             <a class="el-upload-list__item-name" @click="handleDownload(file)">
               <el-icon><Document /></el-icon>
               <span class="el-upload-list__item-file-name">{{ file.name }}</span>
-              <span class="el-icon--close" @click.stop="handleRemove(file.url!)">
+              <span class="el-icon--close" @click.stop="handleRemove(file)">
                 <el-icon><Close /></el-icon>
               </span>
             </a>
@@ -52,6 +52,7 @@ import FileAPI, { FileInfo } from "@/api/file-api";
 import { createLogger } from "@/utils/logger";
 
 const fileUploadLogger = createLogger("FileUpload");
+type FileModel = Pick<FileInfo, "name" | "url"> & Partial<Pick<FileInfo, "path">>;
 
 const props = defineProps({
   /**
@@ -112,12 +113,14 @@ const props = defineProps({
   },
 });
 const modelValue = defineModel("modelValue", {
-  type: [Array] as PropType<FileInfo[]>,
+  type: [Array] as PropType<FileModel[]>,
   required: true,
   default: () => [],
 });
 
-const fileList = ref([] as UploadFile[]);
+type UploadedFile = UploadFile & { path?: string };
+
+const fileList = ref([] as UploadedFile[]);
 
 // 监听 modelValue 转换用于显示的 fileList
 watch(
@@ -128,9 +131,10 @@ watch(
       return {
         name,
         url: item.url,
+        path: item.path,
         status: "success",
         uid: getUid(),
-      } as UploadFile;
+      } as UploadedFile;
     });
   },
   {
@@ -182,7 +186,7 @@ function handleUpload(options: UploadRequestOptions) {
 /**
  * 上传成功
  */
-const handleSuccess = (response: any, uploadFile: UploadFile, files: UploadFiles) => {
+const handleSuccess = (_response: unknown, _uploadFile: UploadFile, files: UploadFiles) => {
   ElMessage.success("上传成功");
   //只有当状态为success或者fail，代表文件上传全部完成了，失败也算完成
   if (
@@ -191,12 +195,13 @@ const handleSuccess = (response: any, uploadFile: UploadFile, files: UploadFiles
     })
   ) {
     const fileInfos = [] as FileInfo[];
-    files.map((file: UploadFile) => {
+    files.forEach((file: UploadedFile) => {
       if (file.status === "success") {
         //只取携带response的才是刚上传的
-        const res = file.response as FileInfo;
+        const res = file.response as FileInfo | undefined;
         if (res) {
-          fileInfos.push({ name: res.name, url: res.url } as FileInfo);
+          file.path = res.path;
+          fileInfos.push({ name: res.name, url: res.url, path: res.path });
         }
       } else {
         //失败上传 从fileList删掉，不展示
@@ -223,9 +228,16 @@ const handleError = (_error: any) => {
 /**
  * 删除文件
  */
-function handleRemove(fileUrl: string) {
-  FileAPI.delete(fileUrl).then(() => {
-    modelValue.value = modelValue.value.filter((file) => file.url !== fileUrl);
+function handleRemove(file: UploadedFile) {
+  const filePath = file.path ?? modelValue.value.find((item) => item.url === file.url)?.path;
+  if (!filePath) {
+    ElMessage.warning("缺少文件路径，无法删除");
+    return;
+  }
+  FileAPI.delete(filePath).then(() => {
+    modelValue.value = modelValue.value.filter((item) => {
+      return item.path !== filePath && item.url !== file.url;
+    });
   });
 }
 

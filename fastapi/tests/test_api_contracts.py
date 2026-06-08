@@ -1,4 +1,6 @@
 from scripts.api_contracts import (
+    CRITICAL_ENDPOINT_CONTRACTS,
+    assert_endpoint_contract_catalog,
     assert_error_envelope,
     assert_page_payload,
     assert_success_envelope,
@@ -31,3 +33,14 @@ def test_fastapi_page_result_matches_frontend_pagination_contract():
     assert_page_payload(page)
     assert page["list"] == [{"id": 1}]
     assert page["total"] == 1
+
+
+def test_fastapi_critical_endpoint_contract_catalog_matches_route_contracts():
+    assert_endpoint_contract_catalog()
+    contracts = {contract.key: contract for contract in CRITICAL_ENDPOINT_CONTRACTS}
+
+    assert contracts["auth_login"].path == "/api/v1/oauth/login/"
+    assert contracts["users_page"].paginated is True
+    assert contracts["users_page"].permissions == ("system:users:query",)
+    assert contracts["dict_items_page"].permissions == ("system:dictitems:query",)
+    assert contracts["files_upload"].response_fields == ("name", "url", "path")

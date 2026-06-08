@@ -3,7 +3,12 @@ from django.test import RequestFactory
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
-from scripts.api_contracts import assert_error_envelope, assert_success_envelope
+from scripts.api_contracts import (
+    CRITICAL_ENDPOINT_CONTRACTS,
+    assert_endpoint_contract_catalog,
+    assert_error_envelope,
+    assert_success_envelope,
+)
 
 from drf_admin.utils.middleware import ResponseMiddleware
 
@@ -59,3 +64,13 @@ def test_django_wrapped_response_is_idempotent(api_request):
 
     assert_success_envelope(response.data, backend="django")
     assert response.data == wrapped
+
+
+def test_shared_endpoint_contract_catalog_covers_django_system_routes():
+    assert_endpoint_contract_catalog()
+    contracts = {contract.key: contract for contract in CRITICAL_ENDPOINT_CONTRACTS}
+
+    assert contracts["auth_info"].path == "/api/v1/oauth/info/"
+    assert contracts["auth_routes"].path == "/api/v1/oauth/menus/routes/"
+    assert contracts["menus_tree"].permissions == ("system:permissions:query",)
+    assert contracts["dicts_page"].permissions == ("system:dicts:query",)

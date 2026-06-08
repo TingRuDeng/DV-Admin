@@ -30,7 +30,7 @@ const FileAPI = {
   },
 
   /** 删除文件 */
-  delete(filePath?: string) {
+  delete(filePath: string) {
     return request({
       url: "/api/v1/files/",
       method: "delete",
@@ -61,4 +61,5 @@ export default FileAPI;
 export interface FileInfo {
   name: string;
   url: string;
+  path: string;
 }

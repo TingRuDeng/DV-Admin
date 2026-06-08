@@ -3,10 +3,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
+from scripts.api_endpoint_contracts import (
+    CRITICAL_ENDPOINT_CONTRACTS as _CRITICAL_ENDPOINT_CONTRACTS,
+    assert_endpoint_contract_catalog as _assert_endpoint_contract_catalog,
+    iter_critical_endpoint_contracts as _iter_critical_endpoint_contracts,
+)
+
 
 SUCCESS_CODE = 20000
 DJANGO_BACKEND = "django"
 FASTAPI_BACKEND = "fastapi"
+CRITICAL_ENDPOINT_CONTRACTS = _CRITICAL_ENDPOINT_CONTRACTS
 
 
 @dataclass(frozen=True)
@@ -17,6 +24,16 @@ class ApiEnvelope:
     message: str
     data: Any
     errors: Any = None
+
+
+def iter_critical_endpoint_contracts():
+    """返回关键端点契约目录，保留共享契约单一入口。"""
+    return _iter_critical_endpoint_contracts()
+
+
+def assert_endpoint_contract_catalog() -> None:
+    """校验关键端点契约目录，供 Django/FastAPI 测试共同调用。"""
+    _assert_endpoint_contract_catalog()
 
 
 def normalize_api_envelope(payload: Mapping[str, Any]) -> ApiEnvelope:

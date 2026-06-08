@@ -22,7 +22,7 @@ router = APIRouter()
 async def get_dict_item_page(
     request: Request,
     page: int = Query(1, ge=1, description="页码"),
-    page_size: int = Query(10, ge=1, le=100, description="每页数量"),
+    page_size: int = Query(10, alias="pageSize", ge=1, le=100, description="每页数量"),
     dict_id: int | None = Query(None, alias="dict", description="字典ID"),
     label: str | None = Query(None, description="标签"),
     code: str | None = Query(None, alias="dictCode", description="字典编码"),
