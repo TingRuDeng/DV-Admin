@@ -10,6 +10,16 @@ from fastapi import HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from app.core.error_codes import (
+    ACCESS_TOKEN_INVALID_CODE,
+    DUPLICATE_ERROR_CODE,
+    NOT_FOUND_CODE,
+    PERMISSION_DENIED_CODE,
+    RATE_LIMIT_ERROR_CODE,
+    SERVER_ERROR_CODE,
+    VALIDATION_ERROR_CODE,
+)
+
 
 class APIException(HTTPException):
     """
@@ -20,7 +30,7 @@ class APIException(HTTPException):
 
     def __init__(
         self,
-        code: int = 500,
+        code: int = SERVER_ERROR_CODE,
         message: str = "服务器内部错误",
         status_code: int = status.HTTP_200_OK,
         headers: dict[str, Any] | None = None,
@@ -33,7 +43,7 @@ class APIException(HTTPException):
 class AuthenticationError(APIException):
     """认证错误"""
 
-    def __init__(self, message: str = "认证失败", code: int = 40001):
+    def __init__(self, message: str = "认证失败", code: int = ACCESS_TOKEN_INVALID_CODE):
         super().__init__(
             code=code,
             message=message,
@@ -46,7 +56,7 @@ class PermissionDenied(APIException):
 
     def __init__(self, message: str = "权限不足"):
         super().__init__(
-            code=403,
+            code=PERMISSION_DENIED_CODE,
             message=message,
             status_code=status.HTTP_403_FORBIDDEN,
         )
@@ -57,7 +67,7 @@ class NotFound(APIException):
 
     def __init__(self, message: str = "资源不存在"):
         super().__init__(
-            code=404,
+            code=NOT_FOUND_CODE,
             message=message,
             status_code=status.HTTP_404_NOT_FOUND,
         )
@@ -68,7 +78,7 @@ class ValidationError(APIException):
 
     def __init__(self, message: str = "数据验证失败"):
         super().__init__(
-            code=400,
+            code=VALIDATION_ERROR_CODE,
             message=message,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
@@ -79,7 +89,7 @@ class BusinessError(APIException):
 
     def __init__(self, message: str = "业务处理失败"):
         super().__init__(
-            code=400,
+            code=VALIDATION_ERROR_CODE,
             message=message,
             status_code=status.HTTP_200_OK,
         )
@@ -90,7 +100,7 @@ class DuplicateError(APIException):
 
     def __init__(self, message: str = "数据已存在"):
         super().__init__(
-            code=409,
+            code=DUPLICATE_ERROR_CODE,
             message=message,
             status_code=status.HTTP_409_CONFLICT,
         )
@@ -101,7 +111,7 @@ class RateLimitError(APIException):
 
     def __init__(self, message: str = "请求过于频繁，请稍后重试"):
         super().__init__(
-            code=429,
+            code=RATE_LIMIT_ERROR_CODE,
             message=message,
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
         )
@@ -165,7 +175,7 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
-            "code": 500,
+            "code": SERVER_ERROR_CODE,
             "message": "服务器内部错误，请联系管理员",
             "data": None,
         },

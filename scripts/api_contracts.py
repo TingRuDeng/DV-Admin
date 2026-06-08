@@ -8,9 +8,9 @@ from scripts.api_endpoint_contracts import (
     assert_endpoint_contract_catalog as _assert_endpoint_contract_catalog,
     iter_critical_endpoint_contracts as _iter_critical_endpoint_contracts,
 )
+from scripts.api_error_codes import SUCCESS_CODE, assert_known_api_error_code
 
 
-SUCCESS_CODE = 20000
 DJANGO_BACKEND = "django"
 FASTAPI_BACKEND = "fastapi"
 CRITICAL_ENDPOINT_CONTRACTS = _CRITICAL_ENDPOINT_CONTRACTS
@@ -69,6 +69,7 @@ def assert_error_envelope(payload: Mapping[str, Any], backend: str) -> None:
     _assert_backend(backend)
     envelope = normalize_api_envelope(payload)
     assert envelope.code != SUCCESS_CODE
+    assert_known_api_error_code(envelope.code)
     assert envelope.message
 
     if backend == DJANGO_BACKEND:
