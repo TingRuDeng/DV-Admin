@@ -4,13 +4,13 @@
 
 ## 活跃任务
 
-- [x] P1 串行：新增共享错误码契约目录，锁定成功、通用错误、Access Token 失效、Refresh Token 失效等公共语义
-- [x] P2 串行：用前端、Django、FastAPI 契约测试对齐错误码目录，先验证 RED 再实现
-- [x] P3 串行：修正 FastAPI 登录失败错误码，避免误触发前端 access token 刷新分支
-- [x] P4 串行：同步 API 文档、技术债进展和契约校验脚本
-- [x] P5 串行：执行前端、Django、FastAPI 与根目录最小充分验证
+- [x] P1 串行：新增稳定的用户管理核心业务 E2E，覆盖登录、动态路由、用户列表和新增用户闭环
+- [x] P2 串行：用 Playwright route mock 提供认证、动态路由、部门、角色和用户接口数据，避免依赖后端服务
+- [x] P3 串行：将核心业务 E2E 纳入 smoke 脚本和 CI 当前执行范围
+- [x] P4 串行：同步测试覆盖率技术债和任务状态
+- [x] P5 串行：执行前端、根目录验证和 review-gate
 
-并行判断：本轮同时触达共享脚本、前端枚举、Django/FastAPI 契约测试和文档，多个改动围绕同一错误码目录存在顺序依赖；为避免并行写冲突和响应语义漂移，采用串行推进。
+并行判断：本轮主要修改同一组 Playwright E2E 测试与前端 smoke 脚本，mock 状态和页面操作存在顺序依赖；为避免多个用例共享可变模拟数据导致不稳定，采用串行推进。
 
 ## 已完成摘要
 
@@ -62,3 +62,5 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 本轮 Django 用户写接口运行时契约治理已完成：`backend/drf_admin/utils/test_runtime_api_contracts.py` 已覆盖 `users_create/users_update/users_delete`，验证创建成功信封、更新落库和批量删除 `ids` 请求体契约；`scripts/validate_api_contracts.py` 已强制检查这些 Django 写接口运行时测试片段。验证通过：目标运行时契约测试（3 passed）、Django `uv run ruff check .`、Django `uv run pytest`（89 passed）、根目录文档/API/模型/路由组件契约校验、脚本编译和 `git diff --check`。
 
 本轮错误码契约治理已完成：新增 `scripts/api_error_codes.py` 作为共享错误码契约目录，前端、Django、FastAPI 契约测试和 `scripts/validate_api_contracts.py` 已共同锁定 `40000/40001/40002` 的公共语义；FastAPI 登录失败、验证码失败已改为 `40000`，避免误触发前端 Access Token 刷新分支。验证通过：根目录文档/API/模型/路由组件契约校验、脚本编译、前端 `pnpm run quality`（64 files / 169 tests）、前端 `pnpm run build`、前端 `pnpm run test:e2e:smoke`（4 passed，沙箱监听失败后提权重跑通过）、Django `uv run ruff check .`、Django `uv run pytest`（90 passed）、FastAPI `make quality`（515 passed，覆盖率 83.76%）和 `git diff --check`。
+
+本轮用户管理核心业务 E2E 已完成：新增 Playwright smoke 用例，使用显式 route mock 覆盖登录、动态路由、认证信息、部门、角色、用户列表和新增用户接口；`test:e2e:smoke` 已纳入该用例。验证通过：目标 E2E（1 passed）、完整 smoke E2E（5 passed）、前端 `pnpm run quality`（64 files / 170 tests）、前端 `pnpm run build`、根目录文档/API/模型/路由组件契约校验、脚本编译、敏感信息扫描和 `git diff --check`。
