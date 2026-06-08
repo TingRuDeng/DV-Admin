@@ -262,6 +262,7 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 本仓库用以下可执行入口约束共享契约：
 
 - `scripts/api_contracts.py`：跨后端响应与分页断言。
+- `scripts/api_endpoint_contracts.py`：关键端点契约目录，锁定路径、方法、权限、分页和关键字段。
 - `backend/drf_admin/utils/test_response_contract.py`：Django 响应包裹契约测试。
 - `fastapi/tests/test_api_contracts.py`：FastAPI 响应与分页契约测试。
 - `frontend/src/utils/__tests__/api-contract.test.ts`：前端兼容读取契约测试。

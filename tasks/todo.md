@@ -10,8 +10,13 @@
 - [x] P4 串行：同步文件接口文档和契约校验
 - [x] P5 串行：修复本地 Playwright 报告污染前端 quality
 - [x] P6 串行：执行最小充分验证并完成 review gate
+- [x] P1 串行：补 Django/FastAPI 端点契约目录失败测试
+- [x] P2 串行：新增关键端点契约目录并保留共享入口
+- [x] P3 串行：扩展 `scripts/validate_api_contracts.py` 校验证据文件
+- [x] P4 串行：同步 API、架构上下文和任务状态文档
+- [x] P5 串行：执行最小充分验证并完成 review gate
 
-并行判断：本轮改动集中在同一条文件上传 / 删除契约链路，后端返回结构会直接影响前端类型与文档校验；为避免写冲突和契约偏差，采用串行推进。
+并行判断：前两轮改动分别集中在文件上传 / 删除契约链路和双后端关键端点契约目录；两者都会修改 API 文档、契约校验和任务状态，因此在汇总分支中按提交顺序串行整合。
 
 ## 已完成摘要
 
@@ -33,3 +38,7 @@
 FastAPI 依赖锁定治理已完成：`.gitignore` 已显式允许 `fastapi/uv.lock`，锁文件已纳入仓库；`uv lock --check`、`uv sync --locked --group dev`、`make quality`、文档校验、脚本编译和 diff 检查均通过。
 
 本轮文件上传 / 删除契约治理已完成：FastAPI 上传响应新增 `path` 并按 `files/{user_id}` 隔离保存；删除接口改为只接受上传返回的相对路径，并校验目录边界与用户归属；前端文件上传和多图上传删除时改传 `path`，缺少路径时显式提示；文件接口文档、契约校验和 Playwright 报告的 Prettier ignore 治理已同步。验证通过：FastAPI `make quality`（504 passed，覆盖率 81.23%）、前端 `pnpm run quality`（64 files / 165 tests）、前端 `pnpm run build`、文档/API 契约校验和 `git diff --check`。
+
+本轮进入双后端关键端点契约治理：新增 `scripts/api_endpoint_contracts.py` 作为关键端点契约目录，覆盖认证、用户、菜单、字典、字典项和文件接口的路径、方法、权限、分页和关键字段；Django/FastAPI 契约测试已开始共同断言该目录，`scripts/validate_api_contracts.py` 会校验证据文件中的路径、权限和调用片段，避免契约目录脱离真实代码。
+
+双后端关键端点契约治理第一轮已完成：文档校验、API 契约校验、脚本编译、Django/FastAPI 目标契约测试、ruff 和 `git diff --check` 均通过；本轮未启动后端服务做运行时双实现对比，后续如继续推进应以该目录为输入补运行时采样契约测试。

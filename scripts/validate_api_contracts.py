@@ -7,6 +7,7 @@ from typing import Sequence
 
 REQUIRED_FILES = (
     "scripts/api_contracts.py",
+    "scripts/api_endpoint_contracts.py",
     "backend/drf_admin/utils/test_response_contract.py",
     "fastapi/tests/test_api_contracts.py",
     "frontend/src/utils/__tests__/api-contract.test.ts",
@@ -19,18 +20,30 @@ REQUIRED_CONTRACT_FUNCTIONS = (
     "assert_success_envelope",
     "assert_error_envelope",
     "assert_page_payload",
+    "iter_critical_endpoint_contracts",
+    "assert_endpoint_contract_catalog",
 )
 
 REQUIRED_DOC_SNIPPETS = (
     "共享 API 契约验证",
+    "关键端点契约目录",
     "scripts/validate_api_contracts.py",
+    "scripts/api_endpoint_contracts.py",
     "Django 响应中间件统一输出",
     "FastAPI `ResponseModel` 默认输出",
 )
 
 REQUIRED_TEST_SNIPPETS = {
-    "backend/drf_admin/utils/test_response_contract.py": ("assert_success_envelope", "assert_error_envelope"),
-    "fastapi/tests/test_api_contracts.py": ("ResponseModel.success", "PageResult.create"),
+    "backend/drf_admin/utils/test_response_contract.py": (
+        "assert_success_envelope",
+        "assert_error_envelope",
+        "assert_endpoint_contract_catalog",
+    ),
+    "fastapi/tests/test_api_contracts.py": (
+        "ResponseModel.success",
+        "PageResult.create",
+        "assert_endpoint_contract_catalog",
+    ),
     "frontend/src/utils/__tests__/api-contract.test.ts": ("Django", "FastAPI", "list", "total"),
 }
 
@@ -76,6 +89,7 @@ def validate(root: Path) -> list[str]:
         for snippet in snippets:
             if snippet not in text:
                 issues.append(f"{rel}: 缺少契约测试片段 {snippet}")
+
     for rel, snippets in REQUIRED_FILE_ROUTE_SNIPPETS.items():
         text = read_text(root / rel)
         for snippet in snippets:
@@ -86,7 +100,41 @@ def validate(root: Path) -> list[str]:
         for snippet in snippets:
             if snippet in text:
                 issues.append(f"{rel}: 仍包含过期文件接口路径 {snippet}")
+
+    issues.extend(validate_endpoint_contract_evidence(root))
     return issues
+
+
+def validate_endpoint_contract_evidence(root: Path) -> list[str]:
+    """校验关键端点契约目录及其代码/文档证据。"""
+    issues: list[str] = []
+    try:
+        contracts = load_endpoint_contracts(root)
+    except (AssertionError, ImportError) as exc:
+        return [f"scripts/api_endpoint_contracts.py: 端点契约目录无效：{exc}"]
+
+    for contract in contracts:
+        for evidence in contract.evidence:
+            evidence_path = root / evidence.file
+            if not evidence_path.exists():
+                issues.append(f"{contract.key}: 缺少证据文件 {evidence.file}")
+                continue
+            evidence_text = read_text(evidence_path)
+            for snippet in evidence.snippets:
+                if snippet not in evidence_text:
+                    issues.append(f"{contract.key}: {evidence.file} 缺少证据片段 {snippet}")
+    return issues
+
+
+def load_endpoint_contracts(root: Path):
+    """从仓库根目录加载端点契约目录，避免脚本工作目录影响 import。"""
+    root_text = str(root)
+    if root_text not in sys.path:
+        sys.path.insert(0, root_text)
+    from scripts.api_contracts import assert_endpoint_contract_catalog, iter_critical_endpoint_contracts
+
+    assert_endpoint_contract_catalog()
+    return iter_critical_endpoint_contracts()
 
 
 def read_text(path: Path) -> str:

@@ -145,6 +145,7 @@ ai_summary:
 共享契约不是靠字段名已经完全一致来保证，而是靠前端真实依赖的公共语义来约束：
 
 - `scripts/api_contracts.py` 定义成功响应、错误响应和分页载荷的跨后端断言。
+- `scripts/api_endpoint_contracts.py` 定义关键端点契约目录，锁定路径、方法、权限、分页和关键字段。
 - `backend/drf_admin/utils/test_response_contract.py` 覆盖 Django 响应中间件的成功、错误和幂等包裹。
 - `fastapi/tests/test_api_contracts.py` 覆盖 FastAPI `ResponseModel` 与 `PageResult`。
 - `frontend/src/utils/__tests__/api-contract.test.ts` 覆盖前端对 Django `msg/errors` 与 FastAPI `message` 的兼容读取。
