@@ -4,12 +4,11 @@
 
 ## 活跃任务
 
-- [x] P1 串行：新增 `fastapi/tests/test_import_django_model_contracts.py` 补共享模型契约目录缺失的失败测试
-- [x] P2 串行：新增 `scripts/model_contracts.py`，集中声明 Django → FastAPI 模型、表名和字段映射
-- [x] P3 串行：新增 `scripts/validate_model_contracts.py` 并纳入文档/契约验证记录
-- [x] P4 串行：同步模型差异治理记录并执行 FastAPI、文档和根目录验证
+- [x] P1 串行：新增 Django `RBACPermission` 权限边界测试，覆盖有权限、缺权限、无权限声明和白名单放行
+- [x] P2 串行：校验 `UsersViewSet` 自动生成的用户写操作权限码与共享端点契约一致
+- [x] P3 串行：执行 Django 目标测试、Django 门禁和根目录文档/契约验证
 
-并行判断：本轮会触达 FastAPI 导入映射测试、共享模型契约脚本、根目录校验脚本和技术债记录；这些文件围绕同一 Django → FastAPI 模型映射，存在强顺序依赖，为避免契约目录和真实导入脚本错位，采用串行推进。
+并行判断：本轮主要触达 Django 权限工具测试与任务状态记录；测试数据、权限缓存和用户角色关系共享同一 Django 测试数据库状态，采用串行推进，避免并行测试设计造成状态判断噪音。
 
 ## 已完成摘要
 
@@ -55,3 +54,5 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 本轮前端错误响应边界治理已完成：新增 `normalizeApiErrorEnvelope` 统一错误信封，`request.ts` 改为只消费归一化后的错误结果；FastAPI 参数校验明细 `data.errors[].message` 已优先展示，避免只显示泛化错误；前端 API 契约测试和 `scripts/validate_api_contracts.py` 已纳入该入口。验证通过：前端目标测试（11 passed）、`pnpm run quality`（64 files / 168 tests）、`pnpm run build`、Django/FastAPI 契约目标测试（各 6 passed）、文档/API/路由组件契约校验、脚本编译和 `git diff --check`。
 
 本轮 Django/FastAPI 模型差异契约治理已完成：新增 `scripts/model_contracts.py` 集中声明 Django → FastAPI 模型、表名和字段映射；新增 `scripts/validate_model_contracts.py` 并纳入 CI 文档校验阶段；FastAPI 导入契约测试开始对照共享模型契约，权限菜单 `keepAlive/alwaysShow` 映射已显式补齐。验证通过：模型契约校验、FastAPI 导入目标测试（23 passed）、FastAPI `make quality`（513 passed，覆盖率 83.71%）、文档/API/路由组件契约校验、脚本编译和 `git diff --check`。
+
+本轮 Django RBAC 权限边界契约治理已完成：新增 `backend/drf_admin/utils/test_rbac_permission_contract.py`，直接覆盖 `RBACPermission` 有权限放行、缺权限拒绝、无权限声明拒绝、白名单放行，并校验 `UsersViewSet` 自动生成的用户写操作权限码与共享端点契约一致。验证通过：目标测试（5 passed）、Django `uv run ruff check .`、Django `uv run pytest`（88 passed）、根目录文档/API/模型/路由组件契约校验、脚本编译和 `git diff --check`。
