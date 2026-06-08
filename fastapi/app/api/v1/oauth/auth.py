@@ -645,7 +645,7 @@ async def get_current_user_info(
                                         "type": "MENU",
                                         "routeName": "User",
                                         "routePath": "user",
-                                        "component": "/system/user/index",
+                                        "component": "system/user/index",
                                         "sort": 1,
                                         "visible": 1,
                                         "icon": "user",
