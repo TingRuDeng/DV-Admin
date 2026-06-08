@@ -31,4 +31,11 @@ describe("playwright local server governance", () => {
 
     expect(packageJson).toContain("e2e/user-management.spec.ts");
   });
+
+  it("runs smoke E2E serially to avoid login mock races", () => {
+    const packageJson = readProjectFile("../../../package.json");
+
+    expect(packageJson).toContain("test:e2e:smoke");
+    expect(packageJson).toContain("--workers=1");
+  });
 });
