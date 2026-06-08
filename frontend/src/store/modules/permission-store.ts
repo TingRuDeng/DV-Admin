@@ -5,8 +5,21 @@ import router from "@/router";
 
 import AuthAPI, { type RouteVO } from "@/api/auth-api";
 import { normalizeRouteMeta } from "@/utils/route-meta";
-const modules = import.meta.glob("../../views/**/**.vue");
-const Layout = () => import("../../layouts/index.vue");
+
+type DynamicRouteComponent = NonNullable<RouteRecordRaw["component"]>;
+type DynamicViewModules = Record<string, DynamicRouteComponent>;
+
+const modules = import.meta.glob("../../views/**/**.vue") as DynamicViewModules;
+const Layout = (() => import("../../layouts/index.vue")) as DynamicRouteComponent;
+
+/** 解析后端动态路由组件；缺失时抛错，避免错误菜单静默进入 404 页面。 */
+function resolveDynamicRouteComponent(component: string): DynamicRouteComponent {
+  const viewComponent = modules[`../../views/${component}.vue`];
+  if (!viewComponent) {
+    throw new Error(`动态路由组件不存在: ${component}`);
+  }
+  return viewComponent;
+}
 
 export const usePermissionStore = defineStore("permission", () => {
   // 所有路由（静态路由 + 动态路由）
@@ -86,12 +99,9 @@ const transformRoutes = (routes: RouteVO[], isTopLevel: boolean = true): RouteRe
       // 多级菜单的父级菜单，不需要组件
       normalizedRoute.component = undefined;
     } else {
-      // 动态导入组件，Layout特殊处理，找不到组件时返回404
+      // 动态导入组件，组件缺失必须暴露配置错误，不能静默落到 404。
       normalizedRoute.component =
-        processedComponent === "Layout"
-          ? Layout
-          : modules[`../../views/${processedComponent}.vue`] ||
-            modules[`../../views/error/404.vue`];
+        processedComponent === "Layout" ? Layout : resolveDynamicRouteComponent(processedComponent);
     }
 
     // 递归处理子路由
