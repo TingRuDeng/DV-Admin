@@ -5,11 +5,14 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any, Mapping
 
+import pytest_asyncio
 from scripts.api_contracts import (
     assert_page_payload,
     assert_success_envelope,
     iter_critical_endpoint_contracts,
 )
+
+from app.db.models.system import OperationLog
 
 HTTP_OK = 200
 PAGE_SIZE_SAMPLE = 1
@@ -21,6 +24,7 @@ READ_SAMPLE_KEYS = (
     "dicts_page",
     "dict_items_page",
     "notices_page",
+    "logs_page",
 )
 USER_WRITE_SAMPLE_KEYS = ("users_create", "users_update", "users_delete")
 
@@ -73,7 +77,28 @@ def sample_query_params(contract) -> dict[str, Any]:
     return params
 
 
-def test_fastapi_read_runtime_samples_match_endpoint_catalog(auth_client, test_user):
+@pytest_asyncio.fixture
+async def runtime_contract_logs(db):
+    """创建运行时日志样本，用于证明日志分页参数真实生效。"""
+    logs = []
+    for index in range(2):
+        log = await OperationLog.create(
+            user_id=1,
+            username=f"runtime_log_user_{index}",
+            name=f"运行时日志用户{index}",
+            operation=f"运行时日志操作{index}",
+            method="GET",
+            path=f"/api/v1/runtime/logs/{index}",
+            status=1,
+            execution_time=100 + index,
+        )
+        logs.append(log)
+    return logs
+
+
+def test_fastapi_read_runtime_samples_match_endpoint_catalog(
+    auth_client, test_user, runtime_contract_logs
+):
     """关键读接口运行时响应必须满足端点目录声明的信封、分页和字段契约。"""
     contracts = contracts_by_key()
     for key in READ_SAMPLE_KEYS:
@@ -87,6 +112,21 @@ def test_fastapi_read_runtime_samples_match_endpoint_catalog(auth_client, test_u
         contracts["users_page"],
     )
     assert len(users_data["list"]) == PAGE_SIZE_SAMPLE
+
+    logs_data = assert_success_payload(
+        auth_client.get(contracts["logs_page"].path, params={"page": 1, "pageSize": PAGE_SIZE_SAMPLE}),
+        contracts["logs_page"],
+    )
+    assert len(logs_data["list"]) == PAGE_SIZE_SAMPLE
+    assert_log_row_matches_frontend_contract(logs_data["list"][0])
+
+
+def assert_log_row_matches_frontend_contract(log: Mapping[str, Any]) -> None:
+    """验证日志行字段使用前端真实依赖的 camelCase 响应契约。"""
+    assert log["username"].startswith("runtime_log_user_")
+    assert log["operation"].startswith("运行时日志操作")
+    assert log["path"].startswith("/api/v1/runtime/logs/")
+    assert "createdAt" in log
 
 
 def test_fastapi_file_runtime_sample_matches_endpoint_catalog(

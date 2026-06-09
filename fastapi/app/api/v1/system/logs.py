@@ -111,13 +111,13 @@ router = APIRouter()
 async def get_log_page(
     request: Request,
     page: int = Query(1, ge=1, description="页码"),
-    page_size: int = Query(10, ge=1, le=100, description="每页数量"),
+    page_size: int = Query(10, alias="pageSize", ge=1, le=100, description="每页数量"),
     username: str | None = Query(None, description="用户名"),
     operation: str | None = Query(None, description="操作描述"),
     method: str | None = Query(None, description="请求方法"),
     status: int | None = Query(None, description="状态"),
-    start_time: datetime | None = Query(None, description="开始时间"),
-    end_time: datetime | None = Query(None, description="结束时间"),
+    start_time: datetime | None = Query(None, alias="startTime", description="开始时间"),
+    end_time: datetime | None = Query(None, alias="endTime", description="结束时间"),
     current_user: Users = require_permissions("system:logs:query"),
 ):
     data = await log_service.get_page(
