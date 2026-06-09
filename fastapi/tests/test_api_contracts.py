@@ -54,6 +54,8 @@ def test_fastapi_critical_endpoint_contract_catalog_matches_route_contracts():
     assert contracts["notices_page"].permissions == ("system:notices:query",)
     assert contracts["notices_create"].permissions == ("system:notices:add",)
     assert contracts["notices_publish"].permissions == ("system:notices:publish",)
+    assert contracts["logs_page"].path == "/api/v1/system/logs/page"
+    assert contracts["logs_page"].permissions == ("system:logs:query",)
     assert contracts["files_upload"].response_fields == ("name", "url", "path")
 
 

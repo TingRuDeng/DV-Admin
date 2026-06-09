@@ -402,11 +402,17 @@ GET    /api/v1/system/notices/my-page/       # 我的通知
 
 ### 操作日志
 
-**Django & FastAPI：**
+**FastAPI 与前端管理页：**
 ```
-GET /api/v1/system/logs/       # 日志列表
-GET /api/v1/system/logs/stats/ # 访问统计
+GET    /api/v1/system/logs/page                    # 日志分页，支持 page/pageSize/operation/startTime/endTime
+GET    /api/v1/system/logs/visit-trend             # 访问趋势
+GET    /api/v1/system/logs/visit-stats             # 访问统计
+DELETE /api/v1/system/logs/{ids}                   # 删除日志
+DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
 ```
+
+**Django 当前状态：**
+- `backend/drf_admin/apps/system/urls.py` 当前未注册操作日志管理路由。
 
 ---
 
