@@ -20,6 +20,7 @@ READ_SAMPLE_KEYS = (
     "menus_tree",
     "dicts_page",
     "dict_items_page",
+    "notices_page",
 )
 USER_WRITE_SAMPLE_KEYS = ("users_create", "users_update", "users_delete")
 
