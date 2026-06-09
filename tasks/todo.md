@@ -37,7 +37,7 @@
 - [x] P3 串行：执行迁移检查、Django 测试和根目录校验
 - [x] P4 串行：review-gate、提交、PR、CI 和合并
 - [x] P1 串行：RED 补充 GitHub Actions Node 24 runtime 校验，复现缺少 opt-in
-- [x] P2 串行：GREEN 将质量门禁显式切到 Node 24 action runtime
+- [x] P2 串行：GREEN 将质量门禁的 pnpm action 升级到 v6
 - [x] P3 串行：执行文档校验、workflow 校验和 diff 检查
 - [x] P4 串行：review-gate、提交、PR、CI 和合并
 
@@ -136,4 +136,4 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 
 本轮 Django 迁移链跟踪治理已完成本地验证：新增 `scripts/validate_django_migrations.py`，将 `system` 完整迁移链纳入 Git 跟踪，并在 `.gitignore` 和 CI 文档校验阶段显式覆盖全局 ignore 漂移；`docs/DATABASE_SCHEMA.md` 与 `docs/AI_CONTEXT.md` 已同步迁移链校验入口。验证通过：RED 阶段捕获 4 个未跟踪 migration 和 3 条缺失 unignore 规则，GREEN 后迁移链校验、文档/API/模型/路由组件契约校验、脚本编译、Django `makemigrations --check --dry-run`、Django ruff、Django `uv run pytest`（96 passed）、敏感关键词扫描和 `git diff --check`。
 
-本轮 GitHub Actions Node 24 runtime 治理已完成本地验证：质量门禁 workflow 顶层显式设置 `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true`，并由 `scripts/validate_docs.py` 反向校验，避免 CI 继续依赖即将弃用的 Node 20 action runtime。验证通过：RED 阶段文档校验捕获缺少 Node 24 opt-in，GREEN 后文档/API/模型/路由组件/Django 迁移校验、脚本编译、敏感关键词扫描和 `git diff --check` 均通过。
+本轮 GitHub Actions Node 24 runtime 治理已完成本地验证：质量门禁 workflow 将 `pnpm/action-setup` 升级到 v6，并由 `scripts/validate_docs.py` 反向校验，避免 CI 继续依赖目标为 Node 20 的 v4 action。验证通过：RED 阶段文档校验先捕获缺少 Node 24 opt-in，随后捕获仍使用 `pnpm/action-setup@v4`；GREEN 后文档/API/模型/路由组件/Django 迁移校验、脚本编译、敏感关键词扫描和 `git diff --check` 均通过。

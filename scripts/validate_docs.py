@@ -19,7 +19,8 @@ API_CONTRACT_DOC_SNIPPETS = ("共享 API 契约验证", "scripts/validate_api_co
 MODEL_CONTRACT_DOC_SNIPPETS = ("Django Fixture 导入约束", "scripts/model_contracts.py")
 DJANGO_MIGRATION_REQUIRED_FILES = ("scripts/validate_django_migrations.py",)
 DJANGO_MIGRATION_DOC_SNIPPETS = ("Django 迁移链校验", "scripts/validate_django_migrations.py")
-NODE24_ACTION_RUNTIME_SNIPPET = "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true"
+PNPM_ACTION_SETUP_REQUIRED = "pnpm/action-setup@v6"
+PNPM_ACTION_SETUP_FORBIDDEN = "pnpm/action-setup@v4"
 GENERIC_SECTION_VALUES = {
     "tbd", "todo", "n/a", "coming soon", "run tests", "check manually", "follow best practices",
     "use proper architecture", "use clean architecture", "run appropriate tests", "follow conventions",
@@ -82,8 +83,10 @@ def validate_contract_entrypoints(base):
             issues.append(".github/workflows/quality-gates.yml: 未运行模型契约校验")
         if "scripts/validate_django_migrations.py" not in workflow_text:
             issues.append(".github/workflows/quality-gates.yml: 未运行 Django 迁移链校验")
-        if NODE24_ACTION_RUNTIME_SNIPPET not in workflow_text:
-            issues.append(".github/workflows/quality-gates.yml: 未启用 Node 24 action runtime")
+        if PNPM_ACTION_SETUP_REQUIRED not in workflow_text:
+            issues.append(".github/workflows/quality-gates.yml: 未使用 pnpm/action-setup@v6")
+        if PNPM_ACTION_SETUP_FORBIDDEN in workflow_text:
+            issues.append(".github/workflows/quality-gates.yml: 仍使用 pnpm/action-setup@v4")
     return issues
 def validate_authority_docs(base, legacy_docs=()):
     issues = []
