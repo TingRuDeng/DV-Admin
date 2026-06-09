@@ -14,15 +14,27 @@ REQUIRED_FILES = (
     "scripts/api_endpoint_menu_contracts.py",
     "scripts/api_endpoint_notice_contracts.py",
     "scripts/api_endpoint_role_contracts.py",
-    "backend/drf_admin/utils/test_runtime_api_contracts.py",
+    "backend/drf_admin/utils/runtime_api_contracts/helpers.py",
+    "backend/drf_admin/utils/runtime_api_contracts/test_read_contracts.py",
+    "backend/drf_admin/utils/runtime_api_contracts/test_write_contracts.py",
     "backend/drf_admin/utils/test_response_contract.py",
     "fastapi/tests/test_api_contracts.py",
-    "fastapi/tests/test_runtime_api_contracts.py",
+    "fastapi/tests/runtime_api_contracts/helpers.py",
+    "fastapi/tests/runtime_api_contracts/test_read_and_file_contracts.py",
+    "fastapi/tests/runtime_api_contracts/test_write_contracts.py",
     "frontend/src/utils/__tests__/api-contract.test.ts",
     "frontend/src/enums/api/code-enum.ts",
     "backend/drf_admin/apps/system/README.md",
     "docs/API_ENDPOINTS.md",
     "fastapi/app/api/v1/README.md",
+)
+
+MAX_RUNTIME_CONTRACT_TEST_LINES = 300
+RUNTIME_CONTRACT_TEST_PATTERNS = (
+    "backend/drf_admin/utils/test_runtime_api_contracts.py",
+    "backend/drf_admin/utils/runtime_api_contracts/test_*.py",
+    "fastapi/tests/test_runtime_api_contracts.py",
+    "fastapi/tests/runtime_api_contracts/test_*.py",
 )
 
 REQUIRED_CONTRACT_FUNCTIONS = (
@@ -52,15 +64,18 @@ REQUIRED_TEST_SNIPPETS = {
         "assert_api_error_code_catalog",
         "assert_endpoint_contract_catalog",
     ),
-    "backend/drf_admin/utils/test_runtime_api_contracts.py": (
+    "backend/drf_admin/utils/runtime_api_contracts/helpers.py": (
         "iter_critical_endpoint_contracts",
         "assert_success_envelope",
-        "dictCode",
+    ),
+    "backend/drf_admin/utils/runtime_api_contracts/test_read_contracts.py": ("dictCode", "depts_tree"),
+    "backend/drf_admin/utils/runtime_api_contracts/test_write_contracts.py": (
         "test_django_user_write_runtime_samples_match_endpoint_catalog",
         "users_create",
         "users_update",
         "users_delete",
-        "depts_tree",
+        "depts_create",
+        "menus_create",
     ),
     "fastapi/tests/test_api_contracts.py": (
         "ResponseModel.success",
@@ -81,26 +96,23 @@ REQUIRED_TEST_SNIPPETS = {
         "menus_delete",
         "logs_page",
     ),
-    "fastapi/tests/test_runtime_api_contracts.py": (
-        "iter_critical_endpoint_contracts",
+    "fastapi/tests/runtime_api_contracts/helpers.py": ("iter_critical_endpoint_contracts",),
+    "fastapi/tests/runtime_api_contracts/test_read_and_file_contracts.py": ("files_upload", "files_delete", "logs_page"),
+    "fastapi/tests/runtime_api_contracts/test_write_contracts.py": (
         "test_fastapi_user_write_runtime_samples_match_endpoint_catalog",
         "users_create",
         "users_update",
         "users_delete",
-        "notices_page",
-        "roles_page",
         "roles_create",
         "roles_update",
         "roles_delete",
         "roles_menu_assign",
-        "depts_tree",
         "depts_create",
         "depts_update",
         "depts_delete",
         "menus_create",
         "menus_update",
         "menus_delete",
-        "logs_page",
     ),
     "frontend/src/utils/__tests__/api-contract.test.ts": (
         "Django",
@@ -176,7 +188,28 @@ def validate(root: Path) -> list[str]:
 
     issues.extend(validate_endpoint_contract_evidence(root))
     issues.extend(validate_error_code_contract(root))
+    issues.extend(validate_runtime_contract_test_size(root))
     return issues
+
+
+def validate_runtime_contract_test_size(root: Path) -> list[str]:
+    """校验运行时契约测试文件保持小文件，避免后续契约扩面再次堆成大文件。"""
+    issues: list[str] = []
+    for rel in iter_runtime_contract_test_files(root):
+        line_count = len(read_text(root / rel).splitlines())
+        if line_count > MAX_RUNTIME_CONTRACT_TEST_LINES:
+            issues.append(
+                f"{rel}: 运行时契约测试文件 {line_count} 行，超过 {MAX_RUNTIME_CONTRACT_TEST_LINES} 行上限"
+            )
+    return issues
+
+
+def iter_runtime_contract_test_files(root: Path) -> list[str]:
+    """返回现有运行时契约测试文件，兼容拆分前后的文件布局。"""
+    files: list[str] = []
+    for pattern in RUNTIME_CONTRACT_TEST_PATTERNS:
+        files.extend(sorted(path.relative_to(root).as_posix() for path in root.glob(pattern)))
+    return files
 
 
 def validate_endpoint_contract_evidence(root: Path) -> list[str]:
