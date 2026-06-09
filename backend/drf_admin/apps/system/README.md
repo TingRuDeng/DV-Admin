@@ -104,7 +104,7 @@ system/
 | `/api/v1/system/roles/` | GET, POST | 角色列表/创建 |
 | `/api/v1/system/roles/{id}/menus/` | PUT | 分配角色菜单权限 |
 | `/api/v1/system/menus/` | GET, POST | 菜单列表/创建 |
-| `/api/v1/system/depts/` | GET, POST | 部门树/创建 |
+| `/api/v1/system/departments/` | GET, POST | 部门树/创建 |
 | `/api/v1/system/dicts/` | GET, POST | 字典类型列表/创建 |
 | `/api/v1/system/dict-items/` | GET, POST | 字典项列表/创建 |
 | `/api/v1/system/notices/` | GET, POST | 通知列表/创建 |
