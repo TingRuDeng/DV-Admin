@@ -29,6 +29,8 @@ USER_WRITE_SAMPLE_KEYS = ("users_create", "users_update", "users_delete")
 ROLE_WRITE_SAMPLE_KEYS = ("roles_create", "roles_update", "roles_delete", "roles_menu_assign")
 DEPT_WRITE_SAMPLE_KEYS = ("depts_create", "depts_update", "depts_delete")
 MENU_WRITE_SAMPLE_KEYS = ("menus_create", "menus_update", "menus_delete")
+DICT_WRITE_SAMPLE_KEYS = ("dicts_create", "dicts_update", "dicts_delete")
+DICT_ITEM_WRITE_SAMPLE_KEYS = ("dict_items_create", "dict_items_update", "dict_items_delete")
 
 
 @dataclass(frozen=True)
@@ -94,4 +96,3 @@ def sample_query_params(contract) -> dict[str, Any]:
     if "pageSize" in contract.query_params:
         params["pageSize"] = PAGE_SIZE_SAMPLE
     return params
-
