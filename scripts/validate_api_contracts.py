@@ -57,6 +57,7 @@ REQUIRED_TEST_SNIPPETS = {
         "users_create",
         "users_update",
         "users_delete",
+        "depts_tree",
     ),
     "fastapi/tests/test_api_contracts.py": (
         "ResponseModel.success",
@@ -67,6 +68,7 @@ REQUIRED_TEST_SNIPPETS = {
         "notices_create",
         "notices_publish",
         "roles_page",
+        "depts_tree",
         "logs_page",
     ),
     "fastapi/tests/test_runtime_api_contracts.py": (
@@ -77,6 +79,7 @@ REQUIRED_TEST_SNIPPETS = {
         "users_delete",
         "notices_page",
         "roles_page",
+        "depts_tree",
         "logs_page",
     ),
     "frontend/src/utils/__tests__/api-contract.test.ts": (
