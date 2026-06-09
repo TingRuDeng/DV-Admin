@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 
-from drf_admin.apps.system.models import Roles
+from drf_admin.apps.system.models import Permissions, Roles
 from drf_admin.apps.system.serializers.roles import (
+    RolesMenuAssignSerializer,
     RolesOptionsSerializer,
     RolesPartialSerializer,
     RolesSerializer,
@@ -53,6 +56,12 @@ class RolesViewSet(AdminViewSet):
 
     # ordering_fields = ('id', 'name')
 
+    @staticmethod
+    def get_action_permission_mapping():
+        """将角色权限分配动作映射到角色编辑权限。"""
+        mapping = AdminViewSet.get_action_permission_mapping()
+        return {**mapping, 'assign_menus': 'edit'}
+
     def get_serializer_class(self):
         if self.action == 'partial_update':
             return RolesPartialSerializer
@@ -84,6 +93,20 @@ class RolesViewSet(AdminViewSet):
         except Roles.DoesNotExist:
             pass
         return super().multiple_delete(request, *args, **kwargs)
+
+    @action(detail=True, methods=['put'], url_path='menus')
+    def assign_menus(self, request, *args, **kwargs):
+        """分配角色菜单权限"""
+        serializer = RolesMenuAssignSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        menu_ids = serializer.validated_data['menu_ids']
+        permissions = Permissions.objects.filter(id__in=menu_ids)
+        if permissions.count() != len(set(menu_ids)):
+            raise ValidationError({'menuIds': '权限不存在'})
+
+        role = self.get_object()
+        role.permissions.set(permissions)
+        return Response(data=list(role.permissions.values_list('id', flat=True)))
 
 
 class RolesOptionsViewSet(AutoPermissionAPIView, ListAPIView):

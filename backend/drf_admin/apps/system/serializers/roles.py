@@ -39,6 +39,13 @@ class RolesPartialSerializer(serializers.ModelSerializer):
     #     return attrs
 
 
+class RolesMenuAssignSerializer(serializers.Serializer):
+    """
+    角色菜单权限分配序列化器
+    """
+    menu_ids = serializers.ListField(child=serializers.IntegerField(min_value=1), allow_empty=True)
+
+
 class RolesOptionsSerializer(OptionsSerializer):
     """
     角色数据序列化器(Options类型)

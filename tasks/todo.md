@@ -7,9 +7,13 @@
 - [x] P1 串行：RED 补充部门树关键端点目录测试，复现缺少 `depts_tree`
 - [x] P2 串行：GREEN 将部门树纳入共享端点目录和双后端运行时抽样
 - [x] P3 串行：执行 Django/FastAPI 契约测试、质量门禁和根目录校验
+- [x] P4 串行：review-gate、提交、PR、CI 和合并
+- [x] P1 串行：RED 补充角色写接口和权限分配运行时契约，复现缺少 `roles_menu_assign`
+- [x] P2 串行：GREEN 拆分角色端点契约模块，并补 Django/FastAPI 权限分配接口
+- [x] P3 串行：执行双后端契约测试、质量门禁和文档/API 校验
 - [ ] P4 串行：review-gate、提交、PR、CI 和合并
 
-并行判断：本轮只处理部门树关键 API 契约目录和对应运行时抽样，变更涉及共享目录与两套后端测试，需要统一串行整合；不启用 subagent。
+并行判断：本轮只处理角色写接口运行时契约和权限分配端点，变更涉及共享目录、Django/FastAPI 路由和双后端测试，需要统一串行整合；不启用 subagent。
 
 ## 已完成摘要
 
@@ -95,3 +99,5 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 本轮角色分页关键 API 契约治理已完成本地验证：`scripts/api_endpoint_contracts.py` 已纳入 `roles_page`，FastAPI 角色分页已显式接受前端 `pageSize` 参数，运行时抽样测试会创建 2 个角色并断言 `pageSize=1` 真实生效；`scripts/validate_api_contracts.py` 已锁定角色分页契约测试片段。验证通过：RED 阶段目标测试捕获 `KeyError: 'roles_page'`，GREEN 后 FastAPI 目标契约测试（8 passed）、API/文档校验、脚本编译、Django 契约目标测试（8 passed）、Django ruff、Django `uv run pytest`（90 passed）、FastAPI `make quality`（516 passed，覆盖率 83.97%）和 `git diff --check`。
 
 本轮部门 E2E 登录 bootstrap 稳定性治理已完成本地验证：远端 CI 曾在 `dept-management.spec.ts` 首次运行时停留 `/login?redirect=%2Fsystem%2Fdepartments` 后重试通过；本轮为部门 smoke 登录后显式等待登录、用户信息和动态路由响应，再断言目标 URL，并新增治理测试锁定该等待边界。验证通过：RED 阶段治理测试捕获缺少 `waitForDepartmentLoginBootstrap`，GREEN 后治理测试（6 passed）、部门 E2E 重复 10 次（10 passed）、部门 E2E 复核 3 次（3 passed）、前端 `pnpm run quality`（64 files / 172 tests）、前端 `pnpm run test:e2e:smoke`（14 passed）、前端 `pnpm run build`、文档校验和 `git diff --check`。
+
+本轮部门树关键 API 契约治理已通过 PR #116 合并：共享端点目录新增 `depts_tree`，Django/FastAPI 运行时抽样已覆盖部门树 `search/status`，FastAPI 部门树接口已真实应用前端查询参数；远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过，合并提交为 `5d8c361`。
