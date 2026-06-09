@@ -35,6 +35,7 @@ describe("playwright local server governance", () => {
     expect(packageJson).toContain("e2e/file-upload-delete.spec.ts");
     expect(packageJson).toContain("e2e/dept-management.spec.ts");
     expect(packageJson).toContain("e2e/dict-management.spec.ts");
+    expect(packageJson).toContain("e2e/dict-item-management.spec.ts");
   });
 
   it("runs smoke E2E serially to avoid login mock races", () => {
