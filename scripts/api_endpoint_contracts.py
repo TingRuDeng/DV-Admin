@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from scripts.api_endpoint_contract_types import ContractEvidence, EndpointContract
+from scripts.api_endpoint_dept_contracts import DEPT_ENDPOINT_CONTRACTS
 from scripts.api_endpoint_notice_contracts import NOTICE_ENDPOINT_CONTRACTS
 from scripts.api_endpoint_role_contracts import ROLE_ENDPOINT_CONTRACTS
 
@@ -21,6 +22,9 @@ REQUIRED_ENDPOINT_KEYS = {
     "roles_menu_ids",
     "roles_menu_assign",
     "depts_tree",
+    "depts_create",
+    "depts_update",
+    "depts_delete",
     "menus_tree",
     "dicts_page",
     "dict_items_page",
@@ -131,28 +135,7 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         ),
     ),
     *ROLE_ENDPOINT_CONTRACTS,
-    EndpointContract(
-        key="depts_tree",
-        method="GET",
-        path="/api/v1/system/departments/",
-        auth_required=True,
-        query_params=("search", "status"),
-        response_fields=("id", "name", "status"),
-        permissions=("system:departments:query",),
-        evidence=(
-            ContractEvidence("backend/drf_admin/apps/system/urls.py", ("departments", "DepartmentsViewSet")),
-            ContractEvidence(
-                "backend/drf_admin/apps/system/views/departments.py",
-                ("DepartmentsViewSet", "search_fields", "filterset_fields"),
-            ),
-            ContractEvidence(
-                "fastapi/app/api/v1/system/depts.py",
-                ("/", "system:departments:query", "search", "status"),
-            ),
-            ContractEvidence("frontend/src/api/system/dept-api.ts", ("getList", "/api/system/departments")),
-            ContractEvidence("docs/API_ENDPOINTS.md", ("GET    /api/v1/system/departments/",)),
-        ),
-    ),
+    *DEPT_ENDPOINT_CONTRACTS,
     EndpointContract(
         key="menus_tree",
         method="GET",
