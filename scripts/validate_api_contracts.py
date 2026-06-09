@@ -66,6 +66,7 @@ REQUIRED_TEST_SNIPPETS = {
         "notices_page",
         "notices_create",
         "notices_publish",
+        "roles_page",
         "logs_page",
     ),
     "fastapi/tests/test_runtime_api_contracts.py": (
@@ -75,6 +76,7 @@ REQUIRED_TEST_SNIPPETS = {
         "users_update",
         "users_delete",
         "notices_page",
+        "roles_page",
         "logs_page",
     ),
     "frontend/src/utils/__tests__/api-contract.test.ts": (
