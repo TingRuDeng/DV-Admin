@@ -39,7 +39,7 @@
       <template #actions>
         <div class="ff-button-group">
           <el-button
-            v-hasPerm="['sys:notice:add']"
+            v-hasPerm="['system:notices:add']"
             type="primary"
             icon="plus"
             class="ff-button-primary"
@@ -48,7 +48,7 @@
             新增通知
           </el-button>
           <el-button
-            v-hasPerm="['sys:notice:delete']"
+            v-hasPerm="['system:notices:delete']"
             type="danger"
             plain
             :disabled="selectIds.length === 0"
@@ -145,7 +145,7 @@
             <el-button type="primary" link @click="openDetailDialog(scope.row.id)">查看</el-button>
             <el-button
               v-if="scope.row.publishStatus != 1"
-              v-hasPerm="['sys:notice:publish']"
+              v-hasPerm="['system:notices:publish']"
               type="primary"
               link
               @click="handlePublish(scope.row.id)"
@@ -154,7 +154,7 @@
             </el-button>
             <el-button
               v-if="scope.row.publishStatus == 1"
-              v-hasPerm="['sys:notice:revoke']"
+              v-hasPerm="['system:notices:revoke']"
               type="primary"
               link
               @click="handleRevoke(scope.row.id)"
@@ -163,7 +163,7 @@
             </el-button>
             <el-button
               v-if="scope.row.publishStatus != 1"
-              v-hasPerm="['sys:notice:edit']"
+              v-hasPerm="['system:notices:edit']"
               type="primary"
               link
               icon="edit"
@@ -173,7 +173,7 @@
             </el-button>
             <el-button
               v-if="scope.row.publishStatus != 1"
-              v-hasPerm="['sys:notice:delete']"
+              v-hasPerm="['system:notices:delete']"
               type="danger"
               link
               icon="delete"
