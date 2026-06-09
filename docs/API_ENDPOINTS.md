@@ -377,8 +377,14 @@ DELETE /api/v1/system/menus/{id}/     # 删除
 ```
 GET    /api/v1/system/dicts/          # 字典类型列表
 POST   /api/v1/system/dicts/          # 创建字典类型
+GET    /api/v1/system/dicts/{id}/     # 字典类型详情
+PUT    /api/v1/system/dicts/{id}/     # 更新字典类型
+DELETE /api/v1/system/dicts/          # 批量删除字典类型，请求体 ids
 GET    /api/v1/system/dict-items/     # 字典项列表
 POST   /api/v1/system/dict-items/     # 创建字典项
+GET    /api/v1/system/dict-items/{id}/ # 字典项详情
+PUT    /api/v1/system/dict-items/{id}/ # 更新字典项
+DELETE /api/v1/system/dict-items/     # 批量删除字典项，请求体 ids
 ```
 
 ---

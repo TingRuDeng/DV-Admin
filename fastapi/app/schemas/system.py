@@ -7,7 +7,7 @@
 from datetime import datetime
 from typing import Any, List
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 
 from app.schemas.base import BaseSchema, TimestampSchema
 
@@ -369,9 +369,18 @@ class DictDataBase(BaseSchema):
     """字典类型基础信息"""
 
     name: str = Field(description="字典名称")
-    code: str = Field(description="字典编码")
+    code: str = Field(
+        description="字典编码",
+        validation_alias=AliasChoices("dictCode", "code"),
+        serialization_alias="dictCode",
+    )
     status: int = Field(default=1, description="状态")
-    desc: str | None = Field(default=None, description="描述")
+    desc: str | None = Field(
+        default=None,
+        description="描述",
+        validation_alias=AliasChoices("remark", "desc"),
+        serialization_alias="remark",
+    )
 
 
 class DictDataCreate(DictDataBase):
@@ -383,18 +392,28 @@ class DictDataUpdate(BaseSchema):
     """更新字典类型请求"""
 
     name: str | None = Field(default=None, description="字典名称")
-    code: str | None = Field(default=None, description="字典编码")
+    code: str | None = Field(
+        default=None,
+        description="字典编码",
+        validation_alias=AliasChoices("dictCode", "code"),
+        serialization_alias="dictCode",
+    )
     status: int | None = Field(default=None, description="状态")
-    desc: str | None = Field(default=None, description="描述")
+    desc: str | None = Field(
+        default=None,
+        description="描述",
+        validation_alias=AliasChoices("remark", "desc"),
+        serialization_alias="remark",
+    )
 
 
 class DictDataOut(TimestampSchema):
     """字典类型响应数据"""
 
     name: str = Field(description="字典名称")
-    code: str = Field(description="字典编码")
+    code: str = Field(description="字典编码", serialization_alias="dictCode")
     status: int = Field(default=1, description="状态")
-    desc: str | None = Field(default=None, description="描述")
+    desc: str | None = Field(default=None, description="描述", serialization_alias="remark")
 
 
 class DictItemBase(BaseSchema):
@@ -405,13 +424,17 @@ class DictItemBase(BaseSchema):
     sort: int = Field(default=0, description="排序")
     status: int = Field(default=1, description="状态")
     is_default: bool = Field(default=False, description="是否默认")
-    remark: str | None = Field(default=None, description="备注")
+    remark: str = Field(default="", description="备注")
 
 
 class DictItemCreate(DictItemBase):
     """创建字典项请求"""
 
-    dict_data_id: int = Field(description="字典类型ID")
+    dict_data_id: int = Field(
+        description="字典类型ID",
+        validation_alias=AliasChoices("dict", "dictDataId", "dict_data_id"),
+        serialization_alias="dict",
+    )
 
 
 class DictItemUpdate(BaseSchema):
@@ -434,7 +457,7 @@ class DictItemOut(TimestampSchema):
     status: int = Field(default=1, description="状态")
     is_default: bool = Field(default=False, description="是否默认")
     remark: str | None = Field(default=None, description="备注")
-    dict_data_id: int = Field(description="字典类型ID")
+    dict_data_id: int = Field(description="字典类型ID", serialization_alias="dict")
 
 
 class DictWithItems(DictDataOut):
