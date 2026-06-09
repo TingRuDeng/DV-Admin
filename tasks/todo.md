@@ -4,13 +4,13 @@
 
 ## 活跃任务
 
-- [x] P1 串行：RED 更新 Playwright 治理测试，要求 smoke 覆盖菜单管理 E2E
-- [x] P2 串行：新增菜单管理仅查询权限 E2E，验证菜单写操作按钮被现有 `v-hasPerm` 移除
-- [x] P3 串行：将菜单管理 E2E 纳入 smoke 脚本，并确认治理测试转绿
+- [x] P1 串行：RED 更新 Playwright 治理测试，要求 smoke 覆盖文件上传 / 删除 E2E
+- [x] P2 串行：新增文件上传 / 删除 E2E，使用动态路由 mock 进入 demo 上传页并验证删除使用上传返回的 `path`
+- [x] P3 串行：将文件上传 / 删除 E2E 纳入 smoke 脚本，并确认治理测试转绿
 - [x] P4 串行：执行目标 E2E、完整 smoke、前端质量和根目录必要校验
 - [ ] P5 串行：同步任务状态、review-gate、提交、PR、CI 和合并
 
-并行判断：本轮涉及治理测试、菜单 E2E 和 smoke 脚本三处顺序依赖；为保证 RED/GREEN 证据清晰，采用串行推进。
+并行判断：本轮涉及治理测试、文件 E2E 和 smoke 脚本三处顺序依赖，且会连续修改 `frontend/package.json` 与 Playwright 治理测试；为保证 RED/GREEN 证据清晰，采用串行推进，不启用 subagent。
 
 ## 已完成摘要
 
@@ -72,3 +72,5 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 本轮角色管理权限链路 E2E 已完成：`frontend/e2e/role-management.spec.ts` 新增仅查询权限场景，RED 阶段确认 `新增角色` 仍可见；随后 `frontend/src/views/system/role/index.vue` 为新增、批量删除、分配权限、编辑、删除接入现有 `system:roles:*` 按钮权限码。`test:e2e:smoke` 已纳入角色管理用例，并由 Playwright 治理测试锁定。验证通过：目标 E2E（1 passed）、完整 smoke（7 passed）、前端 `pnpm run quality`（64 files / 171 tests）、前端 `pnpm run build`、文档/API/模型/路由组件契约校验、脚本编译、敏感信息扫描和 `git diff --check`。
 
 本轮菜单管理权限链路 E2E 已完成：`frontend/e2e/menu-management.spec.ts` 新增仅查询权限场景，验证用户可进入动态路由页面但新增菜单、新增、编辑、删除按钮会被既有 `v-hasPerm` 移除；`test:e2e:smoke` 已纳入菜单管理用例，并由 Playwright 治理测试锁定。验证通过：RED 阶段治理测试因缺少 `e2e/menu-management.spec.ts` 失败，目标 E2E（1 passed）、完整 smoke（8 passed）、前端 `pnpm run quality`（64 files / 171 tests）、前端 `pnpm run build`、文档/API/模型/路由组件契约校验、脚本编译、敏感信息扫描和 `git diff --check`。
+
+本轮文件上传 / 删除链路 E2E 已完成：`frontend/e2e/file-upload-delete.spec.ts` 新增浏览器级 smoke，用动态路由 mock 进入 demo 上传页，验证文件上传成功后删除请求使用后端返回的相对 `path`；`test:e2e:smoke` 已纳入该用例，并由 Playwright 治理测试锁定。验证通过：RED 阶段治理测试因缺少 `e2e/file-upload-delete.spec.ts` 失败，目标 E2E（1 passed）、完整 smoke（9 passed）、前端 `pnpm run quality`（64 files / 171 tests）、前端 `pnpm run build`、文档/API/模型/路由组件契约校验、脚本编译、敏感信息扫描和 `git diff --check`。
