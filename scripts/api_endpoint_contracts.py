@@ -13,6 +13,7 @@ REQUIRED_ENDPOINT_KEYS = {
     "users_create",
     "users_update",
     "users_delete",
+    "roles_page",
     "menus_tree",
     "dicts_page",
     "dict_items_page",
@@ -120,6 +121,25 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("users", "UsersViewSet")),
             ContractEvidence("fastapi/app/api/v1/system/users.py", ("@router.delete", "system:users:delete")),
             ContractEvidence("frontend/src/api/system/user-api.ts", ("deleteByIds", 'method: "delete"')),
+        ),
+    ),
+    EndpointContract(
+        key="roles_page",
+        method="GET",
+        path="/api/v1/system/roles/",
+        auth_required=True,
+        query_params=("page", "pageSize", "search"),
+        response_fields=("list", "total"),
+        permissions=("system:roles:query",),
+        paginated=True,
+        evidence=(
+            ContractEvidence("backend/drf_admin/apps/system/urls.py", ("roles", "RolesViewSet")),
+            ContractEvidence(
+                "fastapi/app/api/v1/system/roles.py",
+                ("/", "system:roles:query", 'alias="pageSize"'),
+            ),
+            ContractEvidence("frontend/src/api/system/role-api.ts", ("getPage", "/api/system/roles")),
+            ContractEvidence("docs/API_ENDPOINTS.md", ("GET    /api/v1/system/roles/",)),
         ),
     ),
     EndpointContract(
