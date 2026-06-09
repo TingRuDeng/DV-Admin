@@ -28,34 +28,34 @@ const LogAPI = {
 export default LogAPI;
 
 export interface LogPageQuery extends PageQuery {
-  /** 搜索关键字 */
-  keywords?: string;
-  /** 操作时间 */
-  createTime?: [string, string];
+  /** 操作描述 */
+  operation?: string;
+  /** 开始时间 */
+  startTime?: string;
+  /** 结束时间 */
+  endTime?: string;
 }
 export interface LogPageVO {
   /** 主键 */
-  id: string;
-  /** 日志模块 */
-  module: string;
+  id: number;
+  /** 操作时间 */
+  createdAt: string;
+  /** 操作人 */
+  username: string;
   /** 日志内容 */
-  content: string;
+  operation: string;
   /** 请求路径 */
-  requestUri: string;
+  path: string;
   /** 请求方法 */
   method: string;
   /** IP 地址 */
   ip: string;
-  /** 地区 */
-  region: string;
   /** 浏览器 */
   browser: string;
   /** 终端系统 */
   os: string;
   /** 执行时间(毫秒) */
   executionTime: number;
-  /** 操作人 */
-  operator: string;
 }
 export interface VisitTrendVO {
   /** 日期列表 */
