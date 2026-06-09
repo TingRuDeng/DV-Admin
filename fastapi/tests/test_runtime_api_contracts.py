@@ -1,5 +1,6 @@
 """基于关键端点目录的 FastAPI 运行时契约抽样测试。"""
 
+import uuid
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
@@ -12,7 +13,7 @@ from scripts.api_contracts import (
     iter_critical_endpoint_contracts,
 )
 
-from app.db.models.system import OperationLog
+from app.db.models.system import OperationLog, Roles
 
 HTTP_OK = 200
 PAGE_SIZE_SAMPLE = 1
@@ -20,6 +21,7 @@ READ_SAMPLE_KEYS = (
     "auth_info",
     "auth_routes",
     "users_page",
+    "roles_page",
     "menus_tree",
     "dicts_page",
     "dict_items_page",
@@ -96,8 +98,24 @@ async def runtime_contract_logs(db):
     return logs
 
 
+@pytest_asyncio.fixture
+async def runtime_contract_roles(db):
+    """创建运行时角色样本，用于证明角色分页参数真实生效。"""
+    roles = []
+    role_suffix = uuid.uuid4().hex[:6]
+    for index in range(2):
+        role = await Roles.create(
+            name=f"运行时角色{index}_{role_suffix}",
+            code=f"runtime_role_{index}_{role_suffix}",
+            status=1,
+            sort=index + 10,
+        )
+        roles.append(role)
+    return roles
+
+
 def test_fastapi_read_runtime_samples_match_endpoint_catalog(
-    auth_client, test_user, runtime_contract_logs
+    auth_client, test_user, runtime_contract_logs, runtime_contract_roles
 ):
     """关键读接口运行时响应必须满足端点目录声明的信封、分页和字段契约。"""
     contracts = contracts_by_key()
@@ -112,6 +130,12 @@ def test_fastapi_read_runtime_samples_match_endpoint_catalog(
         contracts["users_page"],
     )
     assert len(users_data["list"]) == PAGE_SIZE_SAMPLE
+
+    roles_data = assert_success_payload(
+        auth_client.get(contracts["roles_page"].path, params={"page": 1, "pageSize": PAGE_SIZE_SAMPLE}),
+        contracts["roles_page"],
+    )
+    assert len(roles_data["list"]) == PAGE_SIZE_SAMPLE
 
     logs_data = assert_success_payload(
         auth_client.get(contracts["logs_page"].path, params={"page": 1, "pageSize": PAGE_SIZE_SAMPLE}),
