@@ -13,7 +13,7 @@ from scripts.api_contracts import (
     iter_critical_endpoint_contracts,
 )
 
-from app.db.models.system import Departments, OperationLog, Roles
+from app.db.models.system import Departments, OperationLog, Permissions, Roles
 
 HTTP_OK = 200
 PAGE_SIZE_SAMPLE = 1
@@ -30,6 +30,7 @@ READ_SAMPLE_KEYS = (
     "logs_page",
 )
 USER_WRITE_SAMPLE_KEYS = ("users_create", "users_update", "users_delete")
+ROLE_WRITE_SAMPLE_KEYS = ("roles_create", "roles_update", "roles_delete", "roles_menu_assign")
 
 
 @dataclass(frozen=True)
@@ -41,6 +42,15 @@ class UserWriteContext:
     role_id: int
     role_name: str
     dept_id: int
+
+
+@dataclass(frozen=True)
+class RoleWriteContext:
+    """角色写接口运行时契约所需上下文。"""
+
+    client: Any
+    contracts: dict[str, Any]
+    permission_id: int
 
 
 def contracts_by_key() -> dict[str, Any]:
@@ -122,6 +132,18 @@ async def runtime_contract_departments(db):
     visible = await Departments.create(name=f"运行时契约部门_{suffix}", status=1, sort=1)
     await Departments.create(name=f"运行时过滤部门_{suffix}", status=0, sort=2)
     return visible
+
+
+@pytest_asyncio.fixture
+async def runtime_contract_permission(db):
+    """创建运行时权限样本，用于证明角色权限分配真实落库。"""
+    suffix = uuid.uuid4().hex[:6]
+    return await Permissions.create(
+        name=f"运行时角色权限_{suffix}",
+        type="MENU",
+        perm=f"runtime:role:{suffix}",
+        sort=30,
+    )
 
 
 def test_fastapi_read_runtime_samples_match_endpoint_catalog(
@@ -219,6 +241,77 @@ def test_fastapi_user_write_runtime_samples_match_endpoint_catalog(auth_client, 
     created_user_id = assert_user_create_contract(context)
     assert_user_update_contract(context, created_user_id)
     assert_user_delete_contract(context, created_user_id)
+
+
+def test_fastapi_role_write_runtime_samples_match_endpoint_catalog(auth_client, runtime_contract_permission):
+    """角色写接口运行时响应必须满足端点目录声明的前端请求契约。"""
+    context = RoleWriteContext(
+        client=auth_client,
+        contracts=contracts_by_key(),
+        permission_id=runtime_contract_permission.id,
+    )
+    assert all(key in context.contracts for key in ROLE_WRITE_SAMPLE_KEYS)
+
+    created_role_id = assert_role_create_contract(context)
+    assert_role_update_contract(context, created_role_id)
+    assert_role_menu_assign_contract(context, created_role_id)
+    assert_role_delete_contract(context, created_role_id)
+
+
+def assert_role_create_contract(context: RoleWriteContext) -> int:
+    """验证角色创建接口接受前端角色表单请求体，并返回成功信封。"""
+    contract = context.contracts["roles_create"]
+    response = context.client.post(
+        contract.path,
+        json={
+            "name": "运行时 FastAPI 角色",
+            "code": "runtime_fastapi_role",
+            "status": 1,
+            "sort": 20,
+            "isDefault": 0,
+            "desc": "运行时角色写接口契约",
+        },
+    )
+    data = assert_success_payload(response, contract)
+    assert data["name"] == "运行时 FastAPI 角色"
+    assert data["code"] == "runtime_fastapi_role"
+    return data["id"]
+
+
+def assert_role_update_contract(context: RoleWriteContext, role_id: int) -> None:
+    """验证角色更新接口接受共享契约路径，并返回更新后的关键字段。"""
+    contract = context.contracts["roles_update"]
+    response = context.client.put(
+        contract.path.replace("{id}", str(role_id)),
+        json={"name": "运行时 FastAPI 角色已更新", "status": 1, "sort": 21},
+    )
+    data = assert_success_payload(response, contract)
+    assert data["name"] == "运行时 FastAPI 角色已更新"
+    assert data["sort"] == 21
+
+
+def assert_role_menu_assign_contract(context: RoleWriteContext, role_id: int) -> None:
+    """验证角色权限分配接口接受前端 menuIds 请求体，并真实更新角色权限。"""
+    contract = context.contracts["roles_menu_assign"]
+    response = context.client.put(
+        contract.path.replace("{id}", str(role_id)),
+        json={"menuIds": [context.permission_id]},
+    )
+    data = assert_success_payload(response, contract)
+    assert data == [context.permission_id]
+
+    menu_ids_data = assert_success_payload(
+        context.client.get(context.contracts["roles_menu_ids"].path.replace("{id}", str(role_id))),
+        context.contracts["roles_menu_ids"],
+    )
+    assert menu_ids_data == [context.permission_id]
+
+
+def assert_role_delete_contract(context: RoleWriteContext, role_id: int) -> None:
+    """验证角色批量删除接口接受共享契约声明的 ids 请求体。"""
+    contract = context.contracts["roles_delete"]
+    response = context.client.request("DELETE", contract.path, json={"ids": [role_id]})
+    assert_success_payload(response, contract)
 
 
 def assert_user_create_contract(context: UserWriteContext) -> int:

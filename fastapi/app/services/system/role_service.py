@@ -180,6 +180,25 @@ class RoleService:
             updated_at=role.updated_at,
         )
 
+    async def assign_menus(self, role_id: int, menu_ids: list[int]) -> list[int]:
+        """
+        分配角色菜单权限
+        """
+        role = await Roles.get_or_none(id=role_id)
+        if not role:
+            raise NotFound("角色不存在")
+
+        unique_ids = list(dict.fromkeys(menu_ids))
+        permissions = await Permissions.filter(id__in=unique_ids).all()
+        if len(permissions) != len(unique_ids):
+            raise ValidationError("权限不存在")
+
+        await role.permissions.clear()
+        if permissions:
+            await role.permissions.add(*permissions)
+        await self._clear_role_cache(role_id)
+        return unique_ids
+
     async def delete(self, role_id: int) -> None:
         """
         删除角色
