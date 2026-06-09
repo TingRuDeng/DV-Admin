@@ -13,7 +13,7 @@ from scripts.api_contracts import (
     iter_critical_endpoint_contracts,
 )
 
-from app.db.models.system import OperationLog, Roles
+from app.db.models.system import Departments, OperationLog, Roles
 
 HTTP_OK = 200
 PAGE_SIZE_SAMPLE = 1
@@ -22,6 +22,7 @@ READ_SAMPLE_KEYS = (
     "auth_routes",
     "users_page",
     "roles_page",
+    "depts_tree",
     "menus_tree",
     "dicts_page",
     "dict_items_page",
@@ -114,8 +115,17 @@ async def runtime_contract_roles(db):
     return roles
 
 
+@pytest_asyncio.fixture
+async def runtime_contract_departments(db):
+    """创建运行时部门样本，用于证明部门树查询参数真实生效。"""
+    suffix = uuid.uuid4().hex[:6]
+    visible = await Departments.create(name=f"运行时契约部门_{suffix}", status=1, sort=1)
+    await Departments.create(name=f"运行时过滤部门_{suffix}", status=0, sort=2)
+    return visible
+
+
 def test_fastapi_read_runtime_samples_match_endpoint_catalog(
-    auth_client, test_user, runtime_contract_logs, runtime_contract_roles
+    auth_client, test_user, runtime_contract_logs, runtime_contract_roles, runtime_contract_departments
 ):
     """关键读接口运行时响应必须满足端点目录声明的信封、分页和字段契约。"""
     contracts = contracts_by_key()
@@ -136,6 +146,17 @@ def test_fastapi_read_runtime_samples_match_endpoint_catalog(
         contracts["roles_page"],
     )
     assert len(roles_data["list"]) == PAGE_SIZE_SAMPLE
+
+    depts_data = assert_success_payload(
+        auth_client.get(
+            contracts["depts_tree"].path,
+            params={"search": runtime_contract_departments.name, "status": runtime_contract_departments.status},
+        ),
+        contracts["depts_tree"],
+    )
+    assert len(depts_data) == 1
+    assert depts_data[0]["name"] == runtime_contract_departments.name
+    assert depts_data[0]["status"] == runtime_contract_departments.status
 
     logs_data = assert_success_payload(
         auth_client.get(contracts["logs_page"].path, params={"page": 1, "pageSize": PAGE_SIZE_SAMPLE}),

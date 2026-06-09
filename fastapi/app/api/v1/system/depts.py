@@ -3,7 +3,7 @@
 """
 
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Query, Request
 
 from app.api.deps import require_permissions
 from app.schemas.base import ResponseModel
@@ -16,10 +16,12 @@ router = APIRouter()
 @router.get("/", response_model=ResponseModel[list[DeptTree]])
 async def get_depts(
     request: Request,
+    search: str | None = Query(None, description="搜索关键词"),
+    status: int | None = Query(None, ge=0, le=1, description="状态"),
     current_user=require_permissions("system:departments:query"),
 ):
     """获取部门树形列表"""
-    dept_tree = await dept_service.get_tree()
+    dept_tree = await dept_service.get_tree(search=search, status=status)
     return ResponseModel.success(data=dept_tree)
 
 
