@@ -17,6 +17,7 @@ REQUIRED_FILES = (
     "fastapi/tests/test_runtime_api_contracts.py",
     "frontend/src/utils/__tests__/api-contract.test.ts",
     "frontend/src/enums/api/code-enum.ts",
+    "backend/drf_admin/apps/system/README.md",
     "docs/API_ENDPOINTS.md",
     "fastapi/app/api/v1/README.md",
 )
@@ -105,6 +106,10 @@ REQUIRED_FILE_ROUTE_SNIPPETS = {
 FORBIDDEN_FILE_ROUTE_SNIPPETS = {
     "docs/API_ENDPOINTS.md": ("/api/v1/files/upload/",),
     "fastapi/app/api/v1/README.md": ("/api/v1/files/upload/",),
+    "backend/drf_admin/apps/system/README.md": (
+        "logs.py       # 操作日志",
+        "| `/api/v1/system/logs/` | GET | 日志列表 |",
+    ),
 }
 
 
