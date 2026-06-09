@@ -4,13 +4,13 @@
 
 ## 活跃任务
 
-- [x] P1 串行：新增用户管理权限受限场景 E2E，验证仅有查询权限时可进入页面但写操作按钮不可见
-- [x] P2 串行：扩展用户管理 E2E mock，使认证信息权限可按用例注入，未 mock 接口继续 404 暴露遗漏
-- [x] P3 串行：执行目标 E2E、完整 smoke、前端质量和根目录必要校验
-- [x] P4 串行：同步任务状态和 review 小结
-- [ ] P5 串行：review-gate、提交、PR、CI 和合并
+- [x] P1 串行：新增角色管理仅查询权限 E2E，先 RED 验证写操作按钮当前未受权限约束
+- [x] P2 串行：为角色管理页面写操作按钮接入 `v-hasPerm`，新增/批量删除/分配权限/编辑/删除分别绑定现有角色权限码
+- [x] P3 串行：将角色管理 E2E 纳入 smoke 脚本，并用治理测试锁定
+- [x] P4 串行：执行目标 E2E、完整 smoke、前端质量和根目录必要校验
+- [ ] P5 串行：同步任务状态、review-gate、提交、PR、CI 和合并
 
-并行判断：本轮集中修改同一个 Playwright E2E 文件和任务记录，权限 mock 与页面断言存在顺序依赖；为保证 RED/GREEN 证据清晰，采用串行推进。
+并行判断：本轮涉及角色 E2E、角色页面按钮权限和 smoke 脚本三处顺序依赖；为保证 RED/GREEN 证据清晰，采用串行推进。
 
 ## 已完成摘要
 
@@ -68,3 +68,5 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 本轮 FastAPI 用户写接口运行时契约扩面已完成：`scripts/validate_api_contracts.py` 已把 `fastapi/tests/test_runtime_api_contracts.py` 纳入必备契约测试入口，并强制检查 `users_create/users_update/users_delete` 抽样片段；FastAPI 运行时测试已覆盖创建、更新、批量删除和删除后分页列表不可见。验证通过：RED 阶段契约校验失败符合预期，目标测试（3 passed）、`python3 scripts/validate_api_contracts.py .`、FastAPI `make quality`（516 passed，覆盖率 83.93%）、根目录文档/API/模型/路由组件契约校验、脚本编译、敏感信息扫描和 `git diff --check`。
 
 本轮用户管理权限链路 E2E 已完成：`frontend/e2e/user-management.spec.ts` 新增仅查询权限场景，验证用户可进入动态路由页面但新增、批量删除、编辑、删除按钮会被 `v-hasPerm` 移除；认证 mock 支持按用例注入权限集合，未 mock 的接口继续返回 404 暴露遗漏。为避免本地 Playwright 登录 mock 并发竞争，`test:e2e:smoke` 改为 `--workers=1`，并由治理测试锁定。验证通过：RED 阶段受限权限仍显示新增按钮符合预期失败，目标 E2E（2 passed）、完整 smoke（6 passed）、前端 `pnpm run quality`（64 files / 171 tests）、前端 `pnpm run build`、文档/API/模型/路由组件契约校验、脚本编译、敏感信息扫描和 `git diff --check`。
+
+本轮角色管理权限链路 E2E 已完成：`frontend/e2e/role-management.spec.ts` 新增仅查询权限场景，RED 阶段确认 `新增角色` 仍可见；随后 `frontend/src/views/system/role/index.vue` 为新增、批量删除、分配权限、编辑、删除接入现有 `system:roles:*` 按钮权限码。`test:e2e:smoke` 已纳入角色管理用例，并由 Playwright 治理测试锁定。验证通过：目标 E2E（1 passed）、完整 smoke（7 passed）、前端 `pnpm run quality`（64 files / 171 tests）、前端 `pnpm run build`、文档/API/模型/路由组件契约校验、脚本编译、敏感信息扫描和 `git diff --check`。
