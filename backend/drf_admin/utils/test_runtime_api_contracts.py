@@ -25,6 +25,7 @@ READ_SAMPLE_KEYS = (
     "dict_items_page",
 )
 USER_WRITE_SAMPLE_KEYS = ("users_create", "users_update", "users_delete")
+ROLE_WRITE_SAMPLE_KEYS = ("roles_create", "roles_update", "roles_delete", "roles_menu_assign")
 
 
 def contracts_by_key() -> dict[str, Any]:
@@ -93,6 +94,10 @@ def create_runtime_contract_permissions() -> list[Permissions]:
         "system:users:add",
         "system:users:edit",
         "system:users:delete",
+        "system:roles:query",
+        "system:roles:add",
+        "system:roles:edit",
+        "system:roles:delete",
         "system:departments:query",
         "system:permissions:query",
         "system:dicts:query",
@@ -232,3 +237,68 @@ class DjangoRuntimeApiContractTestCase(TestCase):
         response = self.client.delete(contract.path, {"ids": [user_id]}, format="json")
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not Users.objects.filter(id=user_id).exists()
+
+    def test_django_role_write_runtime_samples_match_endpoint_catalog(self):
+        """角色写接口运行时响应必须满足端点目录声明的前端请求契约。"""
+        contracts = contracts_by_key()
+        assert all(key in contracts for key in ROLE_WRITE_SAMPLE_KEYS)
+
+        permission = Permissions.objects.create(name="运行时角色权限", type="MENU", perm="runtime:role:assign")
+        created_role_id = self.assert_role_create_contract(contracts["roles_create"])
+        self.assert_role_update_contract(contracts["roles_update"], created_role_id)
+        self.assert_role_menu_assign_contract(contracts, created_role_id, permission.id)
+        self.assert_role_delete_contract(contracts["roles_delete"], created_role_id)
+
+    def assert_role_create_contract(self, contract) -> int:
+        """验证角色创建接口成功信封，并返回新角色 ID。"""
+        response = self.client.post(
+            contract.path,
+            {
+                "name": "运行时 Django 角色",
+                "code": "runtime_django_role",
+                "status": 1,
+                "sort": 20,
+                "isDefault": 0,
+                "desc": "运行时角色写接口契约",
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        data = assert_success_payload(response, contract, status.HTTP_201_CREATED)
+        assert data["name"] == "运行时 Django 角色"
+        assert data["code"] == "runtime_django_role"
+        return data["id"]
+
+    def assert_role_update_contract(self, contract, role_id: int) -> None:
+        """验证角色更新接口成功信封和关键字段落库。"""
+        response = self.client.put(
+            contract.path.replace("{id}", str(role_id)),
+            {"name": "运行时 Django 角色已更新", "status": 1, "sort": 21},
+            format="json",
+        )
+        data = assert_success_payload(response, contract)
+        assert data["name"] == "运行时 Django 角色已更新"
+        assert data["sort"] == 21
+
+    def assert_role_menu_assign_contract(self, contracts, role_id: int, permission_id: int) -> None:
+        """验证角色权限分配接口接受前端 menuIds 请求体，并真实更新角色权限。"""
+        contract = contracts["roles_menu_assign"]
+        response = self.client.put(
+            contract.path.replace("{id}", str(role_id)),
+            {"menuIds": [permission_id]},
+            format="json",
+        )
+        data = assert_success_payload(response, contract)
+        assert data == [permission_id]
+
+        menu_ids_data = assert_success_payload(
+            self.client.get(contracts["roles_menu_ids"].path.replace("{id}", str(role_id))),
+            contracts["roles_menu_ids"],
+        )
+        assert menu_ids_data == [permission_id]
+
+    def assert_role_delete_contract(self, contract, role_id: int) -> None:
+        """验证角色批量删除接口接受共享契约声明的 ids 请求体。"""
+        response = self.client.delete(contract.path, {"ids": [role_id]}, format="json")
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Roles.objects.filter(id=role_id).exists()

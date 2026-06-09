@@ -7,7 +7,14 @@ from fastapi import APIRouter, Query, Request
 
 from app.api.deps import require_permissions
 from app.schemas.base import PageResult, ResponseModel
-from app.schemas.system import BulkDelete, RoleCreate, RoleOut, RoleUpdate, RoleWithPermissions
+from app.schemas.system import (
+    BulkDelete,
+    RoleCreate,
+    RoleOut,
+    RoleUpdate,
+    RoleWithPermissions,
+)
+from app.schemas.system_roles import RoleMenuAssign
 from app.services.system.role_service import role_service
 
 router = APIRouter()
@@ -94,6 +101,18 @@ async def batch_delete_roles(
     """批量删除角色"""
     await role_service.batch_delete(delete_req.ids)
     return ResponseModel.success(message="批量删除成功")
+
+
+@router.put("/{role_id}/menus/", response_model=ResponseModel[list[int]])
+async def assign_role_menus(
+    request: Request,
+    role_id: int,
+    menu_data: RoleMenuAssign,
+    current_user=require_permissions("system:roles:edit"),
+):
+    """分配角色菜单权限"""
+    menu_ids = await role_service.assign_menus(role_id, menu_data.menu_ids)
+    return ResponseModel.success(data=menu_ids, message="分配权限成功")
 
 
 @router.get("/{role_id}/menu-ids/", response_model=ResponseModel[list[int]])
