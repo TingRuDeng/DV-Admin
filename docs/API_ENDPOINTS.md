@@ -353,6 +353,7 @@ POST   /api/v1/system/departments/          # 创建
 GET    /api/v1/system/departments/{id}/     # 详情
 PUT    /api/v1/system/departments/{id}/     # 更新
 DELETE /api/v1/system/departments/{id}/     # 删除
+DELETE /api/v1/system/departments/          # 批量删除，请求体 ids
 ```
 
 ---

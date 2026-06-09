@@ -31,6 +31,7 @@ READ_SAMPLE_KEYS = (
 )
 USER_WRITE_SAMPLE_KEYS = ("users_create", "users_update", "users_delete")
 ROLE_WRITE_SAMPLE_KEYS = ("roles_create", "roles_update", "roles_delete", "roles_menu_assign")
+DEPT_WRITE_SAMPLE_KEYS = ("depts_create", "depts_update", "depts_delete")
 
 
 @dataclass(frozen=True)
@@ -51,6 +52,14 @@ class RoleWriteContext:
     client: Any
     contracts: dict[str, Any]
     permission_id: int
+
+
+@dataclass(frozen=True)
+class DeptWriteContext:
+    """部门写接口运行时契约所需上下文。"""
+
+    client: Any
+    contracts: dict[str, Any]
 
 
 def contracts_by_key() -> dict[str, Any]:
@@ -256,6 +265,48 @@ def test_fastapi_role_write_runtime_samples_match_endpoint_catalog(auth_client, 
     assert_role_update_contract(context, created_role_id)
     assert_role_menu_assign_contract(context, created_role_id)
     assert_role_delete_contract(context, created_role_id)
+
+
+def test_fastapi_dept_write_runtime_samples_match_endpoint_catalog(auth_client):
+    """部门写接口运行时响应必须满足端点目录声明的前端请求契约。"""
+    context = DeptWriteContext(client=auth_client, contracts=contracts_by_key())
+    assert all(key in context.contracts for key in DEPT_WRITE_SAMPLE_KEYS)
+
+    created_dept_id = assert_dept_create_contract(context)
+    assert_dept_update_contract(context, created_dept_id)
+    assert_dept_delete_contract(context, created_dept_id)
+
+
+def assert_dept_create_contract(context: DeptWriteContext) -> int:
+    """验证部门创建接口接受前端部门表单请求体，并返回成功信封。"""
+    contract = context.contracts["depts_create"]
+    response = context.client.post(
+        contract.path,
+        json={"name": "运行时 FastAPI 部门", "status": 1, "sort": 31},
+    )
+    data = assert_success_payload(response, contract)
+    assert data["name"] == "运行时 FastAPI 部门"
+    assert data["status"] == 1
+    return data["id"]
+
+
+def assert_dept_update_contract(context: DeptWriteContext, dept_id: int) -> None:
+    """验证部门更新接口接受共享契约路径，并返回更新后的关键字段。"""
+    contract = context.contracts["depts_update"]
+    response = context.client.put(
+        contract.path.replace("{id}", str(dept_id)),
+        json={"name": "运行时 FastAPI 部门已更新", "status": 1, "sort": 32},
+    )
+    data = assert_success_payload(response, contract)
+    assert data["name"] == "运行时 FastAPI 部门已更新"
+    assert data["sort"] == 32
+
+
+def assert_dept_delete_contract(context: DeptWriteContext, dept_id: int) -> None:
+    """验证部门批量删除接口接受共享契约声明的 ids 请求体。"""
+    contract = context.contracts["depts_delete"]
+    response = context.client.request("DELETE", contract.path, json={"ids": [dept_id]})
+    assert_success_payload(response, contract)
 
 
 def assert_role_create_contract(context: RoleWriteContext) -> int:

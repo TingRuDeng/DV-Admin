@@ -26,6 +26,7 @@ READ_SAMPLE_KEYS = (
 )
 USER_WRITE_SAMPLE_KEYS = ("users_create", "users_update", "users_delete")
 ROLE_WRITE_SAMPLE_KEYS = ("roles_create", "roles_update", "roles_delete", "roles_menu_assign")
+DEPT_WRITE_SAMPLE_KEYS = ("depts_create", "depts_update", "depts_delete")
 
 
 def contracts_by_key() -> dict[str, Any]:
@@ -99,6 +100,9 @@ def create_runtime_contract_permissions() -> list[Permissions]:
         "system:roles:edit",
         "system:roles:delete",
         "system:departments:query",
+        "system:departments:add",
+        "system:departments:edit",
+        "system:departments:delete",
         "system:permissions:query",
         "system:dicts:query",
         "system:dictitems:query",
@@ -302,3 +306,42 @@ class DjangoRuntimeApiContractTestCase(TestCase):
         response = self.client.delete(contract.path, {"ids": [role_id]}, format="json")
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not Roles.objects.filter(id=role_id).exists()
+
+    def test_django_dept_write_runtime_samples_match_endpoint_catalog(self):
+        """部门写接口运行时响应必须满足端点目录声明的前端请求契约。"""
+        contracts = contracts_by_key()
+        assert all(key in contracts for key in DEPT_WRITE_SAMPLE_KEYS)
+
+        created_dept_id = self.assert_dept_create_contract(contracts["depts_create"])
+        self.assert_dept_update_contract(contracts["depts_update"], created_dept_id)
+        self.assert_dept_delete_contract(contracts["depts_delete"], created_dept_id)
+
+    def assert_dept_create_contract(self, contract) -> int:
+        """验证部门创建接口成功信封，并返回新部门 ID。"""
+        response = self.client.post(
+            contract.path,
+            {"name": "运行时 Django 部门", "status": 1, "sort": 31},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        data = assert_success_payload(response, contract, status.HTTP_201_CREATED)
+        assert data["name"] == "运行时 Django 部门"
+        assert data["status"] == 1
+        return data["id"]
+
+    def assert_dept_update_contract(self, contract, dept_id: int) -> None:
+        """验证部门更新接口成功信封和关键字段落库。"""
+        response = self.client.put(
+            contract.path.replace("{id}", str(dept_id)),
+            {"name": "运行时 Django 部门已更新", "status": 1, "sort": 32},
+            format="json",
+        )
+        data = assert_success_payload(response, contract)
+        assert data["name"] == "运行时 Django 部门已更新"
+        assert data["sort"] == 32
+
+    def assert_dept_delete_contract(self, contract, dept_id: int) -> None:
+        """验证部门批量删除接口接受共享契约声明的 ids 请求体。"""
+        response = self.client.delete(contract.path, {"ids": [dept_id]}, format="json")
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Departments.objects.filter(id=dept_id).exists()

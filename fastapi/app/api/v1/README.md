@@ -136,7 +136,7 @@ async def create_user(...):
 - `/api/v1/system/roles/` - 角色管理
 - `PUT /api/v1/system/roles/{id}/menus/` - 分配角色菜单权限
 - `/api/v1/system/menus/` - 菜单管理
-- `/api/v1/system/depts/` - 部门管理
+- `/api/v1/system/departments/` - 部门管理
 - `/api/v1/system/dicts/` - 字典类型管理
 - `/api/v1/system/dict-items/` - 字典项管理
 - `/api/v1/system/notices/` - 通知公告
