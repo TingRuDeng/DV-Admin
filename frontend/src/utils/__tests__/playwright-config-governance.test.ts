@@ -46,4 +46,12 @@ describe("playwright local server governance", () => {
     expect(packageJson).toContain("test:e2e:smoke");
     expect(packageJson).toContain("--workers=1");
   });
+
+  it("waits for department login bootstrap before asserting redirected page", () => {
+    const deptSpec = readProjectFile("../../../e2e/dept-management.spec.ts");
+
+    expect(deptSpec).toContain("waitForDepartmentLoginBootstrap");
+    expect(deptSpec).toContain("/api/v1/oauth/info/");
+    expect(deptSpec).toContain("/api/v1/oauth/menus/routes/");
+  });
 });
