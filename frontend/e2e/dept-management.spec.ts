@@ -31,6 +31,7 @@ interface MockRouteContext {
 
 const API_PREFIX = "/dev-api";
 const DEPTS_PATH = "/api/v1/system/departments/";
+const HTTP_OK = 200;
 const DEFAULT_DEPT_PERMS = [
   "system:departments:query",
   "system:departments:add",
@@ -60,7 +61,7 @@ function createMockState(): MockState {
   };
 }
 
-async function fulfillJson(route: Route, data: unknown, status = 200) {
+async function fulfillJson(route: Route, data: unknown, status = HTTP_OK) {
   await route.fulfill({
     status,
     contentType: "application/json",
@@ -97,6 +98,30 @@ async function installDeptManagementMocks(
       404
     );
   });
+}
+
+async function waitForDepartmentLoginBootstrap(page: Page, clickLogin: () => Promise<void>) {
+  // 登录后的目标路由依赖用户信息和动态路由；显式等待可避免只观察 URL 的竞态。
+  const loginResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes(`${API_PREFIX}/api/v1/oauth/login/`) &&
+      response.request().method() === "POST" &&
+      response.status() === HTTP_OK
+  );
+  const userInfoResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes(`${API_PREFIX}/api/v1/oauth/info/`) &&
+      response.request().method() === "GET" &&
+      response.status() === HTTP_OK
+  );
+  const routeResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes(`${API_PREFIX}/api/v1/oauth/menus/routes/`) &&
+      response.request().method() === "GET" &&
+      response.status() === HTTP_OK
+  );
+
+  await Promise.all([loginResponse, userInfoResponse, routeResponse, clickLogin()]);
 }
 
 async function handleAuthRequest(context: MockRouteContext) {
@@ -178,7 +203,9 @@ test.describe("部门管理权限链路 smoke", () => {
     await page.goto("/login?redirect=%2Fsystem%2Fdepartments");
     await page.getByLabel("用户名").fill("viewer");
     await page.getByLabel("密码").fill("123456");
-    await page.getByRole("button", { name: /登\s*录|Login/i }).click();
+    await waitForDepartmentLoginBootstrap(page, () =>
+      page.getByRole("button", { name: /登\s*录|Login/i }).click()
+    );
 
     await expect(page).toHaveURL(/\/system\/departments/);
     await expect(page.getByText("部门数据")).toBeVisible();

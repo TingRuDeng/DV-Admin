@@ -4,12 +4,12 @@
 
 ## 活跃任务
 
-- [x] P1 串行：RED 补充角色分页关键端点目录测试，复现缺少 `roles_page`
-- [x] P2 串行：GREEN 修正 FastAPI 角色分页 `pageSize` 别名并纳入端点目录
-- [x] P3 串行：执行 FastAPI 目标测试、API/文档/脚本校验和必要质量门禁
+- [x] P1 串行：RED 补充部门 E2E 登录 bootstrap 治理测试，复现缺少显式等待
+- [x] P2 串行：GREEN 为部门 E2E 登录后等待认证信息和动态路由响应
+- [x] P3 串行：执行前端目标测试、smoke E2E 和必要质量门禁
 - [x] P4 串行：review-gate、提交、PR、CI 和合并
 
-并行判断：本轮只处理角色分页契约目录、FastAPI 路由参数别名和对应契约测试，RED/GREEN 顺序明确且文件之间存在一致性约束；采用串行推进，不启用 subagent。
+并行判断：本轮只处理部门管理 E2E 登录 bootstrap 稳定性和对应治理测试，变更集中在前端测试层且 RED/GREEN 顺序明确；采用串行推进，不启用 subagent。
 
 ## 已完成摘要
 
@@ -93,3 +93,5 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 本轮系统配置孤儿功能治理已完成本地验证：当前 Django/FastAPI 路由和权限种子均无系统配置契约，`frontend/src/api/system/config-api.ts`、`frontend/src/views/system/config/index.vue` 与 `frontend/src/styles/pages/_system-config.scss` 已删除，`frontend/src/views/__tests__/config-style-migration.spec.ts` 改为治理测试，防止无后端契约时继续保留前端配置模块；`docs/FRONTEND_OPTIMIZATION_BACKLOG.md` 已移除已删除页面引用。验证通过：RED 阶段目标治理测试捕获 `config-api.ts` 仍存在，GREEN 后目标测试（1 passed）、前端 `pnpm run quality`（64 files / 171 tests）、前端 `pnpm run build`、根目录文档/API/模型/路由组件契约校验、脚本编译和 `git diff --check`。
 
 本轮角色分页关键 API 契约治理已完成本地验证：`scripts/api_endpoint_contracts.py` 已纳入 `roles_page`，FastAPI 角色分页已显式接受前端 `pageSize` 参数，运行时抽样测试会创建 2 个角色并断言 `pageSize=1` 真实生效；`scripts/validate_api_contracts.py` 已锁定角色分页契约测试片段。验证通过：RED 阶段目标测试捕获 `KeyError: 'roles_page'`，GREEN 后 FastAPI 目标契约测试（8 passed）、API/文档校验、脚本编译、Django 契约目标测试（8 passed）、Django ruff、Django `uv run pytest`（90 passed）、FastAPI `make quality`（516 passed，覆盖率 83.97%）和 `git diff --check`。
+
+本轮部门 E2E 登录 bootstrap 稳定性治理已完成本地验证：远端 CI 曾在 `dept-management.spec.ts` 首次运行时停留 `/login?redirect=%2Fsystem%2Fdepartments` 后重试通过；本轮为部门 smoke 登录后显式等待登录、用户信息和动态路由响应，再断言目标 URL，并新增治理测试锁定该等待边界。验证通过：RED 阶段治理测试捕获缺少 `waitForDepartmentLoginBootstrap`，GREEN 后治理测试（6 passed）、部门 E2E 重复 10 次（10 passed）、部门 E2E 复核 3 次（3 passed）、前端 `pnpm run quality`（64 files / 172 tests）、前端 `pnpm run test:e2e:smoke`（14 passed）、前端 `pnpm run build`、文档校验和 `git diff --check`。
