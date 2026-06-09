@@ -15,7 +15,6 @@
 - 部门管理
 - 字典管理
 - 通知公告
-- 操作日志
 
 ---
 
@@ -30,8 +29,7 @@ system/
 │   ├── menus.py      # 菜单/权限管理
 │   ├── departments.py # 部门管理
 │   ├── dicts.py      # 字典管理
-│   ├── notices.py    # 通知公告
-│   └── logs.py       # 操作日志
+│   └── notices.py    # 通知公告
 ├── serializers/      # 序列化器
 │   ├── users.py
 │   ├── roles.py
@@ -109,7 +107,8 @@ system/
 | `/api/v1/system/dicts/` | GET, POST | 字典类型列表/创建 |
 | `/api/v1/system/dict-items/` | GET, POST | 字典项列表/创建 |
 | `/api/v1/system/notices/` | GET, POST | 通知列表/创建 |
-| `/api/v1/system/logs/` | GET | 日志列表 |
+
+> 操作日志管理路由当前由 FastAPI 实现提供；Django `system` 应用当前未注册日志管理路由。
 
 ---
 
