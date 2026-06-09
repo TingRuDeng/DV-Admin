@@ -32,6 +32,7 @@ READ_SAMPLE_KEYS = (
 USER_WRITE_SAMPLE_KEYS = ("users_create", "users_update", "users_delete")
 ROLE_WRITE_SAMPLE_KEYS = ("roles_create", "roles_update", "roles_delete", "roles_menu_assign")
 DEPT_WRITE_SAMPLE_KEYS = ("depts_create", "depts_update", "depts_delete")
+MENU_WRITE_SAMPLE_KEYS = ("menus_create", "menus_update", "menus_delete")
 
 
 @dataclass(frozen=True)
@@ -57,6 +58,14 @@ class RoleWriteContext:
 @dataclass(frozen=True)
 class DeptWriteContext:
     """部门写接口运行时契约所需上下文。"""
+
+    client: Any
+    contracts: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class MenuWriteContext:
+    """菜单写接口运行时契约所需上下文。"""
 
     client: Any
     contracts: dict[str, Any]
@@ -275,6 +284,48 @@ def test_fastapi_dept_write_runtime_samples_match_endpoint_catalog(auth_client):
     created_dept_id = assert_dept_create_contract(context)
     assert_dept_update_contract(context, created_dept_id)
     assert_dept_delete_contract(context, created_dept_id)
+
+
+def test_fastapi_menu_write_runtime_samples_match_endpoint_catalog(auth_client):
+    """菜单写接口运行时响应必须满足端点目录声明的前端请求契约。"""
+    context = MenuWriteContext(client=auth_client, contracts=contracts_by_key())
+    assert all(key in context.contracts for key in MENU_WRITE_SAMPLE_KEYS)
+
+    created_menu_id = assert_menu_create_contract(context)
+    assert_menu_update_contract(context, created_menu_id)
+    assert_menu_delete_contract(context, created_menu_id)
+
+
+def assert_menu_create_contract(context: MenuWriteContext) -> int:
+    """验证菜单创建接口接受前端菜单表单请求体，并返回成功信封。"""
+    contract = context.contracts["menus_create"]
+    response = context.client.post(
+        contract.path,
+        json={"name": "运行时 FastAPI 菜单", "type": "MENU", "visible": 1, "sort": 41},
+    )
+    data = assert_success_payload(response, contract)
+    assert data["name"] == "运行时 FastAPI 菜单"
+    assert data["type"] == "MENU"
+    return data["id"]
+
+
+def assert_menu_update_contract(context: MenuWriteContext, menu_id: int) -> None:
+    """验证菜单更新接口接受共享契约路径，并返回更新后的关键字段。"""
+    contract = context.contracts["menus_update"]
+    response = context.client.put(
+        contract.path.replace("{id}", str(menu_id)),
+        json={"name": "运行时 FastAPI 菜单已更新", "type": "MENU", "visible": 1, "sort": 42},
+    )
+    data = assert_success_payload(response, contract)
+    assert data["name"] == "运行时 FastAPI 菜单已更新"
+    assert data["sort"] == 42
+
+
+def assert_menu_delete_contract(context: MenuWriteContext, menu_id: int) -> None:
+    """验证菜单删除接口接受共享契约路径参数。"""
+    contract = context.contracts["menus_delete"]
+    response = context.client.delete(contract.path.replace("{id}", str(menu_id)))
+    assert_success_payload(response, contract)
 
 
 def assert_dept_create_contract(context: DeptWriteContext) -> int:

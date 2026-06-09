@@ -27,6 +27,7 @@ READ_SAMPLE_KEYS = (
 USER_WRITE_SAMPLE_KEYS = ("users_create", "users_update", "users_delete")
 ROLE_WRITE_SAMPLE_KEYS = ("roles_create", "roles_update", "roles_delete", "roles_menu_assign")
 DEPT_WRITE_SAMPLE_KEYS = ("depts_create", "depts_update", "depts_delete")
+MENU_WRITE_SAMPLE_KEYS = ("menus_create", "menus_update", "menus_delete")
 
 
 def contracts_by_key() -> dict[str, Any]:
@@ -104,6 +105,9 @@ def create_runtime_contract_permissions() -> list[Permissions]:
         "system:departments:edit",
         "system:departments:delete",
         "system:permissions:query",
+        "system:permissions:add",
+        "system:permissions:edit",
+        "system:permissions:delete",
         "system:dicts:query",
         "system:dictitems:query",
     ]
@@ -315,6 +319,45 @@ class DjangoRuntimeApiContractTestCase(TestCase):
         created_dept_id = self.assert_dept_create_contract(contracts["depts_create"])
         self.assert_dept_update_contract(contracts["depts_update"], created_dept_id)
         self.assert_dept_delete_contract(contracts["depts_delete"], created_dept_id)
+
+    def test_django_menu_write_runtime_samples_match_endpoint_catalog(self):
+        """菜单写接口运行时响应必须满足端点目录声明的前端请求契约。"""
+        contracts = contracts_by_key()
+        assert all(key in contracts for key in MENU_WRITE_SAMPLE_KEYS)
+
+        created_menu_id = self.assert_menu_create_contract(contracts["menus_create"])
+        self.assert_menu_update_contract(contracts["menus_update"], created_menu_id)
+        self.assert_menu_delete_contract(contracts["menus_delete"], created_menu_id)
+
+    def assert_menu_create_contract(self, contract) -> int:
+        """验证菜单创建接口成功信封，并返回新菜单 ID。"""
+        response = self.client.post(
+            contract.path,
+            {"name": "运行时 Django 菜单", "type": "MENU", "visible": 1, "sort": 41},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        data = assert_success_payload(response, contract, status.HTTP_201_CREATED)
+        assert data["name"] == "运行时 Django 菜单"
+        assert data["type"] == "MENU"
+        return data["id"]
+
+    def assert_menu_update_contract(self, contract, menu_id: int) -> None:
+        """验证菜单更新接口成功信封和关键字段落库。"""
+        response = self.client.put(
+            contract.path.replace("{id}", str(menu_id)),
+            {"name": "运行时 Django 菜单已更新", "type": "MENU", "visible": 1, "sort": 42},
+            format="json",
+        )
+        data = assert_success_payload(response, contract)
+        assert data["name"] == "运行时 Django 菜单已更新"
+        assert data["sort"] == 42
+
+    def assert_menu_delete_contract(self, contract, menu_id: int) -> None:
+        """验证菜单删除接口接受共享契约路径参数。"""
+        response = self.client.delete(contract.path.replace("{id}", str(menu_id)))
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Permissions.objects.filter(id=menu_id).exists()
 
     def assert_dept_create_contract(self, contract) -> int:
         """验证部门创建接口成功信封，并返回新部门 ID。"""
