@@ -39,6 +39,7 @@ jobs:
           python3 scripts/validate_api_contracts.py .
           python3 scripts/validate_model_contracts.py .
           python3 scripts/validate_route_components.py .
+          python3 scripts/validate_django_migrations.py .
       - name: Install dependencies
         working-directory: frontend
         run: pnpm install --frozen-lockfile
