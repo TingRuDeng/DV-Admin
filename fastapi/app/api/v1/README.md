@@ -142,7 +142,9 @@ async def create_user(...):
 - `GET /api/v1/system/notices/page` - 通知公告分页
 - `PUT /api/v1/system/notices/{id}/publish` - 发布通知
 - `PUT /api/v1/system/notices/{id}/revoke` - 撤回通知
-- `/api/v1/system/logs/` - 操作日志
+- `GET /api/v1/system/logs/page` - 操作日志分页
+- `GET /api/v1/system/logs/visit-trend` - 访问趋势
+- `GET /api/v1/system/logs/visit-stats` - 访问统计
 
 ### Information 模块
 

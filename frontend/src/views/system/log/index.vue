@@ -6,9 +6,9 @@
       @submit="handleQuery"
       @reset="handleResetQuery"
     >
-      <el-form-item prop="keywords" label="关键字" class="mb-0">
+      <el-form-item prop="operation" label="关键字" class="mb-0">
         <el-input
-          v-model="queryParams.keywords"
+          v-model="queryParams.operation"
           placeholder="日志内容"
           clearable
           @keyup.enter="handleQuery"
@@ -30,12 +30,12 @@
     </ProSearch>
 
     <ProTable ref="tableRef" title="操作日志" :request="requestTableData" :params="queryParams">
-      <el-table-column label="操作时间" prop="createTime" width="180" />
-      <el-table-column label="操作人" prop="operator" width="120" />
-      <el-table-column label="日志模块" prop="module" width="100" />
-      <el-table-column label="日志内容" prop="content" min-width="200" />
+      <el-table-column label="操作时间" prop="createdAt" width="180" />
+      <el-table-column label="操作人" prop="username" width="120" />
+      <el-table-column label="请求方法" prop="method" width="100" />
+      <el-table-column label="日志内容" prop="operation" min-width="180" />
+      <el-table-column label="请求路径" prop="path" min-width="220" show-overflow-tooltip />
       <el-table-column label="IP 地址" prop="ip" width="150" />
-      <el-table-column label="地区" prop="region" width="150" />
       <el-table-column label="浏览器" prop="browser" width="150" />
       <el-table-column label="终端系统" prop="os" width="200" show-overflow-tooltip />
       <el-table-column label="执行时间(ms)" prop="executionTime" width="150" align="center" />
@@ -53,15 +53,44 @@ import LogAPI, { LogPageQuery, LogPageVO } from "@/api/system/log-api";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
 
+interface LogPageRequestParams extends PageQuery {
+  operation?: string;
+  createTime?: [string, string];
+}
+
 const queryFormRef = ref<{ resetFields: () => void } | null>(null);
 const tableRef = ref<ProTableExpose | null>(null);
 
-const queryParams = reactive<Omit<LogPageQuery, "pageNum" | "pageSize">>({
-  keywords: "",
+const queryParams = reactive<Omit<LogPageRequestParams, "pageNum" | "pageSize">>({
+  operation: "",
   createTime: undefined,
 });
 
-const requestTableData = createPageRequest<LogPageQuery, LogPageVO>(LogAPI.getPage);
+/** 将页面筛选状态转换为 FastAPI 日志分页接口契约。 */
+function buildLogPageQuery(params: LogPageRequestParams): LogPageQuery {
+  const { createTime, operation, pageNum, pageSize } = params;
+  return {
+    pageNum,
+    pageSize,
+    operation: operation || undefined,
+    startTime: toDateTimeStart(createTime?.[0]),
+    endTime: toDateTimeEnd(createTime?.[1]),
+  };
+}
+
+/** 将日期转换为后端可解析的当天开始时间。 */
+function toDateTimeStart(date?: string) {
+  return date ? `${date}T00:00:00` : undefined;
+}
+
+/** 将日期转换为后端可解析的当天结束时间。 */
+function toDateTimeEnd(date?: string) {
+  return date ? `${date}T23:59:59` : undefined;
+}
+
+const requestTableData = createPageRequest<LogPageRequestParams, LogPageVO>((params) =>
+  LogAPI.getPage(buildLogPageQuery(params))
+);
 
 /** 查询（重置页码后获取数据） */
 function handleQuery() {

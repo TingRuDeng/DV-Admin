@@ -22,6 +22,7 @@ REQUIRED_ENDPOINT_KEYS = {
     "notices_delete",
     "notices_publish",
     "notices_revoke",
+    "logs_page",
     "files_upload",
     "files_delete",
 }
@@ -171,6 +172,25 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         ),
     ),
     *NOTICE_ENDPOINT_CONTRACTS,
+    EndpointContract(
+        key="logs_page",
+        method="GET",
+        path="/api/v1/system/logs/page",
+        auth_required=True,
+        query_params=("page", "pageSize", "operation", "startTime", "endTime"),
+        response_fields=("list", "total"),
+        permissions=("system:logs:query",),
+        paginated=True,
+        evidence=(
+            ContractEvidence(
+                "fastapi/app/api/v1/system/logs.py",
+                ("/page", "system:logs:query", 'alias="pageSize"', 'alias="startTime"'),
+            ),
+            ContractEvidence("frontend/src/api/system/log-api.ts", ("getPage", "/api/system/logs")),
+            ContractEvidence("docs/API_ENDPOINTS.md", ("GET    /api/v1/system/logs/page",)),
+            ContractEvidence("fastapi/app/api/v1/README.md", ("GET /api/v1/system/logs/page",)),
+        ),
+    ),
     EndpointContract(
         key="files_upload",
         method="POST",

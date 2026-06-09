@@ -65,6 +65,7 @@ REQUIRED_TEST_SNIPPETS = {
         "notices_page",
         "notices_create",
         "notices_publish",
+        "logs_page",
     ),
     "fastapi/tests/test_runtime_api_contracts.py": (
         "iter_critical_endpoint_contracts",
@@ -73,6 +74,7 @@ REQUIRED_TEST_SNIPPETS = {
         "users_update",
         "users_delete",
         "notices_page",
+        "logs_page",
     ),
     "frontend/src/utils/__tests__/api-contract.test.ts": (
         "Django",
@@ -96,6 +98,7 @@ REQUIRED_FILE_ROUTE_SNIPPETS = {
         "DELETE /api/v1/files/?filePath=files/{user_id}/{filename}",
         "GET /api/v1/system/notices/page",
         "PUT /api/v1/system/notices/{id}/publish",
+        "GET /api/v1/system/logs/page",
     ),
 }
 
