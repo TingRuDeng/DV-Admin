@@ -35,7 +35,7 @@
 - [x] P1 串行：RED 补充 Django 迁移链跟踪校验，复现 `system` 迁移未被 Git 跟踪
 - [x] P2 串行：GREEN 修正仓库 ignore 规则并纳入完整 `system` 迁移链
 - [x] P3 串行：执行迁移检查、Django 测试和根目录校验
-- [ ] P4 串行：review-gate、提交、PR、CI 和合并
+- [x] P4 串行：review-gate、提交、PR、CI 和合并
 
 并行判断：本轮只处理 Django 迁移链跟踪治理，变更集中在 `.gitignore`、Django 迁移文件和仓库校验脚本，存在同一验证入口写冲突；不启用 subagent。
 
