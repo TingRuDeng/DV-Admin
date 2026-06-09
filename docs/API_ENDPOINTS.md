@@ -382,11 +382,20 @@ POST   /api/v1/system/dict-items/     # 创建字典项
 
 ### 通知公告
 
-**Django & FastAPI：**
+**FastAPI 与前端管理页：**
 ```
-GET  /api/v1/system/notices/           # 通知列表
-POST /api/v1/system/notices/           # 创建通知
-GET  /api/v1/system/notices/my-page/   # 我的通知
+GET    /api/v1/system/notices/page           # 通知列表
+POST   /api/v1/system/notices                # 创建通知
+PUT    /api/v1/system/notices/{id}           # 更新通知
+DELETE /api/v1/system/notices/{ids}          # 删除通知
+PUT    /api/v1/system/notices/{id}/publish   # 发布通知
+PUT    /api/v1/system/notices/{id}/revoke    # 撤回通知
+GET    /api/v1/system/notices/my-page/       # 我的通知
+```
+
+**Django 当前薄实现：**
+```
+GET    /api/v1/system/notices/my-page/       # 我的通知
 ```
 
 ---

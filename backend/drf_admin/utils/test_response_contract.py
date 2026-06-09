@@ -81,6 +81,8 @@ def test_shared_endpoint_contract_catalog_covers_django_system_routes():
     assert contracts["auth_routes"].path == "/api/v1/oauth/menus/routes/"
     assert contracts["menus_tree"].permissions == ("system:permissions:query",)
     assert contracts["dicts_page"].permissions == ("system:dicts:query",)
+    assert contracts["notices_page"].permissions == ("system:notices:query",)
+    assert contracts["notices_create"].permissions == ("system:notices:add",)
 
 
 def test_shared_api_error_code_catalog_covers_django_response_contracts():
