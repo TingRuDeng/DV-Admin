@@ -62,7 +62,13 @@ def test_fastapi_critical_endpoint_contract_catalog_matches_route_contracts():
     assert contracts["menus_create"].permissions == ("system:permissions:add",)
     assert contracts["menus_update"].permissions == ("system:permissions:edit",)
     assert contracts["menus_delete"].method == "DELETE"
+    assert contracts["dicts_create"].request_fields == ("name", "dictCode")
+    assert contracts["dicts_update"].permissions == ("system:dicts:edit",)
+    assert contracts["dicts_delete"].request_fields == ("ids",)
     assert contracts["dict_items_page"].permissions == ("system:dictitems:query",)
+    assert contracts["dict_items_create"].request_fields == ("dict", "label", "value")
+    assert contracts["dict_items_update"].permissions == ("system:dictitems:edit",)
+    assert contracts["dict_items_delete"].request_fields == ("ids",)
     assert contracts["notices_page"].path == "/api/v1/system/notices/page"
     assert contracts["notices_page"].permissions == ("system:notices:query",)
     assert contracts["notices_create"].permissions == ("system:notices:add",)

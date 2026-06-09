@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
+from django.core.cache import cache
 from rest_framework import status
 from scripts.api_contracts import (
     assert_page_payload,
@@ -28,6 +29,8 @@ USER_WRITE_SAMPLE_KEYS = ("users_create", "users_update", "users_delete")
 ROLE_WRITE_SAMPLE_KEYS = ("roles_create", "roles_update", "roles_delete", "roles_menu_assign")
 DEPT_WRITE_SAMPLE_KEYS = ("depts_create", "depts_update", "depts_delete")
 MENU_WRITE_SAMPLE_KEYS = ("menus_create", "menus_update", "menus_delete")
+DICT_WRITE_SAMPLE_KEYS = ("dicts_create", "dicts_update", "dicts_delete")
+DICT_ITEM_WRITE_SAMPLE_KEYS = ("dict_items_create", "dict_items_update", "dict_items_delete")
 
 
 def contracts_by_key() -> dict[str, Any]:
@@ -80,6 +83,7 @@ def create_runtime_contract_user() -> Users:
         is_active=1,
     )
     user.roles.add(role)
+    cache.delete(f"user_info_{user.id}_perms")
     Users.objects.create_user(
         username="runtime-extra",
         password="testpass123",
@@ -109,7 +113,13 @@ def create_runtime_contract_permissions() -> list[Permissions]:
         "system:permissions:edit",
         "system:permissions:delete",
         "system:dicts:query",
+        "system:dicts:add",
+        "system:dicts:edit",
+        "system:dicts:delete",
         "system:dictitems:query",
+        "system:dictitems:add",
+        "system:dictitems:edit",
+        "system:dictitems:delete",
     ]
     buttons = [
         Permissions.objects.create(name=code, perm=code, type="BUTTON", sort=index)
@@ -151,4 +161,3 @@ def create_runtime_contract_departments() -> Departments:
     visible = Departments.objects.create(name="运行时契约部门", status=1, sort=1)
     Departments.objects.create(name="运行时过滤部门", status=0, sort=2)
     return visible
-
