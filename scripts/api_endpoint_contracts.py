@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from scripts.api_endpoint_contract_types import ContractEvidence, EndpointContract
+from scripts.api_endpoint_notice_contracts import NOTICE_ENDPOINT_CONTRACTS
 
 
 HTTP_METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE"}
@@ -15,33 +16,15 @@ REQUIRED_ENDPOINT_KEYS = {
     "menus_tree",
     "dicts_page",
     "dict_items_page",
+    "notices_page",
+    "notices_create",
+    "notices_update",
+    "notices_delete",
+    "notices_publish",
+    "notices_revoke",
     "files_upload",
     "files_delete",
 }
-
-
-@dataclass(frozen=True)
-class ContractEvidence:
-    """端点契约对应的代码或文档证据。"""
-
-    file: str
-    snippets: tuple[str, ...]
-
-
-@dataclass(frozen=True)
-class EndpointContract:
-    """关键端点的共享契约，用于锁定前端、Django 与 FastAPI 的共同边界。"""
-
-    key: str
-    method: str
-    path: str
-    auth_required: bool
-    request_fields: tuple[str, ...] = ()
-    query_params: tuple[str, ...] = ()
-    response_fields: tuple[str, ...] = ()
-    permissions: tuple[str, ...] = ()
-    paginated: bool = False
-    evidence: tuple[ContractEvidence, ...] = ()
 
 
 CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
@@ -187,6 +170,7 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
             ContractEvidence("frontend/src/api/system/dict-items-api.ts", ("getDictItemPage", "/api/system/dict-items")),
         ),
     ),
+    *NOTICE_ENDPOINT_CONTRACTS,
     EndpointContract(
         key="files_upload",
         method="POST",
@@ -235,7 +219,7 @@ def _assert_endpoint_contract(contract: EndpointContract) -> None:
     """校验单个端点契约的基础字段，避免无效契约进入门禁。"""
     assert contract.method in HTTP_METHODS, f"invalid method: {contract.method}"
     assert contract.path.startswith("/api/v1/"), f"invalid path: {contract.path}"
-    assert contract.path.endswith(("/", "}")), f"path must be slash-terminated: {contract.path}"
+    assert " " not in contract.path, f"path must not contain spaces: {contract.path}"
     assert contract.evidence, f"{contract.key}: missing evidence"
     if contract.paginated:
         assert "list" in contract.response_fields

@@ -50,6 +50,10 @@ def test_fastapi_critical_endpoint_contract_catalog_matches_route_contracts():
     assert contracts["users_page"].paginated is True
     assert contracts["users_page"].permissions == ("system:users:query",)
     assert contracts["dict_items_page"].permissions == ("system:dictitems:query",)
+    assert contracts["notices_page"].path == "/api/v1/system/notices/page"
+    assert contracts["notices_page"].permissions == ("system:notices:query",)
+    assert contracts["notices_create"].permissions == ("system:notices:add",)
+    assert contracts["notices_publish"].permissions == ("system:notices:publish",)
     assert contracts["files_upload"].response_fields == ("name", "url", "path")
 
 
