@@ -4,13 +4,12 @@
 
 ## 活跃任务
 
-- [x] P1 串行：RED 补充日志分页关键端点目录测试和运行时分页抽样，复现缺少 `logs_page`
-- [x] P2 串行：RED 调整日志页 E2E mock 为 FastAPI 真实字段形状，复现日志内容无法渲染
-- [x] P3 串行：GREEN 补齐日志端点契约、FastAPI 查询别名、前端字段映射和 API 文档
-- [x] P4 串行：执行目标测试、前端质量、FastAPI 质量和根目录必要校验
-- [ ] P5 串行：review-gate、提交、PR、CI 和合并
+- [x] P1 串行：RED 在 API 契约校验中加入 Django 系统 README 的过期日志路由禁用片段
+- [x] P2 串行：GREEN 删除 Django 系统 README 中不存在的 `logs.py` 和 `/api/v1/system/logs/` 声明
+- [x] P3 串行：执行文档/API 契约校验、脚本编译和 diff 检查
+- [ ] P4 串行：review-gate、提交、PR、CI 和合并
 
-并行判断：本轮同时触及共享契约目录、FastAPI 日志接口、前端日志页和 API 文档，存在 RED/GREEN 顺序依赖和跨文件一致性要求；为避免并行写冲突，采用串行推进，不启用 subagent。
+并行判断：本轮只处理 Django 系统 README 的日志路由文档漂移和对应校验脚本，RED/GREEN 顺序明确且文件少；采用串行推进，不启用 subagent。
 
 ## 已完成摘要
 
