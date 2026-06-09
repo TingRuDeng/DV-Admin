@@ -51,6 +51,8 @@ def test_fastapi_critical_endpoint_contract_catalog_matches_route_contracts():
     assert contracts["users_page"].permissions == ("system:users:query",)
     assert contracts["roles_page"].path == "/api/v1/system/roles/"
     assert contracts["roles_page"].permissions == ("system:roles:query",)
+    assert contracts["depts_tree"].path == "/api/v1/system/departments/"
+    assert contracts["depts_tree"].permissions == ("system:departments:query",)
     assert contracts["dict_items_page"].permissions == ("system:dictitems:query",)
     assert contracts["notices_page"].path == "/api/v1/system/notices/page"
     assert contracts["notices_page"].permissions == ("system:notices:query",)

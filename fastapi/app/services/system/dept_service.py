@@ -11,11 +11,16 @@ from app.schemas.system import DeptCreate, DeptOut, DeptTree, DeptUpdate
 class DeptService:
     """部门管理服务"""
 
-    async def get_tree(self) -> list[DeptTree]:
+    async def get_tree(self, *, search: str | None = None, status: int | None = None) -> list[DeptTree]:
         """
         获取部门树形列表
         """
-        depts = await Departments.all()
+        query = Departments.all()
+        if search:
+            query = query.filter(name__icontains=search)
+        if status is not None:
+            query = query.filter(status=status)
+        depts = await query
         return self._build_dept_tree(depts)
 
     async def get(self, dept_id: int) -> DeptOut:
