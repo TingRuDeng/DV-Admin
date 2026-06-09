@@ -17,6 +17,8 @@ AI_CONTEXT_SECTIONS = ("## Project Snapshot", "## Core Directories", "## Documen
 CONTRACT_REQUIRED_FILES = ("scripts/api_contracts.py", "scripts/validate_api_contracts.py", "scripts/model_contracts.py", "scripts/validate_model_contracts.py")
 API_CONTRACT_DOC_SNIPPETS = ("共享 API 契约验证", "scripts/validate_api_contracts.py")
 MODEL_CONTRACT_DOC_SNIPPETS = ("Django Fixture 导入约束", "scripts/model_contracts.py")
+DJANGO_MIGRATION_REQUIRED_FILES = ("scripts/validate_django_migrations.py",)
+DJANGO_MIGRATION_DOC_SNIPPETS = ("Django 迁移链校验", "scripts/validate_django_migrations.py")
 GENERIC_SECTION_VALUES = {
     "tbd", "todo", "n/a", "coming soon", "run tests", "check manually", "follow best practices",
     "use proper architecture", "use clean architecture", "run appropriate tests", "follow conventions",
@@ -24,16 +26,7 @@ GENERIC_SECTION_VALUES = {
 }
 COMMAND_PREFIXES = ("./", "python", "python3", "gradle", "./gradlew", "npm", "pnpm", "yarn", "make", "git")
 SKIPPED_DOC_PARTS = ("docs/archive/", "docs/AGENT_STARTER_PROMPT.md", "docs/DOC_SYNC_CHECKLIST.md")
-SKIPPED_LINK_DIRS = {
-    ".agents",
-    ".codex",
-    ".git",
-    ".venv",
-    "__pycache__",
-    "node_modules",
-    "dist",
-    "build",
-}
+SKIPPED_LINK_DIRS = {".agents", ".codex", ".git", ".venv", "__pycache__", "node_modules", "dist", "build"}
 LEGACY_DOC_SECTION = "## Legacy detail docs"
 def validate_root(root, profile=DEFAULT_PROFILE):
     base = Path(root).resolve()
@@ -64,7 +57,7 @@ def required_files_for(profile):
     return GENERIC_REQUIRED_FILES + (ANDROID_REQUIRED_FILES if profile == "android" else ())
 def validate_contract_entrypoints(base):
     issues = []
-    for rel in CONTRACT_REQUIRED_FILES:
+    for rel in CONTRACT_REQUIRED_FILES + DJANGO_MIGRATION_REQUIRED_FILES:
         if not (base / rel).exists():
             issues.append(f"{rel}: 缺少契约校验入口")
     api_doc = base / "docs/API_ENDPOINTS.md"
@@ -76,7 +69,7 @@ def validate_contract_entrypoints(base):
     schema_doc = base / "docs/DATABASE_SCHEMA.md"
     if schema_doc.exists():
         text = read_text(schema_doc)
-        for snippet in MODEL_CONTRACT_DOC_SNIPPETS:
+        for snippet in MODEL_CONTRACT_DOC_SNIPPETS + DJANGO_MIGRATION_DOC_SNIPPETS:
             if snippet not in text:
                 issues.append(f"docs/DATABASE_SCHEMA.md: 缺少模型契约说明 {snippet}")
     workflow = base / ".github/workflows/quality-gates.yml"
@@ -86,6 +79,8 @@ def validate_contract_entrypoints(base):
             issues.append(".github/workflows/quality-gates.yml: 未运行 API 契约校验")
         if "scripts/validate_model_contracts.py" not in workflow_text:
             issues.append(".github/workflows/quality-gates.yml: 未运行模型契约校验")
+        if "scripts/validate_django_migrations.py" not in workflow_text:
+            issues.append(".github/workflows/quality-gates.yml: 未运行 Django 迁移链校验")
     return issues
 def validate_authority_docs(base, legacy_docs=()):
     issues = []
