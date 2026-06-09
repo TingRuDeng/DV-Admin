@@ -87,6 +87,12 @@ def test_shared_endpoint_contract_catalog_covers_django_system_routes():
     assert contracts["menus_create"].method == "POST"
     assert contracts["menus_delete"].permissions == ("system:permissions:delete",)
     assert contracts["dicts_page"].permissions == ("system:dicts:query",)
+    assert contracts["dicts_create"].request_fields == ("name", "dictCode")
+    assert contracts["dicts_update"].permissions == ("system:dicts:edit",)
+    assert contracts["dicts_delete"].request_fields == ("ids",)
+    assert contracts["dict_items_create"].request_fields == ("dict", "label", "value")
+    assert contracts["dict_items_update"].permissions == ("system:dictitems:edit",)
+    assert contracts["dict_items_delete"].request_fields == ("ids",)
     assert contracts["notices_page"].permissions == ("system:notices:query",)
     assert contracts["notices_create"].permissions == ("system:notices:add",)
 
