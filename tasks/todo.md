@@ -4,13 +4,13 @@
 
 ## 活跃任务
 
-- [x] P1 串行：RED 更新 Playwright 治理测试，要求 smoke 覆盖字典管理 E2E
-- [x] P2 串行：新增字典管理仅查询权限 E2E，验证新增字典、批量删除、字典数据、编辑、删除按钮被现有 `v-hasPerm` 移除
-- [x] P3 串行：将字典管理 E2E 纳入 smoke 脚本，并确认治理测试转绿
+- [x] P1 串行：RED 更新 Playwright 治理测试，要求 smoke 覆盖字典项管理 E2E
+- [x] P2 串行：新增字典项管理仅查询权限 E2E，验证新增字典项、批量删除、编辑、删除按钮被现有 `v-hasPerm` 移除
+- [x] P3 串行：将字典项管理 E2E 纳入 smoke 脚本，并确认治理测试转绿
 - [x] P4 串行：执行目标 E2E、完整 smoke、前端质量和根目录必要校验
 - [ ] P5 串行：同步任务状态、review-gate、提交、PR、CI 和合并
 
-并行判断：本轮涉及治理测试、字典 E2E 和 smoke 脚本三处顺序依赖，且会连续修改 `frontend/package.json` 与 Playwright 治理测试；为保证 RED/GREEN 证据清晰，采用串行推进，不启用 subagent。
+并行判断：本轮涉及治理测试、字典项 E2E 和 smoke 脚本三处顺序依赖，且会连续修改 `frontend/package.json` 与 Playwright 治理测试；为保证 RED/GREEN 证据清晰，采用串行推进，不启用 subagent。
 
 ## 已完成摘要
 
@@ -78,3 +78,5 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 本轮部门管理权限链路 E2E 已完成：`frontend/e2e/dept-management.spec.ts` 新增仅查询权限场景，验证用户可进入动态路由页面但新增部门、批量删除、行内新增、编辑、删除按钮会被既有 `v-hasPerm` 移除；`test:e2e:smoke` 已纳入部门管理用例，并由 Playwright 治理测试锁定。验证通过：RED 阶段治理测试因缺少 `e2e/dept-management.spec.ts` 失败，目标 E2E（1 passed）、完整 smoke（10 passed）、前端 `pnpm run quality`（64 files / 171 tests）、前端 `pnpm run build`、文档/API/模型/路由组件契约校验、脚本编译、敏感信息扫描和 `git diff --check`。
 
 本轮字典管理权限链路 E2E 已完成：`frontend/e2e/dict-management.spec.ts` 新增仅查询权限场景，验证用户可进入动态路由页面但新增字典、批量删除、字典数据、编辑、删除按钮会被既有 `v-hasPerm` 移除；`test:e2e:smoke` 已纳入字典管理用例，并由 Playwright 治理测试锁定。验证通过：RED 阶段治理测试因缺少 `e2e/dict-management.spec.ts` 失败，目标 E2E（1 passed）、完整 smoke（11 passed）、前端 `pnpm run quality`（64 files / 171 tests）、前端 `pnpm run build`、文档/API/模型/路由组件契约校验、脚本编译、敏感信息扫描和 `git diff --check`。
+
+本轮字典项管理权限链路 E2E 已完成：`frontend/e2e/dict-item-management.spec.ts` 新增仅查询权限场景，验证用户可进入动态路由页面但新增字典项、批量删除、编辑、删除按钮会被既有 `v-hasPerm` 移除；`test:e2e:smoke` 已纳入字典项管理用例，并由 Playwright 治理测试锁定。验证通过：RED 阶段治理测试因缺少 `e2e/dict-item-management.spec.ts` 失败，目标 E2E（1 passed）、完整 smoke（12 passed）、前端 `pnpm run quality`（64 files / 171 tests）、前端 `pnpm run build`、文档/API/模型/路由组件契约校验、脚本编译、敏感信息扫描和 `git diff --check`。
