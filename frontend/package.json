@@ -16,7 +16,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "test:e2e": "playwright test",
-    "test:e2e:smoke": "playwright test e2e/auth.spec.ts e2e/accessibility-smoke.spec.ts e2e/performance-smoke.spec.ts e2e/user-management.spec.ts --workers=1",
+    "test:e2e:smoke": "playwright test e2e/auth.spec.ts e2e/accessibility-smoke.spec.ts e2e/performance-smoke.spec.ts e2e/user-management.spec.ts e2e/role-management.spec.ts --workers=1",
     "test:e2e:ui": "playwright test --ui",
     "lint:eslint": "eslint --cache \"src/**/*.{vue,ts,js}\" --fix",
     "lint:eslint:check": "eslint \"src/**/*.{vue,ts,js}\"",
