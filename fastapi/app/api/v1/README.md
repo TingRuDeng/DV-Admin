@@ -139,6 +139,9 @@ async def create_user(...):
 - `/api/v1/system/dicts/` - 字典类型管理
 - `/api/v1/system/dict-items/` - 字典项管理
 - `/api/v1/system/notices/` - 通知公告
+- `GET /api/v1/system/notices/page` - 通知公告分页
+- `PUT /api/v1/system/notices/{id}/publish` - 发布通知
+- `PUT /api/v1/system/notices/{id}/revoke` - 撤回通知
 - `/api/v1/system/logs/` - 操作日志
 
 ### Information 模块

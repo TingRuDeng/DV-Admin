@@ -4,13 +4,13 @@
 
 ## 活跃任务
 
-- [x] P1 串行：RED 新增通知公告权限 E2E，复现后端 `system:notices:*` 权限下前端写按钮不可见
-- [x] P2 串行：将通知公告前端按钮权限码从 `sys:notice:*` 对齐为 `system:notices:*`
-- [x] P3 串行：将通知公告 E2E 纳入 smoke 脚本，并用治理测试锁定
-- [x] P4 串行：执行目标 E2E、完整 smoke、前端质量和根目录必要校验
+- [x] P1 串行：RED 更新前后端契约测试，要求关键端点目录覆盖通知公告管理接口
+- [x] P2 串行：将通知公告分页、创建、更新、删除、发布、撤回纳入 `scripts/api_endpoint_contracts.py`
+- [x] P3 串行：同步 API 契约校验脚本必备片段，确保通知公告契约不会脱离测试
+- [x] P4 串行：执行目标契约测试、根目录校验和必要前端验证
 - [ ] P5 串行：同步任务状态、review-gate、提交、PR、CI 和合并
 
-并行判断：本轮涉及通知公告 E2E、通知页模板权限码、smoke 脚本和治理测试，存在明确顺序依赖；为保证 RED/GREEN 证据清晰，采用串行推进，不启用 subagent。
+并行判断：本轮集中修改共享契约目录、契约测试和校验脚本，文件间存在顺序依赖；为保证 RED/GREEN 证据清晰，采用串行推进，不启用 subagent。
 
 ## 已完成摘要
 
@@ -82,3 +82,5 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 本轮字典项管理权限链路 E2E 已完成：`frontend/e2e/dict-item-management.spec.ts` 新增仅查询权限场景，验证用户可进入动态路由页面但新增字典项、批量删除、编辑、删除按钮会被既有 `v-hasPerm` 移除；`test:e2e:smoke` 已纳入字典项管理用例，并由 Playwright 治理测试锁定。验证通过：RED 阶段治理测试因缺少 `e2e/dict-item-management.spec.ts` 失败，目标 E2E（1 passed）、完整 smoke（12 passed）、前端 `pnpm run quality`（64 files / 171 tests）、前端 `pnpm run build`、文档/API/模型/路由组件契约校验、脚本编译、敏感信息扫描和 `git diff --check`。
 
 本轮通知公告权限码治理已完成：`frontend/src/views/system/notice/index.vue` 的通知公告写操作按钮权限码已从 `sys:notice:*` 对齐到后端和权限种子的 `system:notices:*`；新增 `frontend/e2e/notice-management.spec.ts`，用后端标准权限验证新增通知、批量删除、发布、撤回、编辑、删除按钮可见；`test:e2e:smoke` 已纳入通知公告用例，并由 Playwright 治理测试锁定。验证通过：RED 阶段目标 E2E 因 `新增通知` 不可见失败，目标 E2E（1 passed）、完整 smoke（13 passed）、前端 `pnpm run quality`（64 files / 171 tests）、前端 `pnpm run build`、文档/API/模型/路由组件契约校验、脚本编译、敏感信息扫描和 `git diff --check`。
+
+本轮通知公告关键 API 契约目录治理已完成本地验证：`scripts/api_endpoint_contracts.py` 已纳入通知公告分页、创建、更新、删除、发布、撤回端点，并将通知公告契约拆入 `scripts/api_endpoint_notice_contracts.py`，避免共享目录文件超过复杂度约束；FastAPI 运行时抽样覆盖 `notices_page`；`scripts/validate_api_contracts.py` 已锁定通知公告契约测试、文档片段和拆分后的契约模块。验证通过：FastAPI 目标契约测试（8 passed）、Django 目标契约测试（5 passed）、FastAPI `make quality`（516 passed，覆盖率 83.93%）、Django ruff、Django `uv run pytest`（90 passed）、根目录文档/API/模型/路由组件契约校验、脚本编译和 `git diff --check`。
