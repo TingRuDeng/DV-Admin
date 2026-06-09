@@ -26,6 +26,7 @@
       <template #actions>
         <div class="ff-button-group">
           <el-button
+            v-hasPerm="['system:roles:add']"
             type="primary"
             icon="plus"
             class="ff-button-primary"
@@ -34,6 +35,7 @@
             新增角色
           </el-button>
           <el-button
+            v-hasPerm="['system:roles:delete']"
             type="danger"
             plain
             :disabled="ids.length === 0"
@@ -82,6 +84,7 @@
         <el-table-column fixed="right" label="操作" width="280">
           <template #default="scope">
             <el-button
+              v-hasPerm="'system:roles:edit'"
               type="primary"
               link
               icon="position"
@@ -91,6 +94,7 @@
               分配权限
             </el-button>
             <el-button
+              v-hasPerm="'system:roles:edit'"
               type="primary"
               link
               icon="edit"
@@ -100,6 +104,7 @@
               编辑
             </el-button>
             <el-button
+              v-hasPerm="'system:roles:delete'"
               type="danger"
               link
               icon="delete"
