@@ -391,7 +391,7 @@ DELETE /api/v1/system/dict-items/     # 批量删除字典项，请求体 ids
 
 ### 通知公告
 
-**FastAPI 与前端管理页：**
+**Django / FastAPI 与前端管理页：**
 ```
 GET    /api/v1/system/notices/page           # 通知列表
 POST   /api/v1/system/notices                # 创建通知
@@ -402,7 +402,7 @@ PUT    /api/v1/system/notices/{id}/revoke    # 撤回通知
 GET    /api/v1/system/notices/my-page/       # 我的通知
 ```
 
-**Django 当前薄实现：**
+**Django 当前薄实现保留的我的通知接口：**
 ```
 GET    /api/v1/system/notices/my-page/       # 我的通知
 ```

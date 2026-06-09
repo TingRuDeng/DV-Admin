@@ -183,8 +183,6 @@ class NoticeFormOut(BaseSchema):
 class NoticePageOut(BaseSchema):
     """通知公告分页数据"""
 
-    model_config = {"alias_generator": None}
-
     id: int = Field(description="通知ID")
     title: str = Field(description="标题")
     content: str | None = Field(default=None, description="内容")

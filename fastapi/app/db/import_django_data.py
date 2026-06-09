@@ -15,7 +15,7 @@ from tortoise import Tortoise, run_async
 from app.core.config import settings
 from app.db.models.base import BaseModel
 from app.db.models.oauth import Users
-from app.db.models.system import Departments, DictData, DictItems, Permissions, Roles
+from app.db.models.system import Departments, DictData, DictItems, Notices, Permissions, Roles
 
 
 class DjangoDataImportError(RuntimeError):
@@ -67,6 +67,7 @@ MODEL_MAPPING: dict[str, type[BaseModel]] = {
     "system.users": Users,
     "system.dicts": DictData,
     "system.dictitems": DictItems,
+    "system.notices": Notices,
 }
 
 # 字段名映射
@@ -84,6 +85,7 @@ IMPORT_ORDER = (
     "system.permissions",
     "system.dicts",
     "system.dictitems",  # 依赖 dicts
+    "system.notices",
     "system.roles",  # 依赖 permissions (M2M)
     "system.users",  # 依赖 departments, roles (M2M)
 )

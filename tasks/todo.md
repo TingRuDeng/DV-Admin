@@ -27,9 +27,13 @@
 - [x] P1 串行：RED 补充字典/字典项写接口契约缺口测试，复现缺少 `dicts_create/update/delete` 与 `dict_items_create/update/delete`
 - [x] P2 串行：GREEN 拆分字典端点契约模块，并补双后端运行时写接口抽样
 - [x] P3 串行：执行双后端目标测试、质量门禁和文档/API 校验
+- [x] P4 串行：review-gate、提交、PR、CI 和合并
+- [x] P1 串行：RED 补充通知公告写接口运行时契约，复现缺少 `notices_create/update/delete/publish/revoke`
+- [x] P2 串行：GREEN 补齐 Django/FastAPI 通知公告写接口运行时抽样
+- [x] P3 串行：执行双后端目标测试、质量门禁和文档/API 校验
 - [ ] P4 串行：review-gate、提交、PR、CI 和合并
 
-并行判断：本轮只处理字典/字典项写接口运行时契约，变更集中在共享端点目录、双后端运行时测试和 API 契约校验入口，存在共享文件写冲突；不启用 subagent。
+并行判断：本轮只处理通知公告写接口运行时契约，变更集中在共享端点目录、双后端运行时测试和 API 契约校验入口，存在共享文件写冲突；不启用 subagent。
 
 ## 已完成摘要
 
@@ -119,3 +123,5 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 本轮部门树关键 API 契约治理已通过 PR #116 合并：共享端点目录新增 `depts_tree`，Django/FastAPI 运行时抽样已覆盖部门树 `search/status`，FastAPI 部门树接口已真实应用前端查询参数；远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过，合并提交为 `5d8c361`。
 
 本轮角色写接口运行时契约治理已通过 PR #117 合并：共享端点目录新增角色创建、更新、批量删除、菜单 ID 查询和权限分配契约；Django/FastAPI 均补齐 `PUT /api/v1/system/roles/{id}/menus/`，运行时抽样覆盖角色创建、更新、分配权限和删除闭环；远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过，合并提交为 `f042741`。
+
+本轮通知公告写接口运行时契约治理已完成本地验证：FastAPI 通知公告响应恢复 camelCase 输出，Django 补齐 `system_notices` 模型、管理端创建/更新/删除/发布/撤回路径和运行时抽样测试；共享 API 契约校验和模型契约校验已纳入通知公告写接口测试入口。验证通过：FastAPI 契约组（15 passed）、Django 契约组（14 passed）、Django `uv run pytest`（96 passed）、FastAPI `make quality`（522 passed，覆盖率 84.75%）、文档/API/模型/路由组件契约校验、脚本编译、ruff、敏感信息扫描和 `git diff --check`。
