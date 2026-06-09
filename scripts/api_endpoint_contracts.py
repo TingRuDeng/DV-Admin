@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from scripts.api_endpoint_contract_types import ContractEvidence, EndpointContract
 from scripts.api_endpoint_notice_contracts import NOTICE_ENDPOINT_CONTRACTS
+from scripts.api_endpoint_role_contracts import ROLE_ENDPOINT_CONTRACTS
 
 
 HTTP_METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE"}
@@ -14,6 +15,11 @@ REQUIRED_ENDPOINT_KEYS = {
     "users_update",
     "users_delete",
     "roles_page",
+    "roles_create",
+    "roles_update",
+    "roles_delete",
+    "roles_menu_ids",
+    "roles_menu_assign",
     "depts_tree",
     "menus_tree",
     "dicts_page",
@@ -124,25 +130,7 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
             ContractEvidence("frontend/src/api/system/user-api.ts", ("deleteByIds", 'method: "delete"')),
         ),
     ),
-    EndpointContract(
-        key="roles_page",
-        method="GET",
-        path="/api/v1/system/roles/",
-        auth_required=True,
-        query_params=("page", "pageSize", "search"),
-        response_fields=("list", "total"),
-        permissions=("system:roles:query",),
-        paginated=True,
-        evidence=(
-            ContractEvidence("backend/drf_admin/apps/system/urls.py", ("roles", "RolesViewSet")),
-            ContractEvidence(
-                "fastapi/app/api/v1/system/roles.py",
-                ("/", "system:roles:query", 'alias="pageSize"'),
-            ),
-            ContractEvidence("frontend/src/api/system/role-api.ts", ("getPage", "/api/system/roles")),
-            ContractEvidence("docs/API_ENDPOINTS.md", ("GET    /api/v1/system/roles/",)),
-        ),
-    ),
+    *ROLE_ENDPOINT_CONTRACTS,
     EndpointContract(
         key="depts_tree",
         method="GET",

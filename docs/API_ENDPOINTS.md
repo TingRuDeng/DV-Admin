@@ -329,8 +329,10 @@ POST   /api/v1/system/roles/          # 创建
 GET    /api/v1/system/roles/{id}/     # 详情
 PUT    /api/v1/system/roles/{id}/     # 更新
 DELETE /api/v1/system/roles/{id}/     # 删除
+DELETE /api/v1/system/roles/          # 批量删除，请求体 ids
 GET    /api/v1/system/roles/options/  # 角色下拉选项
 GET    /api/v1/system/roles/{id}/menu-ids/ # 角色菜单ID列表
+PUT    /api/v1/system/roles/{id}/menus/    # 分配角色菜单权限，请求体 menuIds
 ```
 
 ---

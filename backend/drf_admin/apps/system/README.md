@@ -102,6 +102,7 @@ system/
 | `/api/v1/system/users/` | GET, POST | 用户列表/创建 |
 | `/api/v1/system/users/{id}/` | GET, PUT, DELETE | 用户详情/更新/删除 |
 | `/api/v1/system/roles/` | GET, POST | 角色列表/创建 |
+| `/api/v1/system/roles/{id}/menus/` | PUT | 分配角色菜单权限 |
 | `/api/v1/system/menus/` | GET, POST | 菜单列表/创建 |
 | `/api/v1/system/depts/` | GET, POST | 部门树/创建 |
 | `/api/v1/system/dicts/` | GET, POST | 字典类型列表/创建 |
