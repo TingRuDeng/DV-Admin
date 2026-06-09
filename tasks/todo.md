@@ -4,13 +4,13 @@
 
 ## 活跃任务
 
-- [x] P1 串行：RED 新增日志管理 E2E，复现前端请求路径未命中 `/api/v1/system/logs/page`
-- [x] P2 串行：修正 `frontend/src/api/system/log-api.ts` 的日志接口基路径
-- [x] P3 串行：将日志管理 E2E 纳入 smoke 脚本，并用治理测试锁定
-- [x] P4 串行：执行目标 E2E、完整 smoke、前端质量和根目录必要校验
+- [x] P1 串行：RED 更新系统配置孤儿功能治理测试，复现前端配置 API / 页面 / 样式仍被保留
+- [x] P2 串行：删除无后端路由和权限契约支撑的系统配置前端残留
+- [x] P3 串行：同步前端优化 backlog，移除已删除系统配置页引用
+- [x] P4 串行：执行目标治理测试、前端质量、构建和根目录必要校验
 - [ ] P5 串行：同步任务状态、review-gate、提交、PR、CI 和合并
 
-并行判断：本轮集中修改前端日志 API、Playwright E2E、smoke 脚本和治理测试，存在明确 RED/GREEN 顺序依赖；为避免测试先适配实现，采用串行推进，不启用 subagent。
+并行判断：本轮集中修改前端系统配置残留、治理测试、样式入口和 backlog 文档，存在明确 RED/GREEN 顺序依赖；为避免测试先适配实现，采用串行推进，不启用 subagent。
 
 ## 已完成摘要
 
@@ -88,3 +88,7 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 通知公告关键 API 契约目录治理已通过 PR #109 合并：远端 CI 通过 Django Backend Quality、FastAPI Backend Quality、Frontend Quality，合并提交为 `0b2d026`。
 
 本轮日志管理路径 E2E 治理已完成本地验证：`frontend/src/api/system/log-api.ts` 的日志分页基路径已从 `/api/v1/logs` 对齐为 `/api/system/logs`，经请求拦截器生成 `/api/v1/system/logs/page`；新增 `frontend/e2e/log-management.spec.ts` 复现并锁定该路径，`test:e2e:smoke` 已纳入日志管理用例，Playwright 治理测试同步检查。验证通过：RED 阶段目标 E2E 捕获实际路径 `/api/v1/logs/page`，GREEN 后目标 E2E（1 passed）、完整 smoke（14 passed）、前端 `pnpm run quality`（64 files / 171 tests）、前端 `pnpm run build`、根目录文档/API/模型/路由组件契约校验、脚本编译和 `git diff --check`。
+
+日志管理路径 E2E 治理已通过 PR #110 合并：远端 CI 通过 Django Backend Quality、FastAPI Backend Quality、Frontend Quality，合并提交为 `917a9d4`。
+
+本轮系统配置孤儿功能治理已完成本地验证：当前 Django/FastAPI 路由和权限种子均无系统配置契约，`frontend/src/api/system/config-api.ts`、`frontend/src/views/system/config/index.vue` 与 `frontend/src/styles/pages/_system-config.scss` 已删除，`frontend/src/views/__tests__/config-style-migration.spec.ts` 改为治理测试，防止无后端契约时继续保留前端配置模块；`docs/FRONTEND_OPTIMIZATION_BACKLOG.md` 已移除已删除页面引用。验证通过：RED 阶段目标治理测试捕获 `config-api.ts` 仍存在，GREEN 后目标测试（1 passed）、前端 `pnpm run quality`（64 files / 171 tests）、前端 `pnpm run build`、根目录文档/API/模型/路由组件契约校验、脚本编译和 `git diff --check`。

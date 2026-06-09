@@ -163,7 +163,7 @@ ai_summary:
 - [x] 定义 `ProSearch` / `ProTable` / `ProFormDrawer` / `ProFormModal` 的最小职责边界
 - [x] 先做最小可用版本，不一次性引入过多高级能力
 - [x] 以 `system/user` 作为样板页完成第一轮抽象
-- [x] 再迁移 `system/config`（`system/role`、`system/menu`、`system/dict` 已完成）
+- [x] 再迁移 `system/role`、`system/menu`、`system/dict`
 
 **评估结论（2026-04）**
 
@@ -215,7 +215,6 @@ ai_summary:
 - `frontend/src/views/system/role/index.vue`
 - `frontend/src/views/system/menu/index.vue`
 - `frontend/src/views/system/dict/index.vue`
-- `frontend/src/views/system/config/index.vue`
 
 **完成标准**
 
