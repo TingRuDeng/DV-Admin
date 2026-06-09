@@ -9,6 +9,8 @@ REQUIRED_FILES = (
     "scripts/api_contracts.py",
     "scripts/api_error_codes.py",
     "scripts/api_endpoint_contracts.py",
+    "scripts/api_endpoint_contract_types.py",
+    "scripts/api_endpoint_notice_contracts.py",
     "backend/drf_admin/utils/test_runtime_api_contracts.py",
     "backend/drf_admin/utils/test_response_contract.py",
     "fastapi/tests/test_api_contracts.py",
@@ -60,6 +62,9 @@ REQUIRED_TEST_SNIPPETS = {
         "PageResult.create",
         "assert_api_error_code_catalog",
         "assert_endpoint_contract_catalog",
+        "notices_page",
+        "notices_create",
+        "notices_publish",
     ),
     "fastapi/tests/test_runtime_api_contracts.py": (
         "iter_critical_endpoint_contracts",
@@ -67,6 +72,7 @@ REQUIRED_TEST_SNIPPETS = {
         "users_create",
         "users_update",
         "users_delete",
+        "notices_page",
     ),
     "frontend/src/utils/__tests__/api-contract.test.ts": (
         "Django",
@@ -88,6 +94,8 @@ REQUIRED_FILE_ROUTE_SNIPPETS = {
     "fastapi/app/api/v1/README.md": (
         "POST /api/v1/files/",
         "DELETE /api/v1/files/?filePath=files/{user_id}/{filename}",
+        "GET /api/v1/system/notices/page",
+        "PUT /api/v1/system/notices/{id}/publish",
     ),
 }
 
