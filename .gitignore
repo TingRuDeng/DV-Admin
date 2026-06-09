@@ -68,6 +68,12 @@ dv_admin.db-wal
 !frontend/pnpm-lock.yaml
 !fastapi/uv.lock
 
+# Django 迁移必须纳入版本控制，避免被用户全局 ignore 规则误排除。
+!backend/drf_admin/apps/**/migrations/
+!backend/drf_admin/apps/**/migrations/__init__.py
+!backend/drf_admin/apps/**/migrations/[0-9][0-9][0-9][0-9]_*.py
+backend/drf_admin/apps/**/migrations/__pycache__/
+
 # IDE and tool configs
 .arts/
 .codeartsdoer/

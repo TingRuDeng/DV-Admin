@@ -445,6 +445,9 @@ uv run python manage.py migrate --env dev
 
 # 查看迁移状态
 uv run python manage.py showmigrations --env dev
+
+# Django 迁移链校验
+python3 scripts/validate_django_migrations.py .
 ```
 
 ### FastAPI
