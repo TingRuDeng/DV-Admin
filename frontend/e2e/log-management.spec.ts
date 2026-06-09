@@ -2,12 +2,11 @@ import { expect, test, type Page, type Route } from "@playwright/test";
 
 interface LogRow {
   id: string;
-  createTime: string;
-  operator: string;
-  module: string;
-  content: string;
+  createdAt: string;
+  username: string;
+  operation: string;
+  path: string;
   ip: string;
-  region: string;
   browser: string;
   os: string;
   executionTime: number;
@@ -43,12 +42,11 @@ function createMockState(): MockState {
     logs: [
       {
         id: "901",
-        createTime: "2026-06-09 10:00:00",
-        operator: "admin",
-        module: "系统管理",
-        content: "查询操作日志",
+        createdAt: "2026-06-09 10:00:00",
+        username: "admin",
+        operation: "查询操作日志",
+        path: "/api/v1/system/logs/page",
         ip: "127.0.0.1",
-        region: "本地",
         browser: "Chromium",
         os: "macOS",
         executionTime: 12,
