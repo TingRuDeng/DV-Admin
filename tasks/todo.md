@@ -36,8 +36,12 @@
 - [x] P2 串行：GREEN 修正仓库 ignore 规则并纳入完整 `system` 迁移链
 - [x] P3 串行：执行迁移检查、Django 测试和根目录校验
 - [x] P4 串行：review-gate、提交、PR、CI 和合并
+- [x] P1 串行：RED 补充 GitHub Actions Node 24 runtime 校验，复现缺少 opt-in
+- [x] P2 串行：GREEN 将质量门禁的 pnpm action 升级到 v6
+- [x] P3 串行：执行文档校验、workflow 校验和 diff 检查
+- [x] P4 串行：review-gate、提交、PR、CI 和合并
 
-并行判断：本轮只处理 Django 迁移链跟踪治理，变更集中在 `.gitignore`、Django 迁移文件和仓库校验脚本，存在同一验证入口写冲突；不启用 subagent。
+并行判断：本轮只处理 GitHub Actions Node 24 runtime 治理，变更集中在 `.github/workflows/quality-gates.yml`、文档校验脚本和任务状态，存在同一 workflow 写冲突；不启用 subagent。
 
 ## 已完成摘要
 
@@ -131,3 +135,5 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 本轮通知公告写接口运行时契约治理已完成本地验证：FastAPI 通知公告响应恢复 camelCase 输出，Django 补齐 `system_notices` 模型、管理端创建/更新/删除/发布/撤回路径和运行时抽样测试；共享 API 契约校验和模型契约校验已纳入通知公告写接口测试入口。验证通过：FastAPI 契约组（15 passed）、Django 契约组（14 passed）、Django `uv run pytest`（96 passed）、FastAPI `make quality`（522 passed，覆盖率 84.75%）、文档/API/模型/路由组件契约校验、脚本编译、ruff、敏感信息扫描和 `git diff --check`。
 
 本轮 Django 迁移链跟踪治理已完成本地验证：新增 `scripts/validate_django_migrations.py`，将 `system` 完整迁移链纳入 Git 跟踪，并在 `.gitignore` 和 CI 文档校验阶段显式覆盖全局 ignore 漂移；`docs/DATABASE_SCHEMA.md` 与 `docs/AI_CONTEXT.md` 已同步迁移链校验入口。验证通过：RED 阶段捕获 4 个未跟踪 migration 和 3 条缺失 unignore 规则，GREEN 后迁移链校验、文档/API/模型/路由组件契约校验、脚本编译、Django `makemigrations --check --dry-run`、Django ruff、Django `uv run pytest`（96 passed）、敏感关键词扫描和 `git diff --check`。
+
+本轮 GitHub Actions Node 24 runtime 治理已完成本地验证：质量门禁 workflow 将 `pnpm/action-setup` 升级到 v6，并由 `scripts/validate_docs.py` 反向校验，避免 CI 继续依赖目标为 Node 20 的 v4 action。验证通过：RED 阶段文档校验先捕获缺少 Node 24 opt-in，随后捕获仍使用 `pnpm/action-setup@v4`；GREEN 后文档/API/模型/路由组件/Django 迁移校验、脚本编译、敏感关键词扫描和 `git diff --check` 均通过。
