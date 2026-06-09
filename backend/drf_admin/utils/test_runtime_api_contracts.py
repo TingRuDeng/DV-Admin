@@ -11,7 +11,7 @@ from scripts.api_contracts import (
     iter_critical_endpoint_contracts,
 )
 
-from drf_admin.apps.system.models import DictItems, Dicts, Permissions, Roles, Users
+from drf_admin.apps.system.models import Departments, DictItems, Dicts, Permissions, Roles, Users
 
 HTTP_OK = status.HTTP_200_OK
 PAGE_SIZE_SAMPLE = 1
@@ -19,6 +19,7 @@ READ_SAMPLE_KEYS = (
     "auth_info",
     "auth_routes",
     "users_page",
+    "depts_tree",
     "menus_tree",
     "dicts_page",
     "dict_items_page",
@@ -92,6 +93,7 @@ def create_runtime_contract_permissions() -> list[Permissions]:
         "system:users:add",
         "system:users:edit",
         "system:users:delete",
+        "system:departments:query",
         "system:permissions:query",
         "system:dicts:query",
         "system:dictitems:query",
@@ -131,6 +133,13 @@ def create_runtime_contract_dicts() -> None:
     DictItems.objects.create(dict=extra_dict, label="其他", value="other", status=1)
 
 
+def create_runtime_contract_departments() -> Departments:
+    """创建部门树查询样本，覆盖 search/status 查询参数契约。"""
+    visible = Departments.objects.create(name="运行时契约部门", status=1, sort=1)
+    Departments.objects.create(name="运行时过滤部门", status=0, sort=2)
+    return visible
+
+
 class DjangoRuntimeApiContractTestCase(TestCase):
     """Django 关键端点运行时响应必须满足共享端点目录。"""
 
@@ -138,6 +147,7 @@ class DjangoRuntimeApiContractTestCase(TestCase):
         self.client = APIClient()
         self.user = create_runtime_contract_user()
         create_runtime_contract_dicts()
+        self.department = create_runtime_contract_departments()
         self.client.force_authenticate(user=self.user)
 
     def test_django_read_runtime_samples_match_endpoint_catalog(self):
@@ -157,6 +167,17 @@ class DjangoRuntimeApiContractTestCase(TestCase):
             contracts["users_page"],
         )
         assert len(users_data["list"]) == PAGE_SIZE_SAMPLE
+
+        depts_data = assert_success_payload(
+            self.client.get(
+                contracts["depts_tree"].path,
+                {"search": self.department.name, "status": self.department.status},
+            ),
+            contracts["depts_tree"],
+        )
+        assert len(depts_data) == 1
+        assert depts_data[0]["name"] == self.department.name
+        assert depts_data[0]["status"] == self.department.status
 
     def test_django_dict_items_runtime_sample_filters_by_frontend_dict_code(self):
         """字典项列表必须按前端 `dictCode` 参数过滤，避免跨后端查询语义漂移。"""

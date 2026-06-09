@@ -14,6 +14,7 @@ REQUIRED_ENDPOINT_KEYS = {
     "users_update",
     "users_delete",
     "roles_page",
+    "depts_tree",
     "menus_tree",
     "dicts_page",
     "dict_items_page",
@@ -140,6 +141,28 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
             ),
             ContractEvidence("frontend/src/api/system/role-api.ts", ("getPage", "/api/system/roles")),
             ContractEvidence("docs/API_ENDPOINTS.md", ("GET    /api/v1/system/roles/",)),
+        ),
+    ),
+    EndpointContract(
+        key="depts_tree",
+        method="GET",
+        path="/api/v1/system/departments/",
+        auth_required=True,
+        query_params=("search", "status"),
+        response_fields=("id", "name", "status"),
+        permissions=("system:departments:query",),
+        evidence=(
+            ContractEvidence("backend/drf_admin/apps/system/urls.py", ("departments", "DepartmentsViewSet")),
+            ContractEvidence(
+                "backend/drf_admin/apps/system/views/departments.py",
+                ("DepartmentsViewSet", "search_fields", "filterset_fields"),
+            ),
+            ContractEvidence(
+                "fastapi/app/api/v1/system/depts.py",
+                ("/", "system:departments:query", "search", "status"),
+            ),
+            ContractEvidence("frontend/src/api/system/dept-api.ts", ("getList", "/api/system/departments")),
+            ContractEvidence("docs/API_ENDPOINTS.md", ("GET    /api/v1/system/departments/",)),
         ),
     ),
     EndpointContract(
