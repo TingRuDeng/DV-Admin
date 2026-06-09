@@ -20,6 +20,14 @@ urlpatterns = [
     path('users/<int:pk>/password/reset/', users.ResetPasswordAPIView.as_view()),  # 重置密码
     path('users/<int:pk>/permissions/', users.PermissionsAPIView.as_view()),  # 用户权限ID列表
     path('notices/my-page/', notices.NoticesAPIView.as_view()),  # 通知列表
+    path('notices/page', notices.NoticesViewSet.as_view({'get': 'list'})),  # 通知公告分页
+    path('notices', notices.NoticesViewSet.as_view({'post': 'create'})),  # 创建通知公告
+    path('notices/<int:pk>/publish', notices.NoticesViewSet.as_view({'put': 'publish'})),  # 发布通知公告
+    path('notices/<int:pk>/revoke', notices.NoticesViewSet.as_view({'put': 'revoke'})),  # 撤回通知公告
+    path('notices/<str:ids>', notices.NoticesViewSet.as_view({
+        'put': 'update_by_id',
+        'delete': 'delete_by_ids',
+    })),  # 更新或删除通知公告
     # path('dept/options/', departments.DepartmentsTreeViewSet.as_view()),  # 部门树状列表
     path('roles/<int:pk>/menu-ids/', roles.RoleMenuIdsAPIView.as_view()),  # 角色菜单ID列表
 

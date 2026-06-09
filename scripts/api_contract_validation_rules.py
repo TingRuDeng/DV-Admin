@@ -15,12 +15,14 @@ REQUIRED_FILES = (
     "scripts/api_contract_validation_rules.py",
     "backend/drf_admin/utils/runtime_api_contracts/helpers.py",
     "backend/drf_admin/utils/runtime_api_contracts/test_dict_write_contracts.py",
+    "backend/drf_admin/utils/runtime_api_contracts/test_notice_write_contracts.py",
     "backend/drf_admin/utils/runtime_api_contracts/test_read_contracts.py",
     "backend/drf_admin/utils/runtime_api_contracts/test_write_contracts.py",
     "backend/drf_admin/utils/test_response_contract.py",
     "fastapi/tests/test_api_contracts.py",
     "fastapi/tests/runtime_api_contracts/helpers.py",
     "fastapi/tests/runtime_api_contracts/test_dict_write_contracts.py",
+    "fastapi/tests/runtime_api_contracts/test_notice_write_contracts.py",
     "fastapi/tests/runtime_api_contracts/test_read_and_file_contracts.py",
     "fastapi/tests/runtime_api_contracts/test_write_contracts.py",
     "frontend/src/utils/__tests__/api-contract.test.ts",
@@ -71,6 +73,7 @@ REQUIRED_TEST_SNIPPETS = {
         "assert_success_envelope",
         "DICT_WRITE_SAMPLE_KEYS",
         "DICT_ITEM_WRITE_SAMPLE_KEYS",
+        "NOTICE_WRITE_SAMPLE_KEYS",
     ),
     "backend/drf_admin/utils/runtime_api_contracts/test_read_contracts.py": ("dictCode", "depts_tree"),
     "backend/drf_admin/utils/runtime_api_contracts/test_write_contracts.py": (
@@ -86,6 +89,12 @@ REQUIRED_TEST_SNIPPETS = {
         "test_django_dict_item_write_runtime_samples_match_endpoint_catalog",
         "dicts_create",
         "dict_items_create",
+    ),
+    "backend/drf_admin/utils/runtime_api_contracts/test_notice_write_contracts.py": (
+        "test_django_notice_write_runtime_samples_match_endpoint_catalog",
+        "notices_create",
+        "notices_publish",
+        "notices_revoke",
     ),
     "fastapi/tests/test_api_contracts.py": (
         "ResponseModel.success",
@@ -104,6 +113,7 @@ REQUIRED_TEST_SNIPPETS = {
         "iter_critical_endpoint_contracts",
         "DICT_WRITE_SAMPLE_KEYS",
         "DICT_ITEM_WRITE_SAMPLE_KEYS",
+        "NOTICE_WRITE_SAMPLE_KEYS",
     ),
     "fastapi/tests/runtime_api_contracts/test_read_and_file_contracts.py": ("files_upload", "files_delete", "logs_page"),
     "fastapi/tests/runtime_api_contracts/test_write_contracts.py": (
@@ -118,6 +128,12 @@ REQUIRED_TEST_SNIPPETS = {
         "test_fastapi_dict_item_write_runtime_samples_match_endpoint_catalog",
         "dicts_create",
         "dict_items_create",
+    ),
+    "fastapi/tests/runtime_api_contracts/test_notice_write_contracts.py": (
+        "test_fastapi_notice_write_runtime_samples_match_endpoint_catalog",
+        "notices_create",
+        "notices_publish",
+        "notices_revoke",
     ),
     "frontend/src/utils/__tests__/api-contract.test.ts": (
         "Django",

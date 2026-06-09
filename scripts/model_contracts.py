@@ -92,6 +92,13 @@ DJANGO_FASTAPI_MODEL_CONTRACTS: tuple[DjangoFastapiModelContract, ...] = (
             },
         ),
     ),
+    DjangoFastapiModelContract(
+        django_model="system.notices",
+        fastapi_model="Notices",
+        django_table="system_notices",
+        fastapi_table="system_notices",
+        field_aliases=COMMON_DJANGO_FIELD_ALIASES,
+    ),
 )
 
 

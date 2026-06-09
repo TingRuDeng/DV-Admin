@@ -107,7 +107,12 @@ system/
 | `/api/v1/system/departments/` | GET, POST | 部门树/创建 |
 | `/api/v1/system/dicts/` | GET, POST | 字典类型列表/创建 |
 | `/api/v1/system/dict-items/` | GET, POST | 字典项列表/创建 |
-| `/api/v1/system/notices/` | GET, POST | 通知列表/创建 |
+| `/api/v1/system/notices/page` | GET | 通知公告分页 |
+| `/api/v1/system/notices` | POST | 创建通知公告 |
+| `/api/v1/system/notices/{id}` | PUT | 更新通知公告 |
+| `/api/v1/system/notices/{id}/publish` | PUT | 发布通知公告 |
+| `/api/v1/system/notices/{id}/revoke` | PUT | 撤回通知公告 |
+| `/api/v1/system/notices/{ids}` | DELETE | 删除通知公告 |
 
 > 操作日志管理路由当前由 FastAPI 实现提供；Django `system` 应用当前未注册日志管理路由。
 

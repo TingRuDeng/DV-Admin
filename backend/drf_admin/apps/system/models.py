@@ -8,6 +8,8 @@ from django.utils import timezone
 
 from drf_admin.utils.models import BaseModel
 
+from .models_notice import Notices  # noqa: F401  注册通知公告模型
+
 
 # 自定义头像上传路径函数，生成随机文件名
 def user_avatar_path(instance, filename):

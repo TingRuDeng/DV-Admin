@@ -95,6 +95,9 @@ def test_shared_endpoint_contract_catalog_covers_django_system_routes():
     assert contracts["dict_items_delete"].request_fields == ("ids",)
     assert contracts["notices_page"].permissions == ("system:notices:query",)
     assert contracts["notices_create"].permissions == ("system:notices:add",)
+    assert contracts["notices_update"].permissions == ("system:notices:edit",)
+    assert contracts["notices_publish"].permissions == ("system:notices:publish",)
+    assert contracts["notices_revoke"].permissions == ("system:notices:revoke",)
 
 
 def test_shared_api_error_code_catalog_covers_django_response_contracts():
