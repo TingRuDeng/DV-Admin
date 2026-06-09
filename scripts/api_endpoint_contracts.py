@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from scripts.api_endpoint_contract_types import ContractEvidence, EndpointContract
 from scripts.api_endpoint_dept_contracts import DEPT_ENDPOINT_CONTRACTS
+from scripts.api_endpoint_menu_contracts import MENU_ENDPOINT_CONTRACTS
 from scripts.api_endpoint_notice_contracts import NOTICE_ENDPOINT_CONTRACTS
 from scripts.api_endpoint_role_contracts import ROLE_ENDPOINT_CONTRACTS
 
@@ -26,6 +27,9 @@ REQUIRED_ENDPOINT_KEYS = {
     "depts_update",
     "depts_delete",
     "menus_tree",
+    "menus_create",
+    "menus_update",
+    "menus_delete",
     "dicts_page",
     "dict_items_page",
     "notices_page",
@@ -136,19 +140,7 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
     ),
     *ROLE_ENDPOINT_CONTRACTS,
     *DEPT_ENDPOINT_CONTRACTS,
-    EndpointContract(
-        key="menus_tree",
-        method="GET",
-        path="/api/v1/system/menus/",
-        auth_required=True,
-        response_fields=("children", "component", "perm", "routePath"),
-        permissions=("system:permissions:query",),
-        evidence=(
-            ContractEvidence("backend/drf_admin/apps/system/urls.py", ("menus", "MenusViewSet")),
-            ContractEvidence("fastapi/app/api/v1/system/menus.py", ("/", "system:permissions:query")),
-            ContractEvidence("frontend/src/api/system/menu-api.ts", ("getList", "/api/system/menus")),
-        ),
-    ),
+    *MENU_ENDPOINT_CONTRACTS,
     EndpointContract(
         key="dicts_page",
         method="GET",

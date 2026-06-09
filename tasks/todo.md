@@ -15,9 +15,13 @@
 - [x] P1 串行：RED 补充部门写接口运行时契约，复现缺少 `depts_create/depts_update/depts_delete`
 - [x] P2 串行：GREEN 拆分部门端点契约模块，并补双后端运行时抽样
 - [x] P3 串行：执行双后端契约测试、质量门禁和文档/API 校验
+- [x] P4 串行：review-gate、提交、PR、CI 和合并
+- [x] P1 串行：RED 补充菜单写接口运行时契约，复现缺少 `menus_create/menus_update/menus_delete`
+- [x] P2 串行：GREEN 拆分菜单端点契约模块，并补双后端运行时抽样
+- [x] P3 串行：执行双后端契约测试、质量门禁和文档/API 校验
 - [ ] P4 串行：review-gate、提交、PR、CI 和合并
 
-并行判断：本轮只处理部门写接口运行时契约，变更涉及共享目录和双后端运行时测试，需要统一串行整合；不启用 subagent。
+并行判断：本轮只处理菜单写接口运行时契约，变更涉及共享目录和双后端运行时测试，需要统一串行整合；不启用 subagent。
 
 ## 已完成摘要
 

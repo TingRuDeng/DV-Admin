@@ -11,6 +11,7 @@ REQUIRED_FILES = (
     "scripts/api_endpoint_contracts.py",
     "scripts/api_endpoint_contract_types.py",
     "scripts/api_endpoint_dept_contracts.py",
+    "scripts/api_endpoint_menu_contracts.py",
     "scripts/api_endpoint_notice_contracts.py",
     "scripts/api_endpoint_role_contracts.py",
     "backend/drf_admin/utils/test_runtime_api_contracts.py",
@@ -75,6 +76,9 @@ REQUIRED_TEST_SNIPPETS = {
         "depts_create",
         "depts_update",
         "depts_delete",
+        "menus_create",
+        "menus_update",
+        "menus_delete",
         "logs_page",
     ),
     "fastapi/tests/test_runtime_api_contracts.py": (
@@ -93,6 +97,9 @@ REQUIRED_TEST_SNIPPETS = {
         "depts_create",
         "depts_update",
         "depts_delete",
+        "menus_create",
+        "menus_update",
+        "menus_delete",
         "logs_page",
     ),
     "frontend/src/utils/__tests__/api-contract.test.ts": (
