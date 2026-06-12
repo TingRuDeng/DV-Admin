@@ -17,6 +17,17 @@ class FastapiFieldMetadataContract:
 
 
 @dataclass(frozen=True)
+class DjangoFieldMetadataContract:
+    """Django 字段元数据契约，锁定关键字段类型、null 和 default。"""
+
+    django_model: str
+    field_name: str
+    field_type: str
+    null: bool
+    default: object = NO_DEFAULT
+
+
+@dataclass(frozen=True)
 class FastapiFieldConstraintContract:
     """FastAPI 字段约束契约，锁定长度、唯一性和索引声明。"""
 
@@ -66,6 +77,34 @@ FASTAPI_FIELD_METADATA_CONTRACTS: tuple[FastapiFieldMetadataContract, ...] = (
     FastapiFieldMetadataContract(
         fastapi_model="DictData",
         field_name="desc",
+        field_type="CharField",
+        null=False,
+        default="",
+    ),
+)
+
+DJANGO_FIELD_METADATA_CONTRACTS: tuple[DjangoFieldMetadataContract, ...] = (
+    DjangoFieldMetadataContract(
+        django_model="system.permissions",
+        field_name="keepAlive",
+        field_type="BooleanField",
+        null=True,
+    ),
+    DjangoFieldMetadataContract(
+        django_model="system.permissions",
+        field_name="alwaysShow",
+        field_type="BooleanField",
+        null=True,
+    ),
+    DjangoFieldMetadataContract(
+        django_model="system.dicts",
+        field_name="dict_code",
+        field_type="CharField",
+        null=False,
+    ),
+    DjangoFieldMetadataContract(
+        django_model="system.dicts",
+        field_name="remark",
         field_type="CharField",
         null=False,
         default="",
@@ -125,6 +164,11 @@ def iter_fastapi_field_metadata_contracts() -> tuple[FastapiFieldMetadataContrac
     return FASTAPI_FIELD_METADATA_CONTRACTS
 
 
+def iter_django_field_metadata_contracts() -> tuple[DjangoFieldMetadataContract, ...]:
+    """返回只读 Django 字段元数据契约目录。"""
+    return DJANGO_FIELD_METADATA_CONTRACTS
+
+
 def iter_fastapi_field_constraint_contracts() -> tuple[FastapiFieldConstraintContract, ...]:
     """返回只读 FastAPI 字段约束契约目录。"""
     return FASTAPI_FIELD_CONSTRAINT_CONTRACTS
@@ -136,14 +180,23 @@ def assert_field_contract_catalog() -> None:
         (contract.fastapi_model, contract.field_name)
         for contract in FASTAPI_FIELD_METADATA_CONTRACTS
     }
+    django_metadata_keys = {
+        (contract.django_model, contract.field_name)
+        for contract in DJANGO_FIELD_METADATA_CONTRACTS
+    }
     constraint_keys = {
         (contract.fastapi_model, contract.field_name)
         for contract in FASTAPI_FIELD_CONSTRAINT_CONTRACTS
     }
     assert len(metadata_keys) == len(FASTAPI_FIELD_METADATA_CONTRACTS)
+    assert len(django_metadata_keys) == len(DJANGO_FIELD_METADATA_CONTRACTS)
     assert len(constraint_keys) == len(FASTAPI_FIELD_CONSTRAINT_CONTRACTS)
     for contract in FASTAPI_FIELD_METADATA_CONTRACTS:
         assert contract.fastapi_model
+        assert contract.field_name
+        assert contract.field_type.endswith("Field")
+    for contract in DJANGO_FIELD_METADATA_CONTRACTS:
+        assert contract.django_model.startswith("system.")
         assert contract.field_name
         assert contract.field_type.endswith("Field")
     for contract in FASTAPI_FIELD_CONSTRAINT_CONTRACTS:

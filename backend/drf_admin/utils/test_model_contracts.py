@@ -26,6 +26,19 @@ def test_django_model_tables_match_shared_contracts():
         assert model._meta.db_table == contract.django_table
 
 
+def test_django_field_metadata_matches_shared_contracts():
+    """Django 关键字段元数据必须与共享模型契约保持一致。"""
+    model_contracts = load_model_contracts()
+    assert hasattr(model_contracts, "iter_django_field_metadata_contracts")
+    for contract in model_contracts.iter_django_field_metadata_contracts():
+        model = DJANGO_MODEL_MAPPING[contract.django_model]
+        field = model._meta.get_field(contract.field_name)
+        assert field.__class__.__name__ == contract.field_type
+        assert field.null == contract.null
+        if contract.default is not model_contracts.NO_DEFAULT:
+            assert field.default == contract.default
+
+
 def load_model_contracts():
     """加载仓库根目录的共享模型契约模块。"""
     if str(ROOT) not in sys.path:
