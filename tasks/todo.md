@@ -89,8 +89,14 @@
 - [x] P2 串行：GREEN 拆出字段约束契约模块，保留统一导出兼容
 - [x] P3 串行：执行模型契约测试、根目录校验和 Django/FastAPI 质量门禁
 - [x] P4 串行：review-gate、提交、PR、CI 和合并
+- [x] P1 串行：RED 补 Django 多对多 through 表契约测试，复现共享关联契约只校验 FastAPI 侧
+- [x] P2 串行：GREEN 增加 Django through 表静态解析与模型契约校验
+- [x] P3 串行：执行模型契约测试、根目录校验和 Django/FastAPI 质量门禁
+- [ ] P4 串行：review-gate、提交、PR、CI 和合并
 
 并行判断：本轮只处理字段契约文件拆分，变更集中在字段契约入口、字段约束契约模块、治理测试和任务状态，存在同一契约链路写冲突；不启用 subagent。
+
+并行判断：本轮处理 Django 多对多 through 表契约校验，变更集中在 Django 模型契约测试、Django AST/validation、模型契约主校验和任务状态，同一契约链路存在写冲突；执行阶段不启用 subagent，验证阶段并行执行互不写文件的门禁。
 
 ## 已完成摘要
 
@@ -220,3 +226,7 @@ Review-gate：finished；Spec 符合度通过，本轮只增加 Django 字段约
 本轮字段约束契约拆分已完成本地验证：`scripts/model_field_contracts.py` 只保留字段元数据契约，字段约束 dataclass、目录、自检和迭代器已迁移到 `scripts/model_field_constraint_contracts.py`；`NO_DEFAULT` 哨兵值拆入 `scripts/model_contract_sentinel.py`，避免新旧契约模块互相导入形成循环依赖；Django 治理测试已锁定字段约束目录不再回流到元数据契约入口。验证通过：RED 阶段目标测试因缺少约束契约拆分失败，GREEN 后目标测试（2 passed）、模型契约校验、根目录文档/API/模型/路由组件/迁移契约校验、脚本编译、Django ruff、Django `uv run pytest`（101 passed）、FastAPI `make quality`（529 passed，覆盖率 84.75%）和 `git diff --check`。
 
 Review-gate：finished；Spec 符合度通过，本轮只做内部契约模块拆分，不改变数据库结构、对外 API 或运行时业务逻辑；安全检查未发现本轮新增 secret，敏感词扫描命中仅来自历史任务摘要；复杂度检查通过，`scripts/model_field_contracts.py` 降至 138 行，`scripts/model_field_constraint_contracts.py` 为 163 行，新增文件均小于 300 行；Document-refresh: not-needed，原因：本轮是内部契约代码结构调整，不改变用户可见功能、API 或数据库结构；剩余风险是后续如果字段元数据或约束目录继续扩展，仍需要按领域或后端类型继续拆分。
+
+本轮 Django 多对多 through 表契约治理已完成本地验证：共享关联契约新增 `iter_django_relation_through_contracts` 入口，Django 运行时测试会校验 `Roles.permissions` 与 `Users.roles` 的 through 表；`scripts/model_django_ast.py` 已静态解析 `models.ManyToManyField(..., db_table=...)`，`scripts/validate_model_contracts.py` 已接入 Django through 表校验，避免共享契约只约束 FastAPI 侧。验证通过：RED 阶段目标测试因缺少 Django through 表契约入口失败，GREEN 后目标测试（4 passed）、模型契约校验、根目录文档/API/模型/路由组件/迁移契约校验、脚本编译、Django ruff、Django `uv run pytest`（102 passed）、FastAPI `make quality`（529 passed，覆盖率 84.75%）和 `git diff --check`。
+
+Review-gate：finished；Spec 符合度通过，本轮只增加 Django through 表契约校验，不改变数据库结构、对外 API 或运行时业务逻辑；安全检查未发现本轮新增 secret，敏感词扫描命中仅来自历史任务摘要；复杂度检查通过，相关文件均小于 300 行；Document-refresh: not-needed，原因：本轮是内部契约测试和校验扩面，不改变用户可见功能、API 或数据库结构；剩余风险是 `scripts/validate_model_contracts.py` 已增至 256 行，后续继续扩展模型契约校验前应优先拆分 FastAPI 校验职责。

@@ -169,6 +169,11 @@ def iter_django_fastapi_relation_contracts() -> tuple[DjangoFastapiRelationContr
     return DJANGO_FASTAPI_RELATION_CONTRACTS
 
 
+def iter_django_relation_through_contracts() -> tuple[DjangoFastapiRelationContract, ...]:
+    """返回只读 Django 多对多 through 表契约目录。"""
+    return DJANGO_FASTAPI_RELATION_CONTRACTS
+
+
 def assert_model_contract_catalog() -> None:
     """校验模型契约目录自身完整，避免无效契约进入验证门禁。"""
     django_models = {contract.django_model for contract in DJANGO_FASTAPI_MODEL_CONTRACTS}

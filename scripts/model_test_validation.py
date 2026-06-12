@@ -28,9 +28,11 @@ DJANGO_REQUIRED_SNIPPETS = (
     "iter_django_model_table_contracts",
     "iter_django_field_metadata_contracts",
     "iter_django_field_constraint_contracts",
+    "iter_django_relation_through_contracts",
     "test_django_model_tables_match_shared_contracts",
     "test_django_field_metadata_matches_shared_contracts",
     "test_django_field_constraints_match_shared_contracts",
+    "test_django_relation_through_tables_match_shared_contracts",
 )
 
 
