@@ -11,6 +11,14 @@ class FastapiModelIndexContract:
     indexes: tuple[tuple[str, ...], ...]
 
 
+@dataclass(frozen=True)
+class FastapiUniqueTogetherContract:
+    """FastAPI 模型唯一组合契约，锁定 Meta.unique_together 声明。"""
+
+    fastapi_model: str
+    fields: tuple[str, ...]
+
+
 FASTAPI_MODEL_INDEX_CONTRACTS: tuple[FastapiModelIndexContract, ...] = (
     FastapiModelIndexContract(
         fastapi_model="Permissions",
@@ -71,10 +79,22 @@ FASTAPI_MODEL_INDEX_CONTRACTS: tuple[FastapiModelIndexContract, ...] = (
     ),
 )
 
+FASTAPI_UNIQUE_TOGETHER_CONTRACTS: tuple[FastapiUniqueTogetherContract, ...] = (
+    FastapiUniqueTogetherContract(
+        fastapi_model="NoticeReads",
+        fields=("notice", "user_id"),
+    ),
+)
+
 
 def iter_fastapi_model_index_contracts() -> tuple[FastapiModelIndexContract, ...]:
     """返回只读 FastAPI 模型索引契约目录。"""
     return FASTAPI_MODEL_INDEX_CONTRACTS
+
+
+def iter_fastapi_unique_together_contracts() -> tuple[FastapiUniqueTogetherContract, ...]:
+    """返回只读 FastAPI 模型唯一组合契约目录。"""
+    return FASTAPI_UNIQUE_TOGETHER_CONTRACTS
 
 
 def assert_model_index_contract_catalog() -> None:
@@ -84,9 +104,18 @@ def assert_model_index_contract_catalog() -> None:
         for contract in FASTAPI_MODEL_INDEX_CONTRACTS
     }
     assert len(model_names) == len(FASTAPI_MODEL_INDEX_CONTRACTS)
+    unique_model_names = {
+        contract.fastapi_model
+        for contract in FASTAPI_UNIQUE_TOGETHER_CONTRACTS
+    }
+    assert len(unique_model_names) == len(FASTAPI_UNIQUE_TOGETHER_CONTRACTS)
     for contract in FASTAPI_MODEL_INDEX_CONTRACTS:
         assert contract.fastapi_model
         assert contract.indexes
         for index_fields in contract.indexes:
             assert index_fields
             assert all(field_name for field_name in index_fields)
+    for contract in FASTAPI_UNIQUE_TOGETHER_CONTRACTS:
+        assert contract.fastapi_model
+        assert contract.fields
+        assert all(field_name for field_name in contract.fields)
