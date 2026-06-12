@@ -12,6 +12,9 @@ from runtime_api_contracts.helpers import (
     contracts_by_key,
 )
 
+DICT_CODE_MAX_LENGTH = 32
+UNIQUE_SUFFIX_LENGTH = 8
+
 
 def test_fastapi_dict_write_runtime_samples_match_endpoint_catalog(auth_client):
     """字典写接口必须接受前端字段，并满足共享端点目录。"""
@@ -37,7 +40,9 @@ def test_fastapi_dict_item_write_runtime_samples_match_endpoint_catalog(auth_cli
 
 def unique_code(prefix: str) -> str:
     """生成短字典编码，避免唯一索引在重复运行时冲突。"""
-    return f"{prefix}_{uuid.uuid4().hex[:8]}"
+    code = f"{prefix}_{uuid.uuid4().hex[:UNIQUE_SUFFIX_LENGTH]}"
+    assert len(code) <= DICT_CODE_MAX_LENGTH
+    return code
 
 
 def assert_dict_create_contract(context: SimpleWriteContext) -> int:
@@ -61,7 +66,7 @@ def assert_dict_create_contract(context: SimpleWriteContext) -> int:
 def assert_dict_update_contract(context: SimpleWriteContext, dict_id: int) -> None:
     """验证字典更新接口接受共享路径和前端字段。"""
     contract = context.contracts["dicts_update"]
-    updated_code = unique_code("runtime_fastapi_dict_updated")
+    updated_code = unique_code("runtime_fastapi_dict_u")
     response = context.client.put(
         contract.path.replace("{id}", str(dict_id)),
         json={

@@ -57,9 +57,9 @@
 
 ## 执行计划
 
-- [ ] P1 串行：RED 补共享字典字段约束一致性测试，复现 `DictData.code.max_length=50` 与 `Dicts.dict_code.max_length=32` 漂移。
-- [ ] P2 串行：GREEN 将 FastAPI 字典编码字段长度契约与 Django 对齐，并更新 `scripts/model_field_constraint_contracts.py`。
-- [ ] P3 串行：执行模型契约校验、FastAPI 目标测试、FastAPI `make quality`、Django 目标测试和根目录校验。
+- [x] P1 串行：RED 补共享字典字段约束一致性测试，复现 `DictData.code.max_length=50` 与 `Dicts.dict_code.max_length=32` 漂移。
+- [x] P2 串行：GREEN 将 FastAPI 字典编码字段长度契约与 Django 对齐，并更新 `scripts/model_field_constraint_contracts.py`。
+- [x] P3 串行：执行模型契约校验、FastAPI 目标测试、FastAPI `make quality`、Django 目标测试和根目录校验。
 - [ ] P4 串行：review-gate、提交、PR、CI 和合并。
 
 ## 涉及文件
@@ -93,3 +93,14 @@
 ## HARD-GATE
 
 用户确认前，不进行任何业务代码、测试代码或契约代码修改。本文件只是规划草案。
+
+## 进度记录
+
+- RED：`uv run pytest tests/test_import_django_model_contracts.py -q` 失败，新增测试捕获 `DictData.code.max_length=50` 与 `Dicts.dict_code.max_length=32` 漂移。
+- GREEN：FastAPI `DictData.code` 与共享 FastAPI 字段约束契约已对齐为 `max_length=32`；目标测试通过（9 passed）。
+- 调试：FastAPI 全量门禁首次失败于字典写接口运行时样例，根因是更新样例 `dictCode` 长度为 37，超过新的 32 位约束；已缩短测试样例前缀并用常量断言生成结果不超过 32。
+- 验证：模型契约校验、Django 目标测试（4 passed）、FastAPI 字典写接口运行时目标测试（2 passed）、FastAPI `make quality`（530 passed，覆盖率 84.75%）、Django ruff、Django `uv run pytest`（104 passed）、文档/API/路由组件/Django 迁移校验和 `git diff --check` 均通过。
+
+## Review 小结
+
+Review-gate：finished；Spec 符合度通过，本轮只处理字典编码字段长度约束一致性，不改变 API 字段名、表名或前端契约；安全检查未发现本轮新增 secret，敏感词扫描命中仅来自历史任务摘要；测试与验证覆盖 RED/GREEN、模型契约、双后端目标测试、Django 全量测试、FastAPI 全量质量门禁和根目录校验；Document-refresh: not-needed，原因：本轮不改变用户可见 API、数据库文档描述或迁移流程；剩余风险是 `fastapi/app/db/models/system.py` 仍为 342 行，属于既有模型文件拆分技术债，后续应单独规划处理。
