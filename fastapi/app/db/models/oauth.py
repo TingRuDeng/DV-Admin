@@ -69,7 +69,7 @@ class Users(BaseModel):
     roles: fields.ManyToManyRelation[Roles] = fields.ManyToManyField(
         "models.Roles",
         related_name="users",
-        through="system_users_roles",
+        through="system_users_to_system_roles",
         backward_key="user_id",
         forward_key="role_id",
         description="角色",
