@@ -16,6 +16,7 @@ from model_django_validation import (
     validate_django_field_constraints,
     validate_django_field_metadata,
     validate_django_model_tables,
+    validate_django_relation_through_tables,
 )
 from model_index_validation import validate_fastapi_model_indexes, validate_fastapi_unique_together
 from model_test_validation import validate_tests
@@ -51,6 +52,7 @@ def validate(root: Path) -> list[str]:
     issues.extend(validate_django_model_tables(root))
     issues.extend(validate_django_field_metadata(root))
     issues.extend(validate_django_field_constraints(root))
+    issues.extend(validate_django_relation_through_tables(root))
     issues.extend(validate_fastapi_model_tables(root))
     issues.extend(validate_fastapi_alias_target_fields(root))
     issues.extend(validate_fastapi_relation_through_tables(root))
