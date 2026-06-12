@@ -85,8 +85,12 @@
 - [x] P2 串行：GREEN 增加 Django 字段 max_length/unique/index 静态契约校验
 - [x] P3 串行：执行模型契约测试、根目录校验和 Django/FastAPI 质量门禁
 - [x] P4 串行：review-gate、提交、PR、CI 和合并
+- [x] P1 串行：RED 补字段约束契约拆分治理测试，复现 `model_field_contracts.py` 仍承载约束目录
+- [x] P2 串行：GREEN 拆出字段约束契约模块，保留统一导出兼容
+- [x] P3 串行：执行模型契约测试、根目录校验和 Django/FastAPI 质量门禁
+- [ ] P4 串行：review-gate、提交、PR、CI 和合并
 
-并行判断：本轮进入 Django 字段约束契约治理，变更集中在共享模型契约、Django 静态 AST 解析、模型契约校验、Django 模型契约测试和任务状态，存在同一契约链路写冲突；不启用 subagent。
+并行判断：本轮只处理字段契约文件拆分，变更集中在字段契约入口、字段约束契约模块、治理测试和任务状态，存在同一契约链路写冲突；不启用 subagent。
 
 ## 已完成摘要
 
@@ -212,3 +216,7 @@ Review-gate：finished；Spec 符合度通过，本轮只增加 Django 字段元
 本轮 Django 字段约束契约治理已完成本地验证：新增 `iter_django_field_constraint_contracts`，覆盖 `Permissions.name/route_path/perm`、`Roles.name`、`Dicts.dict_code`、`Users.username/mobile/email` 的 `max_length/unique/index` 关键约束；Django 静态 AST 解析已扩展字段约束，并显式合并 `AbstractUser` 继承字段元数据，避免静态校验漏掉有效模型字段。验证通过：RED 阶段目标测试因缺少 Django 字段约束入口失败，GREEN 后目标测试（3 passed）、模型契约校验、根目录文档/API/模型/路由组件/迁移契约校验、脚本编译、Django ruff、Django `uv run pytest`（100 passed）、FastAPI `make quality`（529 passed，覆盖率 84.75%）和 `git diff --check`。
 
 Review-gate：finished；Spec 符合度通过，本轮只增加 Django 字段约束契约，不改变数据库结构、对外 API 或运行时业务逻辑；安全检查未发现本轮新增 secret，敏感词扫描命中仅来自历史任务摘要；复杂度检查通过，相关文件均小于 300 行；Document-refresh: not-needed，原因：本轮是内部契约测试和校验扩面，不改变用户可见功能、API 或数据库结构；剩余风险是 `scripts/model_field_contracts.py` 已增至 287 行，下一轮继续扩展字段契约前应先拆分该文件。
+
+本轮字段约束契约拆分已完成本地验证：`scripts/model_field_contracts.py` 只保留字段元数据契约，字段约束 dataclass、目录、自检和迭代器已迁移到 `scripts/model_field_constraint_contracts.py`；`NO_DEFAULT` 哨兵值拆入 `scripts/model_contract_sentinel.py`，避免新旧契约模块互相导入形成循环依赖；Django 治理测试已锁定字段约束目录不再回流到元数据契约入口。验证通过：RED 阶段目标测试因缺少约束契约拆分失败，GREEN 后目标测试（2 passed）、模型契约校验、根目录文档/API/模型/路由组件/迁移契约校验、脚本编译、Django ruff、Django `uv run pytest`（101 passed）、FastAPI `make quality`（529 passed，覆盖率 84.75%）和 `git diff --check`。
+
+Review-gate：finished；Spec 符合度通过，本轮只做内部契约模块拆分，不改变数据库结构、对外 API 或运行时业务逻辑；安全检查未发现本轮新增 secret，敏感词扫描命中仅来自历史任务摘要；复杂度检查通过，`scripts/model_field_contracts.py` 降至 138 行，`scripts/model_field_constraint_contracts.py` 为 163 行，新增文件均小于 300 行；Document-refresh: not-needed，原因：本轮是内部契约代码结构调整，不改变用户可见功能、API 或数据库结构；剩余风险是后续如果字段元数据或约束目录继续扩展，仍需要按领域或后端类型继续拆分。
