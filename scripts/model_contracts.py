@@ -7,6 +7,7 @@ from typing import Mapping
 from scripts.model_field_contracts import (
     NO_DEFAULT,
     assert_field_contract_catalog,
+    iter_django_field_metadata_contracts,
     iter_fastapi_field_constraint_contracts,
     iter_fastapi_field_metadata_contracts,
 )
