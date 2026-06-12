@@ -24,6 +24,18 @@ class DjangoFastapiModelContract:
     field_aliases: Mapping[str, str] = field(default_factory=dict)
 
 
+@dataclass(frozen=True)
+class DjangoFastapiRelationContract:
+    """Django 到 FastAPI 的多对多关联表契约，集中声明 through 表差异。"""
+
+    django_model: str
+    django_field: str
+    django_through_table: str
+    fastapi_model: str
+    fastapi_field: str
+    fastapi_through_table: str
+
+
 def merged_aliases(*aliases: Mapping[str, str]) -> Mapping[str, str]:
     """合并字段别名，返回只读映射，避免调用方修改共享契约。"""
     result: dict[str, str] = {}
@@ -101,6 +113,25 @@ DJANGO_FASTAPI_MODEL_CONTRACTS: tuple[DjangoFastapiModelContract, ...] = (
     ),
 )
 
+DJANGO_FASTAPI_RELATION_CONTRACTS: tuple[DjangoFastapiRelationContract, ...] = (
+    DjangoFastapiRelationContract(
+        django_model="system.roles",
+        django_field="permissions",
+        django_through_table="system_roles_to_system_permissions",
+        fastapi_model="Roles",
+        fastapi_field="permissions",
+        fastapi_through_table="system_roles_permissions",
+    ),
+    DjangoFastapiRelationContract(
+        django_model="system.users",
+        django_field="roles",
+        django_through_table="system_users_to_system_roles",
+        fastapi_model="Users",
+        fastapi_field="roles",
+        fastapi_through_table="system_users_roles",
+    ),
+)
+
 
 def iter_django_fastapi_model_contracts() -> tuple[DjangoFastapiModelContract, ...]:
     """返回 Django 到 FastAPI 的只读模型契约目录。"""
@@ -115,14 +146,31 @@ def iter_fastapi_alias_targets() -> tuple[tuple[DjangoFastapiModelContract, tupl
     )
 
 
+def iter_django_fastapi_relation_contracts() -> tuple[DjangoFastapiRelationContract, ...]:
+    """返回 Django 到 FastAPI 的只读多对多关联表契约目录。"""
+    return DJANGO_FASTAPI_RELATION_CONTRACTS
+
+
 def assert_model_contract_catalog() -> None:
     """校验模型契约目录自身完整，避免无效契约进入验证门禁。"""
     django_models = {contract.django_model for contract in DJANGO_FASTAPI_MODEL_CONTRACTS}
     assert len(django_models) == len(DJANGO_FASTAPI_MODEL_CONTRACTS)
     assert "system.dicts" in django_models
     assert "system.dictitems" in django_models
+    relation_keys = {
+        (contract.django_model, contract.django_field)
+        for contract in DJANGO_FASTAPI_RELATION_CONTRACTS
+    }
+    assert len(relation_keys) == len(DJANGO_FASTAPI_RELATION_CONTRACTS)
     for contract in DJANGO_FASTAPI_MODEL_CONTRACTS:
         assert contract.django_model.startswith("system.")
         assert contract.fastapi_model
         assert contract.django_table.startswith("system_")
         assert contract.fastapi_table.startswith("system_")
+    for contract in DJANGO_FASTAPI_RELATION_CONTRACTS:
+        assert contract.django_model.startswith("system.")
+        assert contract.django_field
+        assert contract.django_through_table.startswith("system_")
+        assert contract.fastapi_model
+        assert contract.fastapi_field
+        assert contract.fastapi_through_table.startswith("system_")

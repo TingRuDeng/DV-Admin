@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import ast
 import sys
 from pathlib import Path
 from typing import Sequence
+
+from model_contract_ast import (
+    load_fastapi_model_fields,
+    load_fastapi_model_tables,
+    load_fastapi_relation_through_tables,
+)
 
 
 REQUIRED_FILES = (
@@ -22,12 +27,6 @@ REQUIRED_DOC_SNIPPETS = (
     "dict_code` → `code",
     "remark` → `desc",
 )
-FASTAPI_MODEL_FILES = (
-    "fastapi/app/db/models/base.py",
-    "fastapi/app/db/models/system.py",
-    "fastapi/app/db/models/oauth.py",
-)
-
 
 def validate(root: Path) -> list[str]:
     """校验 Django 到 FastAPI 模型契约、导入映射和文档说明是否同步。"""
@@ -42,6 +41,7 @@ def validate(root: Path) -> list[str]:
     issues.extend(validate_import_mapping(root))
     issues.extend(validate_fastapi_model_tables(root))
     issues.extend(validate_fastapi_alias_target_fields(root))
+    issues.extend(validate_fastapi_relation_through_tables(root))
     issues.extend(validate_docs(root))
     issues.extend(validate_tests(root))
     return issues
@@ -90,48 +90,6 @@ def validate_fastapi_model_tables(root: Path) -> list[str]:
     return issues
 
 
-def load_fastapi_model_tables(root: Path) -> dict[str, str]:
-    """静态读取 FastAPI 模型 Meta.table，避免校验脚本依赖运行时数据库。"""
-    tables: dict[str, str] = {}
-    for rel in FASTAPI_MODEL_FILES:
-        module = ast.parse(read_text(root / rel))
-        tables.update(extract_module_tables(module))
-    return tables
-
-
-def extract_module_tables(module: ast.Module) -> dict[str, str]:
-    """提取单个 FastAPI 模型模块内所有 class Meta.table。"""
-    tables: dict[str, str] = {}
-    for node in module.body:
-        if isinstance(node, ast.ClassDef):
-            table = extract_meta_table(node)
-            if table:
-                tables[node.name] = table
-    return tables
-
-
-def extract_meta_table(model_node: ast.ClassDef) -> str:
-    """从 Tortoise 模型的内部 Meta 类提取 table 字面量。"""
-    for child in model_node.body:
-        if isinstance(child, ast.ClassDef) and child.name == "Meta":
-            return extract_table_assignment(child)
-    return ""
-
-
-def extract_table_assignment(meta_node: ast.ClassDef) -> str:
-    """读取 Meta.table = 'xxx' 形式的表名声明。"""
-    for statement in meta_node.body:
-        if isinstance(statement, ast.Assign) and is_table_target(statement.targets):
-            if isinstance(statement.value, ast.Constant) and isinstance(statement.value.value, str):
-                return statement.value.value
-    return ""
-
-
-def is_table_target(targets: list[ast.expr]) -> bool:
-    """判断赋值目标是否包含 table 字段。"""
-    return any(isinstance(target, ast.Name) and target.id == "table" for target in targets)
-
-
 def validate_fastapi_alias_target_fields(root: Path) -> list[str]:
     """校验字段别名目标真实存在于对应 FastAPI 模型。"""
     issues: list[str] = []
@@ -145,38 +103,22 @@ def validate_fastapi_alias_target_fields(root: Path) -> list[str]:
     return issues
 
 
-def load_fastapi_model_fields(root: Path) -> dict[str, set[str]]:
-    """静态读取 FastAPI 模型字段声明，覆盖普通字段和类型注解字段。"""
-    model_fields: dict[str, set[str]] = {}
-    for rel in FASTAPI_MODEL_FILES:
-        module = ast.parse(read_text(root / rel))
-        model_fields.update(extract_module_fields(module))
-    return model_fields
-
-
-def extract_module_fields(module: ast.Module) -> dict[str, set[str]]:
-    """提取单个 FastAPI 模型模块内的类字段名。"""
-    fields_by_model: dict[str, set[str]] = {}
-    for node in module.body:
-        if isinstance(node, ast.ClassDef):
-            fields_by_model[node.name] = extract_class_fields(node)
-    return fields_by_model
-
-
-def extract_class_fields(model_node: ast.ClassDef) -> set[str]:
-    """提取类体中的字段赋值和字段注解名称。"""
-    field_names: set[str] = set()
-    for statement in model_node.body:
-        if isinstance(statement, ast.Assign):
-            field_names.update(extract_name_targets(statement.targets))
-        if isinstance(statement, ast.AnnAssign) and isinstance(statement.target, ast.Name):
-            field_names.add(statement.target.id)
-    return field_names
-
-
-def extract_name_targets(targets: list[ast.expr]) -> set[str]:
-    """提取赋值语句中的简单名称目标。"""
-    return {target.id for target in targets if isinstance(target, ast.Name)}
+def validate_fastapi_relation_through_tables(root: Path) -> list[str]:
+    """校验 FastAPI 多对多关联字段的 through 表与共享契约一致。"""
+    issues: list[str] = []
+    through_tables = load_fastapi_relation_through_tables(root)
+    for contract in load_relation_contracts(root):
+        model_relations = through_tables.get(contract.fastapi_model, {})
+        actual_table = model_relations.get(contract.fastapi_field)
+        if actual_table is None:
+            issues.append(f"fastapi/app/db/models: {contract.fastapi_model} 缺少关联字段 {contract.fastapi_field}")
+            continue
+        if actual_table != contract.fastapi_through_table:
+            issues.append(
+                f"fastapi/app/db/models: {contract.fastapi_model}.{contract.fastapi_field} through 表应为 "
+                f"{contract.fastapi_through_table}，实际为 {actual_table}"
+            )
+    return issues
 
 
 def validate_docs(root: Path) -> list[str]:
@@ -195,9 +137,11 @@ def validate_tests(root: Path) -> list[str]:
     required = (
         "iter_django_fastapi_model_contracts",
         "iter_fastapi_alias_targets",
+        "iter_django_fastapi_relation_contracts",
         "test_import_mapping_matches_shared_model_contracts",
         "test_fastapi_model_tables_match_shared_contracts",
         "test_fastapi_model_alias_targets_match_shared_contracts",
+        "test_fastapi_relation_through_tables_match_shared_contracts",
     )
     return [
         f"fastapi/tests/test_import_django_model_contracts.py: 缺少模型契约测试片段 {snippet}"
@@ -228,6 +172,16 @@ def load_alias_targets(root: Path):
     from scripts.model_contracts import iter_fastapi_alias_targets
 
     return iter_fastapi_alias_targets()
+
+
+def load_relation_contracts(root: Path):
+    """从共享模型契约加载 Django/FastAPI 多对多关联表契约。"""
+    root_text = str(root)
+    if root_text not in sys.path:
+        sys.path.insert(0, root_text)
+    from scripts.model_contracts import iter_django_fastapi_relation_contracts
+
+    return iter_django_fastapi_relation_contracts()
 
 
 def read_text(path: Path) -> str:

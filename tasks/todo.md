@@ -48,8 +48,12 @@
 - [x] P2 串行：GREEN 增加字段级契约入口和静态校验
 - [x] P3 串行：执行模型契约测试、根目录校验和 FastAPI 质量门禁
 - [x] P4 串行：review-gate、提交、PR、CI 和合并
+- [x] P1 串行：RED 补多对多 through 表契约测试，复现共享契约缺少关联表入口
+- [x] P2 串行：GREEN 增加 Django/FastAPI 关联表契约和静态校验
+- [x] P3 串行：执行模型契约测试、根目录校验和 FastAPI 质量门禁
+- [x] P4 串行：review-gate、提交、PR、CI 和合并
 
-并行判断：本轮只处理双后端模型字段契约治理，变更集中在 `scripts/model_contracts.py`、`scripts/validate_model_contracts.py`、FastAPI 模型契约测试和任务状态，存在同一契约入口写冲突；不启用 subagent。
+并行判断：本轮只处理双后端模型关联表契约治理，变更集中在 `scripts/model_contracts.py`、`scripts/validate_model_contracts.py`、FastAPI 模型契约测试和任务状态，存在同一契约入口写冲突；不启用 subagent。
 
 ## 已完成摘要
 
@@ -145,6 +149,8 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 本轮 FastAPI 模型表名契约治理已完成本地验证：`scripts/validate_model_contracts.py` 已静态解析 `fastapi/app/db/models/system.py` 与 `fastapi/app/db/models/oauth.py` 的 `Meta.table`，并对照 `scripts/model_contracts.py` 中的共享表名契约；`fastapi/tests/test_import_django_model_contracts.py` 已补充运行时断言，避免 Django → FastAPI 模型迁移或导入链路出现表名漂移。验证通过：模型契约校验、FastAPI 目标测试（2 passed）、FastAPI `make quality`（523 passed，覆盖率 84.75%）、根目录文档/API/模型/路由组件/迁移契约校验、脚本编译和 `git diff --check`。
 
 本轮 FastAPI 字段别名目标契约治理已完成本地验证：`scripts/model_contracts.py` 新增 `iter_fastapi_alias_targets`，集中暴露 Django → FastAPI 字段别名的目标字段集合；`scripts/validate_model_contracts.py` 已静态解析 FastAPI `BaseModel/system/oauth` 模型字段，并校验别名目标字段真实存在；FastAPI 契约测试同步增加运行时断言。验证通过：RED 阶段目标测试因缺少字段级入口失败，GREEN 后目标测试（3 passed）、FastAPI `make quality`（524 passed，覆盖率 84.75%）、根目录文档/API/模型/路由组件/迁移契约校验、脚本编译和 `git diff --check`。
+
+本轮 FastAPI 多对多关联表契约治理已完成本地验证：`scripts/model_contracts.py` 新增 Django/FastAPI 多对多 through 表契约，覆盖角色-权限与用户-角色两条关联；`scripts/validate_model_contracts.py` 新增静态 through 表校验，并把 AST 解析 helper 拆入 `scripts/model_contract_ast.py`，避免契约校验脚本超过单文件复杂度约束；FastAPI 契约测试同步增加运行时断言。验证通过：RED 阶段目标测试因缺少关联契约入口失败，GREEN 后目标测试（4 passed）、FastAPI `make quality`（525 passed，覆盖率 84.75%）、根目录文档/API/模型/路由组件/迁移契约校验、脚本编译和 `git diff --check`。
 
 本轮 Django 迁移链跟踪治理已完成本地验证：新增 `scripts/validate_django_migrations.py`，将 `system` 完整迁移链纳入 Git 跟踪，并在 `.gitignore` 和 CI 文档校验阶段显式覆盖全局 ignore 漂移；`docs/DATABASE_SCHEMA.md` 与 `docs/AI_CONTEXT.md` 已同步迁移链校验入口。验证通过：RED 阶段捕获 4 个未跟踪 migration 和 3 条缺失 unignore 规则，GREEN 后迁移链校验、文档/API/模型/路由组件契约校验、脚本编译、Django `makemigrations --check --dry-run`、Django ruff、Django `uv run pytest`（96 passed）、敏感关键词扫描和 `git diff --check`。
 
