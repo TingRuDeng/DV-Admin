@@ -107,6 +107,14 @@ def iter_django_fastapi_model_contracts() -> tuple[DjangoFastapiModelContract, .
     return DJANGO_FASTAPI_MODEL_CONTRACTS
 
 
+def iter_fastapi_alias_targets() -> tuple[tuple[DjangoFastapiModelContract, tuple[str, ...]], ...]:
+    """返回每个模型契约声明的 FastAPI 字段别名目标。"""
+    return tuple(
+        (contract, tuple(sorted(set(contract.field_aliases.values()))))
+        for contract in DJANGO_FASTAPI_MODEL_CONTRACTS
+    )
+
+
 def assert_model_contract_catalog() -> None:
     """校验模型契约目录自身完整，避免无效契约进入验证门禁。"""
     django_models = {contract.django_model for contract in DJANGO_FASTAPI_MODEL_CONTRACTS}
