@@ -230,7 +230,7 @@ class DictData(BaseModel):
     """
 
     name = fields.CharField(max_length=50, description="字典名称")
-    code = fields.CharField(max_length=50, unique=True, description="字典编码")
+    code = fields.CharField(max_length=32, unique=True, description="字典编码")
     status = fields.IntField(default=1, description="状态")
     desc = fields.CharField(max_length=100, default="", description="描述")
     items: fields.BackwardFKRelation[DictItems]
