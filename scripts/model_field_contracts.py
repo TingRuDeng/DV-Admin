@@ -38,6 +38,17 @@ class FastapiFieldConstraintContract:
     index: object = NO_DEFAULT
 
 
+@dataclass(frozen=True)
+class DjangoFieldConstraintContract:
+    """Django 字段约束契约，锁定长度、唯一性和索引声明。"""
+
+    django_model: str
+    field_name: str
+    max_length: object = NO_DEFAULT
+    unique: object = NO_DEFAULT
+    index: object = NO_DEFAULT
+
+
 FASTAPI_FIELD_METADATA_CONTRACTS: tuple[FastapiFieldMetadataContract, ...] = (
     FastapiFieldMetadataContract(
         fastapi_model="BaseModel",
@@ -158,6 +169,53 @@ FASTAPI_FIELD_CONSTRAINT_CONTRACTS: tuple[FastapiFieldConstraintContract, ...] =
     ),
 )
 
+DJANGO_FIELD_CONSTRAINT_CONTRACTS: tuple[DjangoFieldConstraintContract, ...] = (
+    DjangoFieldConstraintContract(
+        django_model="system.permissions",
+        field_name="name",
+        max_length=30,
+    ),
+    DjangoFieldConstraintContract(
+        django_model="system.permissions",
+        field_name="route_path",
+        max_length=200,
+    ),
+    DjangoFieldConstraintContract(
+        django_model="system.permissions",
+        field_name="perm",
+        max_length=200,
+    ),
+    DjangoFieldConstraintContract(
+        django_model="system.roles",
+        field_name="name",
+        max_length=32,
+        unique=True,
+    ),
+    DjangoFieldConstraintContract(
+        django_model="system.dicts",
+        field_name="dict_code",
+        max_length=32,
+        unique=True,
+    ),
+    DjangoFieldConstraintContract(
+        django_model="system.users",
+        field_name="username",
+        max_length=150,
+        unique=True,
+    ),
+    DjangoFieldConstraintContract(
+        django_model="system.users",
+        field_name="mobile",
+        max_length=11,
+        unique=True,
+    ),
+    DjangoFieldConstraintContract(
+        django_model="system.users",
+        field_name="email",
+        max_length=254,
+    ),
+)
+
 
 def iter_fastapi_field_metadata_contracts() -> tuple[FastapiFieldMetadataContract, ...]:
     """返回只读 FastAPI 字段元数据契约目录。"""
@@ -174,6 +232,11 @@ def iter_fastapi_field_constraint_contracts() -> tuple[FastapiFieldConstraintCon
     return FASTAPI_FIELD_CONSTRAINT_CONTRACTS
 
 
+def iter_django_field_constraint_contracts() -> tuple[DjangoFieldConstraintContract, ...]:
+    """返回只读 Django 字段约束契约目录。"""
+    return DJANGO_FIELD_CONSTRAINT_CONTRACTS
+
+
 def assert_field_contract_catalog() -> None:
     """校验字段契约目录自身完整，避免无效契约进入验证门禁。"""
     metadata_keys = {
@@ -188,9 +251,14 @@ def assert_field_contract_catalog() -> None:
         (contract.fastapi_model, contract.field_name)
         for contract in FASTAPI_FIELD_CONSTRAINT_CONTRACTS
     }
+    django_constraint_keys = {
+        (contract.django_model, contract.field_name)
+        for contract in DJANGO_FIELD_CONSTRAINT_CONTRACTS
+    }
     assert len(metadata_keys) == len(FASTAPI_FIELD_METADATA_CONTRACTS)
     assert len(django_metadata_keys) == len(DJANGO_FIELD_METADATA_CONTRACTS)
     assert len(constraint_keys) == len(FASTAPI_FIELD_CONSTRAINT_CONTRACTS)
+    assert len(django_constraint_keys) == len(DJANGO_FIELD_CONSTRAINT_CONTRACTS)
     for contract in FASTAPI_FIELD_METADATA_CONTRACTS:
         assert contract.fastapi_model
         assert contract.field_name
@@ -201,6 +269,15 @@ def assert_field_contract_catalog() -> None:
         assert contract.field_type.endswith("Field")
     for contract in FASTAPI_FIELD_CONSTRAINT_CONTRACTS:
         assert contract.fastapi_model
+        assert contract.field_name
+        has_constraint = (
+            contract.max_length is not NO_DEFAULT
+            or contract.unique is not NO_DEFAULT
+            or contract.index is not NO_DEFAULT
+        )
+        assert has_constraint
+    for contract in DJANGO_FIELD_CONSTRAINT_CONTRACTS:
+        assert contract.django_model.startswith("system.")
         assert contract.field_name
         has_constraint = (
             contract.max_length is not NO_DEFAULT
