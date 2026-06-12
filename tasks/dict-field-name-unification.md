@@ -53,10 +53,10 @@
 
 ## 执行计划
 
-- [ ] P1 串行：RED 补共享字段别名治理测试，复现 `system.dicts` 仍存在 `dict_code -> code`、`remark -> desc` 映射。
-- [ ] P2 串行：GREEN 更新 FastAPI `DictData` 字段名、schema/service/import 映射和模型契约。
-- [ ] P3 串行：修正 FastAPI 字典相关测试、golden fixture 断言和运行时契约样例。
-- [ ] P4 串行：执行模型契约校验、FastAPI 目标测试、FastAPI `make quality`、Django 目标测试和根目录校验。
+- [x] P1 串行：RED 补共享字段别名治理测试，复现 `system.dicts` 仍存在 `dict_code -> code`、`remark -> desc` 映射。
+- [x] P2 串行：GREEN 更新 FastAPI `DictData` 字段名、schema/service/import 映射和模型契约。
+- [x] P3 串行：修正 FastAPI 字典相关测试、golden fixture 断言和运行时契约样例。
+- [x] P4 串行：执行模型契约校验、FastAPI 目标测试、FastAPI `make quality`、Django 目标测试和根目录校验。
 - [ ] P5 串行：review-gate、提交、PR、CI 和合并。
 
 ## 涉及文件

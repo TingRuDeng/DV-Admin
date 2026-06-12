@@ -60,9 +60,9 @@ class DictService:
             DictDataOut(
                 id=d.id,
                 name=d.name,
-                code=d.code,
+                dict_code=d.dict_code,
                 status=d.status,
-                desc=d.desc,
+                remark=d.remark,
                 created_at=d.created_at,
                 updated_at=d.updated_at,
             )
@@ -88,9 +88,9 @@ class DictService:
         return DictWithItems(
             id=dict_data.id,
             name=dict_data.name,
-            code=dict_data.code,
+            dict_code=dict_data.dict_code,
             status=dict_data.status,
-            desc=dict_data.desc,
+            remark=dict_data.remark,
             created_at=dict_data.created_at,
             updated_at=dict_data.updated_at,
             items=[
@@ -115,23 +115,23 @@ class DictService:
         创建字典类型
         """
         # 检查编码是否已存在
-        existing = await DictData.get_or_none(code=dict_data.code)
+        existing = await DictData.get_or_none(dict_code=dict_data.dict_code)
         if existing:
             raise ValidationError("字典编码已存在")
 
         d = await DictData.create(
             name=dict_data.name,
-            code=dict_data.code,
+            dict_code=dict_data.dict_code,
             status=dict_data.status,
-            desc=dict_data.desc,
+            remark=dict_data.remark,
         )
 
         return DictDataOut(
             id=d.id,
             name=d.name,
-            code=d.code,
+            dict_code=d.dict_code,
             status=d.status,
-            desc=d.desc,
+            remark=d.remark,
             created_at=d.created_at,
             updated_at=d.updated_at,
         )
@@ -144,7 +144,7 @@ class DictService:
         if not d:
             raise NotFound("字典类型不存在")
 
-        old_code = d.code
+        old_code = d.dict_code
 
         update_fields = {}
         for field, value in dict_data.model_dump(exclude_unset=True).items():
@@ -157,15 +157,15 @@ class DictService:
 
         # 清除缓存
         await self._clear_dict_cache(old_code)
-        if "code" in update_fields and update_fields["code"] != old_code:
-            await self._clear_dict_cache(update_fields["code"])
+        if "dict_code" in update_fields and update_fields["dict_code"] != old_code:
+            await self._clear_dict_cache(update_fields["dict_code"])
 
         return DictDataOut(
             id=d.id,
             name=d.name,
-            code=d.code,
+            dict_code=d.dict_code,
             status=d.status,
-            desc=d.desc,
+            remark=d.remark,
             created_at=d.created_at,
             updated_at=d.updated_at,
         )
@@ -178,7 +178,7 @@ class DictService:
         if not d:
             raise NotFound("字典类型不存在")
 
-        code = d.code
+        code = d.dict_code
         await d.delete()
 
         # 清除缓存
@@ -190,7 +190,7 @@ class DictService:
         """
         # 获取要删除的字典编码
         dicts = await DictData.filter(id__in=ids).all()
-        codes = [d.code for d in dicts]
+        codes = [d.dict_code for d in dicts]
 
         await DictData.filter(id__in=ids).delete()
 
@@ -221,7 +221,7 @@ class DictService:
 
         if code:
             # 关联查询：通过字典类型的 code 过滤
-            query = query.filter(dict_data__code=code)
+            query = query.filter(dict_data__dict_code=code)
 
         total = await query.count()
         items = await query.order_by("sort").offset((page - 1) * page_size).limit(page_size).all()
@@ -291,7 +291,7 @@ class DictService:
         )
 
         # 清除该字典的缓存
-        await self._clear_dict_cache(dict_data.code)
+        await self._clear_dict_cache(dict_data.dict_code)
 
         return DictItemOut(
             id=item.id,
@@ -326,7 +326,7 @@ class DictService:
         # 清除缓存
         dict_data = await DictData.get_or_none(id=dict_id)
         if dict_data:
-            await self._clear_dict_cache(dict_data.code)
+            await self._clear_dict_cache(dict_data.dict_code)
 
         return DictItemOut(
             id=item.id,
@@ -354,7 +354,7 @@ class DictService:
         # 清除缓存
         dict_data = await DictData.get_or_none(id=dict_id)
         if dict_data:
-            await self._clear_dict_cache(dict_data.code)
+            await self._clear_dict_cache(dict_data.dict_code)
 
     async def create_item_flat(self, item_data: DictItemCreate) -> DictItemOut:
         """
@@ -376,7 +376,7 @@ class DictService:
         )
 
         # 清除缓存
-        await self._clear_dict_cache(dict_data.code)
+        await self._clear_dict_cache(dict_data.dict_code)
 
         return DictItemOut(
             id=item.id,
@@ -411,7 +411,7 @@ class DictService:
         # 清除缓存
         dict_data = await DictData.get_or_none(id=item.dict_data_id)
         if dict_data:
-            await self._clear_dict_cache(dict_data.code)
+            await self._clear_dict_cache(dict_data.dict_code)
 
         return DictItemOut(
             id=item.id,
@@ -440,7 +440,7 @@ class DictService:
         # 清除缓存
         dict_data = await DictData.get_or_none(id=dict_data_id)
         if dict_data:
-            await self._clear_dict_cache(dict_data.code)
+            await self._clear_dict_cache(dict_data.dict_code)
 
     async def batch_delete_items_flat(self, ids: list[int]) -> None:
         """
@@ -455,7 +455,7 @@ class DictService:
         # 清除相关字典的缓存
         dict_datas = await DictData.filter(id__in=dict_data_ids).all()
         for dict_data in dict_datas:
-            await self._clear_dict_cache(dict_data.code)
+            await self._clear_dict_cache(dict_data.dict_code)
 
     async def get_items_by_code(self, code: str) -> list[DictItemOut]:
         """
@@ -464,7 +464,7 @@ class DictService:
         cache_key = CacheKeys.format_key(CacheKeys.DICT_BY_CODE, code=code)
 
         async def _fetch_items():
-            dict_data = await DictData.get_or_none(code=code, status=1)
+            dict_data = await DictData.get_or_none(dict_code=code, status=1)
             if not dict_data:
                 return []
 

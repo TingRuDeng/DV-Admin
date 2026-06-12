@@ -35,12 +35,14 @@ class TestImportDjangoData:
     @pytest.mark.asyncio
     async def test_field_mapping_exists(self, db):
         """测试字段映射是否正确"""
-        from app.db.import_django_data import FIELD_MAPPING
+        from app.db.import_django_data import FIELD_MAPPING, map_field_name
 
         assert FIELD_MAPPING["create_time"] == "created_at"
         assert FIELD_MAPPING["update_time"] == "updated_at"
         assert FIELD_MAPPING["dict"] == "dict_data"
-        assert FIELD_MAPPING["dict_code"] == "code"
+        assert "dict_code" not in FIELD_MAPPING
+        assert map_field_name("system.dicts", "dict_code") == "dict_code"
+        assert map_field_name("system.dicts", "remark") == "remark"
 
     @pytest.mark.asyncio
     async def test_import_departments(self, db):
@@ -102,9 +104,9 @@ class TestImportDjangoData:
         """测试导入字典数据"""
         dict_data = await DictData.create(
             name=f"测试字典_{uuid.uuid4().hex[:6]}",
-            code=f"test_dict_{uuid.uuid4().hex[:6]}",
+            dict_code=f"test_dict_{uuid.uuid4().hex[:6]}",
             status=1,
-            desc="测试字典描述",
+            remark="测试字典描述",
         )
 
         assert dict_data.id is not None
@@ -116,7 +118,7 @@ class TestImportDjangoData:
         # 先创建字典
         dict_data = await DictData.create(
             name=f"状态字典_{uuid.uuid4().hex[:6]}",
-            code=f"status_dict_{uuid.uuid4().hex[:6]}",
+            dict_code=f"status_dict_{uuid.uuid4().hex[:6]}",
             status=1,
         )
 

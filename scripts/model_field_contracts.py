@@ -63,14 +63,14 @@ FASTAPI_FIELD_METADATA_CONTRACTS: tuple[FastapiFieldMetadataContract, ...] = (
     ),
     FastapiFieldMetadataContract(
         fastapi_model="DictData",
-        field_name="code",
+        field_name="dict_code",
         field_type="CharField",
         null=False,
         default=None,
     ),
     FastapiFieldMetadataContract(
         fastapi_model="DictData",
-        field_name="desc",
+        field_name="remark",
         field_type="CharField",
         null=False,
         default="",

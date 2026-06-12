@@ -24,9 +24,9 @@ async def test_dict_data_for_service(db):
 
     dict_data = await DictData.create(
         name=f"测试字典_{uuid.uuid4().hex[:6]}",
-        code=f"test_dict_{uuid.uuid4().hex[:6]}",
+        dict_code=f"test_dict_{uuid.uuid4().hex[:6]}",
         status=1,
-        desc="测试字典描述",
+        remark="测试字典描述",
     )
     return dict_data
 
@@ -93,7 +93,7 @@ class TestDictServiceGetDictPage:
         for i in range(15):
             await DictData.create(
                 name=f"分页字典_{i}_{uuid.uuid4().hex[:6]}",
-                code=f"page_dict_{i}_{uuid.uuid4().hex[:6]}",
+                dict_code=f"page_dict_{i}_{uuid.uuid4().hex[:6]}",
                 status=1,
             )
 
@@ -116,7 +116,7 @@ class TestDictServiceGetDict:
 
         assert result.id == test_dict_data_for_service.id
         assert result.name == test_dict_data_for_service.name
-        assert result.code == test_dict_data_for_service.code
+        assert result.dict_code == test_dict_data_for_service.dict_code
 
     @pytest.mark.asyncio
     async def test_get_dict_nonexistent(self, db):
@@ -144,15 +144,15 @@ class TestDictServiceCreateDict:
         """测试基本创建字典类型"""
         dict_data = DictDataCreate(
             name=f"新字典_{uuid.uuid4().hex[:8]}",
-            code=f"new_dict_{uuid.uuid4().hex[:8]}",
+            dict_code=f"new_dict_{uuid.uuid4().hex[:8]}",
             status=1,
-            desc="新字典描述",
+            remark="新字典描述",
         )
 
         result = await dict_service.create_dict(dict_data)
 
         assert result.name == dict_data.name
-        assert result.code == dict_data.code
+        assert result.dict_code == dict_data.dict_code
         assert result.status == 1
 
     @pytest.mark.asyncio
@@ -160,7 +160,7 @@ class TestDictServiceCreateDict:
         """测试创建重复编码"""
         dict_data = DictDataCreate(
             name=f"重复字典_{uuid.uuid4().hex[:8]}",
-            code=test_dict_data_for_service.code,
+            dict_code=test_dict_data_for_service.dict_code,
             status=1,
         )
 
@@ -174,17 +174,17 @@ class TestDictServiceCreateDict:
         """测试创建字典类型包含所有字段"""
         dict_data = DictDataCreate(
             name=f"完整字典_{uuid.uuid4().hex[:8]}",
-            code=f"full_dict_{uuid.uuid4().hex[:8]}",
+            dict_code=f"full_dict_{uuid.uuid4().hex[:8]}",
             status=1,
-            desc="这是一个完整的字典描述",
+            remark="这是一个完整的字典描述",
         )
 
         result = await dict_service.create_dict(dict_data)
 
         assert result.name == dict_data.name
-        assert result.code == dict_data.code
+        assert result.dict_code == dict_data.dict_code
         assert result.status == 1
-        assert result.desc == "这是一个完整的字典描述"
+        assert result.remark == "这是一个完整的字典描述"
 
 
 class TestDictServiceUpdateDict:
@@ -195,13 +195,13 @@ class TestDictServiceUpdateDict:
         """测试基本更新字典类型"""
         update_data = DictDataUpdate(
             name="更新后的字典名",
-            desc="更新后的描述",
+            remark="更新后的描述",
         )
 
         result = await dict_service.update_dict(test_dict_data_for_service.id, update_data)
 
         assert result.name == "更新后的字典名"
-        assert result.desc == "更新后的描述"
+        assert result.remark == "更新后的描述"
 
     @pytest.mark.asyncio
     async def test_update_dict_status(self, db, test_dict_data_for_service):
@@ -234,7 +234,7 @@ class TestDictServiceDeleteDict:
         # 创建一个新字典类型用于删除
         dict_to_delete = await DictData.create(
             name=f"待删除字典_{uuid.uuid4().hex[:8]}",
-            code=f"del_dict_{uuid.uuid4().hex[:8]}",
+            dict_code=f"del_dict_{uuid.uuid4().hex[:8]}",
             status=1,
         )
 
@@ -266,7 +266,7 @@ class TestDictServiceBatchDeleteDicts:
         for i in range(3):
             dict_data = await DictData.create(
                 name=f"批量字典_{i}_{uuid.uuid4().hex[:8]}",
-                code=f"batch_dict_{i}_{uuid.uuid4().hex[:8]}",
+                dict_code=f"batch_dict_{i}_{uuid.uuid4().hex[:8]}",
                 status=1,
             )
             dict_ids.append(dict_data.id)
@@ -329,7 +329,7 @@ class TestDictServiceGetItemPage:
         result = await dict_service.get_item_page(
             page=1,
             page_size=10,
-            code=test_dict_data_for_service.code
+            code=test_dict_data_for_service.dict_code,
         )
 
         for item in result.list:
@@ -653,7 +653,7 @@ class TestDictServiceGetItemsByCode:
     @pytest.mark.asyncio
     async def test_get_items_by_code(self, db, test_dict_data_for_service, test_dict_item_for_service):
         """测试根据编码获取字典项"""
-        result = await dict_service.get_items_by_code(test_dict_data_for_service.code)
+        result = await dict_service.get_items_by_code(test_dict_data_for_service.dict_code)
 
         assert isinstance(result, list)
         assert len(result) >= 1
@@ -674,11 +674,11 @@ class TestDictServiceGetItemsByCode:
         # 创建禁用的字典类型
         inactive_dict = await DictData.create(
             name=f"禁用字典_{uuid.uuid4().hex[:8]}",
-            code=f"inactive_dict_{uuid.uuid4().hex[:8]}",
+            dict_code=f"inactive_dict_{uuid.uuid4().hex[:8]}",
             status=0,
         )
 
-        result = await dict_service.get_items_by_code(inactive_dict.code)
+        result = await dict_service.get_items_by_code(inactive_dict.dict_code)
 
         # 应该返回空列表（因为字典类型被禁用）
         assert isinstance(result, list)
@@ -692,7 +692,7 @@ class TestDictServiceGetItemsByCode:
         # 创建字典类型
         dict_data = await DictData.create(
             name=f"激活测试字典_{uuid.uuid4().hex[:8]}",
-            code=f"active_test_dict_{uuid.uuid4().hex[:8]}",
+            dict_code=f"active_test_dict_{uuid.uuid4().hex[:8]}",
             status=1,
         )
 
@@ -714,7 +714,7 @@ class TestDictServiceGetItemsByCode:
             dict_data_id=dict_data.id,
         )
 
-        result = await dict_service.get_items_by_code(dict_data.code)
+        result = await dict_service.get_items_by_code(dict_data.dict_code)
 
         # 应该只返回激活的字典项
         assert len(result) == 1

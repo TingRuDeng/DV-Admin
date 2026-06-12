@@ -115,8 +115,8 @@ async def assert_dict_records() -> None:
     """校验字典字段映射和字典项外键导入结果。"""
     dict_data = await DictData.get(id=30)
     dict_item = await DictItems.get(id=31)
-    assert dict_data.code == "status"
-    assert dict_data.desc == "状态字典"
+    assert dict_data.dict_code == "status"
+    assert dict_data.remark == "状态字典"
     assert dict_item.dict_data_id == dict_data.id
 
 

@@ -367,13 +367,13 @@ class DictDataBase(BaseSchema):
     """字典类型基础信息"""
 
     name: str = Field(description="字典名称")
-    code: str = Field(
+    dict_code: str = Field(
         description="字典编码",
-        validation_alias=AliasChoices("dictCode", "code"),
+        validation_alias=AliasChoices("dictCode", "code", "dict_code"),
         serialization_alias="dictCode",
     )
     status: int = Field(default=1, description="状态")
-    desc: str | None = Field(
+    remark: str | None = Field(
         default=None,
         description="描述",
         validation_alias=AliasChoices("remark", "desc"),
@@ -390,14 +390,14 @@ class DictDataUpdate(BaseSchema):
     """更新字典类型请求"""
 
     name: str | None = Field(default=None, description="字典名称")
-    code: str | None = Field(
+    dict_code: str | None = Field(
         default=None,
         description="字典编码",
-        validation_alias=AliasChoices("dictCode", "code"),
+        validation_alias=AliasChoices("dictCode", "code", "dict_code"),
         serialization_alias="dictCode",
     )
     status: int | None = Field(default=None, description="状态")
-    desc: str | None = Field(
+    remark: str | None = Field(
         default=None,
         description="描述",
         validation_alias=AliasChoices("remark", "desc"),
@@ -409,9 +409,9 @@ class DictDataOut(TimestampSchema):
     """字典类型响应数据"""
 
     name: str = Field(description="字典名称")
-    code: str = Field(description="字典编码", serialization_alias="dictCode")
+    dict_code: str = Field(description="字典编码", serialization_alias="dictCode")
     status: int = Field(default=1, description="状态")
-    desc: str | None = Field(default=None, description="描述", serialization_alias="remark")
+    remark: str | None = Field(default=None, description="描述", serialization_alias="remark")
 
 
 class DictItemBase(BaseSchema):
