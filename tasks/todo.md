@@ -109,7 +109,7 @@
 - [x] P2 串行：GREEN 更新 FastAPI 字典字段名、schema/service/import 映射和模型契约
 - [x] P3 串行：修正 FastAPI 字典相关目标测试、golden fixture 断言和运行时契约样例
 - [x] P4 串行：执行模型契约校验、FastAPI 目标测试、FastAPI 质量门禁、Django 目标测试和根目录校验
-- [ ] P5 串行：review-gate、提交、PR、CI 和合并
+- [x] P5 串行：review-gate、提交、PR、CI 和合并
 
 并行判断：本轮只处理字段契约文件拆分，变更集中在字段契约入口、字段约束契约模块、治理测试和任务状态，存在同一契约链路写冲突；不启用 subagent。
 
