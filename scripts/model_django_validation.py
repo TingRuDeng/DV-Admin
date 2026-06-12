@@ -51,6 +51,34 @@ def validate_django_field_metadata(root: Path) -> list[str]:
     return issues
 
 
+def validate_django_field_constraints(root: Path) -> list[str]:
+    """校验 Django 字段约束与共享模型契约一致。"""
+    issues: list[str] = []
+    metadata_by_model = load_django_field_metadata(root)
+    no_default = load_no_default(root)
+    for contract in load_django_field_constraint_contracts(root):
+        metadata = metadata_by_model.get(contract.django_model, {}).get(contract.field_name)
+        if metadata is None:
+            issues.append(f"backend/drf_admin/apps/system: {contract.django_model} 缺少字段 {contract.field_name}")
+            continue
+        if contract.max_length is not no_default and metadata.max_length != contract.max_length:
+            issues.append(
+                f"backend/drf_admin/apps/system: {contract.django_model}.{contract.field_name} max_length 应为 "
+                f"{contract.max_length}，实际为 {metadata.max_length}"
+            )
+        if contract.unique is not no_default and metadata.unique != contract.unique:
+            issues.append(
+                f"backend/drf_admin/apps/system: {contract.django_model}.{contract.field_name} unique 应为 "
+                f"{contract.unique}，实际为 {metadata.unique}"
+            )
+        if contract.index is not no_default and metadata.index != contract.index:
+            issues.append(
+                f"backend/drf_admin/apps/system: {contract.django_model}.{contract.field_name} index 应为 "
+                f"{contract.index}，实际为 {metadata.index}"
+            )
+    return issues
+
+
 def load_django_model_table_contracts(root: Path):
     """从共享模型契约加载 Django 模型表名契约。"""
     root_text = str(root)
@@ -69,6 +97,16 @@ def load_django_field_metadata_contracts(root: Path):
     from scripts.model_contracts import iter_django_field_metadata_contracts
 
     return iter_django_field_metadata_contracts()
+
+
+def load_django_field_constraint_contracts(root: Path):
+    """从共享模型契约加载 Django 字段约束契约。"""
+    root_text = str(root)
+    if root_text not in sys.path:
+        sys.path.insert(0, root_text)
+    from scripts.model_contracts import iter_django_field_constraint_contracts
+
+    return iter_django_field_constraint_contracts()
 
 
 def load_no_default(root: Path):
