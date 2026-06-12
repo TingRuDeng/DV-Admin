@@ -23,6 +23,7 @@ REQUIRED_DOC_SNIPPETS = (
     "remark` → `desc",
 )
 FASTAPI_MODEL_FILES = (
+    "fastapi/app/db/models/base.py",
     "fastapi/app/db/models/system.py",
     "fastapi/app/db/models/oauth.py",
 )
@@ -40,6 +41,7 @@ def validate(root: Path) -> list[str]:
     issues.extend(validate_contract_catalog(root))
     issues.extend(validate_import_mapping(root))
     issues.extend(validate_fastapi_model_tables(root))
+    issues.extend(validate_fastapi_alias_target_fields(root))
     issues.extend(validate_docs(root))
     issues.extend(validate_tests(root))
     return issues
@@ -130,6 +132,53 @@ def is_table_target(targets: list[ast.expr]) -> bool:
     return any(isinstance(target, ast.Name) and target.id == "table" for target in targets)
 
 
+def validate_fastapi_alias_target_fields(root: Path) -> list[str]:
+    """校验字段别名目标真实存在于对应 FastAPI 模型。"""
+    issues: list[str] = []
+    model_fields = load_fastapi_model_fields(root)
+    base_fields = model_fields.get("BaseModel", set())
+    for contract, target_fields in load_alias_targets(root):
+        actual_fields = base_fields | model_fields.get(contract.fastapi_model, set())
+        for field_name in target_fields:
+            if field_name not in actual_fields:
+                issues.append(f"fastapi/app/db/models: {contract.fastapi_model} 缺少字段 {field_name}")
+    return issues
+
+
+def load_fastapi_model_fields(root: Path) -> dict[str, set[str]]:
+    """静态读取 FastAPI 模型字段声明，覆盖普通字段和类型注解字段。"""
+    model_fields: dict[str, set[str]] = {}
+    for rel in FASTAPI_MODEL_FILES:
+        module = ast.parse(read_text(root / rel))
+        model_fields.update(extract_module_fields(module))
+    return model_fields
+
+
+def extract_module_fields(module: ast.Module) -> dict[str, set[str]]:
+    """提取单个 FastAPI 模型模块内的类字段名。"""
+    fields_by_model: dict[str, set[str]] = {}
+    for node in module.body:
+        if isinstance(node, ast.ClassDef):
+            fields_by_model[node.name] = extract_class_fields(node)
+    return fields_by_model
+
+
+def extract_class_fields(model_node: ast.ClassDef) -> set[str]:
+    """提取类体中的字段赋值和字段注解名称。"""
+    field_names: set[str] = set()
+    for statement in model_node.body:
+        if isinstance(statement, ast.Assign):
+            field_names.update(extract_name_targets(statement.targets))
+        if isinstance(statement, ast.AnnAssign) and isinstance(statement.target, ast.Name):
+            field_names.add(statement.target.id)
+    return field_names
+
+
+def extract_name_targets(targets: list[ast.expr]) -> set[str]:
+    """提取赋值语句中的简单名称目标。"""
+    return {target.id for target in targets if isinstance(target, ast.Name)}
+
+
 def validate_docs(root: Path) -> list[str]:
     """校验数据库文档记录了模型契约入口和关键映射。"""
     issues: list[str] = []
@@ -145,8 +194,10 @@ def validate_tests(root: Path) -> list[str]:
     text = read_text(root / "fastapi/tests/test_import_django_model_contracts.py")
     required = (
         "iter_django_fastapi_model_contracts",
+        "iter_fastapi_alias_targets",
         "test_import_mapping_matches_shared_model_contracts",
         "test_fastapi_model_tables_match_shared_contracts",
+        "test_fastapi_model_alias_targets_match_shared_contracts",
     )
     return [
         f"fastapi/tests/test_import_django_model_contracts.py: 缺少模型契约测试片段 {snippet}"
@@ -167,6 +218,16 @@ def load_contracts(root: Path):
 
     assert_model_contract_catalog()
     return iter_django_fastapi_model_contracts()
+
+
+def load_alias_targets(root: Path):
+    """从共享模型契约加载 FastAPI 字段别名目标。"""
+    root_text = str(root)
+    if root_text not in sys.path:
+        sys.path.insert(0, root_text)
+    from scripts.model_contracts import iter_fastapi_alias_targets
+
+    return iter_fastapi_alias_targets()
 
 
 def read_text(path: Path) -> str:
