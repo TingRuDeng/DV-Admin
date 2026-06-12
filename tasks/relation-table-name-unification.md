@@ -75,7 +75,7 @@
 - [x] P3 串行：执行并修正 FastAPI M2M 目标测试，重点覆盖角色权限分配、用户角色关系、Django fixture 导入和运行时权限链路。
 - [x] P4 串行：同步数据库文档、技术债和字典模型治理计划，移除关联表命名差异描述，保留显式迁移边界说明。
 - [x] P5 串行：执行模型契约校验、FastAPI 目标测试、FastAPI `make quality`、Django 目标测试和根目录校验。
-- [ ] P6 串行：review-gate、提交、PR、CI 和合并。
+- [x] P6 串行：review-gate、提交、PR、CI 和合并。
 
 ## 涉及文件
 
@@ -129,3 +129,5 @@
 ## Review 小结
 
 Review-gate：finished；Spec 符合度通过，本轮只统一 FastAPI 两张 M2M through 表名和共享关联契约，不修改 Django 模型、主表、前端 API、权限码或业务响应；安全检查未发现新增 secret、mock、双表读写或静默 fallback；复杂度检查通过，本轮新增一个目标契约测试并修改两个 through 表名常量，未新增超长函数；Document-refresh: needed，原因：数据库关联表事实和技术债状态已变化；剩余风险是已有 FastAPI 数据库如果仍存在旧表 `system_roles_permissions` 或 `system_users_roles`，需要显式迁移到 Django 命名表，且关联表字段命名差异仍需后续独立治理。
+
+完成态：PR #155 已合并，合并提交为 `08811baafe4e3f15d866657b299eaf97a6807b55`；远端 CI 已通过 Django Backend Quality、FastAPI Backend Quality 和 Frontend Quality。
