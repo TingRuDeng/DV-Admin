@@ -2,7 +2,7 @@
 
 ## 目标
 
-- 收敛 Django 与 FastAPI 字典主表的模型差异，优先处理 `system.dicts` 与 `DictData` 在表名和字段约束上的不一致。
+- 收敛 Django 与 FastAPI 字典主表的模型差异，优先处理 `system.dicts` 与 `DictData` 在表名、字段命名和字段约束上的不一致。
 - 让共享模型契约从“记录差异”逐步转向“约束一致”，降低 Django fixture 导入、双后端切换和后续迁移成本。
 - 在实现前明确数据库迁移、API 兼容和导入脚本影响边界。
 
@@ -14,11 +14,11 @@
 
 ## 当前事实
 
-- `scripts/model_contracts.py` 的 `DjangoFastapiModelContract` 已声明 `system.dicts` 到 `DictData` 的映射，但当前契约仍允许 Django 表名 `system_dicts` 与 FastAPI 表名 `system_dict_data` 不一致。
+- `scripts/model_contracts.py` 的 `DjangoFastapiModelContract` 已声明 `system.dicts` 到 `DictData` 的映射，并要求 Django/FastAPI 字典主表同名为 `system_dicts`。
 - `backend/drf_admin/apps/system/models.py` 中 `Dicts.dict_code` 是 `max_length=32` 且 `unique=True`。
 - `fastapi/app/db/models/system.py` 中 `DictData.dict_code` 是 `max_length=32` 且 `unique=True`。
 - `fastapi/app/db/models/system.py` 中 `DictData.remark` 已与 Django 保持同名，但长度仍为 FastAPI 侧 100、Django 侧 50。
-- `docs/TECH_DEBT.md` 已把 Django 和 FastAPI 模型差异列为中优先级技术债，当前仍明确提到字典类型表名不同和关联表命名不同。
+- `docs/TECH_DEBT.md` 已把 Django 和 FastAPI 模型差异列为中优先级技术债，当前剩余重点是关联表命名不同。
 
 ## 设计原则
 
@@ -51,9 +51,9 @@
 
 推荐继续采用方案 B 的最小垂直切片，但不要把表名、字典项外键和关联表迁移混在一个 PR。
 
-第一轮已处理可低风险验证的字段约束一致性：FastAPI `DictData.dict_code` 的 `max_length` 已对齐到 Django `Dicts.dict_code` 的 32，并补共享契约测试。第二轮已将 FastAPI `DictData` 内部字段从 `code/desc` 统一为 `dict_code/remark`，前端 API 仍保持 `dictCode/remark`。
+第一轮已处理可低风险验证的字段约束一致性：FastAPI `DictData.dict_code` 的 `max_length` 已对齐到 Django `Dicts.dict_code` 的 32，并补共享契约测试。第二轮已将 FastAPI `DictData` 内部字段从 `code/desc` 统一为 `dict_code/remark`，前端 API 仍保持 `dictCode/remark`。第三轮已将 FastAPI `DictData` 表名统一为 `system_dicts`，共享模型契约开始约束字典主表表名一致。
 
-表名统一放到后续独立轮次，原因是它影响数据库迁移、导入脚本和部署数据状态，风险明显高于字段长度和字段名治理。
+已有 FastAPI 数据库如果仍存在旧表 `system_dict_data`，需要通过显式数据库迁移切换到 `system_dicts`；业务代码不提供双表静默 fallback。
 
 ## 执行计划
 
@@ -64,6 +64,8 @@
 - [x] P5 串行：将 FastAPI `DictData` 内部字段从 `code/desc` 统一为 `dict_code/remark`。
 - [x] P6 串行：同步 schema/service/import 映射、共享模型契约和字典相关测试。
 - [x] P7 串行：执行 FastAPI 目标测试、FastAPI `make quality`、Django 目标测试、根目录校验、review-gate、PR、CI 和合并。
+- [x] P8 串行：将 FastAPI `DictData` 表名从 `system_dict_data` 统一为 `system_dicts`。
+- [x] P9 串行：同步共享模型契约、数据库文档、技术债和字典治理计划。
 
 ## 涉及文件
 
