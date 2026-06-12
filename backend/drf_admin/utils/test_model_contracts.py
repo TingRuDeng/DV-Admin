@@ -39,6 +39,21 @@ def test_django_field_metadata_matches_shared_contracts():
             assert field.default == contract.default
 
 
+def test_django_field_constraints_match_shared_contracts():
+    """Django 关键字段约束必须与共享模型契约保持一致。"""
+    model_contracts = load_model_contracts()
+    assert hasattr(model_contracts, "iter_django_field_constraint_contracts")
+    for contract in model_contracts.iter_django_field_constraint_contracts():
+        model = DJANGO_MODEL_MAPPING[contract.django_model]
+        field = model._meta.get_field(contract.field_name)
+        if contract.max_length is not model_contracts.NO_DEFAULT:
+            assert field.max_length == contract.max_length
+        if contract.unique is not model_contracts.NO_DEFAULT:
+            assert field.unique == contract.unique
+        if contract.index is not model_contracts.NO_DEFAULT:
+            assert field.db_index == contract.index
+
+
 def load_model_contracts():
     """加载仓库根目录的共享模型契约模块。"""
     if str(ROOT) not in sys.path:
