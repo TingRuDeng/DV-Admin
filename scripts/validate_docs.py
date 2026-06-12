@@ -2,6 +2,9 @@
 import re
 import sys
 from pathlib import Path
+
+from docs_contract_validation import validate_contract_entrypoints
+
 AI_CONTEXT_PATH = Path("docs/AI_CONTEXT.md")
 DEFAULT_PROFILE = "generic"
 GENERIC_REQUIRED_FILES = ("AGENTS.md", "docs/README.md", "docs/AI_CONTEXT.md")
@@ -14,13 +17,6 @@ REQUIRED_AUTHORITY_HEADINGS = ("## Purpose", "## Source of truth", "## Key facts
 LEGACY_AUTHORITY_HEADINGS = ("## Purpose", "## Source Of Truth", "## Key Facts", "## How To Verify", "## Stale When")
 REQUIRED_AI_KEYS = ("purpose", "read_when", "source_of_truth", "verify_with", "stale_when")
 AI_CONTEXT_SECTIONS = ("## Project Snapshot", "## Core Directories", "## Documentation Map", "## Common Task Reading Paths", "## High-Risk Areas", "## Validation Commands", "## Stale when")
-CONTRACT_REQUIRED_FILES = ("scripts/api_contracts.py", "scripts/validate_api_contracts.py", "scripts/model_contracts.py", "scripts/validate_model_contracts.py")
-API_CONTRACT_DOC_SNIPPETS = ("共享 API 契约验证", "scripts/validate_api_contracts.py")
-MODEL_CONTRACT_DOC_SNIPPETS = ("Django Fixture 导入约束", "scripts/model_contracts.py")
-DJANGO_MIGRATION_REQUIRED_FILES = ("scripts/validate_django_migrations.py",)
-DJANGO_MIGRATION_DOC_SNIPPETS = ("Django 迁移链校验", "scripts/validate_django_migrations.py")
-PNPM_ACTION_SETUP_REQUIRED = "pnpm/action-setup@v6"
-PNPM_ACTION_SETUP_FORBIDDEN = "pnpm/action-setup@v4"
 GENERIC_SECTION_VALUES = {
     "tbd", "todo", "n/a", "coming soon", "run tests", "check manually", "follow best practices",
     "use proper architecture", "use clean architecture", "run appropriate tests", "follow conventions",
@@ -57,37 +53,6 @@ def validate_profile_files(base, profile):
     return issues
 def required_files_for(profile):
     return GENERIC_REQUIRED_FILES + (ANDROID_REQUIRED_FILES if profile == "android" else ())
-def validate_contract_entrypoints(base):
-    issues = []
-    for rel in CONTRACT_REQUIRED_FILES + DJANGO_MIGRATION_REQUIRED_FILES:
-        if not (base / rel).exists():
-            issues.append(f"{rel}: 缺少契约校验入口")
-    api_doc = base / "docs/API_ENDPOINTS.md"
-    if api_doc.exists():
-        text = read_text(api_doc)
-        for snippet in API_CONTRACT_DOC_SNIPPETS:
-            if snippet not in text:
-                issues.append(f"docs/API_ENDPOINTS.md: 缺少 API 契约说明 {snippet}")
-    schema_doc = base / "docs/DATABASE_SCHEMA.md"
-    if schema_doc.exists():
-        text = read_text(schema_doc)
-        for snippet in MODEL_CONTRACT_DOC_SNIPPETS + DJANGO_MIGRATION_DOC_SNIPPETS:
-            if snippet not in text:
-                issues.append(f"docs/DATABASE_SCHEMA.md: 缺少模型契约说明 {snippet}")
-    workflow = base / ".github/workflows/quality-gates.yml"
-    if workflow.exists():
-        workflow_text = read_text(workflow)
-        if "scripts/validate_api_contracts.py" not in workflow_text:
-            issues.append(".github/workflows/quality-gates.yml: 未运行 API 契约校验")
-        if "scripts/validate_model_contracts.py" not in workflow_text:
-            issues.append(".github/workflows/quality-gates.yml: 未运行模型契约校验")
-        if "scripts/validate_django_migrations.py" not in workflow_text:
-            issues.append(".github/workflows/quality-gates.yml: 未运行 Django 迁移链校验")
-        if PNPM_ACTION_SETUP_REQUIRED not in workflow_text:
-            issues.append(".github/workflows/quality-gates.yml: 未使用 pnpm/action-setup@v6")
-        if PNPM_ACTION_SETUP_FORBIDDEN in workflow_text:
-            issues.append(".github/workflows/quality-gates.yml: 仍使用 pnpm/action-setup@v4")
-    return issues
 def validate_authority_docs(base, legacy_docs=()):
     issues = []
     for path in sorted((base / "docs").glob("*.md")):
