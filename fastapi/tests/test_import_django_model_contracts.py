@@ -57,3 +57,17 @@ def test_fastapi_field_metadata_matches_shared_contracts():
         assert field.null == contract.null
         if contract.default is not model_contracts.NO_DEFAULT:
             assert field.default == contract.default
+
+
+def test_fastapi_field_constraints_match_shared_contracts():
+    """FastAPI 字段长度、唯一性和索引必须与共享字段约束契约一致。"""
+    assert hasattr(model_contracts, "iter_fastapi_field_constraint_contracts")
+    for contract in model_contracts.iter_fastapi_field_constraint_contracts():
+        model = FIELD_MODEL_MAPPING[contract.fastapi_model]
+        field = model._meta.fields_map[contract.field_name]
+        if contract.max_length is not model_contracts.NO_DEFAULT:
+            assert field.max_length == contract.max_length
+        if contract.unique is not model_contracts.NO_DEFAULT:
+            assert field.unique == contract.unique
+        if contract.index is not model_contracts.NO_DEFAULT:
+            assert field.index == contract.index

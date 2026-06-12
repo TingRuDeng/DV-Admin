@@ -18,6 +18,9 @@ class FastapiFieldMetadata(NamedTuple):
     field_type: str
     null: bool
     default: object
+    max_length: object
+    unique: bool
+    index: bool
 
 
 def load_fastapi_model_tables(root: Path) -> dict[str, str]:
@@ -149,11 +152,14 @@ def is_fastapi_field_call(call: ast.Call) -> bool:
 
 
 def build_field_metadata(call: ast.Call) -> FastapiFieldMetadata:
-    """从字段调用提取字段类型、null 和 default。"""
+    """从字段调用提取字段类型、null、default 和约束。"""
     return FastapiFieldMetadata(
         field_type=call.func.attr,
         null=extract_bool_keyword(call, "null", default=False),
         default=extract_keyword_value(call, "default"),
+        max_length=extract_keyword_value(call, "max_length"),
+        unique=extract_bool_keyword(call, "unique", default=False),
+        index=extract_bool_keyword(call, "index", default=False),
     )
 
 
