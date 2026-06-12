@@ -3,7 +3,11 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from model_django_ast import load_django_field_metadata, load_django_model_tables
+from model_django_ast import (
+    load_django_field_metadata,
+    load_django_model_tables,
+    load_django_relation_through_tables,
+)
 
 
 def validate_django_model_tables(root: Path) -> list[str]:
@@ -79,6 +83,24 @@ def validate_django_field_constraints(root: Path) -> list[str]:
     return issues
 
 
+def validate_django_relation_through_tables(root: Path) -> list[str]:
+    """校验 Django 多对多 through 表与共享关联契约一致。"""
+    issues: list[str] = []
+    through_tables = load_django_relation_through_tables(root)
+    for contract in load_django_relation_through_contracts(root):
+        model_relations = through_tables.get(contract.django_model, {})
+        actual_table = model_relations.get(contract.django_field)
+        if actual_table is None:
+            issues.append(f"backend/drf_admin/apps/system: {contract.django_model} 缺少关联字段 {contract.django_field}")
+            continue
+        if actual_table != contract.django_through_table:
+            issues.append(
+                f"backend/drf_admin/apps/system: {contract.django_model}.{contract.django_field} through 表应为 "
+                f"{contract.django_through_table}，实际为 {actual_table}"
+            )
+    return issues
+
+
 def load_django_model_table_contracts(root: Path):
     """从共享模型契约加载 Django 模型表名契约。"""
     root_text = str(root)
@@ -107,6 +129,16 @@ def load_django_field_constraint_contracts(root: Path):
     from scripts.model_contracts import iter_django_field_constraint_contracts
 
     return iter_django_field_constraint_contracts()
+
+
+def load_django_relation_through_contracts(root: Path):
+    """从共享模型契约加载 Django 多对多 through 表契约。"""
+    root_text = str(root)
+    if root_text not in sys.path:
+        sys.path.insert(0, root_text)
+    from scripts.model_contracts import iter_django_relation_through_contracts
+
+    return iter_django_relation_through_contracts()
 
 
 def load_no_default(root: Path):

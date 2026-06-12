@@ -45,6 +45,15 @@ def load_django_field_metadata(root: Path) -> dict[str, dict[str, DjangoFieldMet
     return metadata
 
 
+def load_django_relation_through_tables(root: Path) -> dict[str, dict[str, str]]:
+    """静态读取 Django 模型多对多字段 through 表声明。"""
+    relations: dict[str, dict[str, str]] = {}
+    for rel in DJANGO_MODEL_FILES:
+        module = ast.parse(read_text(root / rel))
+        relations.update(extract_module_relation_through_tables(module))
+    return relations
+
+
 def extract_module_tables(module: ast.Module) -> dict[str, str]:
     """提取单个 Django 模型模块内所有 class Meta.db_table。"""
     tables: dict[str, str] = {}
@@ -67,6 +76,17 @@ def extract_module_field_metadata(module: ast.Module) -> dict[str, dict[str, Dja
     return metadata_by_model
 
 
+def extract_module_relation_through_tables(module: ast.Module) -> dict[str, dict[str, str]]:
+    """提取单个 Django 模型模块内的多对多 through 表声明。"""
+    relations_by_model: dict[str, dict[str, str]] = {}
+    for node in module.body:
+        if isinstance(node, ast.ClassDef):
+            through_tables = extract_class_relation_through_tables(node)
+            if through_tables:
+                relations_by_model[f"system.{node.name.lower()}"] = through_tables
+    return relations_by_model
+
+
 def extract_class_field_metadata(model_node: ast.ClassDef) -> dict[str, DjangoFieldMetadata]:
     """提取类体中 models.*Field 声明的静态元数据。"""
     field_metadata: dict[str, DjangoFieldMetadata] = {}
@@ -77,6 +97,18 @@ def extract_class_field_metadata(model_node: ast.ClassDef) -> dict[str, DjangoFi
     if inherits_from(model_node, "AbstractUser"):
         field_metadata.update(build_inherited_field_metadata(ABSTRACT_USER_FIELD_METADATA))
     return field_metadata
+
+
+def extract_class_relation_through_tables(model_node: ast.ClassDef) -> dict[str, str]:
+    """提取类体中 models.ManyToManyField 的 db_table 参数。"""
+    through_tables: dict[str, str] = {}
+    for statement in model_node.body:
+        field_name, call = extract_field_call(statement)
+        if field_name and call and is_django_many_to_many_call(call):
+            through_table = extract_keyword_value(call, "db_table")
+            if isinstance(through_table, str):
+                through_tables[field_name] = through_table
+    return through_tables
 
 
 def build_inherited_field_metadata(definitions: dict[str, tuple]) -> dict[str, DjangoFieldMetadata]:
@@ -119,6 +151,16 @@ def is_django_field_call(call: ast.Call) -> bool:
     return (
         isinstance(call.func, ast.Attribute)
         and call.func.attr.endswith("Field")
+        and isinstance(call.func.value, ast.Name)
+        and call.func.value.id == "models"
+    )
+
+
+def is_django_many_to_many_call(call: ast.Call) -> bool:
+    """判断调用是否为 models.ManyToManyField。"""
+    return (
+        isinstance(call.func, ast.Attribute)
+        and call.func.attr == "ManyToManyField"
         and isinstance(call.func.value, ast.Name)
         and call.func.value.id == "models"
     )

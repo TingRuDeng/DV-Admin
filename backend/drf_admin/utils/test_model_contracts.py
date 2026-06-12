@@ -54,6 +54,16 @@ def test_django_field_constraints_match_shared_contracts():
             assert field.db_index == contract.index
 
 
+def test_django_relation_through_tables_match_shared_contracts():
+    """Django 多对多 through 表必须与共享关联契约保持一致。"""
+    model_contracts = load_model_contracts()
+    assert hasattr(model_contracts, "iter_django_relation_through_contracts")
+    for contract in model_contracts.iter_django_relation_through_contracts():
+        model = DJANGO_MODEL_MAPPING[contract.django_model]
+        field = model._meta.get_field(contract.django_field)
+        assert field.remote_field.through._meta.db_table == contract.django_through_table
+
+
 def load_model_contracts():
     """加载仓库根目录的共享模型契约模块。"""
     if str(ROOT) not in sys.path:
