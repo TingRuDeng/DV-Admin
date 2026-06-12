@@ -108,7 +108,7 @@ class Roles(BaseModel):
     permissions: fields.ManyToManyRelation[Permissions] = fields.ManyToManyField(
         "models.Permissions",
         related_name="roles",
-        through="system_roles_permissions",
+        through="system_roles_to_system_permissions",
         backward_key="role_id",
         forward_key="permission_id",
         description="权限",
