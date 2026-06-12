@@ -10,6 +10,11 @@ DJANGO_MODEL_FILES = (
     "backend/drf_admin/apps/system/models_notice.py",
 )
 
+ABSTRACT_USER_FIELD_METADATA = {
+    "username": ("CharField", False, None, 150, True, False),
+    "email": ("EmailField", False, "", 254, False, False),
+}
+
 
 class DjangoFieldMetadata(NamedTuple):
     """Django 字段静态元数据。"""
@@ -17,6 +22,9 @@ class DjangoFieldMetadata(NamedTuple):
     field_type: str
     null: bool
     default: object
+    max_length: object
+    unique: bool
+    index: bool
 
 
 def load_django_model_tables(root: Path) -> dict[str, str]:
@@ -66,7 +74,31 @@ def extract_class_field_metadata(model_node: ast.ClassDef) -> dict[str, DjangoFi
         field_name, call = extract_field_call(statement)
         if field_name and call:
             field_metadata[field_name] = build_field_metadata(call)
+    if inherits_from(model_node, "AbstractUser"):
+        field_metadata.update(build_inherited_field_metadata(ABSTRACT_USER_FIELD_METADATA))
     return field_metadata
+
+
+def build_inherited_field_metadata(definitions: dict[str, tuple]) -> dict[str, DjangoFieldMetadata]:
+    """把已知 Django 抽象基类字段声明转换为统一静态元数据。"""
+    return {
+        field_name: DjangoFieldMetadata(*metadata)
+        for field_name, metadata in definitions.items()
+    }
+
+
+def inherits_from(model_node: ast.ClassDef, base_name: str) -> bool:
+    """判断类是否直接继承指定基类。"""
+    return any(extract_base_name(base) == base_name for base in model_node.bases)
+
+
+def extract_base_name(base: ast.expr) -> str:
+    """提取继承基类名称。"""
+    if isinstance(base, ast.Name):
+        return base.id
+    if isinstance(base, ast.Attribute):
+        return base.attr
+    return ""
 
 
 def extract_field_call(statement: ast.stmt) -> tuple[str, ast.Call | None]:
@@ -93,11 +125,14 @@ def is_django_field_call(call: ast.Call) -> bool:
 
 
 def build_field_metadata(call: ast.Call) -> DjangoFieldMetadata:
-    """从 Django 字段调用提取字段类型、null 和 default。"""
+    """从 Django 字段调用提取字段类型、null、default 和约束。"""
     return DjangoFieldMetadata(
         field_type=call.func.attr,
         null=extract_bool_keyword(call, "null", default=False),
         default=extract_keyword_value(call, "default"),
+        max_length=extract_keyword_value(call, "max_length"),
+        unique=extract_bool_keyword(call, "unique", default=False),
+        index=extract_bool_keyword(call, "db_index", default=False),
     )
 
 
