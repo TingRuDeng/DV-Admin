@@ -12,7 +12,7 @@ from model_contract_ast import (
     load_fastapi_relation_through_tables,
 )
 from model_constraint_validation import validate_fastapi_field_constraints
-from model_index_validation import validate_fastapi_model_indexes
+from model_index_validation import validate_fastapi_model_indexes, validate_fastapi_unique_together
 
 
 REQUIRED_FILES = (
@@ -48,6 +48,7 @@ def validate(root: Path) -> list[str]:
     issues.extend(validate_fastapi_field_metadata(root))
     issues.extend(validate_fastapi_field_constraints(root))
     issues.extend(validate_fastapi_model_indexes(root))
+    issues.extend(validate_fastapi_unique_together(root))
     issues.extend(validate_docs(root))
     issues.extend(validate_tests(root))
     return issues
@@ -175,6 +176,7 @@ def validate_tests(root: Path) -> list[str]:
         "iter_fastapi_field_metadata_contracts",
         "iter_fastapi_field_constraint_contracts",
         "iter_fastapi_model_index_contracts",
+        "iter_fastapi_unique_together_contracts",
         "test_import_mapping_matches_shared_model_contracts",
         "test_fastapi_model_tables_match_shared_contracts",
         "test_fastapi_model_alias_targets_match_shared_contracts",
@@ -182,6 +184,7 @@ def validate_tests(root: Path) -> list[str]:
         "test_fastapi_field_metadata_matches_shared_contracts",
         "test_fastapi_field_constraints_match_shared_contracts",
         "test_fastapi_model_indexes_match_shared_contracts",
+        "test_fastapi_model_unique_together_matches_shared_contracts",
     )
     return [
         f"fastapi/tests/test_import_django_model_contracts.py: 缺少模型契约测试片段 {snippet}"

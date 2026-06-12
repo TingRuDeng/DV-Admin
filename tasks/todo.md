@@ -64,8 +64,12 @@
 - [x] P2 串行：GREEN 增加 FastAPI Meta indexes 契约和静态校验
 - [x] P3 串行：执行模型契约测试、根目录校验和 FastAPI 质量门禁
 - [x] P4 串行：review-gate、提交、PR、CI 和合并
+- [x] P1 串行：RED 补 FastAPI unique_together 契约测试，复现共享契约缺少模型唯一组合入口
+- [x] P2 串行：GREEN 增加 FastAPI unique_together 契约和静态校验
+- [x] P3 串行：执行模型契约测试、根目录校验和 FastAPI 质量门禁
+- [x] P4 串行：review-gate、提交、PR、CI 和合并
 
-并行判断：本轮只处理 FastAPI 模型级索引契约治理，变更集中在模型契约入口、静态 AST 解析、模型契约校验、FastAPI 模型契约测试和任务状态，存在同一契约链路写冲突；不启用 subagent。
+并行判断：本轮只处理 FastAPI 模型级唯一组合契约治理，变更集中在模型索引契约入口、静态 AST 解析、模型契约校验、FastAPI 模型契约测试和任务状态，存在同一契约链路写冲突；不启用 subagent。
 
 ## 已完成摘要
 
@@ -173,3 +177,5 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 本轮 FastAPI 字段约束契约治理已完成本地验证：新增 `scripts/model_field_contracts.py` 承载字段元数据与字段约束契约，避免主契约文件继续膨胀；新增 `scripts/model_constraint_validation.py` 静态校验字段 `max_length`、`unique`、`index`，覆盖权限、角色、字典和用户的关键字段约束；FastAPI 导入契约测试同步增加运行时断言。验证通过：RED 阶段目标测试因缺少字段约束契约入口失败，GREEN 后目标测试（6 passed）、模型契约校验、FastAPI `make quality`（527 passed，覆盖率 84.75%）、根目录文档/API/路由组件/迁移契约校验、脚本编译和 `git diff --check`。
 
 本轮 FastAPI 模型索引契约治理已完成本地验证：新增 `scripts/model_index_contracts.py` 承载模型级 `Meta.indexes` 契约，覆盖权限、角色、部门、通知公告、字典、字典项和用户关键查询索引；新增 `scripts/model_index_ast.py` 与 `scripts/model_index_validation.py` 静态解析并校验模型索引声明；FastAPI 导入契约测试同步增加运行时断言。验证通过：RED 阶段目标测试因缺少模型索引契约入口失败，GREEN 后目标测试（7 passed）、模型契约校验、FastAPI `make quality`（528 passed，覆盖率 84.75%）、根目录文档/API/路由组件/迁移契约校验、脚本编译和 `git diff --check`。
+
+本轮 FastAPI 模型唯一组合契约治理已完成本地验证：`scripts/model_index_contracts.py` 新增 `NoticeReads` 的 `Meta.unique_together` 共享契约，锁定通知已读记录按通知和用户唯一；`scripts/model_index_ast.py` 与 `scripts/model_index_validation.py` 已静态解析并校验唯一组合声明；FastAPI 导入契约测试同步增加运行时断言。验证通过：RED 阶段目标测试因缺少唯一组合契约入口失败，GREEN 后目标测试（8 passed）、模型契约校验、FastAPI `make quality`（529 passed，覆盖率 84.75%）、根目录文档/API/路由组件/迁移契约校验、脚本编译和 `git diff --check`。
