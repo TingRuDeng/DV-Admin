@@ -203,15 +203,15 @@ ai_summary:
 |------|------|------|------|
 | id | int | 主键 | PK, Auto |
 | name | varchar(32/50) | 字典名称 | Unique |
-| dict_code / code | varchar(32/50) | 字典编码 | Unique |
+| dict_code | varchar(32) | 字典编码 | Unique |
 | status | int | 状态 | 0:禁用, 1:启用 |
-| remark / desc | varchar(50/100) | 备注/描述 | |
+| remark | varchar(50/100) | 备注/描述 | |
 | created_at | datetime | 创建时间 | |
 | updated_at | datetime | 更新时间 | |
 
 **索引：**
 - `name` (Unique)
-- `dict_code` / `code` (Unique)
+- `dict_code` (Unique)
 - `status`
 
 ---
@@ -356,13 +356,13 @@ Django 和 FastAPI 后端在模型定义上存在一些差异：
 | 差异项 | Django | FastAPI |
 |-------|--------|---------|
 | 字典类型表名 | `system_dicts` | `system_dict_data` |
-| 字典编码字段 | `dict_code` | `code` |
-| 字典备注字段 | `remark` | `desc` |
 | 角色-权限关联表 | `system_roles_to_system_permissions` | `system_roles_permissions` |
 | 字典项默认值字段 | 无 | `is_default` |
 | 字典项备注字段 | 无 | `remark` |
 
 **注意：** 迁移数据时需要处理这些差异。
+
+字典主表内部字段已统一为 `dict_code/remark`，当前剩余差异集中在表名、字典项字段和关联表。
 
 ### Django Fixture 导入约束
 
@@ -373,8 +373,6 @@ FastAPI 的 Django fixture 导入入口为 `fastapi/app/db/import_django_data.py
 - `create_time/update_time` → `created_at/updated_at`
 - `keepAlive/alwaysShow` → `keep_alive/always_show`
 - `dict` → `dict_data`
-- `dict_code` → `code`
-- `remark` → `desc`（仅字典类型）
 
 导入必须 fail-fast：缺少 `backend/init_data.json`、单条模型导入失败、自关联外键更新失败、M2M 目标缺失时都必须抛出 `DjangoDataImportError`，禁止只打印错误后继续并误报成功。模型名、表名和字段映射调整时，必须同步更新共享模型契约目录、导入脚本和 FastAPI 导入测试。
 

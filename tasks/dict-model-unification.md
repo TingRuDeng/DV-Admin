@@ -2,7 +2,7 @@
 
 ## 目标
 
-- 收敛 Django 与 FastAPI 字典主表的模型差异，优先处理 `system.dicts` 与 `DictData` 在表名、字段名和字段约束上的不一致。
+- 收敛 Django 与 FastAPI 字典主表的模型差异，优先处理 `system.dicts` 与 `DictData` 在表名和字段约束上的不一致。
 - 让共享模型契约从“记录差异”逐步转向“约束一致”，降低 Django fixture 导入、双后端切换和后续迁移成本。
 - 在实现前明确数据库迁移、API 兼容和导入脚本影响边界。
 
@@ -15,10 +15,10 @@
 ## 当前事实
 
 - `scripts/model_contracts.py` 的 `DjangoFastapiModelContract` 已声明 `system.dicts` 到 `DictData` 的映射，但当前契约仍允许 Django 表名 `system_dicts` 与 FastAPI 表名 `system_dict_data` 不一致。
-- `scripts/model_contracts.py` 的 `field_aliases` 当前记录 `dict_code -> code`、`remark -> desc`，说明字段层仍依赖别名迁移。
 - `backend/drf_admin/apps/system/models.py` 中 `Dicts.dict_code` 是 `max_length=32` 且 `unique=True`。
-- `fastapi/app/db/models/system.py` 中 `DictData.code` 是 `max_length=50` 且 `unique=True`。
-- `docs/TECH_DEBT.md` 已把 Django 和 FastAPI 模型差异列为中优先级技术债，明确提到字典类型表名不同、字段命名不一致和关联表命名不同。
+- `fastapi/app/db/models/system.py` 中 `DictData.dict_code` 是 `max_length=32` 且 `unique=True`。
+- `fastapi/app/db/models/system.py` 中 `DictData.remark` 已与 Django 保持同名，但长度仍为 FastAPI 侧 100、Django 侧 50。
+- `docs/TECH_DEBT.md` 已把 Django 和 FastAPI 模型差异列为中优先级技术债，当前仍明确提到字典类型表名不同和关联表命名不同。
 
 ## 设计原则
 
@@ -31,7 +31,7 @@
 
 ### 方案 A：只强化契约，不改模型
 
-- 做法：新增“差异必须显式登记”的校验，继续允许 `system_dict_data/code/desc`。
+- 做法：新增“差异必须显式登记”的校验，继续允许 `system_dict_data` 表名差异。
 - 优点：风险最低，不涉及数据库迁移。
 - 缺点：只能记录债务，不能减少长期维护成本；与本轮“治理模型差异”的目标不匹配。
 
@@ -49,11 +49,11 @@
 
 ## 推荐方案
 
-推荐先采用方案 B 的最小垂直切片，但不要一次性完成所有字典字段重命名。
+推荐继续采用方案 B 的最小垂直切片，但不要把表名、字典项外键和关联表迁移混在一个 PR。
 
-第一轮只处理可低风险验证的字段约束一致性：先把 FastAPI `DictData.code` 的 `max_length` 从 50 对齐到 Django `Dicts.dict_code` 的 32，并补共享契约测试。该改动不改变 API 字段名，也不改表名，能先消除一处明确约束漂移。
+第一轮已处理可低风险验证的字段约束一致性：FastAPI `DictData.dict_code` 的 `max_length` 已对齐到 Django `Dicts.dict_code` 的 32，并补共享契约测试。第二轮已将 FastAPI `DictData` 内部字段从 `code/desc` 统一为 `dict_code/remark`，前端 API 仍保持 `dictCode/remark`。
 
-表名和字段名统一放到后续独立轮次，原因是它们影响数据库迁移、导入脚本和 API/schema 层，风险明显高于字段长度约束。
+表名统一放到后续独立轮次，原因是它影响数据库迁移、导入脚本和部署数据状态，风险明显高于字段长度和字段名治理。
 
 ## 执行计划
 
@@ -61,6 +61,9 @@
 - [x] P2 串行：GREEN 将 FastAPI 字典编码字段长度契约与 Django 对齐，并更新 `scripts/model_field_constraint_contracts.py`。
 - [x] P3 串行：执行模型契约校验、FastAPI 目标测试、FastAPI `make quality`、Django 目标测试和根目录校验。
 - [x] P4 串行：review-gate、提交、PR、CI 和合并。
+- [x] P5 串行：将 FastAPI `DictData` 内部字段从 `code/desc` 统一为 `dict_code/remark`。
+- [x] P6 串行：同步 schema/service/import 映射、共享模型契约和字典相关测试。
+- [x] P7 串行：执行 FastAPI 目标测试、FastAPI `make quality`、Django 目标测试、根目录校验、review-gate、PR、CI 和合并。
 
 ## 涉及文件
 
@@ -100,7 +103,10 @@
 - GREEN：FastAPI `DictData.code` 与共享 FastAPI 字段约束契约已对齐为 `max_length=32`；目标测试通过（9 passed）。
 - 调试：FastAPI 全量门禁首次失败于字典写接口运行时样例，根因是更新样例 `dictCode` 长度为 37，超过新的 32 位约束；已缩短测试样例前缀并用常量断言生成结果不超过 32。
 - 验证：模型契约校验、Django 目标测试（4 passed）、FastAPI 字典写接口运行时目标测试（2 passed）、FastAPI `make quality`（530 passed，覆盖率 84.75%）、Django ruff、Django `uv run pytest`（104 passed）、文档/API/路由组件/Django 迁移校验和 `git diff --check` 均通过。
+- 字段命名统一：FastAPI `DictData` 内部字段已改为 `dict_code/remark`；共享模型契约已移除 `system.dicts` 的 `dict_code -> code`、`remark -> desc` 字段别名；Django fixture 导入改为同名字段写入；目标测试（76 passed）、FastAPI `make quality`（531 passed，覆盖率 84.74%）、Django 模型契约测试（4 passed）、根目录校验和远端 CI 均通过。
 
 ## Review 小结
 
 Review-gate：finished；Spec 符合度通过，本轮只处理字典编码字段长度约束一致性，不改变 API 字段名、表名或前端契约；安全检查未发现本轮新增 secret，敏感词扫描命中仅来自历史任务摘要；测试与验证覆盖 RED/GREEN、模型契约、双后端目标测试、Django 全量测试、FastAPI 全量质量门禁和根目录校验；Document-refresh: not-needed，原因：本轮不改变用户可见 API、数据库文档描述或迁移流程；剩余风险是 `fastapi/app/db/models/system.py` 仍为 342 行，属于既有模型文件拆分技术债，后续应单独规划处理。
+
+Review-gate：finished；Spec 符合度通过，字段命名统一轮次只处理字典主表内部字段名，不修改表名 `system_dict_data`、字典项外键、前端调用或 API 路径；安全检查未发现新增 secret、mock 或静默 fallback；Document-refresh: needed，原因：数据库文档和技术债需要同步反映 `dict_code/remark` 已成为双后端同名字段；剩余风险是 FastAPI 字典表名仍与 Django `system_dicts` 不一致，需要后续独立迁移计划处理。
