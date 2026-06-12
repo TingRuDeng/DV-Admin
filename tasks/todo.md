@@ -75,9 +75,14 @@
 - [x] P1 串行：RED 补模型契约校验脚本拆分治理测试，复现主入口仍直接承载测试片段清单
 - [x] P2 串行：GREEN 拆出模型契约测试入口校验模块
 - [x] P3 串行：执行模型契约校验、Django 目标测试和根目录门禁
-- [ ] P4 串行：review-gate、提交、PR、CI 和合并
+- [x] P4 串行：review-gate、提交、PR、CI 和合并
+- [x] P1 串行：梳理 Django 字段契约最小覆盖边界
+- [x] P2 串行：RED 补 Django 字段契约测试，复现共享契约缺少 Django 字段入口
+- [x] P3 串行：GREEN 增加 Django 字段静态契约校验
+- [x] P4 串行：执行模型契约测试、根目录校验和 Django/FastAPI 质量门禁
+- [x] P5 串行：review-gate、提交、PR、CI 和合并
 
-并行判断：本轮只处理模型契约校验脚本拆分，变更集中在校验入口、治理测试和任务状态，存在同一脚本链路写冲突；不启用 subagent。
+并行判断：本轮进入 Django 字段契约治理，变更集中在共享模型契约、Django 静态 AST 解析、模型契约校验、Django 模型契约测试和任务状态，存在同一契约链路写冲突；不启用 subagent。
 
 ## 已完成摘要
 
@@ -195,3 +200,7 @@ Review-gate：finished；Spec 符合度通过，本轮只新增 Django 表名契
 本轮模型契约校验脚本拆分已完成本地验证：`validate_model_contracts.py` 不再直接维护 Django/FastAPI 测试片段清单，新增 `scripts/model_test_validation.py` 承接测试入口校验职责，并用 Django 治理测试锁定拆分边界。验证通过：RED 阶段目标测试因缺少 `model_test_validation` 导入失败，GREEN 后目标测试（1 passed）、模型契约校验、根目录文档/API/模型/路由组件/迁移契约校验、脚本编译、Django ruff、Django `uv run pytest`（98 passed）和 `git diff --check`。
 
 Review-gate：finished；Spec 符合度通过，本轮只拆分模型契约测试入口校验职责，不改变模型契约内容和对外 API；安全检查未发现本轮新增 secret，敏感词扫描命中仅来自历史任务摘要；复杂度检查通过，`scripts/validate_model_contracts.py` 已降至 248 行，新增文件均小于 300 行；Document-refresh: not-needed，原因：本轮是内部校验脚本结构调整，不改变用户可见功能、API 或数据库结构；剩余风险是后续继续扩展 Django 字段契约时仍需继续拆分主入口中的其他职责。
+
+本轮 Django 字段元数据契约治理已完成本地验证：新增 `iter_django_field_metadata_contracts`，覆盖 `Permissions.keepAlive/alwaysShow` 与 `Dicts.dict_code/remark` 的字段类型、`null` 和默认值；`scripts/model_django_ast.py` 已能静态解析 Django `models.*Field` 字段元数据，`scripts/validate_model_contracts.py` 已接入 Django 字段元数据校验。验证通过：RED 阶段目标测试因缺少 Django 字段契约入口失败，GREEN 后目标测试（2 passed）、模型契约校验、根目录文档/API/模型/路由组件/迁移契约校验、脚本编译、Django ruff、Django `uv run pytest`（99 passed）、FastAPI `make quality`（529 passed，覆盖率 84.75%）和 `git diff --check`。
+
+Review-gate：finished；Spec 符合度通过，本轮只增加 Django 字段元数据契约，不改变数据库结构、对外 API 或运行时业务逻辑；安全检查未发现本轮新增 secret，敏感词扫描命中仅来自历史任务摘要；复杂度检查通过，相关文件均小于 300 行；Document-refresh: not-needed，原因：本轮是内部契约测试和校验扩面，不改变用户可见功能、API 或数据库结构；剩余风险是本轮只覆盖字段元数据，Django 字段 `max_length/unique/index` 约束仍需后续单独治理。
