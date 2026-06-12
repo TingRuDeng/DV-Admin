@@ -96,7 +96,7 @@
 - [x] P1 串行：RED 补 FastAPI 模型校验拆分治理测试，复现 `validate_model_contracts.py` 继续承载 FastAPI 校验细节
 - [x] P2 串行：GREEN 拆出 FastAPI 模型校验模块，保留 CLI 主入口编排职责
 - [x] P3 串行：执行模型契约测试、根目录校验和 Django/FastAPI 质量门禁
-- [ ] P4 串行：review-gate、提交、PR、CI 和合并
+- [x] P4 串行：review-gate、提交、PR、CI 和合并
 
 并行判断：本轮只处理字段契约文件拆分，变更集中在字段契约入口、字段约束契约模块、治理测试和任务状态，存在同一契约链路写冲突；不启用 subagent。
 
