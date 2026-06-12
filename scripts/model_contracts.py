@@ -98,13 +98,7 @@ DJANGO_FASTAPI_MODEL_CONTRACTS: tuple[DjangoFastapiModelContract, ...] = (
         fastapi_model="DictData",
         django_table="system_dicts",
         fastapi_table="system_dict_data",
-        field_aliases=merged_aliases(
-            COMMON_DJANGO_FIELD_ALIASES,
-            {
-                "dict_code": "code",
-                "remark": "desc",
-            },
-        ),
+        field_aliases=COMMON_DJANGO_FIELD_ALIASES,
     ),
     DjangoFastapiModelContract(
         django_model="system.dictitems",
