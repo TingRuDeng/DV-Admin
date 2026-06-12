@@ -13,6 +13,7 @@ from scripts.model_field_contracts import (
 from scripts.model_index_contracts import (
     assert_model_index_contract_catalog,
     iter_fastapi_model_index_contracts,
+    iter_fastapi_unique_together_contracts,
 )
 
 

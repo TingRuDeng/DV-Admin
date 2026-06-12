@@ -2,12 +2,14 @@ from scripts.model_contracts import iter_django_fastapi_model_contracts
 
 from app.db.import_django_data import MODEL_MAPPING, map_field_name
 from app.db.models.base import BaseModel
+from app.db.models.system import NoticeReads
 from scripts import model_contracts
 
 FIELD_MODEL_MAPPING = {
     model.__name__: model for model in MODEL_MAPPING.values()
 } | {
     "BaseModel": BaseModel,
+    "NoticeReads": NoticeReads,
 }
 
 
@@ -80,3 +82,11 @@ def test_fastapi_model_indexes_match_shared_contracts():
         model = FIELD_MODEL_MAPPING[contract.fastapi_model]
         actual_indexes = tuple(tuple(index) for index in model.Meta.indexes)
         assert actual_indexes == contract.indexes
+
+
+def test_fastapi_model_unique_together_matches_shared_contracts():
+    """FastAPI 模型 Meta.unique_together 必须与共享唯一组合契约一致。"""
+    assert hasattr(model_contracts, "iter_fastapi_unique_together_contracts")
+    for contract in model_contracts.iter_fastapi_unique_together_contracts():
+        model = FIELD_MODEL_MAPPING[contract.fastapi_model]
+        assert tuple(model.Meta.unique_together) == contract.fields
