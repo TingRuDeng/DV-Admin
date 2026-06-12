@@ -236,7 +236,7 @@ class DictData(BaseModel):
     items: fields.BackwardFKRelation[DictItems]
 
     class Meta:
-        table = "system_dict_data"
+        table = "system_dicts"
         ordering = ["-created_at"]
         # 数据库索引优化
         indexes = (

@@ -197,7 +197,7 @@ ai_summary:
 ### 字典类型模型 (Dicts / DictData)
 
 **Django 表名：** `system_dicts`
-**FastAPI 表名：** `system_dict_data`
+**FastAPI 表名：** `system_dicts`
 
 | 字段 | 类型 | 说明 | 约束 |
 |------|------|------|------|
@@ -355,14 +355,13 @@ Django 和 FastAPI 后端在模型定义上存在一些差异：
 
 | 差异项 | Django | FastAPI |
 |-------|--------|---------|
-| 字典类型表名 | `system_dicts` | `system_dict_data` |
 | 角色-权限关联表 | `system_roles_to_system_permissions` | `system_roles_permissions` |
 | 字典项默认值字段 | 无 | `is_default` |
 | 字典项备注字段 | 无 | `remark` |
 
-**注意：** 迁移数据时需要处理这些差异。
+**注意：** 迁移数据时需要处理这些差异。已有 FastAPI 数据库如果仍使用旧表 `system_dict_data`，需要通过显式数据库迁移重命名或复制到 `system_dicts`，代码不会提供双表静默兼容。
 
-字典主表内部字段已统一为 `dict_code/remark`，当前剩余差异集中在表名、字典项字段和关联表。
+字典主表表名已统一为 `system_dicts`。字典主表内部字段已统一为 `dict_code/remark`；当前剩余差异集中在字典项字段和关联表。
 
 ### Django Fixture 导入约束
 

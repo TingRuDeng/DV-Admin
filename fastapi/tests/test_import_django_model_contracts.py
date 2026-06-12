@@ -31,6 +31,13 @@ def test_fastapi_model_tables_match_shared_contracts():
         assert model.Meta.table == contract.fastapi_table
 
 
+def test_dict_data_table_name_matches_django_contract():
+    """字典主表应使用 Django 表名，避免双后端继续登记表名差异。"""
+    contract = find_model_contract("system.dicts")
+
+    assert contract.fastapi_table == contract.django_table
+
+
 def test_fastapi_model_alias_targets_match_shared_contracts():
     """FastAPI 字段别名目标必须真实存在于契约声明的模型。"""
     assert hasattr(model_contracts, "iter_fastapi_alias_targets")
