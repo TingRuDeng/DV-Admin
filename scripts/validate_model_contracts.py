@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Sequence
 
 from model_contract_ast import (
+    load_fastapi_field_metadata,
     load_fastapi_model_fields,
     load_fastapi_model_tables,
     load_fastapi_relation_through_tables,
@@ -42,6 +43,7 @@ def validate(root: Path) -> list[str]:
     issues.extend(validate_fastapi_model_tables(root))
     issues.extend(validate_fastapi_alias_target_fields(root))
     issues.extend(validate_fastapi_relation_through_tables(root))
+    issues.extend(validate_fastapi_field_metadata(root))
     issues.extend(validate_docs(root))
     issues.extend(validate_tests(root))
     return issues
@@ -121,6 +123,34 @@ def validate_fastapi_relation_through_tables(root: Path) -> list[str]:
     return issues
 
 
+def validate_fastapi_field_metadata(root: Path) -> list[str]:
+    """校验 FastAPI 字段元数据与共享契约一致。"""
+    issues: list[str] = []
+    metadata_by_model = load_fastapi_field_metadata(root)
+    no_default = load_no_default(root)
+    for contract in load_field_metadata_contracts(root):
+        metadata = metadata_by_model.get(contract.fastapi_model, {}).get(contract.field_name)
+        if metadata is None:
+            issues.append(f"fastapi/app/db/models: {contract.fastapi_model} 缺少字段 {contract.field_name}")
+            continue
+        if metadata.field_type != contract.field_type:
+            issues.append(
+                f"fastapi/app/db/models: {contract.fastapi_model}.{contract.field_name} 类型应为 "
+                f"{contract.field_type}，实际为 {metadata.field_type}"
+            )
+        if metadata.null != contract.null:
+            issues.append(
+                f"fastapi/app/db/models: {contract.fastapi_model}.{contract.field_name} null 应为 "
+                f"{contract.null}，实际为 {metadata.null}"
+            )
+        if contract.default is not no_default and metadata.default != contract.default:
+            issues.append(
+                f"fastapi/app/db/models: {contract.fastapi_model}.{contract.field_name} default 应为 "
+                f"{contract.default!r}，实际为 {metadata.default!r}"
+            )
+    return issues
+
+
 def validate_docs(root: Path) -> list[str]:
     """校验数据库文档记录了模型契约入口和关键映射。"""
     issues: list[str] = []
@@ -138,10 +168,12 @@ def validate_tests(root: Path) -> list[str]:
         "iter_django_fastapi_model_contracts",
         "iter_fastapi_alias_targets",
         "iter_django_fastapi_relation_contracts",
+        "iter_fastapi_field_metadata_contracts",
         "test_import_mapping_matches_shared_model_contracts",
         "test_fastapi_model_tables_match_shared_contracts",
         "test_fastapi_model_alias_targets_match_shared_contracts",
         "test_fastapi_relation_through_tables_match_shared_contracts",
+        "test_fastapi_field_metadata_matches_shared_contracts",
     )
     return [
         f"fastapi/tests/test_import_django_model_contracts.py: 缺少模型契约测试片段 {snippet}"
@@ -182,6 +214,26 @@ def load_relation_contracts(root: Path):
     from scripts.model_contracts import iter_django_fastapi_relation_contracts
 
     return iter_django_fastapi_relation_contracts()
+
+
+def load_field_metadata_contracts(root: Path):
+    """从共享模型契约加载 FastAPI 字段元数据契约。"""
+    root_text = str(root)
+    if root_text not in sys.path:
+        sys.path.insert(0, root_text)
+    from scripts.model_contracts import iter_fastapi_field_metadata_contracts
+
+    return iter_fastapi_field_metadata_contracts()
+
+
+def load_no_default(root: Path):
+    """加载默认值跳过哨兵，保持校验脚本不复制契约细节。"""
+    root_text = str(root)
+    if root_text not in sys.path:
+        sys.path.insert(0, root_text)
+    from scripts.model_contracts import NO_DEFAULT
+
+    return NO_DEFAULT
 
 
 def read_text(path: Path) -> str:

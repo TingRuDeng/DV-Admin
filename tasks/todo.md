@@ -52,8 +52,12 @@
 - [x] P2 串行：GREEN 增加 Django/FastAPI 关联表契约和静态校验
 - [x] P3 串行：执行模型契约测试、根目录校验和 FastAPI 质量门禁
 - [x] P4 串行：review-gate、提交、PR、CI 和合并
+- [x] P1 串行：RED 补 FastAPI 字段元数据契约测试，复现共享契约缺少字段元数据入口
+- [x] P2 串行：GREEN 增加字段类型/null/default 契约和静态校验
+- [x] P3 串行：执行模型契约测试、根目录校验和 FastAPI 质量门禁
+- [x] P4 串行：review-gate、提交、PR、CI 和合并
 
-并行判断：本轮只处理双后端模型关联表契约治理，变更集中在 `scripts/model_contracts.py`、`scripts/validate_model_contracts.py`、FastAPI 模型契约测试和任务状态，存在同一契约入口写冲突；不启用 subagent。
+并行判断：本轮只处理双后端模型字段元数据契约治理，变更集中在 `scripts/model_contracts.py`、`scripts/model_contract_ast.py`、`scripts/validate_model_contracts.py`、FastAPI 模型契约测试和任务状态，存在同一契约入口写冲突；不启用 subagent。
 
 ## 已完成摘要
 
@@ -155,3 +159,5 @@ Django fixture 导入 golden 测试治理已完成：`uv run pytest tests/test_i
 本轮 Django 迁移链跟踪治理已完成本地验证：新增 `scripts/validate_django_migrations.py`，将 `system` 完整迁移链纳入 Git 跟踪，并在 `.gitignore` 和 CI 文档校验阶段显式覆盖全局 ignore 漂移；`docs/DATABASE_SCHEMA.md` 与 `docs/AI_CONTEXT.md` 已同步迁移链校验入口。验证通过：RED 阶段捕获 4 个未跟踪 migration 和 3 条缺失 unignore 规则，GREEN 后迁移链校验、文档/API/模型/路由组件契约校验、脚本编译、Django `makemigrations --check --dry-run`、Django ruff、Django `uv run pytest`（96 passed）、敏感关键词扫描和 `git diff --check`。
 
 本轮 GitHub Actions Node 24 runtime 治理已完成本地验证：质量门禁 workflow 将 `pnpm/action-setup` 升级到 v6，并由 `scripts/validate_docs.py` 反向校验，避免 CI 继续依赖目标为 Node 20 的 v4 action。验证通过：RED 阶段文档校验先捕获缺少 Node 24 opt-in，随后捕获仍使用 `pnpm/action-setup@v4`；GREEN 后文档/API/模型/路由组件/Django 迁移校验、脚本编译、敏感关键词扫描和 `git diff --check` 均通过。
+
+本轮 FastAPI 字段元数据契约治理已完成本地验证：`scripts/model_contracts.py` 新增字段类型、`null`、`default` 契约，覆盖基础时间戳、权限菜单布尔字段和字典数据关键字段；`scripts/model_contract_ast.py` 静态解析 FastAPI 字段声明，`scripts/validate_model_contracts.py` 与 FastAPI 导入契约测试共同锁定字段元数据，避免字段类型或默认值漂移。验证通过：RED 阶段目标测试因缺少字段元数据契约入口失败，GREEN 后目标测试（5 passed）、FastAPI `make quality`（526 passed，覆盖率 84.75%）、根目录文档/API/模型/路由组件/迁移契约校验、脚本编译和 `git diff --check`。
