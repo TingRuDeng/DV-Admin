@@ -92,7 +92,7 @@
 - [x] P1 串行：RED 补 Django 多对多 through 表契约测试，复现共享关联契约只校验 FastAPI 侧
 - [x] P2 串行：GREEN 增加 Django through 表静态解析与模型契约校验
 - [x] P3 串行：执行模型契约测试、根目录校验和 Django/FastAPI 质量门禁
-- [ ] P4 串行：review-gate、提交、PR、CI 和合并
+- [x] P4 串行：review-gate、提交、PR、CI 和合并
 
 并行判断：本轮只处理字段契约文件拆分，变更集中在字段契约入口、字段约束契约模块、治理测试和任务状态，存在同一契约链路写冲突；不启用 subagent。
 
