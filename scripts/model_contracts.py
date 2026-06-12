@@ -10,6 +10,10 @@ from scripts.model_field_contracts import (
     iter_fastapi_field_constraint_contracts,
     iter_fastapi_field_metadata_contracts,
 )
+from scripts.model_index_contracts import (
+    assert_model_index_contract_catalog,
+    iter_fastapi_model_index_contracts,
+)
 
 
 COMMON_DJANGO_FIELD_ALIASES = MappingProxyType(
@@ -169,6 +173,7 @@ def assert_model_contract_catalog() -> None:
     }
     assert len(relation_keys) == len(DJANGO_FASTAPI_RELATION_CONTRACTS)
     assert_field_contract_catalog()
+    assert_model_index_contract_catalog()
     for contract in DJANGO_FASTAPI_MODEL_CONTRACTS:
         assert contract.django_model.startswith("system.")
         assert contract.fastapi_model

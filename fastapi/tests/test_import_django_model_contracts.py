@@ -71,3 +71,12 @@ def test_fastapi_field_constraints_match_shared_contracts():
             assert field.unique == contract.unique
         if contract.index is not model_contracts.NO_DEFAULT:
             assert field.index == contract.index
+
+
+def test_fastapi_model_indexes_match_shared_contracts():
+    """FastAPI 模型 Meta.indexes 必须与共享模型索引契约一致。"""
+    assert hasattr(model_contracts, "iter_fastapi_model_index_contracts")
+    for contract in model_contracts.iter_fastapi_model_index_contracts():
+        model = FIELD_MODEL_MAPPING[contract.fastapi_model]
+        actual_indexes = tuple(tuple(index) for index in model.Meta.indexes)
+        assert actual_indexes == contract.indexes
