@@ -71,7 +71,7 @@
 - [x] P2 串行：GREEN 修改 FastAPI `DictData.Meta.table` 为 `system_dicts`，同步 `scripts/model_contracts.py` 的 `fastapi_table`。
 - [x] P3 串行：修正数据库文档、技术债和字典治理计划，移除字典主表表名差异描述，保留迁移边界说明。
 - [x] P4 串行：执行模型契约校验、FastAPI 目标测试、FastAPI `make quality`、Django 目标测试和根目录校验。
-- [ ] P5 串行：review-gate、提交、PR、CI 和合并。
+- [x] P5 串行：review-gate、提交、PR、CI 和合并。
 
 ## 涉及文件
 
@@ -114,3 +114,5 @@
 ## Review 小结
 
 Review-gate：finished；Spec 符合度通过，本轮只统一 FastAPI 字典主表表名和共享模型契约，不修改 Django 模型、字典项外键、前端 API 或权限契约；安全检查未发现新增 secret、mock、双表读写或静默 fallback；测试与验证覆盖 RED/GREEN、FastAPI 目标测试、FastAPI `make quality`、Django 模型契约测试、根目录模型/API/文档/路由组件/Django 迁移校验和 `git diff --check`；Document-refresh: needed，原因：数据库表名事实和技术债状态已变化；剩余风险是已有 FastAPI 数据库如果仍存在旧表 `system_dict_data`，需要通过显式迁移切换到 `system_dicts`。
+
+完成态：PR #152 已合并，合并提交为 `10477de4c95141788700125ecd88ba8387c30dc6`；远端 CI 已通过 Django Backend Quality、FastAPI Backend Quality 和 Frontend Quality。
