@@ -1,6 +1,7 @@
 from scripts.model_contracts import iter_django_fastapi_model_contracts
 
 from app.db.import_django_data import MODEL_MAPPING, map_field_name
+from scripts import model_contracts
 
 
 def test_import_mapping_matches_shared_model_contracts():
@@ -19,3 +20,12 @@ def test_fastapi_model_tables_match_shared_contracts():
     for contract in contracts:
         model = MODEL_MAPPING[contract.django_model]
         assert model.Meta.table == contract.fastapi_table
+
+
+def test_fastapi_model_alias_targets_match_shared_contracts():
+    """FastAPI 字段别名目标必须真实存在于契约声明的模型。"""
+    assert hasattr(model_contracts, "iter_fastapi_alias_targets")
+    for contract, target_fields in model_contracts.iter_fastapi_alias_targets():
+        model = MODEL_MAPPING[contract.django_model]
+        for field_name in target_fields:
+            assert field_name in model._meta.fields_map
