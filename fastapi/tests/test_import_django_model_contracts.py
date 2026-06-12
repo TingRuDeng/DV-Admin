@@ -11,3 +11,11 @@ def test_import_mapping_matches_shared_model_contracts():
         assert MODEL_MAPPING[contract.django_model].__name__ == contract.fastapi_model
         for django_field, fastapi_field in contract.field_aliases.items():
             assert map_field_name(contract.django_model, django_field) == fastapi_field
+
+
+def test_fastapi_model_tables_match_shared_contracts():
+    """FastAPI 模型表名必须与共享模型契约保持一致。"""
+    contracts = iter_django_fastapi_model_contracts()
+    for contract in contracts:
+        model = MODEL_MAPPING[contract.django_model]
+        assert model.Meta.table == contract.fastapi_table
