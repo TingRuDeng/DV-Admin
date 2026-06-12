@@ -29,3 +29,12 @@ def test_fastapi_model_alias_targets_match_shared_contracts():
         model = MODEL_MAPPING[contract.django_model]
         for field_name in target_fields:
             assert field_name in model._meta.fields_map
+
+
+def test_fastapi_relation_through_tables_match_shared_contracts():
+    """FastAPI 多对多 through 表必须与共享关联契约保持一致。"""
+    assert hasattr(model_contracts, "iter_django_fastapi_relation_contracts")
+    for contract in model_contracts.iter_django_fastapi_relation_contracts():
+        model = MODEL_MAPPING[contract.django_model]
+        relation_field = model._meta.fields_map[contract.fastapi_field]
+        assert relation_field.through == contract.fastapi_through_table
