@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import ast
 import sys
 from pathlib import Path
 from typing import Sequence
@@ -21,6 +22,10 @@ REQUIRED_DOC_SNIPPETS = (
     "dict_code` → `code",
     "remark` → `desc",
 )
+FASTAPI_MODEL_FILES = (
+    "fastapi/app/db/models/system.py",
+    "fastapi/app/db/models/oauth.py",
+)
 
 
 def validate(root: Path) -> list[str]:
@@ -34,6 +39,7 @@ def validate(root: Path) -> list[str]:
 
     issues.extend(validate_contract_catalog(root))
     issues.extend(validate_import_mapping(root))
+    issues.extend(validate_fastapi_model_tables(root))
     issues.extend(validate_docs(root))
     issues.extend(validate_tests(root))
     return issues
@@ -65,6 +71,65 @@ def validate_import_mapping(root: Path) -> list[str]:
     return issues
 
 
+def validate_fastapi_model_tables(root: Path) -> list[str]:
+    """校验 FastAPI 模型文件中的表名声明与共享模型契约一致。"""
+    issues: list[str] = []
+    contracts = load_contracts(root)
+    tables = load_fastapi_model_tables(root)
+    for contract in contracts:
+        actual_table = tables.get(contract.fastapi_model)
+        if actual_table is None:
+            issues.append(f"fastapi/app/db/models: 缺少模型 {contract.fastapi_model}")
+            continue
+        if actual_table != contract.fastapi_table:
+            issues.append(
+                f"fastapi/app/db/models: {contract.fastapi_model} 表名应为 {contract.fastapi_table}，实际为 {actual_table}"
+            )
+    return issues
+
+
+def load_fastapi_model_tables(root: Path) -> dict[str, str]:
+    """静态读取 FastAPI 模型 Meta.table，避免校验脚本依赖运行时数据库。"""
+    tables: dict[str, str] = {}
+    for rel in FASTAPI_MODEL_FILES:
+        module = ast.parse(read_text(root / rel))
+        tables.update(extract_module_tables(module))
+    return tables
+
+
+def extract_module_tables(module: ast.Module) -> dict[str, str]:
+    """提取单个 FastAPI 模型模块内所有 class Meta.table。"""
+    tables: dict[str, str] = {}
+    for node in module.body:
+        if isinstance(node, ast.ClassDef):
+            table = extract_meta_table(node)
+            if table:
+                tables[node.name] = table
+    return tables
+
+
+def extract_meta_table(model_node: ast.ClassDef) -> str:
+    """从 Tortoise 模型的内部 Meta 类提取 table 字面量。"""
+    for child in model_node.body:
+        if isinstance(child, ast.ClassDef) and child.name == "Meta":
+            return extract_table_assignment(child)
+    return ""
+
+
+def extract_table_assignment(meta_node: ast.ClassDef) -> str:
+    """读取 Meta.table = 'xxx' 形式的表名声明。"""
+    for statement in meta_node.body:
+        if isinstance(statement, ast.Assign) and is_table_target(statement.targets):
+            if isinstance(statement.value, ast.Constant) and isinstance(statement.value.value, str):
+                return statement.value.value
+    return ""
+
+
+def is_table_target(targets: list[ast.expr]) -> bool:
+    """判断赋值目标是否包含 table 字段。"""
+    return any(isinstance(target, ast.Name) and target.id == "table" for target in targets)
+
+
 def validate_docs(root: Path) -> list[str]:
     """校验数据库文档记录了模型契约入口和关键映射。"""
     issues: list[str] = []
@@ -81,6 +146,7 @@ def validate_tests(root: Path) -> list[str]:
     required = (
         "iter_django_fastapi_model_contracts",
         "test_import_mapping_matches_shared_model_contracts",
+        "test_fastapi_model_tables_match_shared_contracts",
     )
     return [
         f"fastapi/tests/test_import_django_model_contracts.py: 缺少模型契约测试片段 {snippet}"
