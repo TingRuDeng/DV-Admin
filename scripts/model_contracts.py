@@ -149,6 +149,11 @@ def iter_django_fastapi_model_contracts() -> tuple[DjangoFastapiModelContract, .
     return DJANGO_FASTAPI_MODEL_CONTRACTS
 
 
+def iter_django_model_table_contracts() -> tuple[DjangoFastapiModelContract, ...]:
+    """返回只读 Django 模型表名契约目录。"""
+    return DJANGO_FASTAPI_MODEL_CONTRACTS
+
+
 def iter_fastapi_alias_targets() -> tuple[tuple[DjangoFastapiModelContract, tuple[str, ...]], ...]:
     """返回每个模型契约声明的 FastAPI 字段别名目标。"""
     return tuple(
