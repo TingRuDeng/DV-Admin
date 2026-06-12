@@ -4,7 +4,12 @@ from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Mapping
 
-NO_DEFAULT = object()
+from scripts.model_field_contracts import (
+    NO_DEFAULT,
+    assert_field_contract_catalog,
+    iter_fastapi_field_constraint_contracts,
+    iter_fastapi_field_metadata_contracts,
+)
 
 
 COMMON_DJANGO_FIELD_ALIASES = MappingProxyType(
@@ -36,17 +41,6 @@ class DjangoFastapiRelationContract:
     fastapi_model: str
     fastapi_field: str
     fastapi_through_table: str
-
-
-@dataclass(frozen=True)
-class FastapiFieldMetadataContract:
-    """FastAPI 字段元数据契约，锁定关键字段类型、null 和 default。"""
-
-    fastapi_model: str
-    field_name: str
-    field_type: str
-    null: bool
-    default: object = NO_DEFAULT
 
 
 def merged_aliases(*aliases: Mapping[str, str]) -> Mapping[str, str]:
@@ -145,52 +139,6 @@ DJANGO_FASTAPI_RELATION_CONTRACTS: tuple[DjangoFastapiRelationContract, ...] = (
     ),
 )
 
-FASTAPI_FIELD_METADATA_CONTRACTS: tuple[FastapiFieldMetadataContract, ...] = (
-    FastapiFieldMetadataContract(
-        fastapi_model="BaseModel",
-        field_name="created_at",
-        field_type="DatetimeField",
-        null=False,
-        default=None,
-    ),
-    FastapiFieldMetadataContract(
-        fastapi_model="BaseModel",
-        field_name="updated_at",
-        field_type="DatetimeField",
-        null=False,
-        default=None,
-    ),
-    FastapiFieldMetadataContract(
-        fastapi_model="Permissions",
-        field_name="keep_alive",
-        field_type="BooleanField",
-        null=True,
-        default=None,
-    ),
-    FastapiFieldMetadataContract(
-        fastapi_model="Permissions",
-        field_name="always_show",
-        field_type="BooleanField",
-        null=True,
-        default=None,
-    ),
-    FastapiFieldMetadataContract(
-        fastapi_model="DictData",
-        field_name="code",
-        field_type="CharField",
-        null=False,
-        default=None,
-    ),
-    FastapiFieldMetadataContract(
-        fastapi_model="DictData",
-        field_name="desc",
-        field_type="CharField",
-        null=False,
-        default="",
-    ),
-)
-
-
 def iter_django_fastapi_model_contracts() -> tuple[DjangoFastapiModelContract, ...]:
     """返回 Django 到 FastAPI 的只读模型契约目录。"""
     return DJANGO_FASTAPI_MODEL_CONTRACTS
@@ -209,11 +157,6 @@ def iter_django_fastapi_relation_contracts() -> tuple[DjangoFastapiRelationContr
     return DJANGO_FASTAPI_RELATION_CONTRACTS
 
 
-def iter_fastapi_field_metadata_contracts() -> tuple[FastapiFieldMetadataContract, ...]:
-    """返回只读 FastAPI 字段元数据契约目录。"""
-    return FASTAPI_FIELD_METADATA_CONTRACTS
-
-
 def assert_model_contract_catalog() -> None:
     """校验模型契约目录自身完整，避免无效契约进入验证门禁。"""
     django_models = {contract.django_model for contract in DJANGO_FASTAPI_MODEL_CONTRACTS}
@@ -225,11 +168,7 @@ def assert_model_contract_catalog() -> None:
         for contract in DJANGO_FASTAPI_RELATION_CONTRACTS
     }
     assert len(relation_keys) == len(DJANGO_FASTAPI_RELATION_CONTRACTS)
-    field_keys = {
-        (contract.fastapi_model, contract.field_name)
-        for contract in FASTAPI_FIELD_METADATA_CONTRACTS
-    }
-    assert len(field_keys) == len(FASTAPI_FIELD_METADATA_CONTRACTS)
+    assert_field_contract_catalog()
     for contract in DJANGO_FASTAPI_MODEL_CONTRACTS:
         assert contract.django_model.startswith("system.")
         assert contract.fastapi_model
@@ -242,7 +181,3 @@ def assert_model_contract_catalog() -> None:
         assert contract.fastapi_model
         assert contract.fastapi_field
         assert contract.fastapi_through_table.startswith("system_")
-    for contract in FASTAPI_FIELD_METADATA_CONTRACTS:
-        assert contract.fastapi_model
-        assert contract.field_name
-        assert contract.field_type.endswith("Field")
