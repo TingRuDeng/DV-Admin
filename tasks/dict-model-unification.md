@@ -60,7 +60,7 @@
 - [x] P1 串行：RED 补共享字典字段约束一致性测试，复现 `DictData.code.max_length=50` 与 `Dicts.dict_code.max_length=32` 漂移。
 - [x] P2 串行：GREEN 将 FastAPI 字典编码字段长度契约与 Django 对齐，并更新 `scripts/model_field_constraint_contracts.py`。
 - [x] P3 串行：执行模型契约校验、FastAPI 目标测试、FastAPI `make quality`、Django 目标测试和根目录校验。
-- [ ] P4 串行：review-gate、提交、PR、CI 和合并。
+- [x] P4 串行：review-gate、提交、PR、CI 和合并。
 
 ## 涉及文件
 
