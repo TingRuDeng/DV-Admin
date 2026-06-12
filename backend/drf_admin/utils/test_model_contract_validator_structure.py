@@ -12,6 +12,15 @@ def test_model_contract_test_validation_is_split_from_cli_entrypoint():
     assert (ROOT / "scripts/model_test_validation.py").exists()
 
 
+def test_model_field_constraints_are_split_from_metadata_contracts():
+    """字段约束契约必须独立维护，避免字段契约入口继续膨胀。"""
+    field_contracts = read_text("scripts/model_field_contracts.py")
+    assert "from scripts.model_field_constraint_contracts import" in field_contracts
+    assert "FASTAPI_FIELD_CONSTRAINT_CONTRACTS =" not in field_contracts
+    assert "DJANGO_FIELD_CONSTRAINT_CONTRACTS =" not in field_contracts
+    assert (ROOT / "scripts/model_field_constraint_contracts.py").exists()
+
+
 def read_text(relative_path: str) -> str:
     """读取仓库内文本文件。"""
     return (ROOT / relative_path).read_text(encoding="utf-8")
