@@ -1,7 +1,14 @@
 from scripts.model_contracts import iter_django_fastapi_model_contracts
 
 from app.db.import_django_data import MODEL_MAPPING, map_field_name
+from app.db.models.base import BaseModel
 from scripts import model_contracts
+
+FIELD_MODEL_MAPPING = {
+    model.__name__: model for model in MODEL_MAPPING.values()
+} | {
+    "BaseModel": BaseModel,
+}
 
 
 def test_import_mapping_matches_shared_model_contracts():
@@ -38,3 +45,15 @@ def test_fastapi_relation_through_tables_match_shared_contracts():
         model = MODEL_MAPPING[contract.django_model]
         relation_field = model._meta.fields_map[contract.fastapi_field]
         assert relation_field.through == contract.fastapi_through_table
+
+
+def test_fastapi_field_metadata_matches_shared_contracts():
+    """FastAPI 字段类型、null 和 default 必须与共享字段元数据契约一致。"""
+    assert hasattr(model_contracts, "iter_fastapi_field_metadata_contracts")
+    for contract in model_contracts.iter_fastapi_field_metadata_contracts():
+        model = FIELD_MODEL_MAPPING[contract.fastapi_model]
+        field = model._meta.fields_map[contract.field_name]
+        assert type(field).__name__ == contract.field_type
+        assert field.null == contract.null
+        if contract.default is not model_contracts.NO_DEFAULT:
+            assert field.default == contract.default

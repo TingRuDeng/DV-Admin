@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 from pathlib import Path
+from typing import NamedTuple
 
 
 FASTAPI_MODEL_FILES = (
@@ -9,6 +10,14 @@ FASTAPI_MODEL_FILES = (
     "fastapi/app/db/models/system.py",
     "fastapi/app/db/models/oauth.py",
 )
+
+
+class FastapiFieldMetadata(NamedTuple):
+    """FastAPI 字段静态元数据。"""
+
+    field_type: str
+    null: bool
+    default: object
 
 
 def load_fastapi_model_tables(root: Path) -> dict[str, str]:
@@ -85,6 +94,83 @@ def extract_class_fields(model_node: ast.ClassDef) -> set[str]:
 def extract_name_targets(targets: list[ast.expr]) -> set[str]:
     """提取赋值语句中的简单名称目标。"""
     return {target.id for target in targets if isinstance(target, ast.Name)}
+
+
+def load_fastapi_field_metadata(root: Path) -> dict[str, dict[str, FastapiFieldMetadata]]:
+    """静态读取 FastAPI 模型字段类型、null 和 default。"""
+    metadata: dict[str, dict[str, FastapiFieldMetadata]] = {}
+    for rel in FASTAPI_MODEL_FILES:
+        module = ast.parse(read_text(root / rel))
+        metadata.update(extract_module_field_metadata(module))
+    return metadata
+
+
+def extract_module_field_metadata(module: ast.Module) -> dict[str, dict[str, FastapiFieldMetadata]]:
+    """提取单个 FastAPI 模型模块内的字段元数据。"""
+    metadata_by_model: dict[str, dict[str, FastapiFieldMetadata]] = {}
+    for node in module.body:
+        if isinstance(node, ast.ClassDef):
+            model_metadata = extract_class_field_metadata(node)
+            if model_metadata:
+                metadata_by_model[node.name] = model_metadata
+    return metadata_by_model
+
+
+def extract_class_field_metadata(model_node: ast.ClassDef) -> dict[str, FastapiFieldMetadata]:
+    """提取类体中 fields.*Field 声明的静态元数据。"""
+    field_metadata: dict[str, FastapiFieldMetadata] = {}
+    for statement in model_node.body:
+        field_name, call = extract_field_call(statement)
+        if field_name and call:
+            field_metadata[field_name] = build_field_metadata(call)
+    return field_metadata
+
+
+def extract_field_call(statement: ast.stmt) -> tuple[str, ast.Call | None]:
+    """提取字段名和 fields.*Field 调用。"""
+    if isinstance(statement, ast.Assign) and isinstance(statement.value, ast.Call):
+        targets = extract_name_targets(statement.targets)
+        field_name = next(iter(targets), "")
+        return field_name, statement.value if is_fastapi_field_call(statement.value) else None
+    if isinstance(statement, ast.AnnAssign) and isinstance(statement.target, ast.Name):
+        if isinstance(statement.value, ast.Call) and is_fastapi_field_call(statement.value):
+            return statement.target.id, statement.value
+    return "", None
+
+
+def is_fastapi_field_call(call: ast.Call) -> bool:
+    """判断调用是否为 fields.*Field。"""
+    return (
+        isinstance(call.func, ast.Attribute)
+        and call.func.attr.endswith("Field")
+        and isinstance(call.func.value, ast.Name)
+        and call.func.value.id == "fields"
+    )
+
+
+def build_field_metadata(call: ast.Call) -> FastapiFieldMetadata:
+    """从字段调用提取字段类型、null 和 default。"""
+    return FastapiFieldMetadata(
+        field_type=call.func.attr,
+        null=extract_bool_keyword(call, "null", default=False),
+        default=extract_keyword_value(call, "default"),
+    )
+
+
+def extract_bool_keyword(call: ast.Call, name: str, default: bool) -> bool:
+    """提取布尔关键字，缺省时返回指定默认值。"""
+    value = extract_keyword_value(call, name)
+    if isinstance(value, bool):
+        return value
+    return default
+
+
+def extract_keyword_value(call: ast.Call, name: str) -> object:
+    """提取关键字字面量；未声明时返回 None。"""
+    for keyword in call.keywords:
+        if keyword.arg == name and isinstance(keyword.value, ast.Constant):
+            return keyword.value.value
+    return None
 
 
 def load_fastapi_relation_through_tables(root: Path) -> dict[str, dict[str, str]]:
