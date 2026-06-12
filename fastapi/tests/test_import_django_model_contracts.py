@@ -75,6 +75,14 @@ def test_fastapi_field_constraints_match_shared_contracts():
             assert field.index == contract.index
 
 
+def test_dict_code_length_matches_django_field_contract():
+    """FastAPI 字典编码长度必须与 Django 字典编码约束一致。"""
+    django_contract = find_constraint("system.dicts", "dict_code")
+    fastapi_contract = find_constraint("DictData", "code")
+
+    assert fastapi_contract.max_length == django_contract.max_length
+
+
 def test_fastapi_model_indexes_match_shared_contracts():
     """FastAPI 模型 Meta.indexes 必须与共享模型索引契约一致。"""
     assert hasattr(model_contracts, "iter_fastapi_model_index_contracts")
@@ -90,3 +98,16 @@ def test_fastapi_model_unique_together_matches_shared_contracts():
     for contract in model_contracts.iter_fastapi_unique_together_contracts():
         model = FIELD_MODEL_MAPPING[contract.fastapi_model]
         assert tuple(model.Meta.unique_together) == contract.fields
+
+
+def find_constraint(model_name: str, field_name: str):
+    """按模型和字段查找共享字段约束契约。"""
+    all_contracts = (
+        model_contracts.iter_django_field_constraint_contracts()
+        + model_contracts.iter_fastapi_field_constraint_contracts()
+    )
+    for contract in all_contracts:
+        contract_model = getattr(contract, "django_model", getattr(contract, "fastapi_model", ""))
+        if contract_model == model_name and contract.field_name == field_name:
+            return contract
+    raise AssertionError(f"缺少字段约束契约：{model_name}.{field_name}")
