@@ -14,6 +14,7 @@ from model_contract_ast import (
 from model_constraint_validation import validate_fastapi_field_constraints
 from model_django_validation import validate_django_model_tables
 from model_index_validation import validate_fastapi_model_indexes, validate_fastapi_unique_together
+from model_test_validation import validate_tests
 
 
 REQUIRED_FILES = (
@@ -165,44 +166,6 @@ def validate_docs(root: Path) -> list[str]:
     for snippet in REQUIRED_DOC_SNIPPETS:
         if snippet not in text:
             issues.append(f"docs/DATABASE_SCHEMA.md: 缺少模型契约说明 {snippet}")
-    return issues
-
-
-def validate_tests(root: Path) -> list[str]:
-    """校验 FastAPI 导入测试引用共享模型契约目录。"""
-    fastapi_text = read_text(root / "fastapi/tests/test_import_django_model_contracts.py")
-    django_text = read_text(root / "backend/drf_admin/utils/test_model_contracts.py")
-    fastapi_required = (
-        "iter_django_fastapi_model_contracts",
-        "iter_fastapi_alias_targets",
-        "iter_django_fastapi_relation_contracts",
-        "iter_fastapi_field_metadata_contracts",
-        "iter_fastapi_field_constraint_contracts",
-        "iter_fastapi_model_index_contracts",
-        "iter_fastapi_unique_together_contracts",
-        "test_import_mapping_matches_shared_model_contracts",
-        "test_fastapi_model_tables_match_shared_contracts",
-        "test_fastapi_model_alias_targets_match_shared_contracts",
-        "test_fastapi_relation_through_tables_match_shared_contracts",
-        "test_fastapi_field_metadata_matches_shared_contracts",
-        "test_fastapi_field_constraints_match_shared_contracts",
-        "test_fastapi_model_indexes_match_shared_contracts",
-        "test_fastapi_model_unique_together_matches_shared_contracts",
-    )
-    django_required = (
-        "iter_django_model_table_contracts",
-        "test_django_model_tables_match_shared_contracts",
-    )
-    issues = [
-        f"fastapi/tests/test_import_django_model_contracts.py: 缺少模型契约测试片段 {snippet}"
-        for snippet in fastapi_required
-        if snippet not in fastapi_text
-    ]
-    issues.extend(
-        f"backend/drf_admin/utils/test_model_contracts.py: 缺少模型契约测试片段 {snippet}"
-        for snippet in django_required
-        if snippet not in django_text
-    )
     return issues
 
 
