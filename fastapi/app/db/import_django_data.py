@@ -75,7 +75,6 @@ FIELD_MAPPING = {
     "create_time": "created_at",
     "update_time": "updated_at",
     "dict": "dict_data",  # DictItems 的外键: Django(dict) -> FastAPI(dict_data)
-    "dict_code": "code",  # DictData: Django(dict_code) -> FastAPI(code)
     "keepAlive": "keep_alive",  # Permissions: Django camel 字段 -> FastAPI snake 字段
     "alwaysShow": "always_show",  # Permissions: Django camel 字段 -> FastAPI snake 字段
 }
@@ -233,8 +232,6 @@ def assign_fk_field(
 
 def map_field_name(model_name: str, field: str) -> str:
     """把 Django 字段名映射到 FastAPI 模型字段名。"""
-    if model_name == "system.dicts" and field == "remark":
-        return "desc"
     return FIELD_MAPPING.get(field, field)
 
 

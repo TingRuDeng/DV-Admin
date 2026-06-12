@@ -51,7 +51,7 @@ FASTAPI_FIELD_CONSTRAINT_CONTRACTS: tuple[FastapiFieldConstraintContract, ...] =
     ),
     FastapiFieldConstraintContract(
         fastapi_model="DictData",
-        field_name="code",
+        field_name="dict_code",
         max_length=32,
         unique=True,
     ),

@@ -230,9 +230,9 @@ class DictData(BaseModel):
     """
 
     name = fields.CharField(max_length=50, description="字典名称")
-    code = fields.CharField(max_length=32, unique=True, description="字典编码")
+    dict_code = fields.CharField(max_length=32, unique=True, description="字典编码")
     status = fields.IntField(default=1, description="状态")
-    desc = fields.CharField(max_length=100, default="", description="描述")
+    remark = fields.CharField(max_length=100, default="", description="描述")
     items: fields.BackwardFKRelation[DictItems]
 
     class Meta:
@@ -241,7 +241,7 @@ class DictData(BaseModel):
         # 数据库索引优化
         indexes = (
             # 单字段索引 - 常用查询字段
-            ("code",),
+            ("dict_code",),
             ("status",),
         )
 
