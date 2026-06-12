@@ -13,13 +13,21 @@
 - 本轮不改变前端调用、API 路径、响应字段或权限契约。
 - 本轮不移除所有历史字段兼容逻辑；删除兼容路径必须有测试证明无调用依赖。
 
-## 当前事实
+## 规划时事实
 
 - `fastapi/app/db/models/system.py` 中 `DictData` 当前字段是 `code` 与 `desc`，表名仍为 `system_dict_data`。
 - `backend/drf_admin/apps/system/models.py` 中 Django `Dicts` 字段是 `dict_code` 与 `remark`，表名为 `system_dicts`。
 - `fastapi/app/schemas/system.py` 中 `DictDataBase`、`DictDataUpdate` 和 `DictDataOut` 已通过 Pydantic alias 接受 `dictCode/remark` 并序列化为前端字段，因此内部 ORM 字段名调整不必改变前端 API。
 - `fastapi/app/db/import_django_data.py` 当前 `FIELD_MAPPING` 仍包含 `dict_code -> code`，说明导入链路依赖字段别名。
 - `scripts/model_contracts.py` 当前 `field_aliases` 仍记录 `dict_code -> code`、`remark -> desc`，说明共享模型契约仍在登记差异而不是约束一致。
+
+## 完成状态
+
+- FastAPI `DictData` 内部字段已统一为 `dict_code/remark`。
+- `scripts/model_contracts.py` 已移除 `system.dicts` 的 `dict_code -> code`、`remark -> desc` 业务字段别名。
+- `fastapi/app/db/import_django_data.py` 已改为同名字段写入，字典主表不再需要业务字段映射。
+- API 边界保持不变：请求继续接受 `dictCode/remark`，响应继续输出 `dictCode/remark`。
+- FastAPI 表名仍为 `system_dict_data`，表名统一需后续独立计划处理。
 
 ## 设计原则
 
@@ -99,3 +107,7 @@
 ## HARD-GATE
 
 用户确认前，不进行任何业务代码、测试代码或契约代码修改。本文件只是规划草案。
+
+## Review 小结
+
+Review-gate：finished；Spec 符合度通过，本轮只统一字典主表内部字段名，不修改表名 `system_dict_data`、字典项外键、前端调用或 API 路径；安全检查未发现本轮新增 secret、mock 或静默 fallback；测试与验证覆盖 RED/GREEN、FastAPI 目标测试、FastAPI `make quality`、Django 模型契约测试、根目录校验和远端 CI；Document-refresh: needed，原因：数据库文档和技术债需要同步反映 `dict_code/remark` 已成为双后端同名字段；剩余风险是 FastAPI 字典表名仍与 Django `system_dicts` 不一致。

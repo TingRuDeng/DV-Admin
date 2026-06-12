@@ -34,8 +34,8 @@ REQUIRED_DOC_SNIPPETS = (
     "Django Fixture 导入约束",
     "scripts/model_contracts.py",
     "keepAlive/alwaysShow",
-    "dict_code` → `code",
-    "remark` → `desc",
+    "dict` → `dict_data",
+    "字典主表内部字段已统一为 `dict_code/remark`",
 )
 
 def validate(root: Path) -> list[str]:
