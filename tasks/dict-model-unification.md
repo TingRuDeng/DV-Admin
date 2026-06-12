@@ -1,0 +1,95 @@
+# 字典模型差异治理计划
+
+## 目标
+
+- 收敛 Django 与 FastAPI 字典主表的模型差异，优先处理 `system.dicts` 与 `DictData` 在表名、字段名和字段约束上的不一致。
+- 让共享模型契约从“记录差异”逐步转向“约束一致”，降低 Django fixture 导入、双后端切换和后续迁移成本。
+- 在实现前明确数据库迁移、API 兼容和导入脚本影响边界。
+
+## 非目标
+
+- 本轮不一次性统一所有 Django/FastAPI 模型。
+- 本轮不改变前端 API 字段契约，除非实现阶段证明确实必须同步。
+- 本轮不删除已有兼容导入逻辑，除非先有测试证明旧路径已无必要。
+
+## 当前事实
+
+- `scripts/model_contracts.py` 的 `DjangoFastapiModelContract` 已声明 `system.dicts` 到 `DictData` 的映射，但当前契约仍允许 Django 表名 `system_dicts` 与 FastAPI 表名 `system_dict_data` 不一致。
+- `scripts/model_contracts.py` 的 `field_aliases` 当前记录 `dict_code -> code`、`remark -> desc`，说明字段层仍依赖别名迁移。
+- `backend/drf_admin/apps/system/models.py` 中 `Dicts.dict_code` 是 `max_length=32` 且 `unique=True`。
+- `fastapi/app/db/models/system.py` 中 `DictData.code` 是 `max_length=50` 且 `unique=True`。
+- `docs/TECH_DEBT.md` 已把 Django 和 FastAPI 模型差异列为中优先级技术债，明确提到字典类型表名不同、字段命名不一致和关联表命名不同。
+
+## 设计原则
+
+- 优先选择能消除根因的方案，而不是继续扩大别名映射。
+- 不用静默 fallback 或假成功路径掩盖迁移风险。
+- 先用测试暴露差异，再做最小实现。
+- 对可能破坏已有 FastAPI SQLite/MySQL 数据的表名变更，必须有迁移策略或明确非生产边界。
+
+## 方案对比
+
+### 方案 A：只强化契约，不改模型
+
+- 做法：新增“差异必须显式登记”的校验，继续允许 `system_dict_data/code/desc`。
+- 优点：风险最低，不涉及数据库迁移。
+- 缺点：只能记录债务，不能减少长期维护成本；与本轮“治理模型差异”的目标不匹配。
+
+### 方案 B：统一 FastAPI 字典模型命名到 Django
+
+- 做法：将 FastAPI `DictData` 的表名、关键字段和契约逐步对齐 Django：`system_dicts`、`dict_code`、`remark`。
+- 优点：解决当前技术债的核心差异，减少导入脚本和契约别名复杂度。
+- 缺点：涉及 FastAPI ORM 模型、schema/service/API、测试和潜在数据迁移，需要严格分步。
+
+### 方案 C：引入新统一模型并保留旧模型兼容层
+
+- 做法：新增统一字典模型，旧 `DictData` 保留为过渡适配。
+- 优点：可以渐进迁移。
+- 缺点：会同时存在两套模型语义，复杂度更高，容易形成长期兼容债。
+
+## 推荐方案
+
+推荐先采用方案 B 的最小垂直切片，但不要一次性完成所有字典字段重命名。
+
+第一轮只处理可低风险验证的字段约束一致性：先把 FastAPI `DictData.code` 的 `max_length` 从 50 对齐到 Django `Dicts.dict_code` 的 32，并补共享契约测试。该改动不改变 API 字段名，也不改表名，能先消除一处明确约束漂移。
+
+表名和字段名统一放到后续独立轮次，原因是它们影响数据库迁移、导入脚本和 API/schema 层，风险明显高于字段长度约束。
+
+## 执行计划
+
+- [ ] P1 串行：RED 补共享字典字段约束一致性测试，复现 `DictData.code.max_length=50` 与 `Dicts.dict_code.max_length=32` 漂移。
+- [ ] P2 串行：GREEN 将 FastAPI 字典编码字段长度契约与 Django 对齐，并更新 `scripts/model_field_constraint_contracts.py`。
+- [ ] P3 串行：执行模型契约校验、FastAPI 目标测试、FastAPI `make quality`、Django 目标测试和根目录校验。
+- [ ] P4 串行：review-gate、提交、PR、CI 和合并。
+
+## 涉及文件
+
+- `scripts/model_field_constraint_contracts.py`
+- `scripts/validate_model_contracts.py`
+- `scripts/model_fastapi_validation.py`
+- `fastapi/app/db/models/system.py`
+- `fastapi/tests/test_import_django_model_contracts.py`
+- `backend/drf_admin/utils/test_model_contracts.py`
+- `tasks/todo.md`
+
+## 验证矩阵
+
+- RED：`uv run pytest tests/test_import_django_model_contracts.py -q`
+- GREEN：`python3 scripts/validate_model_contracts.py .`
+- FastAPI：`make quality`
+- Django：`uv run pytest drf_admin/utils/test_model_contracts.py -q`
+- 根目录：`python3 scripts/validate_docs.py . --profile generic`
+- 根目录：`python3 scripts/validate_api_contracts.py .`
+- 根目录：`python3 scripts/validate_route_components.py .`
+- 根目录：`python3 scripts/validate_django_migrations.py .`
+- 通用：`git diff --check`
+
+## 风险与预想失败场景
+
+- 如果 FastAPI 现有测试或 fixture 使用超过 32 位的字典编码，改动会暴露真实数据约束冲突，应先修测试数据或业务约束，不应放宽回 50。
+- 如果 schema/API 层把 `code` 作为前端稳定字段使用，本轮不触碰字段名，避免把约束治理扩大成 API 迁移。
+- 如果后续推进表名统一，需要单独设计迁移脚本和兼容窗口，不能与本轮字段长度约束混在一个 PR。
+
+## HARD-GATE
+
+用户确认前，不进行任何业务代码、测试代码或契约代码修改。本文件只是规划草案。
