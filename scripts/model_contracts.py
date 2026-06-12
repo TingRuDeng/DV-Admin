@@ -128,7 +128,7 @@ DJANGO_FASTAPI_RELATION_CONTRACTS: tuple[DjangoFastapiRelationContract, ...] = (
         django_through_table="system_roles_to_system_permissions",
         fastapi_model="Roles",
         fastapi_field="permissions",
-        fastapi_through_table="system_roles_permissions",
+        fastapi_through_table="system_roles_to_system_permissions",
     ),
     DjangoFastapiRelationContract(
         django_model="system.users",
@@ -136,7 +136,7 @@ DJANGO_FASTAPI_RELATION_CONTRACTS: tuple[DjangoFastapiRelationContract, ...] = (
         django_through_table="system_users_to_system_roles",
         fastapi_model="Users",
         fastapi_field="roles",
-        fastapi_through_table="system_users_roles",
+        fastapi_through_table="system_users_to_system_roles",
     ),
 )
 

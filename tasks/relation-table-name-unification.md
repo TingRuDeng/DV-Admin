@@ -20,12 +20,12 @@
 
 - `backend/drf_admin/apps/system/models.py::Roles.permissions` 使用 `db_table="system_roles_to_system_permissions"`。
 - `backend/drf_admin/apps/system/models.py::Users.roles` 使用 `db_table="system_users_to_system_roles"`。
-- `fastapi/app/db/models/system.py::Roles.permissions` 当前使用 `through="system_roles_permissions"`。
-- `fastapi/app/db/models/oauth.py::Users.roles` 当前使用 `through="system_users_roles"`。
-- `scripts/model_contracts.py::DJANGO_FASTAPI_RELATION_CONTRACTS` 当前登记两组 through 表差异。
+- `fastapi/app/db/models/system.py::Roles.permissions` 已统一为 `through="system_roles_to_system_permissions"`。
+- `fastapi/app/db/models/oauth.py::Users.roles` 已统一为 `through="system_users_to_system_roles"`。
+- `scripts/model_contracts.py::DJANGO_FASTAPI_RELATION_CONTRACTS` 已要求两组 through 表与 Django 命名一致。
 - `backend/drf_admin/utils/test_model_contracts.py::test_django_relation_through_tables_match_shared_contracts` 已校验 Django 侧 through 表等于共享契约。
 - `fastapi/tests/test_import_django_model_contracts.py::test_fastapi_relation_through_tables_match_shared_contracts` 已校验 FastAPI 侧 through 表等于共享契约。
-- `docs/DATABASE_SCHEMA.md` 和 `docs/TECH_DEBT.md` 仍记录关联表命名不同。
+- `docs/DATABASE_SCHEMA.md` 和 `docs/TECH_DEBT.md` 已移除关联表命名差异描述，并保留关联字段差异和旧 FastAPI through 表迁移边界。
 
 ## 设计原则
 
@@ -70,11 +70,11 @@
 
 ## 执行计划
 
-- [ ] P1 串行：RED 补共享关联表同名测试，复现 `Roles.permissions` 与 `Users.roles` 的 Django/FastAPI through 表仍不一致。
-- [ ] P2 串行：GREEN 修改 FastAPI `Roles.permissions` 和 `Users.roles` 的 `through` 表名，同步 `scripts/model_contracts.py`。
-- [ ] P3 串行：执行并修正 FastAPI M2M 目标测试，重点覆盖角色权限分配、用户角色关系、Django fixture 导入和运行时权限链路。
-- [ ] P4 串行：同步数据库文档、技术债和字典模型治理计划，移除关联表命名差异描述，保留显式迁移边界说明。
-- [ ] P5 串行：执行模型契约校验、FastAPI 目标测试、FastAPI `make quality`、Django 目标测试和根目录校验。
+- [x] P1 串行：RED 补共享关联表同名测试，复现 `Roles.permissions` 与 `Users.roles` 的 Django/FastAPI through 表仍不一致。
+- [x] P2 串行：GREEN 修改 FastAPI `Roles.permissions` 和 `Users.roles` 的 `through` 表名，同步 `scripts/model_contracts.py`。
+- [x] P3 串行：执行并修正 FastAPI M2M 目标测试，重点覆盖角色权限分配、用户角色关系、Django fixture 导入和运行时权限链路。
+- [x] P4 串行：同步数据库文档、技术债和字典模型治理计划，移除关联表命名差异描述，保留显式迁移边界说明。
+- [x] P5 串行：执行模型契约校验、FastAPI 目标测试、FastAPI `make quality`、Django 目标测试和根目录校验。
 - [ ] P6 串行：review-gate、提交、PR、CI 和合并。
 
 ## 涉及文件
@@ -118,3 +118,14 @@
 ## HARD-GATE
 
 用户确认前，不进行任何业务代码、测试代码或契约代码修改。本文件只是规划草案。
+
+## 进度记录
+
+- RED：`cd fastapi && uv run pytest tests/test_import_django_model_contracts.py -q` 失败，新增测试捕获 `system_roles_permissions` 与 `system_roles_to_system_permissions` 不一致。
+- GREEN：FastAPI `Roles.permissions` 和 `Users.roles` 的 through 表已统一到 Django 命名，共享关联契约已同步；模型契约测试通过（12 passed）。
+- 目标验证：FastAPI M2M 目标测试通过（111 passed），覆盖 Django fixture 导入、golden fixture、运行时写接口、角色服务和用户服务。
+- 全量验证：FastAPI `make quality` 通过（533 passed，覆盖率 84.74%）；Django 模型契约测试通过（4 passed）；根目录模型/API/文档/路由组件/Django 迁移校验和 `git diff --check` 均通过。
+
+## Review 小结
+
+Review-gate：finished；Spec 符合度通过，本轮只统一 FastAPI 两张 M2M through 表名和共享关联契约，不修改 Django 模型、主表、前端 API、权限码或业务响应；安全检查未发现新增 secret、mock、双表读写或静默 fallback；复杂度检查通过，本轮新增一个目标契约测试并修改两个 through 表名常量，未新增超长函数；Document-refresh: needed，原因：数据库关联表事实和技术债状态已变化；剩余风险是已有 FastAPI 数据库如果仍存在旧表 `system_roles_permissions` 或 `system_users_roles`，需要显式迁移到 Django 命名表，且关联表字段命名差异仍需后续独立治理。
