@@ -9,7 +9,7 @@
 - [x] P3 串行：修正 FastAPI 字典项相关目标测试、fixture 和运行时契约样例
 - [x] P4 串行：同步前端字典项 API 类型、数据库文档、技术债和任务状态
 - [x] P5 串行：执行模型契约校验、双后端目标测试、FastAPI 质量门禁、前端质量检查、根目录校验和 diff 检查
-- [ ] P6 串行：review-gate、提交、PR、CI 和合并
+- [x] P6 串行：review-gate、提交、PR、CI 和合并
 - [x] P1 串行：RED 扩展字典项字段长度约束契约，复现 FastAPI `DictItems.label/value` 仍为 50
 - [x] P2 串行：GREEN 将 FastAPI 字典项 ORM 与 schema 的 `label/value` 长度收敛到 32
 - [x] P3 串行：补充 FastAPI 字典项长度边界目标测试，确保超过 32 字符被显式拒绝
