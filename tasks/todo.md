@@ -134,7 +134,7 @@
 - [x] P4 串行：修正 FastAPI 字典项目标测试、golden fixture 和运行时契约样例
 - [x] P5 串行：同步数据库文档、技术债和字典模型治理计划
 - [x] P6 串行：执行模型契约校验、FastAPI 目标测试、FastAPI 质量门禁、Django 目标测试和根目录校验
-- [ ] P7 串行：review-gate、提交、PR、CI 和合并
+- [x] P7 串行：review-gate、提交、PR、CI 和合并
 
 并行判断：本轮只处理字段契约文件拆分，变更集中在字段契约入口、字段约束契约模块、治理测试和任务状态，存在同一契约链路写冲突；不启用 subagent。
 
@@ -312,3 +312,5 @@ Review-gate：finished；Spec 符合度通过，本轮只统一 FastAPI 两张 M
 关联表字段命名统一已通过 PR #158 合并：FastAPI 用户-角色和角色-权限 through 字段已统一到 Django 命名，合并提交为 `11eeda849cfdc6bd3188150c5df2ca07c0d26c6f`，远端 Django Backend Quality、FastAPI Backend Quality 和 Frontend Quality 均通过。
 
 Review-gate：finished；Spec 符合度通过，本轮只移除 FastAPI 字典项 `is_default/remark` 扩展字段，并同步 schema、service、目标测试、数据库文档和技术债，不修改 Django 模型、前端页面或字典项 `label/value/sort` 后续治理范围；安全检查未发现新增 secret、mock、扩展字段 fallback 或静默兼容；复杂度检查通过，本轮删除字段读写并新增一个目标契约测试，未新增复杂分支；Document-refresh: needed，原因：数据库字典项字段事实和技术债状态已变化；剩余风险是已有 FastAPI 数据库如果仍存在旧列 `is_default/remark`，需要显式迁移删除或忽略，且 `fastapi/app/schemas/system.py`、`fastapi/app/services/system/dict_service.py`、`fastapi/tests/test_dict_service.py` 仍为既有超 300 行文件，后续应单独拆分治理。
+
+字典项 FastAPI-only 字段收口已通过 PR #161 合并：FastAPI `DictItems.is_default/remark` 已移除，合并提交为 `d0b7c7740e6251b39d384a7859320b44925758d3`，远端 Django Backend Quality、FastAPI Backend Quality 和 Frontend Quality 均通过。
