@@ -6,6 +6,7 @@ import uuid
 
 import pytest
 import pytest_asyncio
+from pydantic import ValidationError as PydanticValidationError
 
 from app.core.exceptions import NotFound, ValidationError
 from app.schemas.system import (
@@ -378,6 +379,28 @@ class TestDictServiceGetItems:
 class TestDictServiceCreateItem:
     """测试创建字典项"""
 
+    def test_create_item_rejects_overlength_label(self):
+        """测试创建字典项拒绝超长标签"""
+        with pytest.raises(PydanticValidationError):
+            DictItemCreate(
+                label="测" * 33,
+                value="valid_value",
+                sort=1,
+                status=1,
+                dict_data_id=1,
+            )
+
+    def test_create_item_rejects_overlength_value(self):
+        """测试创建字典项拒绝超长值"""
+        with pytest.raises(PydanticValidationError):
+            DictItemCreate(
+                label="有效标签",
+                value="v" * 33,
+                sort=1,
+                status=1,
+                dict_data_id=1,
+            )
+
     @pytest.mark.asyncio
     async def test_create_item_basic(self, db, test_dict_data_for_service):
         """测试基本创建字典项"""
@@ -432,6 +455,16 @@ class TestDictServiceCreateItem:
 
 class TestDictServiceUpdateItem:
     """测试更新字典项"""
+
+    def test_update_item_rejects_overlength_label(self):
+        """测试更新字典项拒绝超长标签"""
+        with pytest.raises(PydanticValidationError):
+            DictItemUpdate(label="测" * 33)
+
+    def test_update_item_rejects_overlength_value(self):
+        """测试更新字典项拒绝超长值"""
+        with pytest.raises(PydanticValidationError):
+            DictItemUpdate(value="v" * 33)
 
     @pytest.mark.asyncio
     async def test_update_item_basic(self, db, test_dict_data_for_service, test_dict_item_for_service):

@@ -417,8 +417,8 @@ class DictDataOut(TimestampSchema):
 class DictItemBase(BaseSchema):
     """字典项基础信息"""
 
-    label: str = Field(description="标签")
-    value: str = Field(description="值")
+    label: str = Field(max_length=32, description="标签")
+    value: str = Field(max_length=32, description="值")
     sort: int = Field(default=0, description="排序")
     status: int = Field(default=1, description="状态")
 
@@ -436,8 +436,8 @@ class DictItemCreate(DictItemBase):
 class DictItemUpdate(BaseSchema):
     """更新字典项请求"""
 
-    label: str | None = Field(default=None, description="标签")
-    value: str | None = Field(default=None, description="值")
+    label: str | None = Field(default=None, max_length=32, description="标签")
+    value: str | None = Field(default=None, max_length=32, description="值")
     sort: int | None = Field(default=None, description="排序")
     status: int | None = Field(default=None, description="状态")
 

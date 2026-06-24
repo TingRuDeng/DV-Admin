@@ -56,6 +56,16 @@ FASTAPI_FIELD_CONSTRAINT_CONTRACTS: tuple[FastapiFieldConstraintContract, ...] =
         unique=True,
     ),
     FastapiFieldConstraintContract(
+        fastapi_model="DictItems",
+        field_name="label",
+        max_length=32,
+    ),
+    FastapiFieldConstraintContract(
+        fastapi_model="DictItems",
+        field_name="value",
+        max_length=32,
+    ),
+    FastapiFieldConstraintContract(
         fastapi_model="Users",
         field_name="username",
         max_length=150,
@@ -101,6 +111,16 @@ DJANGO_FIELD_CONSTRAINT_CONTRACTS: tuple[DjangoFieldConstraintContract, ...] = (
         field_name="dict_code",
         max_length=32,
         unique=True,
+    ),
+    DjangoFieldConstraintContract(
+        django_model="system.dictitems",
+        field_name="label",
+        max_length=32,
+    ),
+    DjangoFieldConstraintContract(
+        django_model="system.dictitems",
+        field_name="value",
+        max_length=32,
     ),
     DjangoFieldConstraintContract(
         django_model="system.users",
