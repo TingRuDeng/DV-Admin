@@ -48,12 +48,14 @@ def test_fastapi_model_alias_targets_match_shared_contracts():
 
 
 def test_fastapi_relation_through_tables_match_shared_contracts():
-    """FastAPI 多对多 through 表必须与共享关联契约保持一致。"""
+    """FastAPI 多对多 through 表和字段必须与共享关联契约保持一致。"""
     assert hasattr(model_contracts, "iter_django_fastapi_relation_contracts")
     for contract in model_contracts.iter_django_fastapi_relation_contracts():
         model = MODEL_MAPPING[contract.django_model]
         relation_field = model._meta.fields_map[contract.fastapi_field]
         assert relation_field.through == contract.fastapi_through_table
+        assert relation_field.backward_key == contract.fastapi_backward_key
+        assert relation_field.forward_key == contract.fastapi_forward_key
 
 
 def test_relation_through_table_names_match_django_contracts():
@@ -62,6 +64,15 @@ def test_relation_through_table_names_match_django_contracts():
 
     for contract in contracts:
         assert contract.fastapi_through_table == contract.django_through_table
+
+
+def test_relation_through_column_names_match_django_contracts():
+    """多对多关联表字段应使用 Django 字段名，避免双后端继续登记字段差异。"""
+    contracts = model_contracts.iter_django_fastapi_relation_contracts()
+
+    for contract in contracts:
+        assert contract.fastapi_backward_key == contract.django_backward_key
+        assert contract.fastapi_forward_key == contract.django_forward_key
 
 
 def test_fastapi_field_metadata_matches_shared_contracts():

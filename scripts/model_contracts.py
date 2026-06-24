@@ -40,14 +40,18 @@ class DjangoFastapiModelContract:
 
 @dataclass(frozen=True)
 class DjangoFastapiRelationContract:
-    """Django 到 FastAPI 的多对多关联表契约，集中声明 through 表差异。"""
+    """Django 到 FastAPI 的多对多关联契约，集中声明 through 表结构。"""
 
     django_model: str
     django_field: str
     django_through_table: str
+    django_backward_key: str
+    django_forward_key: str
     fastapi_model: str
     fastapi_field: str
     fastapi_through_table: str
+    fastapi_backward_key: str
+    fastapi_forward_key: str
 
 
 def merged_aliases(*aliases: Mapping[str, str]) -> Mapping[str, str]:
@@ -126,17 +130,25 @@ DJANGO_FASTAPI_RELATION_CONTRACTS: tuple[DjangoFastapiRelationContract, ...] = (
         django_model="system.roles",
         django_field="permissions",
         django_through_table="system_roles_to_system_permissions",
+        django_backward_key="roles_id",
+        django_forward_key="permissions_id",
         fastapi_model="Roles",
         fastapi_field="permissions",
         fastapi_through_table="system_roles_to_system_permissions",
+        fastapi_backward_key="roles_id",
+        fastapi_forward_key="permissions_id",
     ),
     DjangoFastapiRelationContract(
         django_model="system.users",
         django_field="roles",
         django_through_table="system_users_to_system_roles",
+        django_backward_key="users_id",
+        django_forward_key="roles_id",
         fastapi_model="Users",
         fastapi_field="roles",
         fastapi_through_table="system_users_to_system_roles",
+        fastapi_backward_key="users_id",
+        fastapi_forward_key="roles_id",
     ),
 )
 
