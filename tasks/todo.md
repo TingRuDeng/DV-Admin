@@ -4,173 +4,11 @@
 
 ## 活跃任务
 
-- [x] P1 串行：RED 增加字典项 FastAPI-only `sort` 字段治理测试，复现 FastAPI 仍保留 `sort`
-- [x] P2 串行：GREEN 删除 FastAPI 字典项 ORM/schema/service 中的 `sort` 字段读写
-- [x] P3 串行：修正 FastAPI 字典项相关目标测试、fixture 和运行时契约样例
-- [x] P4 串行：同步前端字典项 API 类型、数据库文档、技术债和任务状态
-- [x] P5 串行：执行模型契约校验、双后端目标测试、FastAPI 质量门禁、前端质量检查、根目录校验和 diff 检查
-- [x] P6 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 扩展字典项字段长度约束契约，复现 FastAPI `DictItems.label/value` 仍为 50
-- [x] P2 串行：GREEN 将 FastAPI 字典项 ORM 与 schema 的 `label/value` 长度收敛到 32
-- [x] P3 串行：补充 FastAPI 字典项长度边界目标测试，确保超过 32 字符被显式拒绝
-- [x] P4 串行：同步数据库文档、技术债和字典项长度治理计划
-- [x] P5 串行：执行模型契约校验、双后端目标测试、FastAPI 质量门禁、根目录校验和 diff 检查
-- [x] P6 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补充部门树关键端点目录测试，复现缺少 `depts_tree`
-- [x] P2 串行：GREEN 将部门树纳入共享端点目录和双后端运行时抽样
-- [x] P3 串行：执行 Django/FastAPI 契约测试、质量门禁和根目录校验
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补充角色写接口和权限分配运行时契约，复现缺少 `roles_menu_assign`
-- [x] P2 串行：GREEN 拆分角色端点契约模块，并补 Django/FastAPI 权限分配接口
-- [x] P3 串行：执行双后端契约测试、质量门禁和文档/API 校验
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补充部门写接口运行时契约，复现缺少 `depts_create/depts_update/depts_delete`
-- [x] P2 串行：GREEN 拆分部门端点契约模块，并补双后端运行时抽样
-- [x] P3 串行：执行双后端契约测试、质量门禁和文档/API 校验
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补充菜单写接口运行时契约，复现缺少 `menus_create/menus_update/menus_delete`
-- [x] P2 串行：GREEN 拆分菜单端点契约模块，并补双后端运行时抽样
-- [x] P3 串行：执行双后端契约测试、质量门禁和文档/API 校验
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 增加运行时契约测试文件大小校验，复现双后端测试文件超过 300 行
-- [x] P2 串行：GREEN 拆分 Django/FastAPI 运行时契约测试，保持单文件低于 300 行
-- [x] P3 串行：执行拆分后目标测试、质量门禁和契约校验
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补充字典/字典项写接口契约缺口测试，复现缺少 `dicts_create/update/delete` 与 `dict_items_create/update/delete`
-- [x] P2 串行：GREEN 拆分字典端点契约模块，并补双后端运行时写接口抽样
-- [x] P3 串行：执行双后端目标测试、质量门禁和文档/API 校验
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补充通知公告写接口运行时契约，复现缺少 `notices_create/update/delete/publish/revoke`
-- [x] P2 串行：GREEN 补齐 Django/FastAPI 通知公告写接口运行时抽样
-- [x] P3 串行：执行双后端目标测试、质量门禁和文档/API 校验
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补充 Django 迁移链跟踪校验，复现 `system` 迁移未被 Git 跟踪
-- [x] P2 串行：GREEN 修正仓库 ignore 规则并纳入完整 `system` 迁移链
-- [x] P3 串行：执行迁移检查、Django 测试和根目录校验
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补充 GitHub Actions Node 24 runtime 校验，复现缺少 opt-in
-- [x] P2 串行：GREEN 将质量门禁的 pnpm action 升级到 v6
-- [x] P3 串行：执行文档校验、workflow 校验和 diff 检查
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 让模型契约校验捕获缺少 FastAPI 表名契约测试
-- [x] P2 串行：GREEN 补 FastAPI 模型 `Meta.table` 与共享契约一致性校验
-- [x] P3 串行：执行模型契约测试、根目录校验和 FastAPI 目标测试
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补 FastAPI 字段别名目标契约测试，复现共享契约缺少字段级入口
-- [x] P2 串行：GREEN 增加字段级契约入口和静态校验
-- [x] P3 串行：执行模型契约测试、根目录校验和 FastAPI 质量门禁
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补多对多 through 表契约测试，复现共享契约缺少关联表入口
-- [x] P2 串行：GREEN 增加 Django/FastAPI 关联表契约和静态校验
-- [x] P3 串行：执行模型契约测试、根目录校验和 FastAPI 质量门禁
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补 FastAPI 字段元数据契约测试，复现共享契约缺少字段元数据入口
-- [x] P2 串行：GREEN 增加字段类型/null/default 契约和静态校验
-- [x] P3 串行：执行模型契约测试、根目录校验和 FastAPI 质量门禁
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补 FastAPI 字段约束契约测试，复现共享契约缺少 max_length/unique/index 入口
-- [x] P2 串行：GREEN 增加字段 max_length/unique/index 契约和静态校验
-- [x] P3 串行：执行模型契约测试、根目录校验和 FastAPI 质量门禁
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补 FastAPI Meta indexes 契约测试，复现共享契约缺少模型索引入口
-- [x] P2 串行：GREEN 增加 FastAPI Meta indexes 契约和静态校验
-- [x] P3 串行：执行模型契约测试、根目录校验和 FastAPI 质量门禁
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补 FastAPI unique_together 契约测试，复现共享契约缺少模型唯一组合入口
-- [x] P2 串行：GREEN 增加 FastAPI unique_together 契约和静态校验
-- [x] P3 串行：执行模型契约测试、根目录校验和 FastAPI 质量门禁
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补 Django 表名契约测试，复现共享契约缺少 Django 表名入口
-- [x] P2 串行：GREEN 增加 Django db_table 静态契约校验
-- [x] P3 串行：执行模型契约测试、根目录校验和 Django/FastAPI 质量门禁
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补模型契约校验脚本拆分治理测试，复现主入口仍直接承载测试片段清单
-- [x] P2 串行：GREEN 拆出模型契约测试入口校验模块
-- [x] P3 串行：执行模型契约校验、Django 目标测试和根目录门禁
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：梳理 Django 字段契约最小覆盖边界
-- [x] P2 串行：RED 补 Django 字段契约测试，复现共享契约缺少 Django 字段入口
-- [x] P3 串行：GREEN 增加 Django 字段静态契约校验
-- [x] P4 串行：执行模型契约测试、根目录校验和 Django/FastAPI 质量门禁
-- [x] P5 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补 Django 字段约束契约测试，复现共享契约缺少 Django 字段约束入口
-- [x] P2 串行：GREEN 增加 Django 字段 max_length/unique/index 静态契约校验
-- [x] P3 串行：执行模型契约测试、根目录校验和 Django/FastAPI 质量门禁
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补字段约束契约拆分治理测试，复现 `model_field_contracts.py` 仍承载约束目录
-- [x] P2 串行：GREEN 拆出字段约束契约模块，保留统一导出兼容
-- [x] P3 串行：执行模型契约测试、根目录校验和 Django/FastAPI 质量门禁
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补 Django 多对多 through 表契约测试，复现共享关联契约只校验 FastAPI 侧
-- [x] P2 串行：GREEN 增加 Django through 表静态解析与模型契约校验
-- [x] P3 串行：执行模型契约测试、根目录校验和 Django/FastAPI 质量门禁
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补 FastAPI 模型校验拆分治理测试，复现 `validate_model_contracts.py` 继续承载 FastAPI 校验细节
-- [x] P2 串行：GREEN 拆出 FastAPI 模型校验模块，保留 CLI 主入口编排职责
-- [x] P3 串行：执行模型契约测试、根目录校验和 Django/FastAPI 质量门禁
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补文档契约入口校验拆分治理测试，复现 `validate_docs.py` 继续承载契约入口细节
-- [x] P2 串行：GREEN 拆出文档契约校验模块，保留 validate_docs 主入口编排职责
-- [x] P3 串行：执行文档校验、根目录校验和 Django/FastAPI 质量门禁
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补共享字典字段约束一致性测试，复现 FastAPI 字典编码长度与 Django 漂移
-- [x] P2 串行：GREEN 将 FastAPI 字典编码字段长度契约与 Django 对齐
-- [x] P3 串行：执行模型契约校验、双后端目标测试、FastAPI 质量门禁和根目录校验
-- [x] P4 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补共享字段别名治理测试，复现字典主表仍存在字段名映射债
-- [x] P2 串行：GREEN 更新 FastAPI 字典字段名、schema/service/import 映射和模型契约
-- [x] P3 串行：修正 FastAPI 字典相关目标测试、golden fixture 断言和运行时契约样例
-- [x] P4 串行：执行模型契约校验、FastAPI 目标测试、FastAPI 质量门禁、Django 目标测试和根目录校验
-- [x] P5 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补共享表名一致性测试，复现字典主表表名仍不一致
-- [x] P2 串行：GREEN 修改 FastAPI 字典主表表名和共享模型契约
-- [x] P3 串行：同步数据库文档、技术债和字典治理计划
-- [x] P4 串行：执行模型契约校验、FastAPI 目标测试、FastAPI 质量门禁、Django 目标测试和根目录校验
-- [x] P5 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 补共享关联表同名测试，复现角色-权限和用户-角色 through 表仍不一致
-- [x] P2 串行：GREEN 修改 FastAPI 两张关联表名和共享关联契约
-- [x] P3 串行：执行并修正 FastAPI M2M 目标测试
-- [x] P4 串行：同步数据库文档、技术债和字典模型治理计划
-- [x] P5 串行：执行模型契约校验、FastAPI 目标测试、FastAPI 质量门禁、Django 目标测试和根目录校验
-- [x] P6 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 扩展共享关联契约字段名测试，复现两张 M2M through 表字段仍不一致
-- [x] P2 串行：GREEN 扩展共享关联契约字段名登记
-- [x] P3 串行：GREEN 修改 FastAPI 两张 M2M through 表字段名
-- [x] P4 串行：执行并修正 FastAPI M2M 目标测试
-- [x] P5 串行：同步数据库文档、技术债和字典模型治理计划
-- [x] P6 串行：执行模型契约校验、FastAPI 目标测试、FastAPI 质量门禁、Django 目标测试和根目录校验
-- [x] P7 串行：review-gate、提交、PR、CI 和合并
-- [x] P1 串行：RED 增加字典项 FastAPI-only 字段治理测试，复现 `DictItems.is_default/remark` 仍存在
-- [x] P2 串行：GREEN 删除 FastAPI 字典项 `is_default/remark` 模型字段
-- [x] P3 串行：GREEN 同步 FastAPI 字典项 schema/service，停止读写 `is_default/remark`
-- [x] P4 串行：修正 FastAPI 字典项目标测试、golden fixture 和运行时契约样例
-- [x] P5 串行：同步数据库文档、技术债和字典模型治理计划
-- [x] P6 串行：执行模型契约校验、FastAPI 目标测试、FastAPI 质量门禁、Django 目标测试和根目录校验
-- [x] P7 串行：review-gate、提交、PR、CI 和合并
+- 当前无未完成活跃任务。
 
-并行判断：本轮只处理字段契约文件拆分，变更集中在字段契约入口、字段约束契约模块、治理测试和任务状态，存在同一契约链路写冲突；不启用 subagent。
+## 最近完成
 
-并行判断：本轮处理 Django 多对多 through 表契约校验，变更集中在 Django 模型契约测试、Django AST/validation、模型契约主校验和任务状态，同一契约链路存在写冲突；执行阶段不启用 subagent，验证阶段并行执行互不写文件的门禁。
-
-并行判断：本轮处理 FastAPI 模型校验拆分，变更集中在模型契约 CLI、FastAPI 校验模块、结构治理测试和任务状态，同一职责迁移存在写冲突；执行阶段不启用 subagent，验证阶段并行执行互不写文件的门禁。
-
-并行判断：本轮处理文档契约入口校验拆分，变更集中在 `validate_docs.py`、新契约校验模块、结构治理测试和任务状态，同一职责迁移存在写冲突；执行阶段不启用 subagent，验证阶段并行执行互不写文件的门禁。
-
-并行判断：下一轮计划处理 Django/FastAPI 字典编码字段长度约束漂移，变更会集中在共享模型契约、FastAPI 模型、双后端契约测试和任务状态，同一契约链路存在写冲突；执行阶段不启用 subagent，验证阶段可并行执行互不写文件的门禁。
-
-并行判断：下一轮计划处理 FastAPI 字典主表内部字段命名统一，变更会集中在模型契约、FastAPI ORM、schema、service、导入脚本和字典相关测试，同一业务链路写冲突明显；执行阶段不启用 subagent，验证阶段可并行执行互不写文件的门禁。
-
-并行判断：下一轮计划处理 FastAPI 字典主表表名统一，变更会集中在 ORM 表名、共享模型契约、导入/运行时测试、数据库文档和技术债，同一数据模型迁移链路写冲突明显；执行阶段不启用 subagent，验证阶段可并行执行互不写文件的门禁。
-
-并行判断：下一轮计划处理 FastAPI 角色-权限、用户-角色关联表命名统一，变更集中在两处 ORM through 表、共享关联契约、M2M 运行时测试、数据库文档和技术债，同一关系模型迁移链路写冲突明显；执行阶段不启用 subagent，验证阶段可并行执行互不写文件的门禁。
-
-并行判断：下一轮计划处理 FastAPI 角色-权限、用户-角色关联表字段命名统一，变更集中在两处 ORM M2M key、共享关联契约、M2M 运行时测试、数据库文档和技术债，同一关系模型迁移链路写冲突明显；执行阶段不启用 subagent，验证阶段可并行执行互不写文件的门禁。
-
-并行判断：下一轮计划处理 FastAPI 字典项 `is_default/remark` 扩展字段收口，变更集中在 ORM、schema、service、字典项测试、数据库文档和技术债，同一字典项模型链路写冲突明显；执行阶段不启用 subagent，验证阶段可并行执行互不写文件的门禁。
-
-并行判断：下一轮计划处理字典项 `label/value` 长度约束统一，变更集中在共享字段约束契约、FastAPI ORM、FastAPI schema、字典项测试、数据库文档和技术债，同一模型契约链路写冲突明显；执行阶段不启用 subagent，验证阶段可并行执行互不写文件的门禁。
-
-并行判断：下一轮计划处理 FastAPI 字典项 `sort` 字段收口，变更集中在 ORM、schema、service、索引契约、字典项测试、前端 API 类型、数据库文档和技术债，同一模型行为链路写冲突明显；执行阶段不启用 subagent，验证阶段可并行执行互不写文件的门禁。
+- [x] 字典项排序字段治理：FastAPI `DictItems.sort` 已移除，schema、service、测试、前端 API 类型和文档已同步；PR #168 与 PR #169 已合并，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 
 ## 已完成摘要
 
@@ -182,6 +20,8 @@
 - [x] 前端共享组件与测试收口：`tags-view-store` Promise resolve 边界、`TableSelect` 类型/行为测试、WebSocket STOMP helper、主题样式测试拆分和 CURD 兼容层复核已完成。
 
 ## Review 小结
+
+本轮任务清单收口已完成：`活跃任务` 区只保留当前状态，最近完成的字典项排序字段治理迁入 `最近完成`，历史长列表不再占用活跃区。该变更只调整执行状态记录，不修改运行时代码、契约脚本或产品文档。
 
 本轮修复审查优先级前四项：FastAPI RBAC 权限码已对齐前端/Django 种子契约；通用文件上传已拒绝 SVG；Django 开发态媒体路由已脱离 Swagger 开关；Playwright 本地 smoke 已改为固定端口、禁止复用已有服务，并忽略本地 HTML 报告。验证已覆盖文档/API 契约、FastAPI `make quality`、Django ruff + pytest、前端 `pnpm run quality`、`pnpm run build` 和 `VITE_APP_PORT=9530 pnpm run test:e2e:smoke`。
 
