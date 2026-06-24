@@ -4,6 +4,12 @@
 
 ## 活跃任务
 
+- [ ] P1 串行：RED 增加字典项 FastAPI-only `sort` 字段治理测试，复现 FastAPI 仍保留 `sort`
+- [ ] P2 串行：GREEN 删除 FastAPI 字典项 ORM/schema/service 中的 `sort` 字段读写
+- [ ] P3 串行：修正 FastAPI 字典项相关目标测试、fixture 和运行时契约样例
+- [ ] P4 串行：同步前端字典项 API 类型、数据库文档、技术债和任务状态
+- [ ] P5 串行：执行模型契约校验、双后端目标测试、FastAPI 质量门禁、前端质量检查、根目录校验和 diff 检查
+- [ ] P6 串行：review-gate、提交、PR、CI 和合并
 - [x] P1 串行：RED 扩展字典项字段长度约束契约，复现 FastAPI `DictItems.label/value` 仍为 50
 - [x] P2 串行：GREEN 将 FastAPI 字典项 ORM 与 schema 的 `label/value` 长度收敛到 32
 - [x] P3 串行：补充 FastAPI 字典项长度边界目标测试，确保超过 32 字符被显式拒绝
@@ -163,6 +169,8 @@
 并行判断：下一轮计划处理 FastAPI 字典项 `is_default/remark` 扩展字段收口，变更集中在 ORM、schema、service、字典项测试、数据库文档和技术债，同一字典项模型链路写冲突明显；执行阶段不启用 subagent，验证阶段可并行执行互不写文件的门禁。
 
 并行判断：下一轮计划处理字典项 `label/value` 长度约束统一，变更集中在共享字段约束契约、FastAPI ORM、FastAPI schema、字典项测试、数据库文档和技术债，同一模型契约链路写冲突明显；执行阶段不启用 subagent，验证阶段可并行执行互不写文件的门禁。
+
+并行判断：下一轮计划处理 FastAPI 字典项 `sort` 字段收口，变更集中在 ORM、schema、service、索引契约、字典项测试、前端 API 类型、数据库文档和技术债，同一模型行为链路写冲突明显；执行阶段不启用 subagent，验证阶段可并行执行互不写文件的门禁。
 
 ## 已完成摘要
 
