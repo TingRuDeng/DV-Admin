@@ -128,6 +128,13 @@
 - [x] P5 串行：同步数据库文档、技术债和字典模型治理计划
 - [x] P6 串行：执行模型契约校验、FastAPI 目标测试、FastAPI 质量门禁、Django 目标测试和根目录校验
 - [x] P7 串行：review-gate、提交、PR、CI 和合并
+- [ ] P1 串行：RED 增加字典项 FastAPI-only 字段治理测试，复现 `DictItems.is_default/remark` 仍存在
+- [ ] P2 串行：GREEN 删除 FastAPI 字典项 `is_default/remark` 模型字段
+- [ ] P3 串行：GREEN 同步 FastAPI 字典项 schema/service，停止读写 `is_default/remark`
+- [ ] P4 串行：修正 FastAPI 字典项目标测试、golden fixture 和运行时契约样例
+- [ ] P5 串行：同步数据库文档、技术债和字典模型治理计划
+- [ ] P6 串行：执行模型契约校验、FastAPI 目标测试、FastAPI 质量门禁、Django 目标测试和根目录校验
+- [ ] P7 串行：review-gate、提交、PR、CI 和合并
 
 并行判断：本轮只处理字段契约文件拆分，变更集中在字段契约入口、字段约束契约模块、治理测试和任务状态，存在同一契约链路写冲突；不启用 subagent。
 
@@ -146,6 +153,8 @@
 并行判断：下一轮计划处理 FastAPI 角色-权限、用户-角色关联表命名统一，变更集中在两处 ORM through 表、共享关联契约、M2M 运行时测试、数据库文档和技术债，同一关系模型迁移链路写冲突明显；执行阶段不启用 subagent，验证阶段可并行执行互不写文件的门禁。
 
 并行判断：下一轮计划处理 FastAPI 角色-权限、用户-角色关联表字段命名统一，变更集中在两处 ORM M2M key、共享关联契约、M2M 运行时测试、数据库文档和技术债，同一关系模型迁移链路写冲突明显；执行阶段不启用 subagent，验证阶段可并行执行互不写文件的门禁。
+
+并行判断：下一轮计划处理 FastAPI 字典项 `is_default/remark` 扩展字段收口，变更集中在 ORM、schema、service、字典项测试、数据库文档和技术债，同一字典项模型链路写冲突明显；执行阶段不启用 subagent，验证阶段可并行执行互不写文件的门禁。
 
 ## 已完成摘要
 
