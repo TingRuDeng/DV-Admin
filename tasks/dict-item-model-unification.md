@@ -70,7 +70,7 @@
 - [x] P4 串行：GREEN 同步 `fastapi/app/services/system/dict_service.py::DictService` 字典项创建、更新和返回构造，停止读写 `is_default/remark`。
 - [x] P5 串行：修正 FastAPI 字典项目标测试、Django fixture golden 断言和运行时契约样例，确保双后端字典项写接口仍稳定。
 - [x] P6 串行：同步 `docs/DATABASE_SCHEMA.md`、`docs/TECH_DEBT.md` 和 `tasks/dict-model-unification.md`，移除 `is_default/remark` 剩余差异描述，并记录旧列显式迁移边界。
-- [ ] P7 串行：review-gate、提交、PR、CI 和合并。
+- [x] P7 串行：review-gate、提交、PR、CI 和合并。
 
 ## 涉及文件
 
@@ -117,6 +117,7 @@
 - GREEN：FastAPI `DictItems` 模型、字典项 schema 和 `DictService` 已停止读写 `is_default/remark`；模型契约测试通过（14 passed）。
 - 目标验证：FastAPI 字典项目标测试通过（84 passed），覆盖模型契约、Django fixture 导入、golden fixture、运行时字典写接口、字典 service 和字典项 API。
 - 全量验证：FastAPI `make quality` 通过（535 passed，覆盖率 84.71%）；Django 字典写接口运行时契约测试通过（2 passed）；根目录模型/API/文档/路由组件/Django 迁移校验和 `git diff --check` 均通过。
+- 合并结果：字典项 FastAPI-only 字段收口已通过 PR #161 合并，合并提交为 `d0b7c7740e6251b39d384a7859320b44925758d3`；远端 Django Backend Quality、FastAPI Backend Quality 和 Frontend Quality 均通过。
 
 ## Review 小结
 
