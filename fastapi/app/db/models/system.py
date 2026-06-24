@@ -258,7 +258,6 @@ class DictItems(BaseModel):
 
     label = fields.CharField(max_length=32, description="标签")
     value = fields.CharField(max_length=32, description="值")
-    sort = fields.IntField(default=0, description="排序")
     status = fields.IntField(default=1, description="状态")
 
     # 外键：字典类型
@@ -272,13 +271,13 @@ class DictItems(BaseModel):
 
     class Meta:
         table = "system_dict_items"
-        ordering = ["sort"]
+        ordering = ["dict_data_id", "value"]
         # 数据库索引优化
         indexes = (
             # 单字段索引
             ("status",),
-            # 联合索引 - 字典类型+排序
-            ("dict_data_id", "sort"),
+            # 联合索引 - 字典类型+字典项值
+            ("dict_data_id", "value"),
             # 联合索引 - 字典类型+状态
             ("dict_data_id", "status"),
         )

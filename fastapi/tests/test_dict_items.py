@@ -27,7 +27,6 @@ class TestDictItemCRUD:
             "dict_id": 1,
             "label": "测试",
             "value": "test",
-            "sort": 1,
             "status": 1
         })
         assert response.status_code in [200, 403, 422]
@@ -36,6 +35,5 @@ class TestDictItemCRUD:
         # 需要 dict_items:edit 权限
         response = auth_client.put("/api/v1/system/dict-items/99999/", json={
             "label": "更新",
-            "sort": 2
         })
         assert response.status_code in [200, 403, 404]

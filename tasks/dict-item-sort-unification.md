@@ -67,14 +67,14 @@
 
 ## 执行计划
 
-- [ ] P1 串行：RED 增加模型契约测试，复现 FastAPI `DictItems.sort` 仍存在。
-- [ ] P2 串行：GREEN 删除 `fastapi/app/db/models/system.py::DictItems.sort`，同步 `Meta.ordering` 和索引定义。
-- [ ] P3 串行：GREEN 删除 `fastapi/app/schemas/system.py` 中字典项 create/update/out 的 `sort` 字段。
-- [ ] P4 串行：GREEN 修改 `fastapi/app/services/system/dict_service.py::DictService`，停止读写 `sort`，并把字典项排序改为稳定的 `dict_data_id/value` 或等价顺序。
-- [ ] P5 串行：修正 FastAPI 字典项 service、运行时契约、fixture 导入和 golden fixture 测试，移除 `sort` 断言和样例输入。
-- [ ] P6 串行：同步 `frontend/src/api/system/dict-items-api.ts`，移除字典项类型中的可选 `sort` 字段。
-- [ ] P7 串行：同步 `docs/DATABASE_SCHEMA.md`、`docs/TECH_DEBT.md`、当前任务文件和 `tasks/todo.md`，标记模型差异收敛状态。
-- [ ] P8 串行：执行模型契约校验、FastAPI 目标测试、FastAPI 质量门禁、Django 目标测试、前端类型/质量检查、根目录校验和 diff 检查。
+- [x] P1 串行：RED 增加模型契约测试，复现 FastAPI `DictItems.sort` 仍存在。
+- [x] P2 串行：GREEN 删除 `fastapi/app/db/models/system.py::DictItems.sort`，同步 `Meta.ordering` 和索引定义。
+- [x] P3 串行：GREEN 删除 `fastapi/app/schemas/system.py` 中字典项 create/update/out 的 `sort` 字段。
+- [x] P4 串行：GREEN 修改 `fastapi/app/services/system/dict_service.py::DictService`，停止读写 `sort`，并把字典项排序改为稳定的 `dict_data_id/value` 或等价顺序。
+- [x] P5 串行：修正 FastAPI 字典项 service、运行时契约、fixture 导入和 golden fixture 测试，移除 `sort` 断言和样例输入。
+- [x] P6 串行：同步 `frontend/src/api/system/dict-items-api.ts`，移除字典项类型中的可选 `sort` 字段。
+- [x] P7 串行：同步 `docs/DATABASE_SCHEMA.md`、`docs/TECH_DEBT.md`、当前任务文件和 `tasks/todo.md`，标记模型差异收敛状态。
+- [x] P8 串行：执行模型契约校验、FastAPI 目标测试、FastAPI 质量门禁、Django 目标测试、前端类型/质量检查、根目录校验和 diff 检查。
 - [ ] P9 串行：review-gate、提交、PR、CI 和合并。
 
 ## 涉及文件
@@ -118,8 +118,12 @@
 
 ## 进度记录
 
-- 待执行。
+- RED：`cd fastapi && uv run pytest tests/test_import_django_model_contracts.py -q` 失败，新增断言捕获 `DictItems.sort` 仍存在，符合预期。
+- GREEN：FastAPI `DictItems.sort` 已删除；字典项 schema/service 停止读写 `sort`；字典项列表排序改为 `dict_data_id/value` 或字典内 `value`；FastAPI 字典项测试、运行时契约样例、fixture golden 和前端 API 类型已移除字典项 `sort`。
+- 目标验证：`python3 scripts/validate_model_contracts.py .` 通过；`cd fastapi && uv run pytest tests/test_import_django_model_contracts.py tests/test_import_django_data.py tests/test_import_django_data_golden.py tests/runtime_api_contracts/test_dict_write_contracts.py tests/test_dict_service.py tests/test_dict_items.py -q` 通过（88 passed）。
+- 完整验证：`cd fastapi && make quality` 通过（539 passed，覆盖率 84.70%）；`cd backend && uv run pytest drf_admin/utils/test_model_contracts.py drf_admin/utils/runtime_api_contracts/test_dict_write_contracts.py -q` 通过（6 passed）；`cd frontend && pnpm run quality` 通过（64 个测试文件、172 个测试）；`python3 scripts/validate_docs.py . --profile generic`、`python3 scripts/validate_api_contracts.py .`、`git diff --check` 均通过。
+- 最终轻量复核：文档措辞修正后，`python3 scripts/validate_docs.py . --profile generic`、`python3 scripts/validate_model_contracts.py .`、`python3 scripts/validate_api_contracts.py .`、`git diff --check` 均通过。
 
 ## Review 小结
 
-- 待 review-gate 后补充。
+- Review-gate：finished；Spec 符合度通过，本轮只移除 FastAPI 字典项 `sort` 扩展字段，并同步 schema、service、目标测试、前端 API 类型、数据库文档和技术债；安全检查未发现新增 secret、mock、静默兼容或 fallback；复杂度检查通过，本轮以删除字段读写和稳定排序替换为主，没有新增复杂分支；Document-refresh: done，数据库字段事实、排序/索引说明和技术债状态已同步；剩余风险是已有 FastAPI 数据库如果仍存在旧列 `sort`，需要显式迁移删除或忽略，且 `fastapi/app/schemas/system.py`、`fastapi/app/services/system/dict_service.py`、`fastapi/tests/test_dict_service.py` 仍为既有超 300 行文件，后续应单独拆分治理。
