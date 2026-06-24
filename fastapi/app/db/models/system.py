@@ -256,8 +256,8 @@ class DictItems(BaseModel):
     定义字典的具体数据项。
     """
 
-    label = fields.CharField(max_length=50, description="标签")
-    value = fields.CharField(max_length=50, description="值")
+    label = fields.CharField(max_length=32, description="标签")
+    value = fields.CharField(max_length=32, description="值")
     sort = fields.IntField(default=0, description="排序")
     status = fields.IntField(default=1, description="状态")
 

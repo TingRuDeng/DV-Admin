@@ -66,12 +66,12 @@
 
 ## 执行计划
 
-- [ ] P1 串行：RED 扩展 `scripts/model_field_constraint_contracts.py` 的字典项字段约束，并运行模型契约校验，复现 FastAPI `DictItems.label/value` 仍为 `50`。
-- [ ] P2 串行：GREEN 修改 `fastapi/app/db/models/system.py::DictItems.label/value`，将 `max_length` 从 `50` 收敛到 `32`。
-- [ ] P3 串行：GREEN 修改 `fastapi/app/schemas/system.py::DictItemBase` 和 `DictItemUpdate`，为 `label/value` 增加 `max_length=32`。
-- [ ] P4 串行：补充或调整 FastAPI 字典项 schema / service 目标测试，确保 32 字符以内正常、超过 32 字符被显式拒绝。
-- [ ] P5 串行：同步 `docs/DATABASE_SCHEMA.md`、`docs/TECH_DEBT.md` 和当前任务状态，移除字典项长度差异，只保留 `sort` 字段差异。
-- [ ] P6 串行：执行模型契约校验、FastAPI 目标测试、FastAPI 质量门禁、Django 目标测试、根目录文档校验和 `git diff --check`。
+- [x] P1 串行：RED 扩展 `scripts/model_field_constraint_contracts.py` 的字典项字段约束，并运行模型契约校验，复现 FastAPI `DictItems.label/value` 仍为 `50`。
+- [x] P2 串行：GREEN 修改 `fastapi/app/db/models/system.py::DictItems.label/value`，将 `max_length` 从 `50` 收敛到 `32`。
+- [x] P3 串行：GREEN 修改 `fastapi/app/schemas/system.py::DictItemBase` 和 `DictItemUpdate`，为 `label/value` 增加 `max_length=32`。
+- [x] P4 串行：补充或调整 FastAPI 字典项 schema / service 目标测试，确保 32 字符以内正常、超过 32 字符被显式拒绝。
+- [x] P5 串行：同步 `docs/DATABASE_SCHEMA.md`、`docs/TECH_DEBT.md` 和当前任务状态，移除字典项长度差异，只保留 `sort` 字段差异。
+- [x] P6 串行：执行模型契约校验、FastAPI 目标测试、FastAPI 质量门禁、Django 目标测试、根目录文档校验和 `git diff --check`。
 - [ ] P7 串行：review-gate、提交、PR、CI 和合并。
 
 ## 涉及文件
@@ -111,8 +111,11 @@
 
 ## 进度记录
 
-- 待执行。
+- RED：`python3 scripts/validate_model_contracts.py .` 失败，输出 `DictItems.label max_length 应为 32，实际为 50` 和 `DictItems.value max_length 应为 32，实际为 50`，符合预期。
+- GREEN：FastAPI `DictItems.label/value` ORM 长度已收敛到 32；`DictItemCreate` 和 `DictItemUpdate` 已增加 `max_length=32` 输入校验；`fastapi/tests/test_dict_service.py` 已补超长 `label/value` 拒绝测试。
+- 目标验证：`python3 scripts/validate_model_contracts.py .` 通过；`cd fastapi && uv run pytest tests/test_import_django_model_contracts.py tests/runtime_api_contracts/test_dict_write_contracts.py tests/test_dict_service.py tests/test_dict_items.py -q` 通过（69 passed）。
+- 全量验证：`cd fastapi && make quality` 通过（539 passed，覆盖率 84.71%）；`cd backend && uv run pytest drf_admin/utils/test_model_contracts.py drf_admin/utils/runtime_api_contracts/test_dict_write_contracts.py -q` 通过（6 passed）；`python3 scripts/validate_docs.py . --profile generic`、`python3 scripts/validate_model_contracts.py .` 和 `git diff --check` 均通过。
 
 ## Review 小结
 
-- 待 review-gate 后补充。
+Review-gate：finished；Spec 符合度通过，本轮只统一字典项 `label/value` 长度约束，不修改 Django 模型、前端页面或 `sort` 字段行为；安全检查未发现新增 secret、mock、fallback 或静默截断；测试与验证覆盖 RED、模型契约、FastAPI 目标测试、FastAPI `make quality`、Django 目标测试、文档校验和 diff 检查；复杂度检查通过，本轮只改字段约束和 schema 边界，并新增 4 个目标测试，未新增复杂分支；Document-refresh: needed，原因：数据库字典项字段事实和技术债状态已变化；剩余风险是已有 FastAPI 数据库如果存在 33-50 字符的 `label/value` 旧值，需要在部署迁移前显式清理，且字典项 `sort` 字段仍需后续独立治理。

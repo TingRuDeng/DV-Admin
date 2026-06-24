@@ -18,7 +18,7 @@
 - `backend/drf_admin/apps/system/models.py` 中 `Dicts.dict_code` 是 `max_length=32` 且 `unique=True`。
 - `fastapi/app/db/models/system.py` 中 `DictData.dict_code` 是 `max_length=32` 且 `unique=True`。
 - `fastapi/app/db/models/system.py` 中 `DictData.remark` 已与 Django 保持同名，但长度仍为 FastAPI 侧 100、Django 侧 50。
-- `docs/TECH_DEBT.md` 已把 Django 和 FastAPI 模型差异列为中优先级技术债，当前剩余重点是字典项长度约束和排序字段差异。
+- `docs/TECH_DEBT.md` 已把 Django 和 FastAPI 模型差异列为中优先级技术债，当前剩余重点是字典项排序字段差异。
 
 ## 设计原则
 
