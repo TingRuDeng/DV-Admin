@@ -72,7 +72,7 @@
 - [x] P4 串行：补充或调整 FastAPI 字典项 schema / service 目标测试，确保 32 字符以内正常、超过 32 字符被显式拒绝。
 - [x] P5 串行：同步 `docs/DATABASE_SCHEMA.md`、`docs/TECH_DEBT.md` 和当前任务状态，移除字典项长度差异，只保留 `sort` 字段差异。
 - [x] P6 串行：执行模型契约校验、FastAPI 目标测试、FastAPI 质量门禁、Django 目标测试、根目录文档校验和 `git diff --check`。
-- [ ] P7 串行：review-gate、提交、PR、CI 和合并。
+- [x] P7 串行：review-gate、提交、PR、CI 和合并。
 
 ## 涉及文件
 
@@ -115,6 +115,7 @@
 - GREEN：FastAPI `DictItems.label/value` ORM 长度已收敛到 32；`DictItemCreate` 和 `DictItemUpdate` 已增加 `max_length=32` 输入校验；`fastapi/tests/test_dict_service.py` 已补超长 `label/value` 拒绝测试。
 - 目标验证：`python3 scripts/validate_model_contracts.py .` 通过；`cd fastapi && uv run pytest tests/test_import_django_model_contracts.py tests/runtime_api_contracts/test_dict_write_contracts.py tests/test_dict_service.py tests/test_dict_items.py -q` 通过（69 passed）。
 - 全量验证：`cd fastapi && make quality` 通过（539 passed，覆盖率 84.71%）；`cd backend && uv run pytest drf_admin/utils/test_model_contracts.py drf_admin/utils/runtime_api_contracts/test_dict_write_contracts.py -q` 通过（6 passed）；`python3 scripts/validate_docs.py . --profile generic`、`python3 scripts/validate_model_contracts.py .` 和 `git diff --check` 均通过。
+- 合并结果：字典项长度约束统一已通过 PR #164 合并，合并提交为 `7b00cdb`；远端 Django Backend Quality、FastAPI Backend Quality 和 Frontend Quality 均通过。
 
 ## Review 小结
 
