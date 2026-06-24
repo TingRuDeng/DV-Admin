@@ -77,7 +77,7 @@
 - [x] P4 串行：执行并修正 FastAPI M2M 目标测试，覆盖角色权限分配、用户角色关系、Django fixture 导入和运行时权限链路。
 - [x] P5 串行：同步数据库文档、技术债和字典模型治理计划，移除关联表字段命名差异描述，保留显式迁移边界说明。
 - [x] P6 串行：执行模型契约校验、FastAPI 目标测试、FastAPI `make quality`、Django 目标测试和根目录校验。
-- [ ] P7 串行：review-gate、提交、PR、CI 和合并。
+- [x] P7 串行：review-gate、提交、PR、CI 和合并。
 
 ## 涉及文件
 
@@ -127,6 +127,7 @@
 - GREEN：FastAPI `Roles.permissions` 和 `Users.roles` 的 `backward_key/forward_key` 已统一到 Django 命名，共享关联契约已同步；模型契约测试通过（13 passed）。
 - 目标验证：FastAPI M2M 目标测试通过（112 passed），覆盖 Django fixture 导入、golden fixture、运行时写接口、角色服务和用户服务。
 - 全量验证：FastAPI `make quality` 通过（534 passed，覆盖率 84.74%）；Django 模型契约测试通过（4 passed）；根目录模型/API/文档/路由组件/Django 迁移校验和 `git diff --check` 均通过。
+- 合并结果：关联表字段命名统一已通过 PR #158 合并，合并提交为 `11eeda849cfdc6bd3188150c5df2ca07c0d26c6f`；远端 Django Backend Quality、FastAPI Backend Quality 和 Frontend Quality 均通过。
 
 ## Review 小结
 
