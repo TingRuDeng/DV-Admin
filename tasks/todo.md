@@ -4,11 +4,11 @@
 
 ## 活跃任务
 
-- [ ] P1 串行：RED 扩展字典项字段长度约束契约，复现 FastAPI `DictItems.label/value` 仍为 50
-- [ ] P2 串行：GREEN 将 FastAPI 字典项 ORM 与 schema 的 `label/value` 长度收敛到 32
-- [ ] P3 串行：补充 FastAPI 字典项长度边界目标测试，确保超过 32 字符被显式拒绝
-- [ ] P4 串行：同步数据库文档、技术债和字典项长度治理计划
-- [ ] P5 串行：执行模型契约校验、双后端目标测试、FastAPI 质量门禁、根目录校验和 diff 检查
+- [x] P1 串行：RED 扩展字典项字段长度约束契约，复现 FastAPI `DictItems.label/value` 仍为 50
+- [x] P2 串行：GREEN 将 FastAPI 字典项 ORM 与 schema 的 `label/value` 长度收敛到 32
+- [x] P3 串行：补充 FastAPI 字典项长度边界目标测试，确保超过 32 字符被显式拒绝
+- [x] P4 串行：同步数据库文档、技术债和字典项长度治理计划
+- [x] P5 串行：执行模型契约校验、双后端目标测试、FastAPI 质量门禁、根目录校验和 diff 检查
 - [ ] P6 串行：review-gate、提交、PR、CI 和合并
 - [x] P1 串行：RED 补充部门树关键端点目录测试，复现缺少 `depts_tree`
 - [x] P2 串行：GREEN 将部门树纳入共享端点目录和双后端运行时抽样

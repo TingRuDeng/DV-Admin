@@ -20,7 +20,7 @@
 - `fastapi/app/schemas/system.py::DictItemBase`、`DictItemUpdate`、`DictItemOut` 已移除 `is_default/remark`。
 - `fastapi/app/services/system/dict_service.py::DictService.create_item_flat`、`update_item_flat` 和相关返回构造已停止读写 `is_default/remark`。
 - `frontend/src/api/system/dict-items-api.ts::DictItemForm`、`DictItemPageVO` 不声明 `isDefault/is_default/remark`，当前生产页面 `frontend/src/views/system/dict/dict-item.vue` 和 `DictItemFormDrawer.vue` 也不展示或提交这两个字段。
-- `docs/DATABASE_SCHEMA.md` 和 `docs/TECH_DEBT.md` 已移除字典项 `is_default/remark` 剩余差异描述，当前剩余差异集中在 `label/value` 长度约束和 `sort` 字段。
+- `docs/DATABASE_SCHEMA.md` 和 `docs/TECH_DEBT.md` 已移除字典项 `is_default/remark` 剩余差异描述，字典项 `label/value` 长度约束已统一，当前剩余差异集中在 `sort` 字段。
 
 ## 设计原则
 
@@ -34,7 +34,7 @@
 - Django 是当前模型命名和表结构对齐的参照端。
 - 前端字典项 API 类型和页面没有使用 `is_default/remark`，删除这两个 FastAPI 字段的用户可见影响较低。
 - FastAPI service/schema 仍读写这两个字段，直接删 ORM 字段前必须同步 schema/service/tests，否则运行时写接口会失败。
-- `label/value` 长度和 `sort` 字段仍可能影响前端现有体验，应后续独立规划。
+- `sort` 字段仍可能影响前端现有体验，应后续独立规划。
 
 ## 方案对比
 

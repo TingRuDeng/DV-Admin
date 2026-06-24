@@ -223,8 +223,8 @@ ai_summary:
 | 字段 | 类型 | 说明 | 约束 |
 |------|------|------|------|
 | id | int | 主键 | PK, Auto |
-| label | varchar(32/50) | 标签 | Not Null |
-| value | varchar(32/50) | 值 | Not Null |
+| label | varchar(32) | 标签 | Not Null |
+| value | varchar(32) | 值 | Not Null |
 | sort | int | 排序 | FastAPI only, Default: 0 |
 | status | int | 状态 | 0:禁用, 1:启用 |
 | tag_type | varchar(32) | 标签类型 | |
@@ -357,7 +357,7 @@ Django 和 FastAPI 后端在模型定义上存在一些差异：
 
 **注意：** 迁移数据时需要处理这些差异。已有 FastAPI 数据库如果仍使用旧表 `system_dict_data`、`system_roles_permissions`、`system_users_roles`，仍使用旧关联字段 `user_id/role_id/permission_id`，或仍保留旧字典项扩展字段 `is_default/remark`，需要通过显式数据库迁移重命名、复制或删除旧结构，代码不会提供双表、双字段或扩展字段静默兼容。
 
-字典主表表名已统一为 `system_dicts`。字典主表内部字段已统一为 `dict_code/remark`；用户-角色和角色-权限关联表名、关联字段已统一到 Django 命名；FastAPI 字典项 `is_default/remark` 扩展字段已移除。当前剩余差异集中在字典项长度约束和排序字段。
+字典主表表名已统一为 `system_dicts`。字典主表内部字段已统一为 `dict_code/remark`；用户-角色和角色-权限关联表名、关联字段已统一到 Django 命名；FastAPI 字典项 `is_default/remark` 扩展字段已移除，字典项 `label/value` 长度约束已统一为 32。当前剩余差异集中在字典项排序字段。
 
 ### Django Fixture 导入约束
 
