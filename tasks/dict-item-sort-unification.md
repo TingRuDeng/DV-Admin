@@ -75,7 +75,7 @@
 - [x] P6 串行：同步 `frontend/src/api/system/dict-items-api.ts`，移除字典项类型中的可选 `sort` 字段。
 - [x] P7 串行：同步 `docs/DATABASE_SCHEMA.md`、`docs/TECH_DEBT.md`、当前任务文件和 `tasks/todo.md`，标记模型差异收敛状态。
 - [x] P8 串行：执行模型契约校验、FastAPI 目标测试、FastAPI 质量门禁、Django 目标测试、前端类型/质量检查、根目录校验和 diff 检查。
-- [ ] P9 串行：review-gate、提交、PR、CI 和合并。
+- [x] P9 串行：review-gate、提交、PR、CI 和合并。
 
 ## 涉及文件
 
@@ -123,6 +123,7 @@
 - 目标验证：`python3 scripts/validate_model_contracts.py .` 通过；`cd fastapi && uv run pytest tests/test_import_django_model_contracts.py tests/test_import_django_data.py tests/test_import_django_data_golden.py tests/runtime_api_contracts/test_dict_write_contracts.py tests/test_dict_service.py tests/test_dict_items.py -q` 通过（88 passed）。
 - 完整验证：`cd fastapi && make quality` 通过（539 passed，覆盖率 84.70%）；`cd backend && uv run pytest drf_admin/utils/test_model_contracts.py drf_admin/utils/runtime_api_contracts/test_dict_write_contracts.py -q` 通过（6 passed）；`cd frontend && pnpm run quality` 通过（64 个测试文件、172 个测试）；`python3 scripts/validate_docs.py . --profile generic`、`python3 scripts/validate_api_contracts.py .`、`git diff --check` 均通过。
 - 最终轻量复核：文档措辞修正后，`python3 scripts/validate_docs.py . --profile generic`、`python3 scripts/validate_model_contracts.py .`、`python3 scripts/validate_api_contracts.py .`、`git diff --check` 均通过。
+- 远端交付：PR #168 已合并，merge commit 为 `2d71dbe`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 
 ## Review 小结
 
