@@ -40,7 +40,6 @@ async def test_dict_item_for_service(db, test_dict_data_for_service):
     item = await DictItems.create(
         label=f"测试项_{uuid.uuid4().hex[:6]}",
         value=f"test_value_{uuid.uuid4().hex[:6]}",
-        sort=1,
         status=1,
         dict_data_id=test_dict_data_for_service.id,
     )
@@ -385,7 +384,6 @@ class TestDictServiceCreateItem:
             DictItemCreate(
                 label="测" * 33,
                 value="valid_value",
-                sort=1,
                 status=1,
                 dict_data_id=1,
             )
@@ -396,7 +394,6 @@ class TestDictServiceCreateItem:
             DictItemCreate(
                 label="有效标签",
                 value="v" * 33,
-                sort=1,
                 status=1,
                 dict_data_id=1,
             )
@@ -407,7 +404,6 @@ class TestDictServiceCreateItem:
         item_data = DictItemCreate(
             label=f"新字典项_{uuid.uuid4().hex[:8]}",
             value=f"new_value_{uuid.uuid4().hex[:8]}",
-            sort=1,
             status=1,
             dict_data_id=test_dict_data_for_service.id,
         )
@@ -424,7 +420,6 @@ class TestDictServiceCreateItem:
         item_data = DictItemCreate(
             label=f"字典项_{uuid.uuid4().hex[:8]}",
             value=f"value_{uuid.uuid4().hex[:8]}",
-            sort=1,
             status=1,
             dict_data_id=99999,
         )
@@ -435,12 +430,11 @@ class TestDictServiceCreateItem:
         assert "字典类型不存在" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_create_item_with_sort_and_status(self, db, test_dict_data_for_service):
-        """测试创建字典项包含排序和状态字段"""
+    async def test_create_item_with_status(self, db, test_dict_data_for_service):
+        """测试创建字典项包含状态字段"""
         item_data = DictItemCreate(
             label=f"完整字典项_{uuid.uuid4().hex[:8]}",
             value=f"full_value_{uuid.uuid4().hex[:8]}",
-            sort=10,
             status=1,
             dict_data_id=test_dict_data_for_service.id,
         )
@@ -449,7 +443,6 @@ class TestDictServiceCreateItem:
 
         assert result.label == item_data.label
         assert result.value == item_data.value
-        assert result.sort == 10
         assert result.status == 1
 
 
@@ -517,7 +510,6 @@ class TestDictServiceDeleteItem:
         item_to_delete = await DictItems.create(
             label=f"待删除项_{uuid.uuid4().hex[:8]}",
             value=f"del_value_{uuid.uuid4().hex[:8]}",
-            sort=1,
             status=1,
             dict_data_id=test_dict_data_for_service.id,
         )
@@ -548,7 +540,6 @@ class TestDictServiceCreateItemFlat:
         item_data = DictItemCreate(
             label=f"扁平项_{uuid.uuid4().hex[:8]}",
             value=f"flat_value_{uuid.uuid4().hex[:8]}",
-            sort=1,
             status=1,
             dict_data_id=test_dict_data_for_service.id,
         )
@@ -565,7 +556,6 @@ class TestDictServiceCreateItemFlat:
         item_data = DictItemCreate(
             label=f"字典项_{uuid.uuid4().hex[:8]}",
             value=f"value_{uuid.uuid4().hex[:8]}",
-            sort=1,
             status=1,
             dict_data_id=99999,
         )
@@ -613,7 +603,6 @@ class TestDictServiceDeleteItemFlat:
         item_to_delete = await DictItems.create(
             label=f"扁平删除项_{uuid.uuid4().hex[:8]}",
             value=f"flat_del_value_{uuid.uuid4().hex[:8]}",
-            sort=1,
             status=1,
             dict_data_id=test_dict_data_for_service.id,
         )
@@ -647,7 +636,6 @@ class TestDictServiceBatchDeleteItemsFlat:
             item = await DictItems.create(
                 label=f"批量项_{i}_{uuid.uuid4().hex[:8]}",
                 value=f"batch_value_{i}_{uuid.uuid4().hex[:8]}",
-                sort=i,
                 status=1,
                 dict_data_id=test_dict_data_for_service.id,
             )
@@ -721,7 +709,6 @@ class TestDictServiceGetItemsByCode:
         active_item = await DictItems.create(
             label="激活项",
             value="active_value",
-            sort=1,
             status=1,
             dict_data_id=dict_data.id,
         )
@@ -730,7 +717,6 @@ class TestDictServiceGetItemsByCode:
         inactive_item = await DictItems.create(
             label="禁用项",
             value="inactive_value",
-            sort=2,
             status=0,
             dict_data_id=dict_data.id,
         )

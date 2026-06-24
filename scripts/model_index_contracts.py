@@ -63,7 +63,7 @@ FASTAPI_MODEL_INDEX_CONTRACTS: tuple[FastapiModelIndexContract, ...] = (
         fastapi_model="DictItems",
         indexes=(
             ("status",),
-            ("dict_data_id", "sort"),
+            ("dict_data_id", "value"),
             ("dict_data_id", "status"),
         ),
     ),

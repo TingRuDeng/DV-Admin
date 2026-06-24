@@ -94,7 +94,7 @@ def assert_dict_item_create_contract(context: SimpleWriteContext, dict_id: int) 
     contract = context.contracts["dict_items_create"]
     response = context.client.post(
         contract.path,
-        json={"dict": dict_id, "label": "FastAPI 标签", "value": "fastapi", "status": 1, "sort": 11},
+        json={"dict": dict_id, "label": "FastAPI 标签", "value": "fastapi", "status": 1},
     )
     data = assert_success_payload(response, contract)
     assert data["dict"] == dict_id
@@ -112,12 +112,10 @@ def assert_dict_item_update_contract(context: SimpleWriteContext, item_id: int, 
             "label": "FastAPI 标签已更新",
             "value": "fastapi_updated",
             "status": 1,
-            "sort": 12,
         },
     )
     data = assert_success_payload(response, contract)
     assert data["label"] == "FastAPI 标签已更新"
-    assert data["sort"] == 12
 
 
 def assert_dict_item_delete_contract(context: SimpleWriteContext, item_id: int) -> None:
