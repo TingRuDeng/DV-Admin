@@ -55,7 +55,7 @@ GOLDEN_FIXTURE_ROWS = [
     {
         "model": "system.dictitems",
         "pk": 31,
-        "fields": {"label": "启用", "value": "1", "sort": 1, "status": 1, "dict": 30},
+        "fields": {"label": "启用", "value": "1", "status": 1, "dict": 30},
     },
     {
         "model": "system.roles",

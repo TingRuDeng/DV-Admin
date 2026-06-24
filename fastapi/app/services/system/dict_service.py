@@ -98,7 +98,6 @@ class DictService:
                     id=item.id,
                     label=item.label,
                     value=item.value,
-                    sort=item.sort,
                     status=item.status,
                     dict_data_id=item.dict_data_id,
                     created_at=item.created_at,
@@ -222,14 +221,13 @@ class DictService:
             query = query.filter(dict_data__dict_code=code)
 
         total = await query.count()
-        items = await query.order_by("sort").offset((page - 1) * page_size).limit(page_size).all()
+        items = await query.order_by("dict_data_id", "value").offset((page - 1) * page_size).limit(page_size).all()
 
         item_list = [
             DictItemOut(
                 id=item.id,
                 label=item.label,
                 value=item.value,
-                sort=item.sort,
                 status=item.status,
                 dict_data_id=item.dict_data_id,
                 created_at=item.created_at,
@@ -250,14 +248,13 @@ class DictService:
         if not dict_data:
             raise NotFound("字典类型不存在")
 
-        items = await DictItems.filter(dict_data_id=dict_id).order_by("sort").all()
+        items = await DictItems.filter(dict_data_id=dict_id).order_by("value").all()
 
         return [
             DictItemOut(
                 id=item.id,
                 label=item.label,
                 value=item.value,
-                sort=item.sort,
                 status=item.status,
                 dict_data_id=item.dict_data_id,
                 created_at=item.created_at,
@@ -277,7 +274,6 @@ class DictService:
         item = await DictItems.create(
             label=item_data.label,
             value=item_data.value,
-            sort=item_data.sort,
             status=item_data.status,
             dict_data_id=dict_id,
         )
@@ -289,7 +285,6 @@ class DictService:
             id=item.id,
             label=item.label,
             value=item.value,
-            sort=item.sort,
             status=item.status,
             dict_data_id=item.dict_data_id,
             created_at=item.created_at,
@@ -322,7 +317,6 @@ class DictService:
             id=item.id,
             label=item.label,
             value=item.value,
-            sort=item.sort,
             status=item.status,
             dict_data_id=item.dict_data_id,
             created_at=item.created_at,
@@ -356,7 +350,6 @@ class DictService:
         item = await DictItems.create(
             label=item_data.label,
             value=item_data.value,
-            sort=item_data.sort,
             status=item_data.status,
             dict_data_id=item_data.dict_data_id,
         )
@@ -368,7 +361,6 @@ class DictService:
             id=item.id,
             label=item.label,
             value=item.value,
-            sort=item.sort,
             status=item.status,
             dict_data_id=item.dict_data_id,
             created_at=item.created_at,
@@ -401,7 +393,6 @@ class DictService:
             id=item.id,
             label=item.label,
             value=item.value,
-            sort=item.sort,
             status=item.status,
             dict_data_id=item.dict_data_id,
             created_at=item.created_at,
@@ -452,7 +443,7 @@ class DictService:
 
             items = (
                 await DictItems.filter(dict_data_id=dict_data.id, status=1)
-                .order_by("sort")
+                .order_by("value")
                 .all()
             )
 
@@ -461,7 +452,6 @@ class DictService:
                     "id": item.id,
                     "label": item.label,
                     "value": item.value,
-                    "sort": item.sort,
                     "status": item.status,
                     "dict_data_id": item.dict_data_id,
                     "created_at": item.created_at.isoformat() if item.created_at else None,

@@ -76,8 +76,6 @@ export interface DictItemPageVO {
   label: string;
   /** 状态(1:启用;0:禁用) */
   status: number;
-  /** 排序 */
-  sort?: number;
 }
 
 export interface DictItemForm {
@@ -93,8 +91,6 @@ export interface DictItemForm {
   label?: string;
   /** 状态(1:启用;0:禁用) */
   status?: number;
-  /** 排序 */
-  sort?: number;
   /** 标签类型 */
   tagType?: "success" | "warning" | "info" | "primary" | "danger" | "";
 }
