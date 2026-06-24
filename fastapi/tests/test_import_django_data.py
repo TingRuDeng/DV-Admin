@@ -126,7 +126,6 @@ class TestImportDjangoData:
         item = await DictItems.create(
             label=f"启用_{uuid.uuid4().hex[:6]}",
             value="1",
-            sort=1,
             status=1,
             dict_data_id=dict_data.id,
         )

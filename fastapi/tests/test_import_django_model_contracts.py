@@ -124,6 +124,7 @@ def test_dict_item_model_does_not_keep_fastapi_only_fields():
 
     assert "is_default" not in model._meta.fields_map
     assert "remark" not in model._meta.fields_map
+    assert "sort" not in model._meta.fields_map
 
 
 def test_fastapi_model_indexes_match_shared_contracts():
