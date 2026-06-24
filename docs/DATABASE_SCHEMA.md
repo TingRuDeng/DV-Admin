@@ -352,7 +352,6 @@ Django 和 FastAPI 后端在模型定义上存在一些差异：
 
 | 差异项 | Django | FastAPI |
 |-------|--------|---------|
-| 字典项标签/值长度 | `varchar(32)` | `varchar(50)` |
 | 字典项排序字段 | 无 | `sort` |
 
 **注意：** 迁移数据时需要处理这些差异。已有 FastAPI 数据库如果仍使用旧表 `system_dict_data`、`system_roles_permissions`、`system_users_roles`，仍使用旧关联字段 `user_id/role_id/permission_id`，或仍保留旧字典项扩展字段 `is_default/remark`，需要通过显式数据库迁移重命名、复制或删除旧结构，代码不会提供双表、双字段或扩展字段静默兼容。
