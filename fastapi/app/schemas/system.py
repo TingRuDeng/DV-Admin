@@ -421,8 +421,6 @@ class DictItemBase(BaseSchema):
     value: str = Field(description="值")
     sort: int = Field(default=0, description="排序")
     status: int = Field(default=1, description="状态")
-    is_default: bool = Field(default=False, description="是否默认")
-    remark: str = Field(default="", description="备注")
 
 
 class DictItemCreate(DictItemBase):
@@ -442,8 +440,6 @@ class DictItemUpdate(BaseSchema):
     value: str | None = Field(default=None, description="值")
     sort: int | None = Field(default=None, description="排序")
     status: int | None = Field(default=None, description="状态")
-    is_default: bool | None = Field(default=None, description="是否默认")
-    remark: str | None = Field(default=None, description="备注")
 
 
 class DictItemOut(TimestampSchema):
@@ -453,8 +449,6 @@ class DictItemOut(TimestampSchema):
     value: str = Field(description="值")
     sort: int = Field(default=0, description="排序")
     status: int = Field(default=1, description="状态")
-    is_default: bool = Field(default=False, description="是否默认")
-    remark: str | None = Field(default=None, description="备注")
     dict_data_id: int = Field(description="字典类型ID", serialization_alias="dict")
 
 
