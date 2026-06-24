@@ -260,8 +260,6 @@ class DictItems(BaseModel):
     value = fields.CharField(max_length=50, description="值")
     sort = fields.IntField(default=0, description="排序")
     status = fields.IntField(default=1, description="状态")
-    is_default = fields.BooleanField(default=False, description="是否默认")
-    remark = fields.CharField(max_length=100, default="", description="备注")
 
     # 外键：字典类型
     dict_data: fields.ForeignKeyRelation[DictData] = fields.ForeignKeyField(
