@@ -4,7 +4,10 @@
 
 ## 活跃任务
 
-- 当前无未完成活跃任务。
+- [ ] P1 串行：规划 FastAPI 字典服务测试拆分，明确超 300 行测试文件治理边界
+- [ ] P2 串行：等待 HARD-GATE 后拆分 `fastapi/tests/test_dict_service.py`
+- [ ] P3 串行：执行目标测试、FastAPI 质量门禁、文档校验和 diff 检查
+- [ ] P4 串行：review-gate、提交、PR、CI 和合并
 
 ## 最近完成
 
