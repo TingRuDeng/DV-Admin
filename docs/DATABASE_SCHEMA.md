@@ -343,8 +343,8 @@ ai_summary:
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| roles_id / role_id | int | 角色ID |
-| permissions_id / permission_id | int | 权限ID |
+| roles_id | int | 角色ID |
+| permissions_id | int | 权限ID |
 
 ---
 
@@ -354,13 +354,12 @@ Django 和 FastAPI 后端在模型定义上存在一些差异：
 
 | 差异项 | Django | FastAPI |
 |-------|--------|---------|
-| 角色-权限关联字段 | `roles_id / permissions_id` | `role_id / permission_id` |
 | 字典项默认值字段 | 无 | `is_default` |
 | 字典项备注字段 | 无 | `remark` |
 
-**注意：** 迁移数据时需要处理这些差异。已有 FastAPI 数据库如果仍使用旧表 `system_dict_data`、`system_roles_permissions` 或 `system_users_roles`，需要通过显式数据库迁移重命名或复制到目标表，代码不会提供双表静默兼容。
+**注意：** 迁移数据时需要处理这些差异。已有 FastAPI 数据库如果仍使用旧表 `system_dict_data`、`system_roles_permissions`、`system_users_roles`，或仍使用旧关联字段 `user_id/role_id/permission_id`，需要通过显式数据库迁移重命名或复制到目标表和目标字段，代码不会提供双表或双字段静默兼容。
 
-字典主表表名已统一为 `system_dicts`。字典主表内部字段已统一为 `dict_code/remark`；用户-角色和角色-权限关联表名已统一到 Django 命名。当前剩余差异集中在字典项字段和关联表字段。
+字典主表表名已统一为 `system_dicts`。字典主表内部字段已统一为 `dict_code/remark`；用户-角色和角色-权限关联表名、关联字段已统一到 Django 命名。当前剩余差异集中在字典项字段。
 
 ### Django Fixture 导入约束
 

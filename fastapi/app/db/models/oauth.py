@@ -70,8 +70,8 @@ class Users(BaseModel):
         "models.Roles",
         related_name="users",
         through="system_users_to_system_roles",
-        backward_key="user_id",
-        forward_key="role_id",
+        backward_key="users_id",
+        forward_key="roles_id",
         description="角色",
     )
 

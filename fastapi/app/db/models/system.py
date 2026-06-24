@@ -109,8 +109,8 @@ class Roles(BaseModel):
         "models.Permissions",
         related_name="roles",
         through="system_roles_to_system_permissions",
-        backward_key="role_id",
-        forward_key="permission_id",
+        backward_key="roles_id",
+        forward_key="permissions_id",
         description="权限",
     )
 
