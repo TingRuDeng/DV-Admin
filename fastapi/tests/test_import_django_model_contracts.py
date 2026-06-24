@@ -117,6 +117,15 @@ def test_dict_data_field_names_do_not_need_business_aliases():
     assert "remark" not in contract.field_aliases
 
 
+def test_dict_item_model_does_not_keep_fastapi_only_fields():
+    """字典项模型不应继续保留 Django 没有的 FastAPI-only 字段。"""
+    contract = find_model_contract("system.dictitems")
+    model = MODEL_MAPPING[contract.django_model]
+
+    assert "is_default" not in model._meta.fields_map
+    assert "remark" not in model._meta.fields_map
+
+
 def test_fastapi_model_indexes_match_shared_contracts():
     """FastAPI 模型 Meta.indexes 必须与共享模型索引契约一致。"""
     assert hasattr(model_contracts, "iter_fastapi_model_index_contracts")

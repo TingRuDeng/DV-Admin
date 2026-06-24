@@ -16,11 +16,11 @@
 ## 当前事实
 
 - `backend/drf_admin/apps/system/models.py::DictItems` 只有 `label/value/status/tag_type/dict` 业务字段，不包含 `is_default/remark`。
-- `fastapi/app/db/models/system.py::DictItems` 仍包含 `is_default = fields.BooleanField(default=False)` 和 `remark = fields.CharField(max_length=100, default="")`。
-- `fastapi/app/schemas/system.py::DictItemBase`、`DictItemUpdate`、`DictItemOut` 仍暴露 `is_default/remark`。
-- `fastapi/app/services/system/dict_service.py::DictService.create_item_flat`、`update_item_flat` 和相关返回构造仍读写 `is_default/remark`。
+- `fastapi/app/db/models/system.py::DictItems` 已移除 `is_default = fields.BooleanField(default=False)` 和 `remark = fields.CharField(max_length=100, default="")`。
+- `fastapi/app/schemas/system.py::DictItemBase`、`DictItemUpdate`、`DictItemOut` 已移除 `is_default/remark`。
+- `fastapi/app/services/system/dict_service.py::DictService.create_item_flat`、`update_item_flat` 和相关返回构造已停止读写 `is_default/remark`。
 - `frontend/src/api/system/dict-items-api.ts::DictItemForm`、`DictItemPageVO` 不声明 `isDefault/is_default/remark`，当前生产页面 `frontend/src/views/system/dict/dict-item.vue` 和 `DictItemFormDrawer.vue` 也不展示或提交这两个字段。
-- `docs/DATABASE_SCHEMA.md` 和 `docs/TECH_DEBT.md` 已把字典项 `is_default/remark` 记录为当前剩余 FastAPI 扩展字段差异。
+- `docs/DATABASE_SCHEMA.md` 和 `docs/TECH_DEBT.md` 已移除字典项 `is_default/remark` 剩余差异描述，当前剩余差异集中在 `label/value` 长度约束和 `sort` 字段。
 
 ## 设计原则
 
@@ -64,13 +64,13 @@
 
 ## 执行计划
 
-- [ ] P1 串行：RED 增加 `fastapi/tests/test_import_django_model_contracts.py` 字典项 FastAPI-only 字段治理测试，复现 `DictItems.is_default/remark` 仍存在。
-- [ ] P2 串行：GREEN 删除 `fastapi/app/db/models/system.py::DictItems` 的 `is_default/remark` 字段。
-- [ ] P3 串行：GREEN 同步 `fastapi/app/schemas/system.py` 的 `DictItemBase`、`DictItemUpdate`、`DictItemOut`，移除 `is_default/remark`。
-- [ ] P4 串行：GREEN 同步 `fastapi/app/services/system/dict_service.py::DictService` 字典项创建、更新和返回构造，停止读写 `is_default/remark`。
-- [ ] P5 串行：修正 FastAPI 字典项目标测试、Django fixture golden 断言和运行时契约样例，确保双后端字典项写接口仍稳定。
-- [ ] P6 串行：同步 `docs/DATABASE_SCHEMA.md`、`docs/TECH_DEBT.md` 和 `tasks/dict-model-unification.md`，移除 `is_default/remark` 剩余差异描述，并记录旧列显式迁移边界。
-- [ ] P7 串行：执行模型契约校验、FastAPI 目标测试、FastAPI `make quality`、Django 目标测试、根目录校验、review-gate、PR、CI 和合并。
+- [x] P1 串行：RED 增加 `fastapi/tests/test_import_django_model_contracts.py` 字典项 FastAPI-only 字段治理测试，复现 `DictItems.is_default/remark` 仍存在。
+- [x] P2 串行：GREEN 删除 `fastapi/app/db/models/system.py::DictItems` 的 `is_default/remark` 字段。
+- [x] P3 串行：GREEN 同步 `fastapi/app/schemas/system.py` 的 `DictItemBase`、`DictItemUpdate`、`DictItemOut`，移除 `is_default/remark`。
+- [x] P4 串行：GREEN 同步 `fastapi/app/services/system/dict_service.py::DictService` 字典项创建、更新和返回构造，停止读写 `is_default/remark`。
+- [x] P5 串行：修正 FastAPI 字典项目标测试、Django fixture golden 断言和运行时契约样例，确保双后端字典项写接口仍稳定。
+- [x] P6 串行：同步 `docs/DATABASE_SCHEMA.md`、`docs/TECH_DEBT.md` 和 `tasks/dict-model-unification.md`，移除 `is_default/remark` 剩余差异描述，并记录旧列显式迁移边界。
+- [ ] P7 串行：review-gate、提交、PR、CI 和合并。
 
 ## 涉及文件
 
@@ -110,3 +110,14 @@
 ## HARD-GATE
 
 用户确认前，不进行业务代码、测试代码或契约代码修改。本文件只是规划草案。
+
+## 进度记录
+
+- RED：`cd fastapi && uv run pytest tests/test_import_django_model_contracts.py -q` 失败，新增测试捕获 `DictItems.is_default` 仍存在，符合预期。
+- GREEN：FastAPI `DictItems` 模型、字典项 schema 和 `DictService` 已停止读写 `is_default/remark`；模型契约测试通过（14 passed）。
+- 目标验证：FastAPI 字典项目标测试通过（84 passed），覆盖模型契约、Django fixture 导入、golden fixture、运行时字典写接口、字典 service 和字典项 API。
+- 全量验证：FastAPI `make quality` 通过（535 passed，覆盖率 84.71%）；Django 字典写接口运行时契约测试通过（2 passed）；根目录模型/API/文档/路由组件/Django 迁移校验和 `git diff --check` 均通过。
+
+## Review 小结
+
+Review-gate：finished；Spec 符合度通过，本轮只移除 FastAPI 字典项 `is_default/remark` 扩展字段，并同步 schema、service、目标测试、数据库文档和技术债，不修改 Django 模型、前端页面或字典项 `label/value/sort` 后续治理范围；安全检查未发现新增 secret、mock、扩展字段 fallback 或静默兼容；复杂度检查通过，本轮删除字段读写并新增一个目标契约测试，未新增复杂分支；Document-refresh: needed，原因：数据库字典项字段事实和技术债状态已变化；剩余风险是已有 FastAPI 数据库如果仍存在旧列 `is_default/remark`，需要显式迁移删除或忽略，且 `fastapi/app/schemas/system.py`、`fastapi/app/services/system/dict_service.py`、`fastapi/tests/test_dict_service.py` 仍为既有超 300 行文件，后续应单独拆分治理。

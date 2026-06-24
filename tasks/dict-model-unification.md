@@ -18,7 +18,7 @@
 - `backend/drf_admin/apps/system/models.py` 中 `Dicts.dict_code` 是 `max_length=32` 且 `unique=True`。
 - `fastapi/app/db/models/system.py` 中 `DictData.dict_code` 是 `max_length=32` 且 `unique=True`。
 - `fastapi/app/db/models/system.py` 中 `DictData.remark` 已与 Django 保持同名，但长度仍为 FastAPI 侧 100、Django 侧 50。
-- `docs/TECH_DEBT.md` 已把 Django 和 FastAPI 模型差异列为中优先级技术债，当前剩余重点是字典项字段差异。
+- `docs/TECH_DEBT.md` 已把 Django 和 FastAPI 模型差异列为中优先级技术债，当前剩余重点是字典项长度约束和排序字段差异。
 
 ## 设计原则
 
@@ -53,7 +53,7 @@
 
 第一轮已处理可低风险验证的字段约束一致性：FastAPI `DictData.dict_code` 的 `max_length` 已对齐到 Django `Dicts.dict_code` 的 32，并补共享契约测试。第二轮已将 FastAPI `DictData` 内部字段从 `code/desc` 统一为 `dict_code/remark`，前端 API 仍保持 `dictCode/remark`。第三轮已将 FastAPI `DictData` 表名统一为 `system_dicts`，共享模型契约开始约束字典主表表名一致。
 
-已有 FastAPI 数据库如果仍存在旧表 `system_dict_data`、`system_roles_permissions`、`system_users_roles`，或仍存在旧关联字段 `user_id/role_id/permission_id`，需要通过显式数据库迁移切换到目标表和目标字段；业务代码不提供双表或双字段静默 fallback。
+已有 FastAPI 数据库如果仍存在旧表 `system_dict_data`、`system_roles_permissions`、`system_users_roles`，仍存在旧关联字段 `user_id/role_id/permission_id`，或仍存在旧字典项扩展字段 `is_default/remark`，需要通过显式数据库迁移切换到目标表、目标字段或删除旧列；业务代码不提供双表、双字段或扩展字段静默 fallback。
 
 ## 执行计划
 
@@ -70,6 +70,8 @@
 - [x] P11 串行：同步共享关联契约、数据库文档、技术债和字典治理计划。
 - [x] P12 串行：将 FastAPI 角色-权限和用户-角色关联字段统一到 Django 命名。
 - [x] P13 串行：同步共享关联字段契约、数据库文档、技术债和字典治理计划。
+- [x] P14 串行：移除 FastAPI 字典项 `is_default/remark` 扩展字段。
+- [x] P15 串行：同步数据库文档、技术债和字典治理计划。
 
 ## 涉及文件
 
