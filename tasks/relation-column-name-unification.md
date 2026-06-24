@@ -19,14 +19,14 @@
 
 ## 当前事实
 
-- `docs/DATABASE_SCHEMA.md` 已记录剩余差异：角色-权限关联字段 Django 为 `roles_id / permissions_id`，FastAPI 为 `role_id / permission_id`。
+- `docs/DATABASE_SCHEMA.md` 已移除关联表字段命名差异描述，并保留旧 FastAPI 字段显式迁移边界。
 - `docs/DATABASE_SCHEMA.md` 的用户-角色关联表字段当前只按 Django 目标结构记录为 `users_id / roles_id`。
 - `backend/drf_admin/apps/system/models.py::Roles.permissions` 由 Django 自动生成字段 `roles_id/permissions_id`。
 - `backend/drf_admin/apps/system/models.py::Users.roles` 由 Django 自动生成字段 `users_id/roles_id`。
-- `fastapi/app/db/models/system.py::Roles.permissions` 当前使用 `backward_key="role_id"`、`forward_key="permission_id"`。
-- `fastapi/app/db/models/oauth.py::Users.roles` 当前使用 `backward_key="user_id"`、`forward_key="role_id"`。
-- `scripts/model_contracts.py::DjangoFastapiRelationContract` 当前只登记 through 表名，不登记关联字段名。
-- `fastapi/tests/test_import_django_model_contracts.py::test_fastapi_relation_through_tables_match_shared_contracts` 当前只验证 `relation_field.through`。
+- `fastapi/app/db/models/system.py::Roles.permissions` 已统一为 `backward_key="roles_id"`、`forward_key="permissions_id"`。
+- `fastapi/app/db/models/oauth.py::Users.roles` 已统一为 `backward_key="users_id"`、`forward_key="roles_id"`。
+- `scripts/model_contracts.py::DjangoFastapiRelationContract` 已登记 Django/FastAPI through 表名和字段名。
+- `fastapi/tests/test_import_django_model_contracts.py::test_fastapi_relation_through_tables_match_shared_contracts` 已验证 `relation_field.through/backward_key/forward_key`。
 
 ## 设计原则
 
@@ -71,12 +71,12 @@
 
 ## 执行计划
 
-- [ ] P1 串行：RED 扩展共享关联契约字段名测试，复现两张 M2M through 表字段仍不一致。
-- [ ] P2 串行：GREEN 修改 `scripts/model_contracts.py::DjangoFastapiRelationContract`，登记 Django/FastAPI through 字段名。
-- [ ] P3 串行：GREEN 修改 FastAPI `Roles.permissions` 和 `Users.roles` 的 `backward_key/forward_key`。
-- [ ] P4 串行：执行并修正 FastAPI M2M 目标测试，覆盖角色权限分配、用户角色关系、Django fixture 导入和运行时权限链路。
-- [ ] P5 串行：同步数据库文档、技术债和字典模型治理计划，移除关联表字段命名差异描述，保留显式迁移边界说明。
-- [ ] P6 串行：执行模型契约校验、FastAPI 目标测试、FastAPI `make quality`、Django 目标测试和根目录校验。
+- [x] P1 串行：RED 扩展共享关联契约字段名测试，复现两张 M2M through 表字段仍不一致。
+- [x] P2 串行：GREEN 修改 `scripts/model_contracts.py::DjangoFastapiRelationContract`，登记 Django/FastAPI through 字段名。
+- [x] P3 串行：GREEN 修改 FastAPI `Roles.permissions` 和 `Users.roles` 的 `backward_key/forward_key`。
+- [x] P4 串行：执行并修正 FastAPI M2M 目标测试，覆盖角色权限分配、用户角色关系、Django fixture 导入和运行时权限链路。
+- [x] P5 串行：同步数据库文档、技术债和字典模型治理计划，移除关联表字段命名差异描述，保留显式迁移边界说明。
+- [x] P6 串行：执行模型契约校验、FastAPI 目标测试、FastAPI `make quality`、Django 目标测试和根目录校验。
 - [ ] P7 串行：review-gate、提交、PR、CI 和合并。
 
 ## 涉及文件
@@ -120,3 +120,14 @@
 ## HARD-GATE
 
 用户确认前，不进行任何业务代码、测试代码或契约代码修改。本文件只是规划草案。
+
+## 进度记录
+
+- RED：`cd fastapi && uv run pytest tests/test_import_django_model_contracts.py -q` 首次失败于共享关联契约缺少字段名入口，补齐契约字段后继续失败于 FastAPI ORM 仍使用 `role_id`，符合预期。
+- GREEN：FastAPI `Roles.permissions` 和 `Users.roles` 的 `backward_key/forward_key` 已统一到 Django 命名，共享关联契约已同步；模型契约测试通过（13 passed）。
+- 目标验证：FastAPI M2M 目标测试通过（112 passed），覆盖 Django fixture 导入、golden fixture、运行时写接口、角色服务和用户服务。
+- 全量验证：FastAPI `make quality` 通过（534 passed，覆盖率 84.74%）；Django 模型契约测试通过（4 passed）；根目录模型/API/文档/路由组件/Django 迁移校验和 `git diff --check` 均通过。
+
+## Review 小结
+
+Review-gate：finished；Spec 符合度通过，本轮只统一 FastAPI 两张 M2M through 表字段名和共享关联契约，不修改 Django 模型、主表、前端 API、权限码或业务响应；安全检查未发现新增 secret、mock、双字段读写或静默 fallback；复杂度检查通过，本轮扩展一个目标契约测试并修改两个 M2M key 常量，未新增超长函数；Document-refresh: needed，原因：数据库关联字段事实和技术债状态已变化；剩余风险是已有 FastAPI 数据库如果仍存在旧字段 `user_id/role_id/permission_id`，需要显式迁移到 Django 命名字段，且字典项字段差异仍需后续独立治理。
