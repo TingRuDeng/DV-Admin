@@ -41,7 +41,6 @@ async def test_dict_item_for_service(db, test_dict_data_for_service):
         value=f"test_value_{uuid.uuid4().hex[:6]}",
         sort=1,
         status=1,
-        is_default=False,
         dict_data_id=test_dict_data_for_service.id,
     )
     return item
@@ -387,8 +386,6 @@ class TestDictServiceCreateItem:
             value=f"new_value_{uuid.uuid4().hex[:8]}",
             sort=1,
             status=1,
-            is_default=False,
-            remark="",  # 添加 remark 字段
             dict_data_id=test_dict_data_for_service.id,
         )
 
@@ -406,7 +403,6 @@ class TestDictServiceCreateItem:
             value=f"value_{uuid.uuid4().hex[:8]}",
             sort=1,
             status=1,
-            is_default=False,
             dict_data_id=99999,
         )
 
@@ -416,15 +412,13 @@ class TestDictServiceCreateItem:
         assert "字典类型不存在" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_create_item_with_all_fields(self, db, test_dict_data_for_service):
-        """测试创建字典项包含所有字段"""
+    async def test_create_item_with_sort_and_status(self, db, test_dict_data_for_service):
+        """测试创建字典项包含排序和状态字段"""
         item_data = DictItemCreate(
             label=f"完整字典项_{uuid.uuid4().hex[:8]}",
             value=f"full_value_{uuid.uuid4().hex[:8]}",
             sort=10,
             status=1,
-            is_default=True,
-            remark="这是一个完整的字典项备注",
             dict_data_id=test_dict_data_for_service.id,
         )
 
@@ -433,8 +427,7 @@ class TestDictServiceCreateItem:
         assert result.label == item_data.label
         assert result.value == item_data.value
         assert result.sort == 10
-        assert result.is_default
-        assert result.remark == "这是一个完整的字典项备注"
+        assert result.status == 1
 
 
 class TestDictServiceUpdateItem:
@@ -445,7 +438,6 @@ class TestDictServiceUpdateItem:
         """测试基本更新字典项"""
         update_data = DictItemUpdate(
             label="更新后的标签",
-            remark="更新后的备注",
         )
 
         result = await dict_service.update_item(
@@ -455,7 +447,6 @@ class TestDictServiceUpdateItem:
         )
 
         assert result.label == "更新后的标签"
-        assert result.remark == "更新后的备注"
 
     @pytest.mark.asyncio
     async def test_update_item_status(self, db, test_dict_data_for_service, test_dict_item_for_service):
@@ -526,8 +517,6 @@ class TestDictServiceCreateItemFlat:
             value=f"flat_value_{uuid.uuid4().hex[:8]}",
             sort=1,
             status=1,
-            is_default=False,
-            remark="",  # 添加 remark 字段
             dict_data_id=test_dict_data_for_service.id,
         )
 
@@ -545,7 +534,6 @@ class TestDictServiceCreateItemFlat:
             value=f"value_{uuid.uuid4().hex[:8]}",
             sort=1,
             status=1,
-            is_default=False,
             dict_data_id=99999,
         )
 
