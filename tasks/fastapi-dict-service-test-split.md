@@ -56,13 +56,13 @@
 
 ## 执行计划
 
-- [ ] P1 串行：RED 增加或执行文件大小治理检查，确认 `fastapi/tests/test_dict_service.py` 超过 300 行。
-- [ ] P2 串行：抽出共享 fixture 到 `fastapi/tests/dict_service_fixtures.py` 或等价专用夹具模块，并确认导入路径清晰。
-- [ ] P3 串行：拆出字典主表测试到 `fastapi/tests/test_dict_service_dicts.py`。
-- [ ] P4 串行：拆出字典项嵌套路由测试到 `fastapi/tests/test_dict_service_items.py`。
-- [ ] P5 串行：拆出字典项扁平路由与按编码查询测试到 `fastapi/tests/test_dict_service_item_flat.py`。
-- [ ] P6 串行：删除或缩减原 `fastapi/tests/test_dict_service.py`，确保所有新测试文件低于 300 行。
-- [ ] P7 串行：执行目标测试、FastAPI 质量门禁、文档校验和 diff 检查。
+- [x] P1 串行：RED 增加或执行文件大小治理检查，确认 `fastapi/tests/test_dict_service.py` 超过 300 行。
+- [x] P2 串行：抽出共享 fixture 到 `fastapi/tests/dict_service_fixtures.py` 或等价专用夹具模块，并确认导入路径清晰。
+- [x] P3 串行：拆出字典主表测试到 `fastapi/tests/test_dict_service_dicts.py`。
+- [x] P4 串行：拆出字典项嵌套路由测试到 `fastapi/tests/test_dict_service_items.py`。
+- [x] P5 串行：拆出字典项扁平路由与按编码查询测试到 `fastapi/tests/test_dict_service_item_flat.py`。
+- [x] P6 串行：删除或缩减原 `fastapi/tests/test_dict_service.py`，确保所有新测试文件低于 300 行。
+- [x] P7 串行：执行目标测试、FastAPI 质量门禁、文档校验和 diff 检查。
 - [ ] P8 串行：review-gate、提交、PR、CI 和合并。
 
 ## 涉及文件
@@ -92,12 +92,15 @@
 
 ## HARD-GATE
 
-当前仅完成规划。用户确认前不进行测试文件拆分或运行时代码修改。
+用户已要求按顺序推进，规划 PR #171 已合并，本轮进入实现阶段。
 
 ## 进度记录
 
-- 规划中。
+- P1：`wc -l fastapi/tests/test_dict_service.py` 显示原文件 728 行，确认超出 300 行约束。
+- P2-P6：共享 fixture 已抽入 `fastapi/tests/dict_service_fixtures.py`；字典主表、字典项嵌套接口、字典项扁平接口和编码查询测试分别拆入 3 个目标测试文件；原 `fastapi/tests/test_dict_service.py` 已删除。
+- 目标验证：`cd fastapi && uv run pytest tests/test_dict_service_dicts.py tests/test_dict_service_items.py tests/test_dict_service_item_flat.py -q` 通过（49 passed）；`wc -l fastapi/tests/test_dict_service*.py fastapi/tests/dict_service_fixtures.py` 显示新文件分别为 254、260、210、34 行。
+- 完整验证：`cd fastapi && make quality` 通过（539 passed，覆盖率 84.70%）；`python3 scripts/validate_docs.py . --profile generic` 与 `git diff --check` 均通过。
 
 ## Review 小结
 
-- 待执行完成后补充。
+- Review-gate：finished；Spec 符合度通过，本轮只拆分 `fastapi/tests/test_dict_service.py`，未修改 `DictService` 运行时代码、schema 或 API 路由；安全检查未发现新增 secret、mock、fallback、静默兼容或跳过测试；测试与验证覆盖目标测试、FastAPI `make quality`、文档校验、文件大小检查和 `git diff --check`；复杂度检查通过，拆分后的 3 个测试文件和 1 个 fixture 文件均低于 300 行；Document-refresh: not-needed，原因：本轮只调整内部测试结构，不改变对外 API、数据库结构或用户可见行为；剩余风险是 `fastapi/app/services/system/dict_service.py` 仍为既有超 300 行实现文件，需要后续单独规划拆分。
