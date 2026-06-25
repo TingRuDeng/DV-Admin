@@ -4,19 +4,19 @@
 
 ## 活跃任务
 
-- [x] P1 串行：规划 FastAPI 通知服务测试拆分，明确共享夹具和职责边界
-- [x] P2 串行：拆分通知共享夹具到 `notice_service_fixtures.py`
-- [x] P3 串行：拆分后台分页和表单测试到 `test_notice_service_admin_query.py`
-- [x] P4 串行：拆分详情与标记已读测试到 `test_notice_service_detail.py`
-- [x] P5 串行：拆分创建、更新和删除测试到 `test_notice_service_mutation.py`
-- [x] P6 串行：拆分发布、撤销和全部已读测试到 `test_notice_service_status.py`
-- [x] P7 串行：拆分我的通知列表测试到 `test_notice_service_my_page.py`
-- [x] P8 串行：删除原 `test_notice_service.py`
-- [x] P9 串行：执行目标测试、FastAPI 质量门禁、文档校验和 diff 检查
-- [ ] P10 串行：review-gate、提交、PR、CI 和合并
+- [x] P1 串行：规划 FastAPI 缓存核心模块拆分，明确兼容入口和职责边界
+- [x] P2 串行：拆分缓存抽象基类到 `cache_backend.py`
+- [x] P3 串行：拆分内存缓存实现到 `cache_memory.py`
+- [x] P4 串行：拆分 Redis 缓存实现到 `cache_redis.py`
+- [x] P5 串行：拆分缓存服务编排到 `cache_service.py`
+- [x] P6 串行：拆分缓存键模板到 `cache_keys.py`
+- [x] P7 串行：收缩 `cache.py` 为兼容导出入口
+- [x] P8 串行：执行目标缓存测试、FastAPI 质量门禁、文档校验和 diff 检查
+- [ ] P9 串行：review-gate、提交、PR、CI 和合并
 
 ## 最近完成
 
+- [x] FastAPI 通知服务测试拆分已通过 PR #185 合并：原 356 行 `test_notice_service.py` 已拆为后台查询、详情、写操作、发布状态、我的通知列表 5 个职责测试文件和 1 个共享 fixture，合并提交为 `aaec39124663d81e58b8b7d78465d220be996561`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 日志服务测试拆分已通过 PR #184 合并：原 363 行 `test_log_service.py` 已拆为时间辅助、分页查询、访问趋势、访问统计、删除与创建 5 个职责测试文件和 1 个共享 fixture，合并提交为 `c190563ccf30a02b4e4f82be4f33c2e7f2bd7a39`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI Token 黑名单测试拆分已通过 PR #183 合并：原 384 行 `test_token_blacklist.py` 已拆为 key/redis 属性、单 token 黑名单、用户批量撤销、删除清理、内存降级 5 个测试文件和 1 个共享 fixture，合并提交为 `aff0acf0b0445761fa91e124d836ea30023b12a1`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 角色服务测试拆分已通过 PR #182 合并：原 456 行 `test_role_service.py` 已拆为查询、写操作、删除、菜单权限 4 个职责测试文件和 1 个共享 fixture，合并提交为 `656fcd30334489ddf80dcdb316b3bccd25f2034d`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
