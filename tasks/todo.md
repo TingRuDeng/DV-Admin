@@ -4,18 +4,19 @@
 
 ## 活跃任务
 
-- [x] P1 串行：规划 FastAPI 用户服务拆分，明确兼容入口和职责边界
-- [x] P2 串行：拆分用户缓存清理到 `user_services/cache.py`
-- [x] P3 串行：拆分用户序列化到 `user_services/serializers.py`
-- [x] P4 串行：拆分查询和选项服务到 `user_services/query.py`
-- [x] P5 串行：拆分写操作和密码重置到 `user_services/mutation.py`
-- [x] P6 串行：拆分导入导出到 `user_services/import_export.py`
-- [x] P7 串行：收缩 `user_service.py` 为兼容聚合入口
-- [x] P8 串行：执行用户服务目标测试、FastAPI 质量门禁、文档校验和 diff 检查
+- [x] P1 串行：规划 FastAPI 用户服务测试拆分，明确夹具和职责边界
+- [x] P2 串行：拆分共享夹具到 `user_service_fixtures.py`
+- [x] P3 串行：拆分查询测试到 `test_user_service_query.py`
+- [x] P4 串行：拆分写操作测试到 `test_user_service_mutation.py`
+- [x] P5 串行：拆分删除和密码测试到 `test_user_service_delete_password.py`
+- [x] P6 串行：拆分导入导出测试到 `test_user_service_import_export.py`
+- [x] P7 串行：删除原 `test_user_service.py`
+- [x] P8 串行：执行目标测试、FastAPI 质量门禁、文档校验和 diff 检查
 - [ ] P9 串行：review-gate、提交、PR、CI 和合并
 
 ## 最近完成
 
+- [x] FastAPI 用户服务拆分已通过 PR #179 合并：`user_service.py` 已从 598 行收缩为 16 行兼容聚合入口，合并提交为 `bb3260d487df70388cb9af90f01364dd6834632a`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI OAuth API 拆分已通过 PR #178 合并：`auth.py` 已从 750 行收缩为 37 行兼容聚合入口，合并提交为 `5bd63c0fc37f84acee7b9c6d1597e97b80151f2f`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 用户 API 拆分已通过 PR #177 合并：`users.py` 已从 720 行收缩为 31 行兼容聚合入口，合并提交为 `21b824239e3f4cff96dde3a56fea390a405cbbe4`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 用户 API 拆分本地验证完成：`users.py` 已从 720 行收缩为 31 行兼容聚合入口，查询、写操作、密码重置、导入导出端点已拆入 `user_routes/`；用户目标测试 6 passed，FastAPI `make quality` 539 passed、覆盖率 85.08%，API 契约和文档校验均通过。
