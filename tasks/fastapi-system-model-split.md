@@ -51,3 +51,4 @@
 ## Review 小结
 
 - Review-gate：finished；Spec 符合度通过，本轮只拆分 FastAPI system 模型内部文件结构，并保留 `from app.db.models.system import ...` 兼容入口；不改变 Tortoise model module 配置、表名、字段名、字段约束、索引、关联表、关联字段或 API 行为。安全检查未发现本轮新增 secret、mock、fallback 或静默降级，敏感词扫描命中仅来自 `tasks/todo.md` 历史摘要。测试与验证通过：目标模型契约测试 33 passed；FastAPI `make quality` 通过，539 passed，覆盖率 84.98%；`python3 scripts/validate_docs.py . --profile generic` 通过；`git diff --check` 通过。复杂度检查通过，`system.py` 从 339 行收缩为 20 行兼容导出入口，新增模型文件均低于 300 行。Document-refresh: not-needed，原因：本轮是内部模型文件结构拆分，不改变用户可见 API、数据库结构或产品文档事实。剩余风险是 FastAPI `users.py`、`auth.py` 和 `user_service.py` 仍为既有大文件，需要后续独立规划治理。
+- CI 修复补充：PR #176 首轮 Frontend Quality 在 `validate_model_contracts.py` 失败，根因是静态契约 loader 仍只扫描旧 `system.py` 单文件；已将拆分后的 `system_permission.py`、`system_dept.py`、`system_notice.py`、`system_dict.py`、`system_log.py` 纳入 `FASTAPI_MODEL_FILES`，并复核 `validate_model_contracts.py`、`validate_docs.py`、目标模型测试和 FastAPI `make quality` 均通过。
