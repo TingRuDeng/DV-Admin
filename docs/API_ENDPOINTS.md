@@ -10,6 +10,11 @@ ai_summary:
     - "backend/drf_admin/apps/system/views/health.py"
     - "backend/drf_admin/utils/middleware.py"
     - "fastapi/app/api/v1/oauth/auth.py"
+    - "fastapi/app/api/v1/oauth/routes/login.py"
+    - "fastapi/app/api/v1/oauth/routes/session.py"
+    - "fastapi/app/api/v1/oauth/routes/profile.py"
+    - "fastapi/app/api/v1/oauth/routes/menus.py"
+    - "fastapi/app/api/v1/oauth/routes/captcha.py"
     - "fastapi/app/api/health.py"
     - "fastapi/app/schemas/base.py"
     - "frontend/src/api/auth-api.ts"
@@ -19,7 +24,7 @@ ai_summary:
   verify_with:
     - "python3 scripts/validate_docs.py . --profile generic"
     - "python3 scripts/validate_api_contracts.py ."
-    - "git ls-files backend/drf_admin/apps/oauth/urls.py fastapi/app/api/v1/oauth/auth.py frontend/src/api/auth-api.ts"
+    - "git ls-files backend/drf_admin/apps/oauth/urls.py fastapi/app/api/v1/oauth/auth.py fastapi/app/api/v1/oauth/routes/login.py fastapi/app/api/v1/oauth/routes/session.py fastapi/app/api/v1/oauth/routes/profile.py fastapi/app/api/v1/oauth/routes/menus.py fastapi/app/api/v1/oauth/routes/captcha.py frontend/src/api/auth-api.ts"
   stale_when:
     - "接口路径、请求参数或响应包裹字段变化"
     - "认证、刷新 token、分页契约或错误格式变化"
@@ -40,6 +45,11 @@ ai_summary:
 - `backend/drf_admin/apps/system/urls.py`
 - `backend/drf_admin/utils/middleware.py`
 - `fastapi/app/api/v1/oauth/auth.py`
+- `fastapi/app/api/v1/oauth/routes/login.py`
+- `fastapi/app/api/v1/oauth/routes/session.py`
+- `fastapi/app/api/v1/oauth/routes/profile.py`
+- `fastapi/app/api/v1/oauth/routes/menus.py`
+- `fastapi/app/api/v1/oauth/routes/captcha.py`
 - `fastapi/app/api/v1/system/users.py`
 - `fastapi/app/api/health.py`
 - `fastapi/app/schemas/base.py`
