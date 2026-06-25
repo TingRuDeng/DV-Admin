@@ -63,7 +63,7 @@
 - [x] P5 串行：拆出字典项扁平路由与按编码查询测试到 `fastapi/tests/test_dict_service_item_flat.py`。
 - [x] P6 串行：删除或缩减原 `fastapi/tests/test_dict_service.py`，确保所有新测试文件低于 300 行。
 - [x] P7 串行：执行目标测试、FastAPI 质量门禁、文档校验和 diff 检查。
-- [ ] P8 串行：review-gate、提交、PR、CI 和合并。
+- [x] P8 串行：review-gate、提交、PR、CI 和合并。
 
 ## 涉及文件
 
@@ -100,6 +100,7 @@
 - P2-P6：共享 fixture 已抽入 `fastapi/tests/dict_service_fixtures.py`；字典主表、字典项嵌套接口、字典项扁平接口和编码查询测试分别拆入 3 个目标测试文件；原 `fastapi/tests/test_dict_service.py` 已删除。
 - 目标验证：`cd fastapi && uv run pytest tests/test_dict_service_dicts.py tests/test_dict_service_items.py tests/test_dict_service_item_flat.py -q` 通过（49 passed）；`wc -l fastapi/tests/test_dict_service*.py fastapi/tests/dict_service_fixtures.py` 显示新文件分别为 254、260、210、34 行。
 - 完整验证：`cd fastapi && make quality` 通过（539 passed，覆盖率 84.70%）；`python3 scripts/validate_docs.py . --profile generic` 与 `git diff --check` 均通过。
+- 远端交付：PR #172 已合并，merge commit 为 `9e034b3`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 
 ## Review 小结
 
