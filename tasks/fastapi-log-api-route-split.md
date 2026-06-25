@@ -48,13 +48,15 @@
 
 - `cd fastapi && uv run pytest tests/test_logs.py -q`
 - `cd fastapi && make quality`
+- `python3 scripts/validate_api_contracts.py .`
 - `python3 scripts/validate_docs.py . --profile generic`
+- `python3 -m py_compile scripts/api_endpoint_contracts.py`
 - `git diff --check`
 
 ## Review 小结
 
 日志 API 路由拆分已完成：`logs.py` 已从 353 行收缩为 9 行兼容路由入口；日志分页、访问趋势/统计、批量删除/历史清理分别迁移到 `log_routes/query.py`、`log_routes/analytics.py`、`log_routes/mutation.py`，并通过 `log_routes/__init__.py` 聚合。上层 `app.api.v1.system.logs.router` 注册方式保持不变。
 
-验证通过：目标日志 API 测试 11 passed；FastAPI `make quality` 539 passed，覆盖率 85.55%；`python3 scripts/validate_docs.py . --profile generic` 通过；`git diff --check` 通过。
+验证通过：目标日志 API 测试 11 passed；FastAPI `make quality` 539 passed，覆盖率 85.55%；`python3 scripts/validate_api_contracts.py .` 通过；`python3 scripts/validate_docs.py . --profile generic` 通过；`python3 -m py_compile scripts/api_endpoint_contracts.py` 通过；`git diff --check` 通过。CI 首轮发现 `logs_page` 的 FastAPI 证据路径仍指向旧 `logs.py`，已同步更新到 `fastapi/app/api/v1/system/log_routes/query.py` 并完成本地复验。
 
 Review-gate：finished；Spec 符合度通过，本轮只调整日志 API 路由组织，不改变日志 API 路径、请求参数、响应格式、权限码或前端契约；安全检查未发现新增 secret、mock 假成功或静默 fallback；复杂度检查通过，拆分后所有新增文件均小于 300 行；Document-refresh: not-needed，原因：本轮不改变用户可见 API 契约或产品文档事实；剩余风险是 OpenAPI 长描述较原文件更精简，若后续要求恢复完整接口说明，应单独做 API 文档内容校准。
