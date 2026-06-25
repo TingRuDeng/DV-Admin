@@ -7,11 +7,11 @@
 - [x] P1 串行：规划 FastAPI 字典服务测试拆分，明确超 300 行测试文件治理边界
 - [x] P2 串行：等待 HARD-GATE 后拆分 `fastapi/tests/test_dict_service.py`
 - [x] P3 串行：执行目标测试、FastAPI 质量门禁、文档校验和 diff 检查
-- [ ] P4 串行：review-gate、提交、PR、CI 和合并
+- [x] P4 串行：review-gate、提交、PR、CI 和合并
 
 ## 最近完成
 
-- [x] 字典项排序字段治理：FastAPI `DictItems.sort` 已移除，schema、service、测试、前端 API 类型和文档已同步；PR #168 与 PR #169 已合并，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
+- [x] FastAPI 字典服务测试拆分：原 728 行 `test_dict_service.py` 已拆为 3 个职责测试文件和 1 个共享 fixture，全部低于 300 行；PR #172 已合并，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 
 ## 已完成摘要
 
