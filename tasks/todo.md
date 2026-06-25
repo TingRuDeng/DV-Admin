@@ -4,19 +4,20 @@
 
 ## 活跃任务
 
-- [x] P1 串行：规划 FastAPI Token 黑名单测试拆分，明确共享状态和职责边界
-- [x] P2 串行：拆分共享状态重置夹具到 `token_blacklist_fixtures.py`
-- [x] P3 串行：拆分 key 和 redis 属性测试到 `test_token_blacklist_keys.py`
-- [x] P4 串行：拆分单 token 黑名单测试到 `test_token_blacklist_tokens.py`
-- [x] P5 串行：拆分用户批量撤销测试到 `test_token_blacklist_user_revocation.py`
-- [x] P6 串行：拆分删除清理测试到 `test_token_blacklist_cleanup.py`
-- [x] P7 串行：拆分内存降级测试到 `test_token_blacklist_memory_fallback.py`
-- [x] P8 串行：删除原 `test_token_blacklist.py`
+- [x] P1 串行：规划 FastAPI 日志服务测试拆分，明确共享夹具和职责边界
+- [x] P2 串行：拆分日志共享夹具到 `log_service_fixtures.py`
+- [x] P3 串行：拆分时间辅助测试到 `test_log_service_time.py`
+- [x] P4 串行：拆分分页查询测试到 `test_log_service_query.py`
+- [x] P5 串行：拆分访问趋势测试到 `test_log_service_trend.py`
+- [x] P6 串行：拆分访问统计测试到 `test_log_service_stats.py`
+- [x] P7 串行：拆分删除和创建测试到 `test_log_service_mutation.py`
+- [x] P8 串行：删除原 `test_log_service.py`
 - [x] P9 串行：执行目标测试、FastAPI 质量门禁、文档校验和 diff 检查
 - [ ] P10 串行：review-gate、提交、PR、CI 和合并
 
 ## 最近完成
 
+- [x] FastAPI Token 黑名单测试拆分已通过 PR #183 合并：原 384 行 `test_token_blacklist.py` 已拆为 key/redis 属性、单 token 黑名单、用户批量撤销、删除清理、内存降级 5 个测试文件和 1 个共享 fixture，合并提交为 `aff0acf0b0445761fa91e124d836ea30023b12a1`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 角色服务测试拆分已通过 PR #182 合并：原 456 行 `test_role_service.py` 已拆为查询、写操作、删除、菜单权限 4 个职责测试文件和 1 个共享 fixture，合并提交为 `656fcd30334489ddf80dcdb316b3bccd25f2034d`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 缓存测试拆分已通过 PR #181 合并：原 521 行 `test_cache.py` 已拆为内存缓存、Redis 缓存、缓存服务和缓存键模板 4 个测试文件，合并提交为 `98ecc285429c43902f62ff4a960b74a1a2b086ea`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 用户服务测试拆分已通过 PR #180 合并：原 531 行 `test_user_service.py` 已拆为查询、写操作、删除密码、导入导出 4 个测试文件和 1 个共享 fixture，合并提交为 `59311739d1002ac57fab6e7c47015d58cd285a93`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
