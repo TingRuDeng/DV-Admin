@@ -4,18 +4,18 @@
 
 ## 活跃任务
 
-- [x] P1 串行：规划 FastAPI 缓存核心模块拆分，明确兼容入口和职责边界
-- [x] P2 串行：拆分缓存抽象基类到 `cache_backend.py`
-- [x] P3 串行：拆分内存缓存实现到 `cache_memory.py`
-- [x] P4 串行：拆分 Redis 缓存实现到 `cache_redis.py`
-- [x] P5 串行：拆分缓存服务编排到 `cache_service.py`
-- [x] P6 串行：拆分缓存键模板到 `cache_keys.py`
-- [x] P7 串行：收缩 `cache.py` 为兼容导出入口
-- [x] P8 串行：执行目标缓存测试、FastAPI 质量门禁、文档校验和 diff 检查
-- [ ] P9 串行：review-gate、提交、PR、CI 和合并
+- [x] P1 串行：规划 FastAPI 日志 API 路由拆分，明确兼容入口和职责边界
+- [x] P2 串行：拆分日志分页端点到 `log_routes/query.py`
+- [x] P3 串行：拆分访问趋势和访问统计端点到 `log_routes/analytics.py`
+- [x] P4 串行：拆分批量删除和历史清理端点到 `log_routes/mutation.py`
+- [x] P5 串行：新增 `log_routes/__init__.py` 聚合子路由
+- [x] P6 串行：收缩 `logs.py` 为兼容路由入口
+- [x] P7 串行：执行目标日志 API 测试、FastAPI 质量门禁、文档校验和 diff 检查
+- [ ] P8 串行：review-gate、提交、PR、CI 和合并
 
 ## 最近完成
 
+- [x] FastAPI 缓存核心模块拆分已通过 PR #186 合并：`cache.py` 已从 353 行收缩为 20 行兼容导出入口，合并提交为 `f6262dcc1262b1b95a7974880b9214db9a3d402d`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 通知服务测试拆分已通过 PR #185 合并：原 356 行 `test_notice_service.py` 已拆为后台查询、详情、写操作、发布状态、我的通知列表 5 个职责测试文件和 1 个共享 fixture，合并提交为 `aaec39124663d81e58b8b7d78465d220be996561`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 日志服务测试拆分已通过 PR #184 合并：原 363 行 `test_log_service.py` 已拆为时间辅助、分页查询、访问趋势、访问统计、删除与创建 5 个职责测试文件和 1 个共享 fixture，合并提交为 `c190563ccf30a02b4e4f82be4f33c2e7f2bd7a39`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI Token 黑名单测试拆分已通过 PR #183 合并：原 384 行 `test_token_blacklist.py` 已拆为 key/redis 属性、单 token 黑名单、用户批量撤销、删除清理、内存降级 5 个测试文件和 1 个共享 fixture，合并提交为 `aff0acf0b0445761fa91e124d836ea30023b12a1`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
