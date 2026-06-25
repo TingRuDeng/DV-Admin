@@ -4,15 +4,17 @@
 
 ## 活跃任务
 
-- [x] P1 串行：规划 FastAPI system schema 拆分，明确兼容导出边界
-- [x] P2 串行：按用户、角色、通知、菜单、部门、字典、日志和通用结构拆分 schema 模块
+- [x] P1 串行：规划 FastAPI system model 拆分，明确 Tortoise 注册和兼容导出边界
+- [x] P2 串行：按权限角色、部门、通知、字典和日志拆分模型模块
 - [x] P3 串行：收缩 `system.py` 为兼容导出入口
-- [x] P4 串行：执行目标 schema/import 验证、FastAPI 质量门禁、文档校验和 diff 检查
-- [x] P5 串行：review-gate
+- [x] P4 串行：执行目标模型契约测试、FastAPI 质量门禁、文档校验和 diff 检查
+- [x] P5 串行：完成 review-gate
 - [ ] P6 串行：提交、PR、CI 和合并
 
 ## 最近完成
 
+- [x] FastAPI system model 拆分本地验证完成：`system.py` 已从 339 行收缩为 20 行兼容导出入口，权限角色、部门、通知、字典和日志模型已拆入独立模块；目标模型契约测试 33 passed，FastAPI `make quality` 539 passed、覆盖率 84.98%，文档校验和 diff 检查均通过。
+- [x] FastAPI system schema 拆分已通过 PR #175 合并：`system.py` 已从 545 行收缩为 85 行兼容导出入口，合并提交为 `f715ce469e57565a67491653bc27a2922e0d36f8`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI system schema 拆分：`system.py` 已从 545 行收缩为 85 行兼容导出入口，用户、角色、通知、菜单、部门、字典、日志和通用 schema 已拆入独立模块；目标测试 52 passed，FastAPI `make quality` 539 passed、覆盖率 84.92%，文档校验和 diff 检查均通过。
 - [x] FastAPI 字典服务拆分已通过 PR #174 合并：`dict_service.py` 已从 474 行收缩为 15 行聚合入口，合并提交为 `a795b42b299200e12ba993b0c0d2803e52b42c33`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 字典服务拆分：`dict_service.py` 已从 474 行收缩为 15 行聚合入口，字典缓存、字典类型、嵌套字典项、扁平字典项和共享 helper 已拆入独立服务模块；目标测试 49 passed，FastAPI `make quality` 539 passed、覆盖率 84.84%，文档校验和 diff 检查均通过。
