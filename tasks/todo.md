@@ -4,15 +4,20 @@
 
 ## 活跃任务
 
-- [x] P1 串行：规划 FastAPI system model 拆分，明确 Tortoise 注册和兼容导出边界
-- [x] P2 串行：按权限角色、部门、通知、字典和日志拆分模型模块
-- [x] P3 串行：收缩 `system.py` 为兼容导出入口
-- [x] P4 串行：执行目标模型契约测试、FastAPI 质量门禁、文档校验和 diff 检查
-- [x] P5 串行：完成 review-gate
-- [ ] P6 串行：提交、PR、CI 和合并
+- [x] P1 串行：规划 FastAPI 用户 API 拆分，明确兼容入口和路由挂载边界
+- [x] P2 串行：拆分查询端点到 `user_routes/query.py`
+- [x] P3 串行：拆分写操作端点到 `user_routes/mutation.py`
+- [x] P4 串行：拆分密码重置端点到 `user_routes/password.py`
+- [x] P5 串行：拆分导入导出端点到 `user_routes/import_export.py`
+- [x] P6 串行：收缩 `users.py` 为兼容聚合入口
+- [x] P7 串行：执行用户 API 目标测试、API 契约、FastAPI 质量门禁、文档校验和 diff 检查
+- [x] P8 串行：完成 review-gate
+- [ ] P9 串行：提交、PR、CI 和合并
 
 ## 最近完成
 
+- [x] FastAPI 用户 API 拆分本地验证完成：`users.py` 已从 720 行收缩为 26 行兼容聚合入口，查询、写操作、密码重置、导入导出端点已拆入 `user_routes/`；用户目标测试 6 passed，FastAPI `make quality` 539 passed、覆盖率 85.08%，API 契约和文档校验均通过。
+- [x] FastAPI system model 拆分已通过 PR #176 合并：`system.py` 已从 339 行收缩为 20 行兼容导出入口，合并提交为 `e9c8afae56d49909d505d6d5103fed117d4977a7`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI system model 拆分本地验证完成：`system.py` 已从 339 行收缩为 20 行兼容导出入口，权限角色、部门、通知、字典和日志模型已拆入独立模块；目标模型契约测试 33 passed，FastAPI `make quality` 539 passed、覆盖率 84.98%，文档校验和 diff 检查均通过。
 - [x] FastAPI system schema 拆分已通过 PR #175 合并：`system.py` 已从 545 行收缩为 85 行兼容导出入口，合并提交为 `f715ce469e57565a67491653bc27a2922e0d36f8`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI system schema 拆分：`system.py` 已从 545 行收缩为 85 行兼容导出入口，用户、角色、通知、菜单、部门、字典、日志和通用 schema 已拆入独立模块；目标测试 52 passed，FastAPI `make quality` 539 passed、覆盖率 84.92%，文档校验和 diff 检查均通过。
