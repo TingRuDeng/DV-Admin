@@ -101,7 +101,7 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         evidence=(
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("users", "UsersViewSet")),
             ContractEvidence(
-                "fastapi/app/api/v1/system/users.py",
+                "fastapi/app/api/v1/system/user_routes/query.py",
                 ("/", "system:users:query", 'alias="pageSize"'),
             ),
             ContractEvidence("frontend/src/api/system/user-api.ts", ("getPage", "/api/system/users")),
@@ -116,7 +116,7 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         permissions=("system:users:add",),
         evidence=(
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("users", "UsersViewSet")),
-            ContractEvidence("fastapi/app/api/v1/system/users.py", ("@router.post", "system:users:add")),
+            ContractEvidence("fastapi/app/api/v1/system/user_routes/mutation.py", ("@router.post", "system:users:add")),
             ContractEvidence("frontend/src/api/system/user-api.ts", ("create", 'method: "post"')),
         ),
     ),
@@ -128,7 +128,7 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         permissions=("system:users:edit",),
         evidence=(
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("users", "UsersViewSet")),
-            ContractEvidence("fastapi/app/api/v1/system/users.py", ("@router.put", "system:users:edit")),
+            ContractEvidence("fastapi/app/api/v1/system/user_routes/mutation.py", ("@router.put", "system:users:edit")),
             ContractEvidence("frontend/src/api/system/user-api.ts", ("update", 'method: "put"')),
         ),
     ),
@@ -141,7 +141,7 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         permissions=("system:users:delete",),
         evidence=(
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("users", "UsersViewSet")),
-            ContractEvidence("fastapi/app/api/v1/system/users.py", ("@router.delete", "system:users:delete")),
+            ContractEvidence("fastapi/app/api/v1/system/user_routes/mutation.py", ("@router.delete", "system:users:delete")),
             ContractEvidence("frontend/src/api/system/user-api.ts", ("deleteByIds", 'method: "delete"')),
         ),
     ),
