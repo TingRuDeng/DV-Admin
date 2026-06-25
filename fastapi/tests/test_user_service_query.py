@@ -1,0 +1,106 @@
+"""用户服务查询测试。"""
+
+import pytest
+
+from app.core.exceptions import NotFound
+from app.services.system.user_service import user_service
+
+pytest_plugins = ["user_service_fixtures"]
+
+class TestUserServiceGetPage:
+    """测试用户分页查询"""
+
+    @pytest.mark.asyncio
+    async def test_get_page_basic(self, db, test_user_for_service):
+        """测试基本分页查询"""
+        result = await user_service.get_page(page=1, page_size=10)
+
+        assert result.total >= 1
+        assert len(result.list) >= 1
+        assert result.page == 1
+        assert result.page_size == 10
+
+    @pytest.mark.asyncio
+    async def test_get_page_with_search(self, db, test_user_for_service):
+        """测试带搜索条件的分页查询"""
+        # 按用户名搜索
+        result = await user_service.get_page(
+            page=1,
+            page_size=10,
+            search=test_user_for_service.username[:10]
+        )
+        assert result.total >= 1
+
+    @pytest.mark.asyncio
+    async def test_get_page_with_status_filter(self, db, test_user_for_service):
+        """测试按状态过滤"""
+        result = await user_service.get_page(page=1, page_size=10, is_active=1)
+
+        for user in result.list:
+            assert user.is_active == 1
+
+    @pytest.mark.asyncio
+    async def test_get_page_with_dept_filter(self, db, test_user_for_service, test_dept_for_service):
+        """测试按部门过滤"""
+        result = await user_service.get_page(
+            page=1,
+            page_size=10,
+            dept_id=test_dept_for_service.id
+        )
+
+        for user in result.list:
+            assert user.dept_id == test_dept_for_service.id
+
+    @pytest.mark.asyncio
+    async def test_get_page_empty_result(self, db):
+        """测试空结果"""
+        result = await user_service.get_page(
+            page=1,
+            page_size=10,
+            search="nonexistent_user_12345"
+        )
+
+        assert result.total == 0
+        assert len(result.list) == 0
+
+
+class TestUserServiceGet:
+    """测试获取用户详情"""
+
+    @pytest.mark.asyncio
+    async def test_get_existing_user(self, db, test_user_for_service):
+        """测试获取存在的用户"""
+        result = await user_service.get(test_user_for_service.id)
+
+        assert result.id == test_user_for_service.id
+        assert result.username == test_user_for_service.username
+        assert result.name == test_user_for_service.name
+
+    @pytest.mark.asyncio
+    async def test_get_nonexistent_user(self, db):
+        """测试获取不存在的用户"""
+        with pytest.raises(NotFound) as exc_info:
+            await user_service.get(99999)
+
+        assert "用户不存在" in str(exc_info.value)
+
+
+class TestUserServiceGetForm:
+    """测试获取用户表单详情"""
+
+    @pytest.mark.asyncio
+    async def test_get_form_existing_user(self, db, test_user_for_service):
+        """测试获取存在的用户表单"""
+        result = await user_service.get_form(test_user_for_service.id)
+
+        assert result.id == test_user_for_service.id
+        assert result.username == test_user_for_service.username
+        assert hasattr(result, 'roles')
+
+    @pytest.mark.asyncio
+    async def test_get_form_nonexistent_user(self, db):
+        """测试获取不存在的用户表单"""
+        with pytest.raises(NotFound) as exc_info:
+            await user_service.get_form(99999)
+
+        assert "用户不存在" in str(exc_info.value)
