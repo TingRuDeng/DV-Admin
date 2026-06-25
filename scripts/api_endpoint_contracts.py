@@ -161,7 +161,7 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         paginated=True,
         evidence=(
             ContractEvidence(
-                "fastapi/app/api/v1/system/logs.py",
+                "fastapi/app/api/v1/system/log_routes/query.py",
                 ("/page", "system:logs:query", 'alias="pageSize"', 'alias="startTime"'),
             ),
             ContractEvidence("frontend/src/api/system/log-api.ts", ("getPage", "/api/system/logs")),
