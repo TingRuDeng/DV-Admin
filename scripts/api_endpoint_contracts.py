@@ -61,7 +61,7 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         response_fields=("accessToken", "refreshToken", "tokenType", "expiresIn"),
         evidence=(
             ContractEvidence("backend/drf_admin/apps/oauth/urls.py", ("login/",)),
-            ContractEvidence("fastapi/app/api/v1/oauth/auth.py", ("/login/", "UserLogin")),
+            ContractEvidence("fastapi/app/api/v1/oauth/routes/login.py", ("/login/", "UserLogin")),
             ContractEvidence("frontend/src/api/auth-api.ts", ("/api/oauth", "/login/")),
         ),
     ),
@@ -73,7 +73,7 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         response_fields=("id", "username", "roles", "perms"),
         evidence=(
             ContractEvidence("backend/drf_admin/apps/oauth/urls.py", ("info/",)),
-            ContractEvidence("fastapi/app/api/v1/oauth/auth.py", ("/info/", "CurrentUser")),
+            ContractEvidence("fastapi/app/api/v1/oauth/routes/profile.py", ("/info/", "CurrentUser")),
             ContractEvidence("frontend/src/api/auth-api.ts", ("getInfo", "/info/")),
         ),
     ),
@@ -85,7 +85,7 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         response_fields=("children", "component", "meta", "path"),
         evidence=(
             ContractEvidence("backend/drf_admin/apps/oauth/urls.py", ("menus/routes/",)),
-            ContractEvidence("fastapi/app/api/v1/oauth/auth.py", ("/menus/routes/", "get_user_menus")),
+            ContractEvidence("fastapi/app/api/v1/oauth/routes/menus.py", ("/menus/routes/", "get_user_menus")),
             ContractEvidence("frontend/src/api/auth-api.ts", ("getRoutes", "/menus/routes/")),
         ),
     ),
