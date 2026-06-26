@@ -4,7 +4,7 @@
 
 ## 活跃任务
 
-- [ ] 待选择：下一轮长期可持续性治理目标。
+- [ ] 进行中：FastAPI deps token helper 拆分，计划见 `tasks/split-fastapi-deps-token-helpers.md`。
 
 ## 最近完成
 
