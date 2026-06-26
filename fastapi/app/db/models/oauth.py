@@ -121,36 +121,9 @@ class Users(BaseModel):
         Returns:
             权限标识列表
         """
-        from app.core.cache import CacheKeys, cache_service
+        from app.db.models.oauth_user_access import get_user_permissions
 
-        # 超级用户返回空列表（拥有所有权限）
-        if self.is_superuser:
-            return []
-
-        # 尝试从缓存获取
-        cache_key = CacheKeys.format_key(CacheKeys.USER_PERMISSIONS, user_id=self.id)
-        cached = await cache_service.get(cache_key)
-        if cached is not None:
-            return cached
-
-        permissions = set()
-
-        # 获取所有角色的权限 - 使用 prefetch_related 优化 N+1 查询
-        await self.fetch_related("roles")
-        role_ids = [role.id for role in self.roles]
-
-        if role_ids:
-            from app.db.models.system import Roles
-            roles_with_perms = await Roles.filter(id__in=role_ids).prefetch_related("permissions")
-            for role in roles_with_perms:
-                for perm in role.permissions:
-                    if perm.perm:
-                        permissions.add(perm.perm)
-
-        result = list(permissions)
-        # 缓存 10 分钟
-        await cache_service.set(cache_key, result, ttl=600)
-        return result
+        return await get_user_permissions(self)
 
     async def get_menus(self):
         """
@@ -159,87 +132,9 @@ class Users(BaseModel):
         Returns:
             菜单列表（树形结构）
         """
-        from app.core.cache import CacheKeys, cache_service
-        from app.db.models.system import Permissions
+        from app.db.models.oauth_user_access import get_user_menus
 
-        # 尝试从缓存获取
-        cache_key = CacheKeys.format_key(CacheKeys.USER_MENUS, user_id=self.id)
-        cached = await cache_service.get(cache_key)
-        if cached is not None:
-            return cached
-
-        # 获取用户角色的所有菜单权限 - 使用 prefetch_related 优化
-        await self.fetch_related("roles")
-        role_ids = [role.id for role in self.roles]
-
-        menu_ids = set()
-        if role_ids:
-            roles_with_perms = await Roles.filter(id__in=role_ids).prefetch_related("permissions")
-            for role in roles_with_perms:
-                for perm in role.permissions:
-                    if perm.type in [
-                        Permissions.TYPE_CATALOG,
-                        Permissions.TYPE_MENU,
-                        Permissions.TYPE_EXT_LINK,
-                    ]:
-                        menu_ids.add(perm.id)
-
-        # 查询菜单
-        menus = await Permissions.filter(
-            id__in=menu_ids, visible=1
-        ).order_by("sort")
-
-        # 将菜单转换为树形结构
-        menu_dict = {}
-        menu_list = []
-
-        # 先将所有菜单放入字典
-        for menu in menus:
-            # 先创建基础菜单字典
-            menu_item = {
-                'path': menu.route_path,
-                'component': menu.component if menu.component else 'Layout',
-                'name': menu.route_name if menu.route_name else menu.route_path,
-                'meta': {
-                    'title': menu.name,
-                    'icon': menu.icon if menu.icon else '',
-                    'hidden': False if menu.visible else True,
-                    'alwaysShow': False if menu.always_show is None else menu.always_show,
-                    'params': menu.params if menu.params else [],
-                    'keepAlive': False if menu.keep_alive is None else menu.keep_alive,
-                },
-                'children': []
-            }
-
-            # 只有当redirect有值时才添加该字段
-            if menu.redirect:
-                menu_item['redirect'] = menu.redirect
-
-            menu_dict[menu.id] = {"item": menu_item, "parent_id": menu.parent_id}
-
-        # 构建树形结构
-        for menu in menus:
-            if menu.parent_id is None:
-                # 根菜单直接加入列表
-                menu_list.append(menu_dict[menu.id]["item"])
-            else:
-                # 子菜单添加到父菜单的children中
-                if menu.parent_id in menu_dict:
-                    menu_dict[menu.parent_id]["item"]['children'].append(menu_dict[menu.id]["item"])
-
-        # 移除空的children字段
-        def remove_empty_children(menu_items):
-            for item in menu_items:
-                if 'children' in item and len(item['children']) == 0:
-                    del item['children']
-                elif 'children' in item and len(item['children']) > 0:
-                    remove_empty_children(item['children'])
-
-        remove_empty_children(menu_list)
-
-        # 缓存 10 分钟
-        await cache_service.set(cache_key, menu_list, ttl=600)
-        return menu_list
+        return await get_user_menus(self)
 
     async def has_perm(self, perm_code: str) -> bool:
         """
