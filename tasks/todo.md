@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] 进行中：FastAPI deps token helper 拆分，计划见 `tasks/split-fastapi-deps-token-helpers.md`。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] FastAPI deps token helper 拆分已通过 PR #225 合并：`deps.py` 从 259 行降至 242 行，Authorization/Bearer token 提取、access token payload 校验和用户 ID 提取已拆入 `deps_tokens.py`；黑名单检查、用户批量撤销检查、数据库查询、request.state 写入、权限检查器和角色检查器保持不变，合并提交为 `03cedbc`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI Token 黑名单记录 helper 拆分已通过 PR #223 合并：`token_blacklist.py` 从 292 行降至 272 行，Token 黑名单记录构造、用户撤销记录构造和时间比较已拆入 `token_blacklist_records.py`，内存存储兼容访问器已拆入 `token_blacklist_compat.py`；JWT 解码、Redis 连接、内存降级、认证依赖和公开服务 API 保持不变，合并提交为 `05290f4`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] Django system 测试管理员用户 helper 抽取已通过 PR #221 合并：7 个 system 测试文件中的重复 `create_admin_user()` 已收敛到 `backend/drf_admin/apps/system/test_helpers.py`，共享 helper 为 60 行，相关测试文件均低于 300 行；Django 运行时代码、权限逻辑、模型、序列化器和 API 响应契约保持不变，合并提交为 `0ecc2f7`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] Django OAuth 接口测试拆分已通过 PR #219 合并：原 323 行 `tests.py` 已拆为 helper/login/refresh-token/session/home 五个职责文件，拆分后文件分别为 46、60、86、123、30 行，OAuth 运行时代码、URL、序列化器、模型和 API 响应契约保持不变；`backend/TESTING.md` 已同步为当前 pytest 测试入口，合并提交为 `b292fff`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
