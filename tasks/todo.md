@@ -4,7 +4,11 @@
 
 ## 活跃任务
 
-- [ ] 待选择：下一轮长期可持续性治理目标
+- [x] P1 串行：规划 FastAPI Token 黑名单服务拆分
+- [x] P2 串行：抽出 Token 黑名单 Key 与内存清理 helper
+- [x] P3 串行：更新 Token 黑名单服务兼容委托入口
+- [x] P4 串行：执行目标测试、FastAPI 质量门禁、文档校验和 diff 检查
+- [ ] P5 串行：review-gate、提交、PR、CI 和合并
 
 ## 最近完成
 
