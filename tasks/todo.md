@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] FastAPI OAuth 用户访问逻辑拆分：将 `oauth.py` 的用户权限查询、菜单查询和菜单树构建逻辑拆入专用 helper，保持 `Users` 公开方法、OAuth 菜单接口和权限校验行为不变。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] FastAPI OAuth 用户访问逻辑拆分已通过 PR #207 合并：`oauth.py` 已从 274 行降至 169 行，用户权限查询、菜单查询和菜单树构建 helper 已拆入 `oauth_user_access.py`，`Users` 公开方法、OAuth 菜单接口和权限校验行为保持不变，合并提交为 `e53a0fc`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 验证码服务拆分已通过 PR #205 合并：`captcha_service.py` 已从 277 行降至 158 行，`CaptchaCache`、`MemoryCaptchaCache`、`RedisCaptchaCache` 已拆入 `captcha_cache.py`，服务入口、OAuth 验证码接口和登录验证码校验行为保持不变，合并提交为 `55f9f2a`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 用户写接口 OpenAPI 文案拆分已通过 PR #203 合并：`user_routes/mutation.py` 已从 286 行降至 91 行，长 description 和 responses 已拆入 `mutation_docs.py`，路由函数、权限声明、路径和响应契约保持不变，合并提交为 `36ca4bf`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI Token 黑名单内存降级存储拆分已通过 PR #201 合并：`TokenBlacklistMemoryStore` 已承接内存黑名单和用户撤销标记状态，`token_blacklist.py` 当前为 292 行，新增 helper 测试覆盖过期清理、撤销判断和清理行为，合并提交为 `3a0051d`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
