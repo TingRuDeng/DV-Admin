@@ -13,48 +13,31 @@ from redis.exceptions import RedisError
 from app.core.config import settings
 from app.core.redis import redis_manager
 from app.core.security import decode_token, get_token_expiration
-from app.services.token_blacklist_keys import BLACKLIST_PREFIX as TOKEN_BLACKLIST_PREFIX
-from app.services.token_blacklist_keys import USER_TOKENS_PREFIX as TOKEN_USER_TOKENS_PREFIX
+from app.services.token_blacklist_compat import TokenBlacklistCompatibilityMixin
 from app.services.token_blacklist_keys import (
+    BLACKLIST_PREFIX,
+    USER_TOKENS_PREFIX,
     get_blacklist_key,
     get_user_revocation_key,
     get_user_tokens_key,
 )
 from app.services.token_blacklist_memory import TokenBlacklistMemoryStore
+from app.services.token_blacklist_records import (
+    build_token_blacklist_record,
+    build_user_revocation_record,
+    is_token_revoked_by_time,
+)
 
 
-class TokenBlacklistService:
+class TokenBlacklistService(TokenBlacklistCompatibilityMixin):
     """Token 黑名单服务，优先使用 Redis，Redis 不可用时降级到内存。"""
 
-    # 黑名单 Key 前缀
-    BLACKLIST_PREFIX = TOKEN_BLACKLIST_PREFIX
-    # 用户 Token 集合 Key 前缀
-    USER_TOKENS_PREFIX = TOKEN_USER_TOKENS_PREFIX
+    BLACKLIST_PREFIX = BLACKLIST_PREFIX
+    USER_TOKENS_PREFIX = USER_TOKENS_PREFIX
 
     def __init__(self):
-        """初始化服务"""
         self._redis: Redis | None = None
         self._memory_store = TokenBlacklistMemoryStore()
-
-    @property
-    def _memory_blacklist(self) -> dict[str, datetime]:
-        """兼容既有测试直接重置内存黑名单的入口。"""
-        return self._memory_store.blacklist
-
-    @_memory_blacklist.setter
-    def _memory_blacklist(self, value: dict[str, datetime]) -> None:
-        """兼容既有测试直接覆盖内存黑名单的入口。"""
-        self._memory_store.blacklist = value
-
-    @property
-    def _memory_user_revocations(self) -> dict[int, datetime]:
-        """兼容既有测试直接重置用户撤销标记的入口。"""
-        return self._memory_store.user_revocations
-
-    @_memory_user_revocations.setter
-    def _memory_user_revocations(self, value: dict[int, datetime]) -> None:
-        """兼容既有测试直接覆盖用户撤销标记的入口。"""
-        self._memory_store.user_revocations = value
 
     @property
     def redis(self) -> Redis:
@@ -102,39 +85,35 @@ class TokenBlacklistService:
                 logger.warning("无法解码 Token，跳过黑名单添加")
                 return False
 
-            # 计算剩余过期时间
             expiration = get_token_expiration(payload)
             if not expiration:
                 logger.warning("无法获取 Token 过期时间，跳过黑名单添加")
                 return False
 
             now = datetime.now(timezone.utc)
-            ttl = int((expiration - now).total_seconds())
-
-            # 如果 Token 已过期，不需要加入黑名单
-            if ttl <= 0:
+            record = build_token_blacklist_record(
+                token=token,
+                user_id=user_id,
+                reason=reason,
+                expires_at=expiration,
+                revoked_at=now,
+            )
+            if record is None:
                 logger.debug("Token 已过期，无需加入黑名单")
                 return True
 
-            key = self._get_blacklist_key(token)
             redis = self._get_redis_or_none()
             if redis is None:
-                self._memory_store.add_token(key, expiration)
+                self._memory_store.add_token(record.key, record.expires_at)
                 return True
 
-            value = {
-                "user_id": user_id,
-                "reason": reason,
-                "revoked_at": now.isoformat(),
-            }
-
             await redis.setex(
-                key,
-                ttl,
-                str(value),
+                record.key,
+                record.ttl,
+                str(record.value),
             )
 
-            logger.info(f"Token 已加入黑名单，TTL: {ttl}秒，原因: {reason}")
+            logger.info(f"Token 已加入黑名单，TTL: {record.ttl}秒，原因: {reason}")
             return True
 
         except RedisError as e:
@@ -185,18 +164,21 @@ class TokenBlacklistService:
             是否成功
         """
         try:
-            key = get_user_revocation_key(user_id)
             now = datetime.now(timezone.utc)
-            ttl = settings.refresh_token_expire_days * 24 * 60 * 60
+            record = build_user_revocation_record(
+                user_id=user_id,
+                refresh_token_expire_days=settings.refresh_token_expire_days,
+                revoked_at=now,
+            )
             redis = self._get_redis_or_none()
             if redis is None:
-                self._memory_store.revoke_user(user_id, now)
+                self._memory_store.revoke_user(user_id, record.revoked_at)
                 return True
 
             await redis.setex(
-                key,
-                ttl,
-                now.isoformat(),
+                record.key,
+                record.ttl,
+                record.revoked_at.isoformat(),
             )
 
             logger.info(f"已撤销用户 {user_id} 的所有 Token，原因: {reason}")
@@ -228,9 +210,7 @@ class TokenBlacklistService:
             if not revoked_at_str:
                 return False
 
-            revoked_at = datetime.fromisoformat(revoked_at_str)
-            # 如果 Token 的签发时间早于撤销时间，则视为已撤销
-            return token_issued_at < revoked_at
+            return is_token_revoked_by_time(token_issued_at, revoked_at_str)
 
         except RedisError as e:
             logger.error(f"检查用户 Token 撤销状态失败: {e}")
