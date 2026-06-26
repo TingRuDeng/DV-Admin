@@ -122,19 +122,10 @@
 
 <script setup lang="ts">
 import { useDateFormat } from "@vueuse/core";
-import type { ButtonProps } from "element-plus";
-import type { CSSProperties } from "vue";
 import type { IContentConfig, IObject, IOperateData } from "./types";
+import type { PageContentToolbarButton } from "./usePageContentToolbarConfig";
 
 type PageContentColumn = IContentConfig["cols"][number];
-
-export interface PageContentTableButton {
-  name: string;
-  text?: string;
-  perm?: string | null;
-  attrs?: Partial<ButtonProps> & { style?: CSSProperties };
-  render?: (row: IObject) => boolean;
-}
 
 defineProps<{
   col: PageContentColumn;
@@ -142,7 +133,7 @@ defineProps<{
   column: IObject;
   rowIndex: number;
   pageDataLength: number;
-  tableToolbarBtn: PageContentTableButton[];
+  tableToolbarBtn: PageContentToolbarButton[];
   hasButtonPerm: (action: string) => boolean;
 }>();
 

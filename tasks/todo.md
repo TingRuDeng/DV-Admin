@@ -4,7 +4,7 @@
 
 ## 活跃任务
 
-- [ ] 待选择：下一轮长期可持续性治理目标。
+- [ ] P1 串行：抽取 PageContent 工具栏配置逻辑，详见 `tasks/extract-page-content-toolbar-config.md`。
 
 ## 最近完成
 
