@@ -4,7 +4,7 @@
 
 ## 活跃任务
 
-- [ ] 待选择：下一轮长期可持续性治理目标。
+- [ ] P1 串行：拆分 PageContent 导入弹窗组件，详见 `tasks/split-page-content-import-dialog.md`。
 
 ## 最近完成
 
