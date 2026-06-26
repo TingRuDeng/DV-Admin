@@ -1,10 +1,8 @@
 """
 通知公告 Service
 """
-from datetime import datetime
-from zoneinfo import ZoneInfo
 
-from tortoise.expressions import Q
+from typing import cast
 
 from app.core.exceptions import NotFound, ValidationError
 from app.db.models.system import NoticeReads, Notices
@@ -13,18 +11,21 @@ from app.schemas.system import (
     NoticeCreate,
     NoticeDetailOut,
     NoticeFormOut,
-    NoticeMyPageOut,
     NoticeMyPageResult,
     NoticePageOut,
     NoticeUpdate,
 )
-
-LOCAL_TIMEZONE = ZoneInfo("Asia/Shanghai")
-
-
-def local_now() -> datetime:
-    """生成与 Tortoise 本地时区配置兼容的上海时间。"""
-    return datetime.now(LOCAL_TIMEZONE).replace(tzinfo=None)
+from app.services.system.notice_read_helpers import (
+    apply_read_filter,
+    find_unread_notice_ids,
+)
+from app.services.system.notice_serializers import (
+    notice_to_detail_out,
+    notice_to_form_out,
+    notice_to_my_page_out,
+    notice_to_page_out,
+)
+from app.services.system.notice_time import local_now
 
 
 class NoticeService:
@@ -53,23 +54,7 @@ class NoticeService:
             .all()
         )
 
-        results = [
-            NoticePageOut(
-                id=n.id,
-                title=n.title,
-                content=n.content,
-                type=n.type,
-                level=n.level,
-                target_type=n.target_type,
-                publisher_id=n.publisher_id,
-                publisher_name=n.publisher_name,
-                publish_status=n.publish_status,
-                create_time=n.created_at,
-                publish_time=n.publish_time,
-                revoke_time=n.revoke_time,
-            )
-            for n in notices
-        ]
+        results = [notice_to_page_out(notice) for notice in notices]
 
         return NoticeAdminPageResult(list=results, total=total)
 
@@ -78,15 +63,7 @@ class NoticeService:
         if not notice:
             raise NotFound("通知不存在")
 
-        return NoticeFormOut(
-            id=notice.id,
-            title=notice.title,
-            content=notice.content,
-            type=notice.type,
-            level=notice.level,
-            target_type=notice.target_type,
-            target_user_ids=list(notice.target_user_ids or []),
-        )
+        return notice_to_form_out(notice)
 
     async def get_detail(self, notice_id: int, user_id: int | None = None) -> NoticeDetailOut:
         notice = await Notices.get_or_none(id=notice_id)
@@ -96,18 +73,11 @@ class NoticeService:
         if user_id is not None:
             await self._mark_read(notice_id=notice.id, user_id=user_id)
 
-        return NoticeDetailOut(
-            id=notice.id,
-            title=notice.title,
-            content=notice.content,
-            type=notice.type,
-            level=notice.level,
-            publisher_name=notice.publisher_name,
-            publish_time=notice.publish_time,
-            publish_status=notice.publish_status,
-        )
+        return notice_to_detail_out(notice)
 
-    async def create(self, notice_in: NoticeCreate, publisher_id: int, publisher_name: str) -> NoticePageOut:
+    async def create(
+        self, notice_in: NoticeCreate, publisher_id: int, publisher_name: str
+    ) -> NoticePageOut:
         if notice_in.target_type == 2 and not notice_in.target_user_ids:
             raise ValidationError("目标类型为指定时，必须选择目标用户")
 
@@ -123,20 +93,7 @@ class NoticeService:
             publish_status=0,
         )
 
-        return NoticePageOut(
-            id=notice.id,
-            title=notice.title,
-            content=notice.content,
-            type=notice.type,
-            level=notice.level,
-            target_type=notice.target_type,
-            publisher_id=notice.publisher_id,
-            publisher_name=notice.publisher_name,
-            publish_status=notice.publish_status,
-            create_time=notice.created_at,
-            publish_time=notice.publish_time,
-            revoke_time=notice.revoke_time,
-        )
+        return notice_to_page_out(notice)
 
     async def update(self, notice_id: int, notice_in: NoticeUpdate) -> NoticePageOut:
         notice = await Notices.get_or_none(id=notice_id)
@@ -161,20 +118,7 @@ class NoticeService:
             await Notices.filter(id=notice_id).update(**update_fields)
             await notice.refresh_from_db()
 
-        return NoticePageOut(
-            id=notice.id,
-            title=notice.title,
-            content=notice.content,
-            type=notice.type,
-            level=notice.level,
-            target_type=notice.target_type,
-            publisher_id=notice.publisher_id,
-            publisher_name=notice.publisher_name,
-            publish_status=notice.publish_status,
-            create_time=notice.created_at,
-            publish_time=notice.publish_time,
-            revoke_time=notice.revoke_time,
-        )
+        return notice_to_page_out(notice)
 
     async def delete_by_ids(self, ids: list[int]) -> None:
         published = await Notices.filter(id__in=ids, publish_status=1).exists()
@@ -209,15 +153,21 @@ class NoticeService:
         await notice.save()
 
     async def read_all(self, user_id: int) -> None:
-        published_ids = await Notices.filter(publish_status=1).values_list("id", flat=True)
+        published_ids = cast(
+            list[int],
+            await Notices.filter(publish_status=1).values_list("id", flat=True),
+        )
         if not published_ids:
             return
 
-        existing_ids = await NoticeReads.filter(
-            user_id=user_id, notice_id__in=published_ids
-        ).values_list("notice_id", flat=True)
+        existing_ids = cast(
+            list[int],
+            await NoticeReads.filter(user_id=user_id, notice_id__in=published_ids).values_list(
+                "notice_id", flat=True
+            ),
+        )
 
-        missing = [nid for nid in published_ids if nid not in set(existing_ids)]
+        missing = find_unread_notice_ids(published_ids, existing_ids)
         if not missing:
             return
 
@@ -238,16 +188,13 @@ class NoticeService:
         if title:
             query = query.filter(title__icontains=title)
 
-        read_notice_ids = await NoticeReads.filter(user_id=user_id).values_list(
-            "notice_id", flat=True
+        read_notice_ids = cast(
+            list[int],
+            await NoticeReads.filter(user_id=user_id).values_list("notice_id", flat=True),
         )
 
         if is_read is not None:
-            if is_read == 1:
-                query = query.filter(id__in=read_notice_ids)
-            else:
-                if read_notice_ids:
-                    query = query.filter(~Q(id__in=read_notice_ids))
+            query = apply_read_filter(query, read_notice_ids, is_read)
 
         total = await query.count()
         notices = (
@@ -259,29 +206,15 @@ class NoticeService:
 
         notice_ids = [n.id for n in notices]
         read_ids = set(
-            await NoticeReads.filter(user_id=user_id, notice_id__in=notice_ids).values_list(
-                "notice_id", flat=True
+            cast(
+                list[int],
+                await NoticeReads.filter(user_id=user_id, notice_id__in=notice_ids).values_list(
+                    "notice_id", flat=True
+                ),
             )
         )
 
-        items = [
-            NoticeMyPageOut(
-                id=n.id,
-                title=n.title,
-                content=n.content,
-                type=n.type,
-                level=n.level,
-                target_type=n.target_type,
-                publisher_id=n.publisher_id,
-                publisher_name=n.publisher_name,
-                publish_status=n.publish_status,
-                create_time=n.created_at,
-                publish_time=n.publish_time,
-                revoke_time=n.revoke_time,
-                is_read=1 if n.id in read_ids else 0,
-            )
-            for n in notices
-        ]
+        items = [notice_to_my_page_out(notice, read_ids) for notice in notices]
 
         return NoticeMyPageResult(list=items, total=total)
 
