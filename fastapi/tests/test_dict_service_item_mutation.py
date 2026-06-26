@@ -1,5 +1,5 @@
 """
-字典服务字典项嵌套接口测试
+字典服务字典项嵌套写操作测试。
 """
 import uuid
 
@@ -12,99 +12,12 @@ from app.services.system.dict_service import dict_service
 
 pytest_plugins = ["dict_service_fixtures"]
 
-class TestDictServiceGetItemPage:
-    """测试字典项分页查询"""
-
-    @pytest.mark.asyncio
-    async def test_get_item_page_basic(self, db, test_dict_item_for_service):
-        """测试基本分页查询"""
-        result = await dict_service.get_item_page(page=1, page_size=10)
-
-        assert result.total >= 1
-        assert len(result.list) >= 1
-        assert result.page == 1
-        assert result.page_size == 10
-
-    @pytest.mark.asyncio
-    async def test_get_item_page_with_dict_id(self, db, test_dict_data_for_service, test_dict_item_for_service):
-        """测试按字典类型ID过滤"""
-        result = await dict_service.get_item_page(
-            page=1,
-            page_size=10,
-            dict_id=test_dict_data_for_service.id
-        )
-
-        for item in result.list:
-            assert item.dict_data_id == test_dict_data_for_service.id
-
-    @pytest.mark.asyncio
-    async def test_get_item_page_with_label(self, db, test_dict_item_for_service):
-        """测试按标签搜索"""
-        result = await dict_service.get_item_page(
-            page=1,
-            page_size=10,
-            label=test_dict_item_for_service.label[:10]
-        )
-        assert result.total >= 1
-
-    @pytest.mark.asyncio
-    async def test_get_item_page_with_code(self, db, test_dict_data_for_service, test_dict_item_for_service):
-        """测试按字典编码过滤"""
-        result = await dict_service.get_item_page(
-            page=1,
-            page_size=10,
-            code=test_dict_data_for_service.dict_code,
-        )
-
-        for item in result.list:
-            assert item.dict_data_id == test_dict_data_for_service.id
-
-    @pytest.mark.asyncio
-    async def test_get_item_page_empty_result(self, db):
-        """测试空结果"""
-        result = await dict_service.get_item_page(
-            page=1,
-            page_size=10,
-            label="nonexistent_item_12345"
-        )
-
-        assert result.total == 0
-        assert len(result.list) == 0
-
-
-class TestDictServiceGetItems:
-    """测试获取字典项列表"""
-
-    @pytest.mark.asyncio
-    async def test_get_items(self, db, test_dict_data_for_service, test_dict_item_for_service):
-        """测试获取字典项列表"""
-        result = await dict_service.get_items(test_dict_data_for_service.id)
-
-        assert isinstance(result, list)
-        assert len(result) >= 1
-
-    @pytest.mark.asyncio
-    async def test_get_items_nonexistent_dict(self, db):
-        """测试获取不存在字典类型的字典项"""
-        with pytest.raises(NotFound) as exc_info:
-            await dict_service.get_items(99999)
-
-        assert "字典类型不存在" in str(exc_info.value)
-
-    @pytest.mark.asyncio
-    async def test_get_items_empty(self, db, test_dict_data_for_service):
-        """测试获取空字典项列表"""
-        result = await dict_service.get_items(test_dict_data_for_service.id)
-
-        assert isinstance(result, list)
-        # 因为 test_dict_data_for_service 可能被其他测试添加了项，所以不强制要求为空
-
 
 class TestDictServiceCreateItem:
-    """测试创建字典项"""
+    """测试创建字典项。"""
 
     def test_create_item_rejects_overlength_label(self):
-        """测试创建字典项拒绝超长标签"""
+        """测试创建字典项拒绝超长标签。"""
         with pytest.raises(PydanticValidationError):
             DictItemCreate(
                 label="测" * 33,
@@ -114,7 +27,7 @@ class TestDictServiceCreateItem:
             )
 
     def test_create_item_rejects_overlength_value(self):
-        """测试创建字典项拒绝超长值"""
+        """测试创建字典项拒绝超长值。"""
         with pytest.raises(PydanticValidationError):
             DictItemCreate(
                 label="有效标签",
@@ -125,7 +38,7 @@ class TestDictServiceCreateItem:
 
     @pytest.mark.asyncio
     async def test_create_item_basic(self, db, test_dict_data_for_service):
-        """测试基本创建字典项"""
+        """测试基本创建字典项。"""
         item_data = DictItemCreate(
             label=f"新字典项_{uuid.uuid4().hex[:8]}",
             value=f"new_value_{uuid.uuid4().hex[:8]}",
@@ -141,7 +54,7 @@ class TestDictServiceCreateItem:
 
     @pytest.mark.asyncio
     async def test_create_item_nonexistent_dict(self, db):
-        """测试在不存在字典类型下创建字典项"""
+        """测试在不存在字典类型下创建字典项。"""
         item_data = DictItemCreate(
             label=f"字典项_{uuid.uuid4().hex[:8]}",
             value=f"value_{uuid.uuid4().hex[:8]}",
@@ -156,7 +69,7 @@ class TestDictServiceCreateItem:
 
     @pytest.mark.asyncio
     async def test_create_item_with_status(self, db, test_dict_data_for_service):
-        """测试创建字典项包含状态字段"""
+        """测试创建字典项包含状态字段。"""
         item_data = DictItemCreate(
             label=f"完整字典项_{uuid.uuid4().hex[:8]}",
             value=f"full_value_{uuid.uuid4().hex[:8]}",
@@ -172,21 +85,21 @@ class TestDictServiceCreateItem:
 
 
 class TestDictServiceUpdateItem:
-    """测试更新字典项"""
+    """测试更新字典项。"""
 
     def test_update_item_rejects_overlength_label(self):
-        """测试更新字典项拒绝超长标签"""
+        """测试更新字典项拒绝超长标签。"""
         with pytest.raises(PydanticValidationError):
             DictItemUpdate(label="测" * 33)
 
     def test_update_item_rejects_overlength_value(self):
-        """测试更新字典项拒绝超长值"""
+        """测试更新字典项拒绝超长值。"""
         with pytest.raises(PydanticValidationError):
             DictItemUpdate(value="v" * 33)
 
     @pytest.mark.asyncio
     async def test_update_item_basic(self, db, test_dict_data_for_service, test_dict_item_for_service):
-        """测试基本更新字典项"""
+        """测试基本更新字典项。"""
         update_data = DictItemUpdate(
             label="更新后的标签",
         )
@@ -194,27 +107,27 @@ class TestDictServiceUpdateItem:
         result = await dict_service.update_item(
             test_dict_data_for_service.id,
             test_dict_item_for_service.id,
-            update_data
+            update_data,
         )
 
         assert result.label == "更新后的标签"
 
     @pytest.mark.asyncio
     async def test_update_item_status(self, db, test_dict_data_for_service, test_dict_item_for_service):
-        """测试更新字典项状态"""
+        """测试更新字典项状态。"""
         update_data = DictItemUpdate(status=0)
 
         result = await dict_service.update_item(
             test_dict_data_for_service.id,
             test_dict_item_for_service.id,
-            update_data
+            update_data,
         )
 
         assert result.status == 0
 
     @pytest.mark.asyncio
     async def test_update_nonexistent_item(self, db, test_dict_data_for_service):
-        """测试更新不存在的字典项"""
+        """测试更新不存在的字典项。"""
         update_data = DictItemUpdate(label="更新标签")
 
         with pytest.raises(NotFound) as exc_info:
@@ -224,14 +137,14 @@ class TestDictServiceUpdateItem:
 
 
 class TestDictServiceDeleteItem:
-    """测试删除字典项"""
+    """测试删除字典项。"""
 
     @pytest.mark.asyncio
     async def test_delete_item(self, db, test_dict_data_for_service):
-        """测试删除字典项"""
+        """测试删除字典项。"""
         from app.db.models.system import DictItems
 
-        # 创建一个新字典项用于删除
+        # 创建一个新字典项用于删除。
         item_to_delete = await DictItems.create(
             label=f"待删除项_{uuid.uuid4().hex[:8]}",
             value=f"del_value_{uuid.uuid4().hex[:8]}",
@@ -241,17 +154,14 @@ class TestDictServiceDeleteItem:
 
         await dict_service.delete_item(test_dict_data_for_service.id, item_to_delete.id)
 
-        # 验证字典项已删除
+        # 验证字典项已删除。
         deleted_item = await DictItems.get_or_none(id=item_to_delete.id)
         assert deleted_item is None
 
     @pytest.mark.asyncio
     async def test_delete_nonexistent_item(self, db, test_dict_data_for_service):
-        """测试删除不存在的字典项"""
+        """测试删除不存在的字典项。"""
         with pytest.raises(NotFound) as exc_info:
             await dict_service.delete_item(test_dict_data_for_service.id, 99999)
 
         assert "字典项不存在" in str(exc_info.value)
-
-
-# ==================== 扁平接口测试 ====================
