@@ -4,7 +4,7 @@
 """
 import pytest
 
-from app.services.captcha_service import get_captcha_service
+from app.services.captcha_service import CaptchaService, MemoryCaptchaCache, get_captcha_service
 
 
 class TestCaptchaService:
@@ -53,3 +53,35 @@ class TestCaptchaService:
 
         # 每个验证码的 key 应该是唯一的
         assert len(keys) == 5
+
+    @pytest.mark.asyncio
+    async def test_verify_captcha_is_case_insensitive_and_one_time(self):
+        """测试验证码大小写不敏感，且默认验证后删除。"""
+        cache = MemoryCaptchaCache()
+        service = CaptchaService(cache)
+
+        await cache.set("case-key", "AbC1", 60)
+
+        assert await service.verify("case-key", "abc1") is True
+        assert await cache.get("case-key") is None
+
+    @pytest.mark.asyncio
+    async def test_verify_captcha_can_keep_code_when_delete_disabled(self):
+        """测试关闭删除开关时，验证码验证后仍保留。"""
+        cache = MemoryCaptchaCache()
+        service = CaptchaService(cache)
+
+        await cache.set("keep-key", "1234", 60)
+
+        assert await service.verify("keep-key", "1234", delete=False) is True
+        assert await cache.get("keep-key") == "1234"
+
+    @pytest.mark.asyncio
+    async def test_memory_cache_removes_expired_code(self):
+        """测试内存缓存会拒绝并删除过期验证码。"""
+        cache = MemoryCaptchaCache()
+
+        await cache.set("expired-key", "1234", -1)
+
+        assert await cache.get("expired-key") is None
+        assert "expired-key" not in cache._cache
