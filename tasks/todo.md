@@ -4,7 +4,7 @@
 
 ## 活跃任务
 
-- [ ] 待选择：下一轮长期可持续性治理目标。
+- [ ] 进行中：FastAPI Token 黑名单记录 helper 拆分，计划见 `tasks/split-token-blacklist-record-helpers.md`。
 
 ## 最近完成
 
