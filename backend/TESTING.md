@@ -66,32 +66,32 @@ PASSWORD_HASHERS = [
 
 ```bash
 cd backend
-DJANGO_SETTINGS_MODULE=drf_admin.settings_test uv run python manage.py test
+uv run pytest
 ```
 
 ### 运行单个测试模块
 
 ```bash
 # OAuth 认证测试
-DJANGO_SETTINGS_MODULE=drf_admin.settings_test uv run python manage.py test drf_admin.apps.oauth.tests
+uv run pytest drf_admin/apps/oauth
 
 # 用户管理测试
-DJANGO_SETTINGS_MODULE=drf_admin.settings_test uv run python manage.py test drf_admin.apps.system.tests
+uv run pytest drf_admin/apps/system/tests.py
 
 # 角色管理测试
-DJANGO_SETTINGS_MODULE=drf_admin.settings_test uv run python manage.py test drf_admin.apps.system.test_roles
+uv run pytest drf_admin/apps/system/test_roles.py
 
 # 部门管理测试
-DJANGO_SETTINGS_MODULE=drf_admin.settings_test uv run python manage.py test drf_admin.apps.system.test_departments
+uv run pytest drf_admin/apps/system/test_departments.py
 
 # 个人中心测试
-DJANGO_SETTINGS_MODULE=drf_admin.settings_test uv run python manage.py test drf_admin.apps.information.tests
+uv run pytest drf_admin/apps/information/tests.py
 ```
 
 ### 运行特定测试类
 
 ```bash
-DJANGO_SETTINGS_MODULE=drf_admin.settings_test uv run python manage.py test drf_admin.apps.oauth.tests.OAuthLoginTestCase
+uv run pytest drf_admin/apps/oauth/test_login.py::OAuthLoginTestCase
 ```
 
 ## 创建带权限的测试用户
