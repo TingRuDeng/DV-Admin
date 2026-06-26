@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] FastAPI Django 数据导入模块拆分：将 `import_django_data.py` 的配置、状态、fixture 读取、写入转换和关系处理拆入专用模块，保持公开导入契约与 fail-fast 行为不变。
+- [ ] 待选择：下一轮长期可持续性治理目标
 
 ## 最近完成
 
+- [x] FastAPI Django 数据导入模块拆分已通过 PR #199 合并：`import_django_data.py` 已从 292 行降至 58 行，配置、状态、fixture 读取、写入转换和关系处理已拆入专用模块；模型契约校验已同步扫描 `django_import_config.py`，合并提交为 `ecf14a9`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 通知服务拆分已通过 PR #197 合并：`notice_service.py` 已从 292 行降至 225 行，时间辅助、输出转换和已读状态 helper 已拆入 `notice_time.py`、`notice_serializers.py`、`notice_read_helpers.py`，合并提交为 `9d79041`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 日志服务拆分已通过 PR #195 合并：`log_service.py` 已从 293 行降至 205 行，时间辅助、输出转换和访问统计聚合 helper 已拆入 `log_time.py`、`log_serializers.py`、`log_stats_helpers.py`，合并提交为 `fc9a33b`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI Token 黑名单服务拆分已通过 PR #193 合并：`token_blacklist.py` 已从 302 行降至 288 行，Key 生成和内存过期清理 helper 已拆入 `token_blacklist_keys.py`，合并提交为 `e770406`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
