@@ -4,7 +4,7 @@
 
 ## 活跃任务
 
-- [ ] 待选择：下一轮长期可持续性治理目标。
+- [ ] 进行中：Django OAuth 测试拆分，计划见 `tasks/split-django-oauth-tests.md`。
 
 ## 最近完成
 
