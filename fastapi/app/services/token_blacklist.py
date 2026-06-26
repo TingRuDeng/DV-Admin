@@ -16,20 +16,15 @@ from app.core.security import decode_token, get_token_expiration
 from app.services.token_blacklist_keys import BLACKLIST_PREFIX as TOKEN_BLACKLIST_PREFIX
 from app.services.token_blacklist_keys import USER_TOKENS_PREFIX as TOKEN_USER_TOKENS_PREFIX
 from app.services.token_blacklist_keys import (
-    cleanup_expired_memory_blacklist,
     get_blacklist_key,
     get_user_revocation_key,
     get_user_tokens_key,
 )
+from app.services.token_blacklist_memory import TokenBlacklistMemoryStore
 
 
 class TokenBlacklistService:
-    """
-    Token 黑名单服务
-
-    使用 Redis 存储被撤销的 Token。
-    黑名单的 Key 格式: token_blacklist:{token_jti}
-    """
+    """Token 黑名单服务，优先使用 Redis，Redis 不可用时降级到内存。"""
 
     # 黑名单 Key 前缀
     BLACKLIST_PREFIX = TOKEN_BLACKLIST_PREFIX
@@ -39,17 +34,31 @@ class TokenBlacklistService:
     def __init__(self):
         """初始化服务"""
         self._redis: Redis | None = None
-        self._memory_blacklist: dict[str, datetime] = {}
-        self._memory_user_revocations: dict[int, datetime] = {}
+        self._memory_store = TokenBlacklistMemoryStore()
+
+    @property
+    def _memory_blacklist(self) -> dict[str, datetime]:
+        """兼容既有测试直接重置内存黑名单的入口。"""
+        return self._memory_store.blacklist
+
+    @_memory_blacklist.setter
+    def _memory_blacklist(self, value: dict[str, datetime]) -> None:
+        """兼容既有测试直接覆盖内存黑名单的入口。"""
+        self._memory_store.blacklist = value
+
+    @property
+    def _memory_user_revocations(self) -> dict[int, datetime]:
+        """兼容既有测试直接重置用户撤销标记的入口。"""
+        return self._memory_store.user_revocations
+
+    @_memory_user_revocations.setter
+    def _memory_user_revocations(self, value: dict[int, datetime]) -> None:
+        """兼容既有测试直接覆盖用户撤销标记的入口。"""
+        self._memory_store.user_revocations = value
 
     @property
     def redis(self) -> Redis:
-        """
-        获取 Redis 客户端
-
-        Returns:
-            Redis 客户端实例
-        """
+        """获取 Redis 客户端。"""
         if self._redis is None:
             self._redis = redis_manager.client
         return self._redis
@@ -60,9 +69,6 @@ class TokenBlacklistService:
         except RuntimeError as exc:
             logger.warning(f"Redis 不可用，Token 黑名单降级到内存模式: {exc}")
             return None
-
-    def _cleanup_memory_blacklist(self) -> None:
-        cleanup_expired_memory_blacklist(self._memory_blacklist)
 
     def _get_blacklist_key(self, token: str) -> str:
         """生成黑名单 Key。"""
@@ -113,7 +119,7 @@ class TokenBlacklistService:
             key = self._get_blacklist_key(token)
             redis = self._get_redis_or_none()
             if redis is None:
-                self._memory_blacklist[key] = expiration
+                self._memory_store.add_token(key, expiration)
                 return True
 
             value = {
@@ -152,8 +158,7 @@ class TokenBlacklistService:
             key = self._get_blacklist_key(token)
             redis = self._get_redis_or_none()
             if redis is None:
-                self._cleanup_memory_blacklist()
-                return key in self._memory_blacklist
+                return self._memory_store.has_token(key)
 
             exists = await redis.exists(key)
             return exists > 0
@@ -185,7 +190,7 @@ class TokenBlacklistService:
             ttl = settings.refresh_token_expire_days * 24 * 60 * 60
             redis = self._get_redis_or_none()
             if redis is None:
-                self._memory_user_revocations[user_id] = now
+                self._memory_store.revoke_user(user_id, now)
                 return True
 
             await redis.setex(
@@ -216,8 +221,7 @@ class TokenBlacklistService:
             key = get_user_revocation_key(user_id)
             redis = self._get_redis_or_none()
             if redis is None:
-                revoked_at = self._memory_user_revocations.get(user_id)
-                return revoked_at is not None and token_issued_at < revoked_at
+                return self._memory_store.is_user_revoked(user_id, token_issued_at)
 
             revoked_at_str = await redis.get(key)
 
@@ -249,7 +253,7 @@ class TokenBlacklistService:
             key = self._get_blacklist_key(token)
             redis = self._get_redis_or_none()
             if redis is None:
-                self._memory_blacklist.pop(key, None)
+                self._memory_store.remove_token(key)
                 return True
 
             await redis.delete(key)
@@ -273,7 +277,7 @@ class TokenBlacklistService:
             key = get_user_revocation_key(user_id)
             redis = self._get_redis_or_none()
             if redis is None:
-                self._memory_user_revocations.pop(user_id, None)
+                self._memory_store.clear_user_revocation(user_id)
                 return True
 
             await redis.delete(key)
