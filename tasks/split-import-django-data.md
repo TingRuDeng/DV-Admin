@@ -57,9 +57,13 @@
 - `cd fastapi && uv run ruff check app/db/import_django_data.py app/db/django_import_config.py app/db/django_import_state.py app/db/django_fixture_reader.py app/db/django_import_writer.py app/db/django_import_relations.py app/db/django_import_errors.py`：通过。
 - `cd fastapi && make quality`：通过，551 passed，覆盖率 87.24%。
 - `python3 scripts/validate_docs.py . --profile generic`：通过。
+- `python3 scripts/validate_model_contracts.py .`：首次在远端 CI 暴露导入映射校验仍扫描旧入口文件，已改为扫描 `fastapi/app/db/django_import_config.py`，复跑通过。
+- `cd backend && uv run pytest drf_admin/utils/test_model_contract_validator_structure.py -q`：4 passed。
+- `cd backend && uv run ruff check drf_admin/utils/test_model_contract_validator_structure.py`：通过。
+- `python3 scripts/validate_api_contracts.py .`、`python3 scripts/validate_route_components.py .`、`python3 scripts/validate_django_migrations.py .`：通过。
 - `git diff --check`：通过。
 - `wc -l fastapi/app/db/import_django_data.py fastapi/app/db/django_import_config.py fastapi/app/db/django_import_state.py fastapi/app/db/django_fixture_reader.py fastapi/app/db/django_import_writer.py fastapi/app/db/django_import_relations.py fastapi/app/db/django_import_errors.py`：入口文件 58 行，新增模块最大 119 行。
 
 ## Review 小结
 
-Review-gate：finished；Spec 符合度通过，本轮按计划将 Django fixture 导入的配置、状态、读取、写入转换和关系处理拆入专用模块，`import_django_data.py` 保留编排入口和兼容导出；安全检查未发现新增 secret、mock、静默 fallback 或假成功路径；测试与验证已覆盖目标导入测试、FastAPI 全量质量门禁、文档校验、diff 检查和行数边界；复杂度检查通过，所有相关文件均低于 300 行；Document-refresh: not-needed，原因：本轮只调整内部模块结构，不改变对外 API、数据库结构或用户可见文档事实；剩余风险是后续如果继续扩展导入规则，应优先在新拆出的专用模块内追加测试，避免逻辑回流到入口文件。
+Review-gate：finished；Spec 符合度通过，本轮按计划将 Django fixture 导入的配置、状态、读取、写入转换和关系处理拆入专用模块，`import_django_data.py` 保留编排入口和兼容导出；安全检查未发现新增 secret、mock、静默 fallback 或假成功路径；测试与验证已覆盖目标导入测试、FastAPI 全量质量门禁、模型契约校验、文档校验、diff 检查和行数边界；复杂度检查通过，所有相关文件均低于 300 行；Document-refresh: not-needed，原因：本轮只调整内部模块结构和内部契约校验入口，不改变对外 API、数据库结构或用户可见文档事实；剩余风险是后续如果继续扩展导入规则，应优先在新拆出的专用模块内追加测试，避免逻辑回流到入口文件。
