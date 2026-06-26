@@ -174,95 +174,31 @@
       :has-remote-action="contentConfig.exportsAction !== undefined"
       @submit="handleExports"
     />
-    <!-- 导入弹窗 -->
-    <ProDialog
+
+    <PageContentImportDialog
+      ref="importDialogRef"
       v-model="importModalVisible"
-      title="导入数据"
-      width="600px"
-      :dialog-attrs="{ alignCenter: true }"
-      @close="handleCloseImportModal"
-    >
-      <!-- 滚动 -->
-      <el-scrollbar max-height="60vh">
-        <!-- 表单 -->
-        <el-form
-          ref="importFormRef"
-          style="padding-right: var(--el-dialog-padding-primary)"
-          :model="importFormData"
-          :rules="importFormRules"
-        >
-          <el-form-item label="文件名" prop="files">
-            <el-upload
-              ref="uploadRef"
-              v-model:file-list="importFormData.files"
-              class="w-full"
-              accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-              :drag="true"
-              :limit="1"
-              :auto-upload="false"
-              :on-exceed="handleFileExceed"
-            >
-              <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-              <div class="el-upload__text">
-                <span>将文件拖到此处，或</span>
-                <em>点击上传</em>
-              </div>
-              <template #tip>
-                <div class="el-upload__tip">
-                  *.xlsx / *.xls
-                  <el-link
-                    v-if="contentConfig.importTemplate"
-                    type="primary"
-                    icon="download"
-                    underline="never"
-                    @click="handleDownloadTemplate"
-                  >
-                    下载模板
-                  </el-link>
-                </div>
-              </template>
-            </el-upload>
-          </el-form-item>
-        </el-form>
-      </el-scrollbar>
-      <!-- 弹窗底部操作按钮 -->
-      <template #footer>
-        <div style="padding-right: var(--el-dialog-padding-primary)">
-          <el-button
-            type="primary"
-            :disabled="importFormData.files.length === 0"
-            @click="handleImportSubmit"
-          >
-            确 定
-          </el-button>
-          <el-button @click="handleCloseImportModal">取 消</el-button>
-        </div>
-      </template>
-    </ProDialog>
+      :has-import-template="contentConfig.importTemplate !== undefined"
+      @submit="handleImportSubmit"
+      @download-template="handleDownloadTemplate"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { hasPerm } from "@/utils/auth";
-import { useDateFormat, useThrottleFn } from "@vueuse/core";
+import { useDateFormat } from "@vueuse/core";
 import PageContentExportDialog from "@/components/CURD/PageContentExportDialog.vue";
+import PageContentImportDialog from "@/components/CURD/PageContentImportDialog.vue";
 import PageContentToolbar from "@/components/CURD/PageContentToolbar.vue";
-import ProDialog from "@/components/ProDialog/index.vue";
-import {
-  genFileId,
-  type FormInstance,
-  type FormRules,
-  type UploadInstance,
-  type UploadRawFile,
-  type UploadUserFile,
-  type TableInstance,
-} from "element-plus";
+import type { TableInstance } from "element-plus";
 import ExcelJS from "exceljs";
 import { reactive, ref, computed } from "vue";
 import { createLogger } from "@/utils/logger";
 import type { IContentConfig, IObject, IOperateData } from "./types";
 import type { IToolsButton } from "./types";
 import type { PageContentExportPayload } from "@/components/CURD/PageContentExportDialog.vue";
+import type { PageContentImportPayload } from "@/components/CURD/PageContentImportDialog.vue";
 
 const pageContentLogger = createLogger("PageContent");
 
@@ -505,30 +441,11 @@ function handleExports(exportData: PageContentExportPayload) {
   }
 }
 
-// 导入表单
-let isFileImport = false;
-const uploadRef = ref<UploadInstance>();
 const importModalVisible = ref(false);
-const importFormRef = ref<FormInstance>();
-const importFormData = reactive<{
-  files: UploadUserFile[];
-}>({
-  files: [],
-});
-const importFormRules: FormRules = {
-  files: [{ required: true, message: "请选择文件" }],
-};
+const importDialogRef = ref<InstanceType<typeof PageContentImportDialog>>();
 // 打开导入弹窗
 function handleOpenImportModal(isFile: boolean = false) {
-  importModalVisible.value = true;
-  isFileImport = isFile;
-}
-// 覆盖前一个文件
-function handleFileExceed(files: File[]) {
-  uploadRef.value!.clearFiles();
-  const file = files[0] as UploadRawFile;
-  file.uid = genFileId();
-  uploadRef.value!.handleStart(file);
+  importDialogRef.value?.open(isFile);
 }
 // 下载导入模板
 function handleDownloadTemplate() {
@@ -548,47 +465,33 @@ function handleDownloadTemplate() {
   }
 }
 // 导入确认
-const handleImportSubmit = useThrottleFn(() => {
-  importFormRef.value?.validate((valid: boolean) => {
-    if (valid) {
-      if (isFileImport) {
-        handleImport();
-      } else {
-        handleImports();
-      }
-    }
-  });
-}, 3000);
-// 关闭导入弹窗
-function handleCloseImportModal() {
-  importModalVisible.value = false;
-  importFormRef.value?.resetFields();
-  nextTick(() => {
-    importFormRef.value?.clearValidate();
-  });
+function handleImportSubmit(importData: PageContentImportPayload) {
+  if (importData.isFileImport) {
+    handleImport(importData.file);
+    return;
+  }
+  handleImports(importData.file);
 }
 // 文件导入
-function handleImport() {
+function handleImport(file: File) {
   const importAction = props.contentConfig.importAction;
   if (importAction === undefined) {
     ElMessage.error("未配置importAction");
     return;
   }
-  importAction(importFormData.files[0].raw as File).then(() => {
+  importAction(file).then(() => {
     ElMessage.success("导入数据成功");
-    handleCloseImportModal();
+    importDialogRef.value?.close();
     handleRefresh(true);
   });
 }
 // 导入
-function handleImports() {
+function handleImports(file: File) {
   const importsAction = props.contentConfig.importsAction;
   if (importsAction === undefined) {
     ElMessage.error("未配置importsAction");
     return;
   }
-  // 获取选择的文件
-  const file = importFormData.files[0].raw as File;
   // 创建Workbook实例
   const workbook = new ExcelJS.Workbook();
   // 使用FileReader对象来读取文件内容
@@ -631,7 +534,7 @@ function handleImports() {
           }
           importsAction(data).then(() => {
             ElMessage.success("导入数据成功");
-            handleCloseImportModal();
+            importDialogRef.value?.close();
             handleRefresh(true);
           });
         })
