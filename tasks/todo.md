@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] P1 串行：拆分 FastAPI Redis 缓存测试，目标文件 `fastapi/tests/test_cache_redis.py`。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] FastAPI Redis 缓存测试拆分已通过 PR #211 合并：原 268 行 `test_cache_redis.py` 已拆为连接/key、读写、删除/存在性/清理 3 个职责测试文件，拆分后文件分别为 42、141、109 行，`RedisCache` 运行时代码和缓存契约保持不变，合并提交为 `470b345`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 角色服务 helper 拆分已通过 PR #209 合并：`role_service.py` 已从 270 行降至 212 行，角色输出转换、更新字段构建和菜单输出转换已拆入 `role_serializers.py`，`RoleService` 公开方法、缓存清理和 RBAC 行为保持不变，合并提交为 `0e11f09`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI OAuth 用户访问逻辑拆分已通过 PR #207 合并：`oauth.py` 已从 274 行降至 169 行，用户权限查询、菜单查询和菜单树构建 helper 已拆入 `oauth_user_access.py`，`Users` 公开方法、OAuth 菜单接口和权限校验行为保持不变，合并提交为 `e53a0fc`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 验证码服务拆分已通过 PR #205 合并：`captcha_service.py` 已从 277 行降至 158 行，`CaptchaCache`、`MemoryCaptchaCache`、`RedisCaptchaCache` 已拆入 `captcha_cache.py`，服务入口、OAuth 验证码接口和登录验证码校验行为保持不变，合并提交为 `55f9f2a`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
