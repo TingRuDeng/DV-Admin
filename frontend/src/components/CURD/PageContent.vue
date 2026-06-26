@@ -76,17 +76,16 @@
 </template>
 
 <script setup lang="ts">
-import { hasPerm } from "@/utils/auth";
 import PageContentExportDialog from "@/components/CURD/PageContentExportDialog.vue";
 import PageContentImportDialog from "@/components/CURD/PageContentImportDialog.vue";
 import PageContentTableCell from "@/components/CURD/PageContentTableCell.vue";
 import PageContentToolbar from "@/components/CURD/PageContentToolbar.vue";
+import { usePageContentToolbarConfig } from "@/components/CURD/usePageContentToolbarConfig";
 import type { TableInstance } from "element-plus";
 import ExcelJS from "exceljs";
-import { reactive, ref, computed } from "vue";
+import { reactive, ref } from "vue";
 import { createLogger } from "@/utils/logger";
 import type { IContentConfig, IObject, IOperateData } from "./types";
-import type { IToolsButton } from "./types";
 import type { PageContentExportPayload } from "@/components/CURD/PageContentExportDialog.vue";
 import type { PageContentImportPayload } from "@/components/CURD/PageContentImportDialog.vue";
 
@@ -105,81 +104,10 @@ const emit = defineEmits<{
   operateClick: [data: IOperateData];
 }>();
 
-// 表格工具栏按钮配置
-const config = computed(() => props.contentConfig);
-const buttonConfig = reactive<Record<string, IObject>>({
-  add: { text: "新增", attrs: { icon: "plus", type: "success" }, perm: "add" },
-  delete: { text: "删除", attrs: { icon: "delete", type: "danger" }, perm: "delete" },
-  import: { text: "导入", attrs: { icon: "upload", type: "" }, perm: "import" },
-  export: { text: "导出", attrs: { icon: "download", type: "" }, perm: "export" },
-  refresh: { text: "刷新", attrs: { icon: "refresh", type: "" }, perm: "*:*:*" },
-  filter: { text: "筛选列", attrs: { icon: "operation", type: "" }, perm: "*:*:*" },
-  search: { text: "搜索", attrs: { icon: "search", type: "" }, perm: "search" },
-  imports: { text: "批量导入", attrs: { icon: "upload", type: "" }, perm: "imports" },
-  exports: { text: "批量导出", attrs: { icon: "download", type: "" }, perm: "exports" },
-  view: { text: "查看", attrs: { icon: "view", type: "primary" }, perm: "view" },
-  edit: { text: "编辑", attrs: { icon: "edit", type: "primary" }, perm: "edit" },
-});
-
 // 主键
 const pk = props.contentConfig.pk ?? "id";
-// 权限名称前缀
-const authPrefix = computed(() => props.contentConfig.permPrefix);
-
-// 获取按钮权限标识
-function getButtonPerm(action: string): string | null {
-  // 如果action已经包含完整路径(包含冒号)，则直接使用
-  if (action.includes(":")) {
-    return action;
-  }
-  // 否则使用权限前缀组合
-  return authPrefix.value ? `${authPrefix.value}:${action}` : null;
-}
-
-// 检查是否有权限
-function hasButtonPerm(action: string): boolean {
-  const perm = getButtonPerm(action);
-  // 如果没有设置权限标识，则默认具有权限
-  if (!perm) return true;
-  return hasPerm(perm);
-}
-
-// 创建工具栏按钮
-function createToolbar(toolbar: Array<string | IToolsButton>, attr = {}) {
-  return toolbar.map((item) => {
-    const isString = typeof item === "string";
-    return {
-      name: isString ? item : item?.name || "",
-      text: isString ? buttonConfig[item].text : item?.text,
-      attrs: {
-        ...attr,
-        ...(isString ? buttonConfig[item].attrs : item?.attrs),
-      },
-      render: isString ? undefined : (item?.render ?? undefined),
-      perm: isString
-        ? getButtonPerm(buttonConfig[item].perm)
-        : item?.perm
-          ? getButtonPerm(item.perm as string)
-          : "*:*:*",
-    };
-  });
-}
-
-// 左侧工具栏按钮
-const toolbarLeftBtn = computed(() => {
-  if (!config.value.toolbar || config.value.toolbar.length === 0) return [];
-  return createToolbar(config.value.toolbar, {});
-});
-
-// 右侧工具栏按钮
-const toolbarRightBtn = computed(() => {
-  if (!config.value.defaultToolbar || config.value.defaultToolbar.length === 0) return [];
-  return createToolbar(config.value.defaultToolbar, { circle: true });
-});
-
-// 表格操作工具栏
-const tableToolbar = config.value.cols[config.value.cols.length - 1].operat ?? ["edit", "delete"];
-const tableToolbarBtn = createToolbar(tableToolbar, { link: true, size: "small" });
+const { toolbarLeftBtn, toolbarRightBtn, tableToolbarBtn, hasButtonPerm } =
+  usePageContentToolbarConfig(props.contentConfig);
 
 // 表格列
 const cols = ref(
