@@ -4,7 +4,7 @@
 
 ## 活跃任务
 
-- [ ] 待选择：下一轮长期可持续性治理目标
+- [ ] FastAPI 用户写接口 OpenAPI 文案拆分：将 `user_routes/mutation.py` 的长 description 和 responses 拆入专用模块，保持路由函数、权限声明、路径和响应契约不变。
 
 ## 最近完成
 
