@@ -8,13 +8,13 @@ API 依赖模块
 from fastapi import Depends, Header, Request
 from fastapi.security import OAuth2PasswordBearer
 
-from app.core.exceptions import AuthenticationError, PermissionDenied
-from app.core.security import (
-    decode_token,
-    get_token_issued_at,
-    get_token_subject,
-    verify_token_type,
+from app.api.deps_tokens import (
+    extract_bearer_token,
+    require_access_token_payload,
+    require_token_user_id,
 )
+from app.core.exceptions import AuthenticationError, PermissionDenied
+from app.core.security import get_token_issued_at
 from app.db.models.oauth import Users
 from app.services.token_blacklist import token_blacklist_service
 
@@ -43,13 +43,7 @@ async def get_current_user(
     Raises:
         AuthenticationError: 认证失败
     """
-    # 优先从 OAuth2 scheme 获取 token
-    if not token and authorization:
-        # 从 Authorization 头解析 token
-        scheme, _, param = authorization.partition(" ")
-        if scheme.lower() == "bearer":
-            token = param
-
+    token = extract_bearer_token(token, authorization)
     if not token:
         raise AuthenticationError("未提供认证令牌")
 
@@ -58,19 +52,8 @@ async def get_current_user(
     if is_blacklisted:
         raise AuthenticationError("令牌已被撤销")
 
-    # 解码令牌
-    payload = decode_token(token)
-    if not payload:
-        raise AuthenticationError("无效的认证令牌")
-
-    # 验证令牌类型
-    if not verify_token_type(payload, "access"):
-        raise AuthenticationError("无效的令牌类型")
-
-    # 获取用户ID
-    user_id = get_token_subject(payload)
-    if not user_id:
-        raise AuthenticationError("无法获取用户信息")
+    payload = require_access_token_payload(token)
+    user_id = require_token_user_id(payload)
 
     # 检查用户的 Token 是否已被批量撤销
     token_issued_at = get_token_issued_at(payload)
@@ -82,7 +65,7 @@ async def get_current_user(
             raise AuthenticationError("令牌已被撤销")
 
     # 查询用户
-    user = await Users.get_or_none(id=int(user_id))
+    user = await Users.get_or_none(id=user_id)
     if not user:
         raise AuthenticationError("用户不存在")
 
