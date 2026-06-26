@@ -4,16 +4,11 @@
 
 ## 活跃任务
 
-- [x] P1 串行：规划 FastAPI 通知服务拆分
-- [x] P2 串行：抽出通知服务时间辅助函数
-- [x] P3 串行：抽出通知输出转换 helper
-- [x] P4 串行：抽出通知已读状态 helper
-- [x] P5 串行：更新通知服务兼容委托入口
-- [x] P6 串行：执行目标测试、FastAPI 质量门禁、文档校验和 diff 检查
-- [ ] P7 串行：review-gate、提交、PR、CI 和合并
+- [ ] 待选择：下一轮长期可持续性治理目标
 
 ## 最近完成
 
+- [x] FastAPI 通知服务拆分已通过 PR #197 合并：`notice_service.py` 已从 292 行降至 225 行，时间辅助、输出转换和已读状态 helper 已拆入 `notice_time.py`、`notice_serializers.py`、`notice_read_helpers.py`，合并提交为 `9d79041`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 日志服务拆分已通过 PR #195 合并：`log_service.py` 已从 293 行降至 205 行，时间辅助、输出转换和访问统计聚合 helper 已拆入 `log_time.py`、`log_serializers.py`、`log_stats_helpers.py`，合并提交为 `fc9a33b`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI Token 黑名单服务拆分已通过 PR #193 合并：`token_blacklist.py` 已从 302 行降至 288 行，Key 生成和内存过期清理 helper 已拆入 `token_blacklist_keys.py`，合并提交为 `e770406`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 健康检查测试拆分已通过 PR #191 合并：原 315 行 `test_health.py` 已拆为 endpoints、database、redis、readiness 4 个职责测试文件，合并提交为 `9316387`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
