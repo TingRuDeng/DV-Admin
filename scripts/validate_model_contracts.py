@@ -25,6 +25,7 @@ from model_test_validation import validate_tests
 REQUIRED_FILES = (
     "scripts/model_contracts.py",
     "fastapi/app/db/import_django_data.py",
+    "fastapi/app/db/django_import_config.py",
     "fastapi/tests/test_import_django_model_contracts.py",
     "docs/DATABASE_SCHEMA.md",
     "docs/TECH_DEBT.md",
@@ -78,16 +79,17 @@ def validate_import_mapping(root: Path) -> list[str]:
     """校验导入脚本包含契约声明的模型和字段映射。"""
     issues: list[str] = []
     contracts = load_contracts(root)
-    import_text = read_text(root / "fastapi/app/db/import_django_data.py")
+    mapping_path = "fastapi/app/db/django_import_config.py"
+    import_text = read_text(root / mapping_path)
     for contract in contracts:
         for snippet in (contract.django_model, contract.fastapi_model):
             if snippet not in import_text:
-                issues.append(f"fastapi/app/db/import_django_data.py: 缺少模型映射 {snippet}")
+                issues.append(f"{mapping_path}: 缺少模型映射 {snippet}")
         for django_field, fastapi_field in contract.field_aliases.items():
             if django_field != fastapi_field and django_field not in import_text:
-                issues.append(f"fastapi/app/db/import_django_data.py: 缺少字段映射 {django_field}")
+                issues.append(f"{mapping_path}: 缺少字段映射 {django_field}")
             if django_field != fastapi_field and fastapi_field not in import_text:
-                issues.append(f"fastapi/app/db/import_django_data.py: 缺少字段目标 {fastapi_field}")
+                issues.append(f"{mapping_path}: 缺少字段目标 {fastapi_field}")
     return issues
 
 
