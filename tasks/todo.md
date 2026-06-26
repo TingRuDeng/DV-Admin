@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] 进行中：Django OAuth 测试拆分，计划见 `tasks/split-django-oauth-tests.md`。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] Django OAuth 接口测试拆分已通过 PR #219 合并：原 323 行 `tests.py` 已拆为 helper/login/refresh-token/session/home 五个职责文件，拆分后文件分别为 46、60、86、123、30 行，OAuth 运行时代码、URL、序列化器、模型和 API 响应契约保持不变；`backend/TESTING.md` 已同步为当前 pytest 测试入口，合并提交为 `b292fff`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI OAuth 接口测试拆分已通过 PR #217 合并：原 255 行 `test_oauth.py` 已拆为 login/captcha/session 三个职责测试文件，拆分后文件分别为 67、153、50 行，OAuth 运行时代码和登录、验证码、用户信息、菜单、登出接口契约保持不变，合并提交为 `faedf11`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 字典类型服务测试拆分已通过 PR #215 合并：原 251 行 `test_dict_service_dicts.py` 已拆为 query/mutation 两个职责测试文件，拆分后文件分别为 96、158 行，`dict_service` 运行时代码、字典类型 API、schema、数据库模型和前端调用保持不变，合并提交为 `e1f1575`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 字典项服务嵌套接口测试拆分已通过 PR #213 合并：原 257 行 `test_dict_service_items.py` 已拆为 query/mutation 两个职责测试文件，拆分后文件分别为 97、167 行，`dict_service` 运行时代码、字典项 API、schema、数据库模型和前端调用保持不变，合并提交为 `f651d88`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
