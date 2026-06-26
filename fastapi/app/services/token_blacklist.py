@@ -13,6 +13,14 @@ from redis.exceptions import RedisError
 from app.core.config import settings
 from app.core.redis import redis_manager
 from app.core.security import decode_token, get_token_expiration
+from app.services.token_blacklist_keys import BLACKLIST_PREFIX as TOKEN_BLACKLIST_PREFIX
+from app.services.token_blacklist_keys import USER_TOKENS_PREFIX as TOKEN_USER_TOKENS_PREFIX
+from app.services.token_blacklist_keys import (
+    cleanup_expired_memory_blacklist,
+    get_blacklist_key,
+    get_user_revocation_key,
+    get_user_tokens_key,
+)
 
 
 class TokenBlacklistService:
@@ -24,9 +32,9 @@ class TokenBlacklistService:
     """
 
     # 黑名单 Key 前缀
-    BLACKLIST_PREFIX = "token_blacklist"
+    BLACKLIST_PREFIX = TOKEN_BLACKLIST_PREFIX
     # 用户 Token 集合 Key 前缀
-    USER_TOKENS_PREFIX = "user_tokens"
+    USER_TOKENS_PREFIX = TOKEN_USER_TOKENS_PREFIX
 
     def __init__(self):
         """初始化服务"""
@@ -54,37 +62,15 @@ class TokenBlacklistService:
             return None
 
     def _cleanup_memory_blacklist(self) -> None:
-        now = datetime.now(timezone.utc)
-        expired_keys = [key for key, expires_at in self._memory_blacklist.items() if expires_at <= now]
-        for key in expired_keys:
-            self._memory_blacklist.pop(key, None)
+        cleanup_expired_memory_blacklist(self._memory_blacklist)
 
     def _get_blacklist_key(self, token: str) -> str:
-        """
-        生成黑名单 Key
-
-        Args:
-            token: JWT Token
-
-        Returns:
-            黑名单 Key
-        """
-        # 使用 token 的哈希值作为 key，避免 token 过长
-        import hashlib
-        token_hash = hashlib.sha256(token.encode()).hexdigest()[:32]
-        return f"{self.BLACKLIST_PREFIX}:{token_hash}"
+        """生成黑名单 Key。"""
+        return get_blacklist_key(token)
 
     def _get_user_tokens_key(self, user_id: int) -> str:
-        """
-        生成用户 Token 集合 Key
-
-        Args:
-            user_id: 用户 ID
-
-        Returns:
-            用户 Token 集合 Key
-        """
-        return f"{self.USER_TOKENS_PREFIX}:{user_id}"
+        """生成用户 Token 集合 Key。"""
+        return get_user_tokens_key(user_id)
 
     async def add_token_to_blacklist(
         self,
@@ -194,7 +180,7 @@ class TokenBlacklistService:
             是否成功
         """
         try:
-            key = f"{self.BLACKLIST_PREFIX}:user:{user_id}"
+            key = get_user_revocation_key(user_id)
             now = datetime.now(timezone.utc)
             ttl = settings.refresh_token_expire_days * 24 * 60 * 60
             redis = self._get_redis_or_none()
@@ -227,7 +213,7 @@ class TokenBlacklistService:
             是否已被撤销
         """
         try:
-            key = f"{self.BLACKLIST_PREFIX}:user:{user_id}"
+            key = get_user_revocation_key(user_id)
             redis = self._get_redis_or_none()
             if redis is None:
                 revoked_at = self._memory_user_revocations.get(user_id)
@@ -284,7 +270,7 @@ class TokenBlacklistService:
             是否成功
         """
         try:
-            key = f"{self.BLACKLIST_PREFIX}:user:{user_id}"
+            key = get_user_revocation_key(user_id)
             redis = self._get_redis_or_none()
             if redis is None:
                 self._memory_user_revocations.pop(user_id, None)
