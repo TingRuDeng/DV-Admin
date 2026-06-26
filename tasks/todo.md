@@ -4,7 +4,7 @@
 
 ## 活跃任务
 
-- [ ] 待选择：下一轮长期可持续性治理目标
+- [ ] FastAPI Django 数据导入模块拆分：将 `import_django_data.py` 的配置、状态、fixture 读取、写入转换和关系处理拆入专用模块，保持公开导入契约与 fail-fast 行为不变。
 
 ## 最近完成
 
