@@ -31,6 +31,13 @@ def test_fastapi_model_validation_is_split_from_cli_entrypoint():
     assert (ROOT / "scripts/model_fastapi_validation.py").exists()
 
 
+def test_import_mapping_validation_uses_split_config_module():
+    """导入映射校验必须跟随拆分后的配置模块，避免入口文件重新膨胀。"""
+    entrypoint = read_text("scripts/validate_model_contracts.py")
+    assert "fastapi/app/db/django_import_config.py" in entrypoint
+    assert 'read_text(root / "fastapi/app/db/import_django_data.py")' not in entrypoint
+
+
 def read_text(relative_path: str) -> str:
     """读取仓库内文本文件。"""
     return (ROOT / relative_path).read_text(encoding="utf-8")
