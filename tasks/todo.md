@@ -4,17 +4,11 @@
 
 ## 活跃任务
 
-- [x] P1 串行：规划 FastAPI 健康检查测试拆分
-- [x] P2 串行：拆分健康检查 HTTP 端点测试
-- [x] P3 串行：拆分数据库检查测试
-- [x] P4 串行：拆分 Redis 检查测试
-- [x] P5 串行：拆分 readiness 聚合测试
-- [x] P6 串行：删除旧 `test_health.py`
-- [x] P7 串行：执行目标测试、FastAPI 质量门禁、文档校验和 diff 检查
-- [ ] P8 串行：review-gate、提交、PR、CI 和合并
+- [ ] 待选择：下一轮长期可持续性治理目标
 
 ## 最近完成
 
+- [x] FastAPI 健康检查测试拆分已通过 PR #191 合并：原 315 行 `test_health.py` 已拆为 endpoints、database、redis、readiness 4 个职责测试文件，合并提交为 `9316387`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI Django 数据导入测试拆分已通过 PR #190 合并：原 327 行 `test_import_django_data.py` 已拆为 mapping、models、relations、helpers 4 个职责测试文件，合并提交为 `9ebc2ff`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 请求日志中间件拆分已通过 PR #189 合并：`logging_middleware.py` 已从 329 行收缩为 9 行兼容导出入口，合并提交为 `7440e9f`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 慢查询中间件拆分已通过 PR #188 合并：`slow_query_middleware.py` 已从 350 行收缩为 17 行兼容导出入口，合并提交为 `7b84942`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
