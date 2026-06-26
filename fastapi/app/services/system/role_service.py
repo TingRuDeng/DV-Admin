@@ -8,6 +8,12 @@ from app.core.exceptions import NotFound, ValidationError
 from app.db.models.system import Permissions, Roles
 from app.schemas.base import PageResult
 from app.schemas.system import RoleCreate, RoleOut, RoleUpdate, RoleWithPermissions
+from app.services.system.role_serializers import (
+    build_role_menu_items,
+    build_role_out,
+    build_role_update_fields,
+    build_role_with_permissions,
+)
 
 
 class RoleService:
@@ -49,20 +55,7 @@ class RoleService:
         total = await query.count()
         roles = await query.offset((page - 1) * page_size).limit(page_size).all()
 
-        role_list = [
-            RoleOut(
-                id=role.id,
-                name=role.name,
-                code=role.code,
-                status=role.status,
-                sort=role.sort,
-                is_default=role.is_default,
-                desc=role.desc,
-                created_at=role.created_at,
-                updated_at=role.updated_at,
-            )
-            for role in roles
-        ]
+        role_list = [build_role_out(role) for role in roles]
 
         return PageResult.create(
             total=total, page=page, page_size=page_size, results=role_list
@@ -79,18 +72,7 @@ class RoleService:
         await role.fetch_related("permissions")
         permission_ids = [perm.id for perm in role.permissions]
 
-        return RoleWithPermissions(
-            id=role.id,
-            name=role.name,
-            code=role.code,
-            status=role.status,
-            sort=role.sort,
-            is_default=role.is_default,
-            desc=role.desc,
-            permissions=permission_ids,
-            created_at=role.created_at,
-            updated_at=role.updated_at,
-        )
+        return build_role_with_permissions(role, permission_ids)
 
     async def create(self, role_data: RoleCreate) -> RoleOut:
         """
@@ -119,17 +101,7 @@ class RoleService:
         # 清除角色选项缓存
         await self._clear_role_cache()
 
-        return RoleOut(
-            id=role.id,
-            name=role.name,
-            code=role.code,
-            status=role.status,
-            sort=role.sort,
-            is_default=role.is_default,
-            desc=role.desc,
-            created_at=role.created_at,
-            updated_at=role.updated_at,
-        )
+        return build_role_out(role)
 
     async def update(self, role_id: int, role_data: RoleUpdate) -> RoleOut:
         """
@@ -140,19 +112,7 @@ class RoleService:
             raise NotFound("角色不存在")
 
         # 更新字段
-        update_fields: dict[str, Any] = {}
-        if role_data.name is not None:
-            update_fields["name"] = role_data.name
-        if role_data.code is not None:
-            update_fields["code"] = role_data.code
-        if role_data.status is not None:
-            update_fields["status"] = role_data.status
-        if role_data.sort is not None:
-            update_fields["sort"] = role_data.sort
-        if role_data.is_default is not None:
-            update_fields["is_default"] = role_data.is_default
-        if role_data.desc is not None:
-            update_fields["desc"] = role_data.desc
+        update_fields = build_role_update_fields(role_data)
 
         if update_fields:
             await Roles.filter(id=role_id).update(**update_fields)
@@ -168,17 +128,7 @@ class RoleService:
         # 清除缓存
         await self._clear_role_cache(role_id)
 
-        return RoleOut(
-            id=role.id,
-            name=role.name,
-            code=role.code,
-            status=role.status,
-            sort=role.sort,
-            is_default=role.is_default,
-            desc=role.desc,
-            created_at=role.created_at,
-            updated_at=role.updated_at,
-        )
+        return build_role_out(role)
 
     async def assign_menus(self, role_id: int, menu_ids: list[int]) -> list[int]:
         """
@@ -255,15 +205,7 @@ class RoleService:
             raise NotFound("角色不存在")
 
         await role.fetch_related("permissions")
-        menus = []
-        for perm in role.permissions:
-            if perm.type in ["CATALOG", "MENU"]:
-                menus.append({
-                    "id": perm.id,
-                    "name": perm.name,
-                    "type": perm.type,
-                })
-        return menus
+        return build_role_menu_items(list(role.permissions))
 
 
 # 导出服务实例
