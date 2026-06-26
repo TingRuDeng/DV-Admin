@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] FastAPI 验证码服务拆分：将 `captcha_service.py` 的缓存接口、内存缓存和 Redis 缓存拆入专用模块，保持服务入口、OAuth 验证码接口和登录验证码校验行为不变。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] FastAPI 验证码服务拆分已通过 PR #205 合并：`captcha_service.py` 已从 277 行降至 158 行，`CaptchaCache`、`MemoryCaptchaCache`、`RedisCaptchaCache` 已拆入 `captcha_cache.py`，服务入口、OAuth 验证码接口和登录验证码校验行为保持不变，合并提交为 `55f9f2a`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 用户写接口 OpenAPI 文案拆分已通过 PR #203 合并：`user_routes/mutation.py` 已从 286 行降至 91 行，长 description 和 responses 已拆入 `mutation_docs.py`，路由函数、权限声明、路径和响应契约保持不变，合并提交为 `36ca4bf`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI Token 黑名单内存降级存储拆分已通过 PR #201 合并：`TokenBlacklistMemoryStore` 已承接内存黑名单和用户撤销标记状态，`token_blacklist.py` 当前为 292 行，新增 helper 测试覆盖过期清理、撤销判断和清理行为，合并提交为 `3a0051d`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI Django 数据导入模块拆分已通过 PR #199 合并：`import_django_data.py` 已从 292 行降至 58 行，配置、状态、fixture 读取、写入转换和关系处理已拆入专用模块；模型契约校验已同步扫描 `django_import_config.py`，合并提交为 `ecf14a9`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
