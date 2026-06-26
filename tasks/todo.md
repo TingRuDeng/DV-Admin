@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] P1 串行：拆分 FastAPI 字典类型服务测试，目标文件 `fastapi/tests/test_dict_service_dicts.py`。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] FastAPI 字典类型服务测试拆分已通过 PR #215 合并：原 251 行 `test_dict_service_dicts.py` 已拆为 query/mutation 两个职责测试文件，拆分后文件分别为 96、158 行，`dict_service` 运行时代码、字典类型 API、schema、数据库模型和前端调用保持不变，合并提交为 `e1f1575`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 字典项服务嵌套接口测试拆分已通过 PR #213 合并：原 257 行 `test_dict_service_items.py` 已拆为 query/mutation 两个职责测试文件，拆分后文件分别为 97、167 行，`dict_service` 运行时代码、字典项 API、schema、数据库模型和前端调用保持不变，合并提交为 `f651d88`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI Redis 缓存测试拆分已通过 PR #211 合并：原 268 行 `test_cache_redis.py` 已拆为连接/key、读写、删除/存在性/清理 3 个职责测试文件，拆分后文件分别为 42、141、109 行，`RedisCache` 运行时代码和缓存契约保持不变，合并提交为 `470b345`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 角色服务 helper 拆分已通过 PR #209 合并：`role_service.py` 已从 270 行降至 212 行，角色输出转换、更新字段构建和菜单输出转换已拆入 `role_serializers.py`，`RoleService` 公开方法、缓存清理和 RBAC 行为保持不变，合并提交为 `0e11f09`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
