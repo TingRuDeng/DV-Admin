@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] P1 串行：抽取 PageContent 工具栏配置逻辑，详见 `tasks/extract-page-content-toolbar-config.md`。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] PageContent 工具栏配置逻辑抽取已通过 PR #235 合并：`PageContent.vue` 从 606 行降至 534 行，默认按钮配置、权限标识组合、按钮权限判断和 toolbar/table toolbar 派生逻辑已拆入 `usePageContentToolbarConfig.ts`；顶部工具栏、表格操作列、业务动作分发、导入导出、公开类型和 `defineExpose()` 保持不变，合并提交为 `e70cec9`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] PageContent 表格单元格组件拆分已通过 PR #233 合并：`PageContent.vue` 从 716 行降至 606 行，`image/list/url/switch/input/price/percent/icon/date/tool` 内置单元格渲染已拆入 `PageContentTableCell.vue`；列循环、自定义插槽、行内修改、操作按钮事件、分页、导入导出、公开类型和 `defineExpose()` 保持不变，合并提交为 `e1c7a55`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] PageContent 导入弹窗组件拆分已通过 PR #231 合并：`PageContent.vue` 从 813 行降至 716 行，导入弹窗 UI、上传控件、本地表单状态、校验、关闭重置和提交事件已拆入 `PageContentImportDialog.vue`；模板下载、单文件导入、Excel 批量解析、分页刷新、导出弹窗、表格列渲染、公开类型和 `defineExpose()` 保持不变，合并提交为 `6009988`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] PageContent 导出弹窗组件拆分已通过 PR #229 合并：`PageContent.vue` 从 901 行降至 813 行，导出弹窗 UI、导出表单本地状态、字段选择、数据源选择、校验和关闭重置已拆入 `PageContentExportDialog.vue`；ExcelJS 写入、远程导出、本地导出、文件保存、导入弹窗、分页、筛选、删除、表格列渲染、公开类型和 `defineExpose()` 保持不变，合并提交为 `66bf3a6`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
