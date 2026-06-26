@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] 进行中：PageContent 导出弹窗组件拆分，计划见 `tasks/split-page-content-export-dialog.md`。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] PageContent 导出弹窗组件拆分已通过 PR #229 合并：`PageContent.vue` 从 901 行降至 813 行，导出弹窗 UI、导出表单本地状态、字段选择、数据源选择、校验和关闭重置已拆入 `PageContentExportDialog.vue`；ExcelJS 写入、远程导出、本地导出、文件保存、导入弹窗、分页、筛选、删除、表格列渲染、公开类型和 `defineExpose()` 保持不变，合并提交为 `66bf3a6`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] PageContent 工具栏组件拆分已通过 PR #227 合并：`PageContent.vue` 从 936 行降至 901 行，顶部左右工具栏和列筛选 popover 已拆入 `PageContentToolbar.vue`；数据获取、分页、筛选、导入导出、删除、编辑、表格列渲染、CURD 公开类型和兼容层弃用治理策略保持不变，合并提交为 `92f10cc`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI deps token helper 拆分已通过 PR #225 合并：`deps.py` 从 259 行降至 242 行，Authorization/Bearer token 提取、access token payload 校验和用户 ID 提取已拆入 `deps_tokens.py`；黑名单检查、用户批量撤销检查、数据库查询、request.state 写入、权限检查器和角色检查器保持不变，合并提交为 `03cedbc`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI Token 黑名单记录 helper 拆分已通过 PR #223 合并：`token_blacklist.py` 从 292 行降至 272 行，Token 黑名单记录构造、用户撤销记录构造和时间比较已拆入 `token_blacklist_records.py`，内存存储兼容访问器已拆入 `token_blacklist_compat.py`；JWT 解码、Redis 连接、内存降级、认证依赖和公开服务 API 保持不变，合并提交为 `05290f4`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
