@@ -3,29 +3,17 @@
 """
 from datetime import datetime, timedelta
 from typing import Any
-from zoneinfo import ZoneInfo
 
 from app.db.models.system import OperationLog
-from app.schemas.system import (
-    OperationLogOut,
-    OperationLogPageResult,
-    VisitStatsOut,
-    VisitTrendOut,
+from app.schemas.system import OperationLogPageResult, VisitStatsOut, VisitTrendOut
+from app.services.system.log_serializers import operation_log_to_out
+from app.services.system.log_stats_helpers import (
+    build_visit_trend,
+    calculate_avg_execution_time,
+    count_top_paths,
+    count_top_users,
 )
-
-LOCAL_TIMEZONE = ZoneInfo("Asia/Shanghai")
-
-
-def local_now() -> datetime:
-    """生成与 Tortoise 本地时区配置兼容的上海时间。"""
-    return datetime.now(LOCAL_TIMEZONE).replace(tzinfo=None)
-
-
-def normalize_local_time(value: datetime) -> datetime:
-    """将外部时间统一为上海本地 naive 时间，保持接口展示不偏移。"""
-    if value.tzinfo is None:
-        return value
-    return value.astimezone(LOCAL_TIMEZONE).replace(tzinfo=None)
+from app.services.system.log_time import local_now, normalize_local_time
 
 
 class LogService:
@@ -71,30 +59,7 @@ class LogService:
         )
 
         # 转换为输出模型
-        results = [
-            OperationLogOut(
-                id=log.id,
-                user_id=log.user_id,
-                username=log.username,
-                name=log.name,
-                operation=log.operation,
-                method=log.method,
-                path=log.path,
-                query_params=log.query_params,
-                request_body=log.request_body,
-                response_status=log.response_status,
-                response_body=log.response_body,
-                ip=log.ip,
-                browser=log.browser,
-                os=log.os,
-                execution_time=log.execution_time,
-                status=log.status,
-                error_msg=log.error_msg,
-                created_at=log.created_at,
-                updated_at=log.updated_at,
-            )
-            for log in logs
-        ]
+        results = [operation_log_to_out(log) for log in logs]
 
         return OperationLogPageResult(list=results, total=total)
 
@@ -119,27 +84,7 @@ class LogService:
             created_at__lte=end_date,
         ).all()
 
-        # 按日期统计
-        date_count: dict[str, int] = {}
-        for log in logs:
-            date_str = log.created_at.strftime("%Y-%m-%d")
-            date_count[date_str] = date_count.get(date_str, 0) + 1
-
-        # 生成日期范围内的所有日期
-        result = []
-        current_date = start_date.date()
-        end_date_only = end_date.date()
-        while current_date <= end_date_only:
-            date_str = current_date.strftime("%Y-%m-%d")
-            result.append(
-                VisitTrendOut(
-                    date=date_str,
-                    count=date_count.get(date_str, 0),
-                )
-            )
-            current_date += timedelta(days=1)
-
-        return result
+        return build_visit_trend(logs, start_date, end_date)
 
     async def get_visit_stats(self) -> VisitStatsOut:
         """获取访问统计"""
@@ -172,10 +117,7 @@ class LogService:
 
         # 平均执行时间
         logs = await OperationLog.filter(execution_time__gt=0).all()
-        avg_execution_time = 0.0
-        if logs:
-            total_time = sum(log.execution_time for log in logs)
-            avg_execution_time = round(total_time / len(logs), 2)
+        avg_execution_time = calculate_avg_execution_time(logs)
 
         # 活跃用户 TOP10
         top_users_data = await self._get_top_users(limit=10)
@@ -200,44 +142,14 @@ class LogService:
         logs = await OperationLog.all().order_by("-created_at").limit(1000).all()
 
         # 统计用户访问次数
-        user_count: dict[str, dict[str, Any]] = {}
-        for log in logs:
-            if log.username:
-                if log.username not in user_count:
-                    user_count[log.username] = {
-                        "username": log.username,
-                        "name": log.name,
-                        "count": 0,
-                    }
-                user_count[log.username]["count"] += 1
-
-        # 排序并取前 N 个
-        sorted_users = sorted(
-            user_count.values(), key=lambda x: x["count"], reverse=True
-        )
-        return sorted_users[:limit]
+        return count_top_users(logs, limit)
 
     async def _get_top_paths(self, limit: int = 10) -> list[dict[str, Any]]:
         """获取热门路径 TOP N"""
         logs = await OperationLog.all().order_by("-created_at").limit(1000).all()
 
         # 统计路径访问次数
-        path_count: dict[str, dict[str, Any]] = {}
-        for log in logs:
-            if log.path:
-                if log.path not in path_count:
-                    path_count[log.path] = {
-                        "path": log.path,
-                        "method": log.method,
-                        "count": 0,
-                    }
-                path_count[log.path]["count"] += 1
-
-        # 排序并取前 N 个
-        sorted_paths = sorted(
-            path_count.values(), key=lambda x: x["count"], reverse=True
-        )
-        return sorted_paths[:limit]
+        return count_top_paths(logs, limit)
 
     async def delete_by_ids(self, ids: list[int]) -> int:
         """批量删除日志"""
