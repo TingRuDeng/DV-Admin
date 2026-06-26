@@ -4,7 +4,7 @@
 
 ## 活跃任务
 
-- [ ] 待选择：下一轮长期可持续性治理目标。
+- [ ] 进行中：Django system 测试管理员用户 helper 抽取，计划见 `tasks/extract-django-system-test-helper.md`。
 
 ## 最近完成
 
