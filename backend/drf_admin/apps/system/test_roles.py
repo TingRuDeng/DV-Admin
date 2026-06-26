@@ -6,45 +6,8 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from drf_admin.apps.system.models import Permissions, Roles, Users
-
-
-def create_admin_user():
-    """创建带管理员角色的测试用户"""
-    role, _ = Roles.objects.get_or_create(
-        name="超级管理员",
-        code="admin",
-        defaults={"status": 1, "sort": 1}
-    )
-    
-    perm_codes = [
-        "system:users:query", "system:users:add", "system:users:edit", "system:users:delete",
-        "system:roles:query", "system:roles:add", "system:roles:edit", "system:roles:delete",
-        "system:permissions:query", "system:permissions:add", "system:permissions:edit", "system:permissions:delete",
-        "system:departments:query", "system:departments:add", "system:departments:edit", "system:departments:delete",
-        "system:dicts:query", "system:dicts:add", "system:dicts:edit", "system:dicts:delete",
-        "system:notices:query", "system:notices:add", "system:notices:edit", "system:notices:delete",
-    ]
-    
-    perms = []
-    for code in perm_codes:
-        perm, _ = Permissions.objects.get_or_create(
-            perm=code,
-            defaults={"name": code, "type": "BUTTON"}
-        )
-        perms.append(perm)
-    
-    role.permissions.add(*perms)
-    
-    user = Users.objects.create_user(
-        username="admin",
-        password="admin123",
-        name="管理员",
-        is_active=1
-    )
-    user.roles.add(role)
-    
-    return user
+from drf_admin.apps.system.models import Permissions, Roles
+from drf_admin.apps.system.test_helpers import create_admin_user
 
 
 class RolesListTestCase(TestCase):
