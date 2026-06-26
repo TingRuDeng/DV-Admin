@@ -167,61 +167,13 @@
       </el-scrollbar>
     </div>
 
-    <!-- 导出弹窗 -->
-    <ProDialog
+    <PageContentExportDialog
       v-model="exportsModalVisible"
-      title="导出数据"
-      width="600px"
-      :dialog-attrs="{ alignCenter: true }"
-      @close="handleCloseExportsModal"
-    >
-      <!-- 滚动 -->
-      <el-scrollbar max-height="60vh">
-        <!-- 表单 -->
-        <el-form
-          ref="exportsFormRef"
-          style="padding-right: var(--el-dialog-padding-primary)"
-          :model="exportsFormData"
-          :rules="exportsFormRules"
-        >
-          <el-form-item label="文件名" prop="filename">
-            <el-input v-model="exportsFormData.filename" clearable />
-          </el-form-item>
-          <el-form-item label="工作表名" prop="sheetname">
-            <el-input v-model="exportsFormData.sheetname" clearable />
-          </el-form-item>
-          <el-form-item label="数据源" prop="origin">
-            <el-select v-model="exportsFormData.origin">
-              <el-option label="当前数据 (当前页的数据)" :value="ExportsOriginEnum.CURRENT" />
-              <el-option
-                label="选中数据 (所有选中的数据)"
-                :value="ExportsOriginEnum.SELECTED"
-                :disabled="selectionData.length <= 0"
-              />
-              <el-option
-                label="全量数据 (所有分页的数据)"
-                :value="ExportsOriginEnum.REMOTE"
-                :disabled="contentConfig.exportsAction === undefined"
-              />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="字段" prop="fields">
-            <el-checkbox-group v-model="exportsFormData.fields">
-              <template v-for="col in cols" :key="col.prop">
-                <el-checkbox v-if="col.prop" :value="col.prop" :label="col.label" />
-              </template>
-            </el-checkbox-group>
-          </el-form-item>
-        </el-form>
-      </el-scrollbar>
-      <!-- 弹窗底部操作按钮 -->
-      <template #footer>
-        <div style="padding-right: var(--el-dialog-padding-primary)">
-          <el-button type="primary" @click="handleExportsSubmit">确 定</el-button>
-          <el-button @click="handleCloseExportsModal">取 消</el-button>
-        </div>
-      </template>
-    </ProDialog>
+      :cols="cols"
+      :selection-count="selectionData.length"
+      :has-remote-action="contentConfig.exportsAction !== undefined"
+      @submit="handleExports"
+    />
     <!-- 导入弹窗 -->
     <ProDialog
       v-model="importModalVisible"
@@ -293,6 +245,7 @@
 <script setup lang="ts">
 import { hasPerm } from "@/utils/auth";
 import { useDateFormat, useThrottleFn } from "@vueuse/core";
+import PageContentExportDialog from "@/components/CURD/PageContentExportDialog.vue";
 import PageContentToolbar from "@/components/CURD/PageContentToolbar.vue";
 import ProDialog from "@/components/ProDialog/index.vue";
 import {
@@ -309,6 +262,7 @@ import { reactive, ref, computed } from "vue";
 import { createLogger } from "@/utils/logger";
 import type { IContentConfig, IObject, IOperateData } from "./types";
 import type { IToolsButton } from "./types";
+import type { PageContentExportPayload } from "@/components/CURD/PageContentExportDialog.vue";
 
 const pageContentLogger = createLogger("PageContent");
 
@@ -506,67 +460,27 @@ function handleDelete(id?: number | string) {
     .catch(() => {});
 }
 
-// 导出表单
-const fields: string[] = [];
-cols.value.forEach((item) => {
-  if (item.prop !== undefined) {
-    fields.push(item.prop);
-  }
-});
-const enum ExportsOriginEnum {
-  CURRENT = "current",
-  SELECTED = "selected",
-  REMOTE = "remote",
-}
 const exportsModalVisible = ref(false);
-const exportsFormRef = ref<FormInstance>();
-const exportsFormData = reactive({
-  filename: "",
-  sheetname: "",
-  fields,
-  origin: ExportsOriginEnum.CURRENT,
-});
-const exportsFormRules: FormRules = {
-  fields: [{ required: true, message: "请选择字段" }],
-  origin: [{ required: true, message: "请选择数据源" }],
-};
 // 打开导出弹窗
 function handleOpenExportsModal() {
   exportsModalVisible.value = true;
 }
-// 导出确认
-const handleExportsSubmit = useThrottleFn(() => {
-  exportsFormRef.value?.validate((valid: boolean) => {
-    if (valid) {
-      handleExports();
-      handleCloseExportsModal();
-    }
-  });
-}, 3000);
-// 关闭导出弹窗
-function handleCloseExportsModal() {
-  exportsModalVisible.value = false;
-  exportsFormRef.value?.resetFields();
-  nextTick(() => {
-    exportsFormRef.value?.clearValidate();
-  });
-}
 // 导出
-function handleExports() {
-  const filename = exportsFormData.filename
-    ? exportsFormData.filename
+function handleExports(exportData: PageContentExportPayload) {
+  const filename = exportData.filename
+    ? exportData.filename
     : props.contentConfig.permPrefix || "export";
-  const sheetname = exportsFormData.sheetname ? exportsFormData.sheetname : "sheet";
+  const sheetname = exportData.sheetname ? exportData.sheetname : "sheet";
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet(sheetname);
   const columns: Partial<ExcelJS.Column>[] = [];
   cols.value.forEach((col) => {
-    if (col.label && col.prop && exportsFormData.fields.includes(col.prop)) {
+    if (col.label && col.prop && exportData.fields.includes(col.prop)) {
       columns.push({ header: col.label, key: col.prop });
     }
   });
   worksheet.columns = columns;
-  if (exportsFormData.origin === ExportsOriginEnum.REMOTE) {
+  if (exportData.origin === "remote") {
     if (props.contentConfig.exportsAction) {
       props.contentConfig.exportsAction(lastFormData).then((res) => {
         worksheet.addRows(res);
@@ -581,9 +495,7 @@ function handleExports() {
       ElMessage.error("未配置exportsAction");
     }
   } else {
-    worksheet.addRows(
-      exportsFormData.origin === ExportsOriginEnum.SELECTED ? selectionData.value : pageData.value
-    );
+    worksheet.addRows(exportData.origin === "selected" ? selectionData.value : pageData.value);
     workbook.xlsx
       .writeBuffer()
       .then((buffer) => {
