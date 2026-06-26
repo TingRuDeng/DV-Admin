@@ -4,18 +4,18 @@
 
 ## 活跃任务
 
-- [x] P1 串行：规划 FastAPI 请求日志中间件拆分，明确兼容入口和职责边界
-- [x] P2 串行：拆分请求日志默认排除路径常量
-- [x] P3 串行：拆分客户端 IP 与 User-Agent 解析
-- [x] P4 串行：拆分请求体读取与响应体复制 helper
-- [x] P5 串行：拆分请求日志中间件主流程
-- [x] P6 串行：收缩 `logging_middleware.py` 为兼容导出入口
-- [x] P7 串行：扩展请求日志中间件目标测试
-- [x] P8 串行：执行目标测试、FastAPI 质量门禁、文档校验和 diff 检查
-- [ ] P9 串行：review-gate、提交、PR、CI 和合并
+- [x] P1 串行：规划 FastAPI Django 数据导入测试拆分
+- [x] P2 串行：拆分映射和导入顺序测试
+- [x] P3 串行：拆分基础模型创建、更新和字段转换测试
+- [x] P4 串行：拆分 FK、M2M 和自引用关系测试
+- [x] P5 串行：拆分导入 helper 存在性测试
+- [x] P6 串行：删除旧 `test_import_django_data.py`
+- [x] P7 串行：执行目标测试、FastAPI 质量门禁、文档校验和 diff 检查
+- [ ] P8 串行：review-gate、提交、PR、CI 和合并
 
 ## 最近完成
 
+- [x] FastAPI 请求日志中间件拆分已通过 PR #189 合并：`logging_middleware.py` 已从 329 行收缩为 9 行兼容导出入口，合并提交为 `7440e9f`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 慢查询中间件拆分已通过 PR #188 合并：`slow_query_middleware.py` 已从 350 行收缩为 17 行兼容导出入口，合并提交为 `7b84942`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 日志 API 路由拆分已通过 PR #187 合并：`logs.py` 已从 353 行收缩为 9 行兼容路由入口，合并提交为 `def5421b`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 缓存核心模块拆分已通过 PR #186 合并：`cache.py` 已从 353 行收缩为 20 行兼容导出入口，合并提交为 `f6262dcc1262b1b95a7974880b9214db9a3d402d`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
