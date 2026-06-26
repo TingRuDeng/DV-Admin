@@ -25,132 +25,22 @@
       <template v-for="col in cols" :key="col.prop">
         <el-table-column v-if="col.show" v-bind="col">
           <template #default="scope">
-            <!-- 显示图片 -->
-            <template v-if="col.templet === 'image'">
-              <template v-if="col.prop">
-                <template v-if="Array.isArray(scope.row[col.prop])">
-                  <template v-for="(item, index) in scope.row[col.prop]" :key="item">
-                    <el-image
-                      :src="item"
-                      :preview-src-list="scope.row[col.prop]"
-                      :initial-index="index"
-                      :preview-teleported="true"
-                      :style="`width: ${col.imageWidth ?? 40}px; height: ${col.imageHeight ?? 40}px`"
-                    />
-                  </template>
-                </template>
-                <template v-else>
-                  <el-image
-                    :src="scope.row[col.prop]"
-                    :preview-src-list="[scope.row[col.prop]]"
-                    :preview-teleported="true"
-                    :style="`width: ${col.imageWidth ?? 40}px; height: ${col.imageHeight ?? 40}px`"
-                  />
-                </template>
-              </template>
-            </template>
-            <!-- 根据行的selectList属性返回对应列表值 -->
-            <template v-else-if="col.templet === 'list'">
-              <template v-if="col.prop">
-                {{ (col.selectList ?? {})[scope.row[col.prop]] }}
-              </template>
-            </template>
-            <!-- 格式化显示链接 -->
-            <template v-else-if="col.templet === 'url'">
-              <template v-if="col.prop">
-                <el-link type="primary" :href="scope.row[col.prop]" target="_blank">
-                  {{ scope.row[col.prop] }}
-                </el-link>
-              </template>
-            </template>
-            <!-- 生成开关组件 -->
-            <template v-else-if="col.templet === 'switch'">
-              <template v-if="col.prop">
-                <!-- pageData.length>0: 解决el-switch组件会在表格初始化的时候触发一次change事件 -->
-                <el-switch
-                  v-model="scope.row[col.prop]"
-                  :active-value="col.activeValue ?? 1"
-                  :inactive-value="col.inactiveValue ?? 0"
-                  :inline-prompt="true"
-                  :active-text="col.activeText ?? ''"
-                  :inactive-text="col.inactiveText ?? ''"
-                  :validate-event="false"
-                  :disabled="!hasButtonPerm(col.prop)"
-                  @change="
-                    pageData.length > 0 && handleModify(col.prop, scope.row[col.prop], scope.row)
-                  "
-                />
-              </template>
-            </template>
-            <!-- 生成输入框组件 -->
-            <template v-else-if="col.templet === 'input'">
-              <template v-if="col.prop">
-                <el-input
-                  v-model="scope.row[col.prop]"
-                  :type="col.inputType ?? 'text'"
-                  :disabled="!hasButtonPerm(col.prop)"
-                  @blur="handleModify(col.prop, scope.row[col.prop], scope.row)"
-                />
-              </template>
-            </template>
-            <!-- 格式化为价格 -->
-            <template v-else-if="col.templet === 'price'">
-              <template v-if="col.prop">
-                {{ `${col.priceFormat ?? "￥"}${scope.row[col.prop]}` }}
-              </template>
-            </template>
-            <!-- 格式化为百分比 -->
-            <template v-else-if="col.templet === 'percent'">
-              <template v-if="col.prop">{{ scope.row[col.prop] }}%</template>
-            </template>
-            <!-- 显示图标 -->
-            <template v-else-if="col.templet === 'icon'">
-              <template v-if="col.prop">
-                <template v-if="scope.row[col.prop].startsWith('el-icon-')">
-                  <el-icon>
-                    <component :is="scope.row[col.prop].replace('el-icon-', '')" />
-                  </el-icon>
-                </template>
-                <template v-else>
-                  <div class="i-svg:{{ scope.row[col.prop] }}" />
-                </template>
-              </template>
-            </template>
-            <!-- 格式化时间 -->
-            <template v-else-if="col.templet === 'date'">
-              <template v-if="col.prop">
-                {{
-                  scope.row[col.prop]
-                    ? useDateFormat(scope.row[col.prop], col.dateFormat ?? "YYYY-MM-DD HH:mm:ss")
-                        .value
-                    : ""
-                }}
-              </template>
-            </template>
-            <!-- 列操作栏 -->
-            <template v-else-if="col.templet === 'tool'">
-              <template v-for="(btn, index) in tableToolbarBtn" :key="index">
-                <el-button
-                  v-if="btn.render === undefined || btn.render(scope.row)"
-                  v-hasPerm="btn.perm ?? '*:*:*'"
-                  v-bind="btn.attrs"
-                  @click="
-                    handleOperate({
-                      name: btn.name,
-                      row: scope.row,
-                      column: scope.column,
-                      $index: scope.$index,
-                    })
-                  "
-                >
-                  {{ btn.text }}
-                </el-button>
-              </template>
-            </template>
             <!-- 自定义 -->
-            <template v-else-if="col.templet === 'custom'">
+            <template v-if="col.templet === 'custom'">
               <slot :name="col.slotName ?? col.prop" :prop="col.prop" v-bind="scope" />
             </template>
+            <PageContentTableCell
+              v-else
+              :col="col"
+              :row="scope.row"
+              :column="scope.column"
+              :row-index="scope.$index"
+              :page-data-length="pageData.length"
+              :table-toolbar-btn="tableToolbarBtn"
+              :has-button-perm="hasButtonPerm"
+              @modify="handleModify"
+              @operate="handleOperate"
+            />
           </template>
         </el-table-column>
       </template>
@@ -187,9 +77,9 @@
 
 <script setup lang="ts">
 import { hasPerm } from "@/utils/auth";
-import { useDateFormat } from "@vueuse/core";
 import PageContentExportDialog from "@/components/CURD/PageContentExportDialog.vue";
 import PageContentImportDialog from "@/components/CURD/PageContentImportDialog.vue";
+import PageContentTableCell from "@/components/CURD/PageContentTableCell.vue";
 import PageContentToolbar from "@/components/CURD/PageContentToolbar.vue";
 import type { TableInstance } from "element-plus";
 import ExcelJS from "exceljs";
