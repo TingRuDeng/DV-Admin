@@ -4,7 +4,7 @@
 
 ## 活跃任务
 
-- [ ] 待选择：下一轮长期可持续性治理目标。
+- [ ] FastAPI 角色服务 helper 拆分：将 `role_service.py` 的角色输出转换、更新字段构建和菜单输出转换拆入专用 helper，保持 `RoleService` 公开方法、缓存清理和 RBAC 行为不变。
 
 ## 最近完成
 
