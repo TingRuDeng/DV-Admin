@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] FastAPI 角色服务 helper 拆分：将 `role_service.py` 的角色输出转换、更新字段构建和菜单输出转换拆入专用 helper，保持 `RoleService` 公开方法、缓存清理和 RBAC 行为不变。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] FastAPI 角色服务 helper 拆分已通过 PR #209 合并：`role_service.py` 已从 270 行降至 212 行，角色输出转换、更新字段构建和菜单输出转换已拆入 `role_serializers.py`，`RoleService` 公开方法、缓存清理和 RBAC 行为保持不变，合并提交为 `0e11f09`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI OAuth 用户访问逻辑拆分已通过 PR #207 合并：`oauth.py` 已从 274 行降至 169 行，用户权限查询、菜单查询和菜单树构建 helper 已拆入 `oauth_user_access.py`，`Users` 公开方法、OAuth 菜单接口和权限校验行为保持不变，合并提交为 `e53a0fc`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 验证码服务拆分已通过 PR #205 合并：`captcha_service.py` 已从 277 行降至 158 行，`CaptchaCache`、`MemoryCaptchaCache`、`RedisCaptchaCache` 已拆入 `captcha_cache.py`，服务入口、OAuth 验证码接口和登录验证码校验行为保持不变，合并提交为 `55f9f2a`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FastAPI 用户写接口 OpenAPI 文案拆分已通过 PR #203 合并：`user_routes/mutation.py` 已从 286 行降至 91 行，长 description 和 responses 已拆入 `mutation_docs.py`，路由函数、权限声明、路径和响应契约保持不变，合并提交为 `36ca4bf`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
