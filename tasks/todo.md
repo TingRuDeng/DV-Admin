@@ -4,7 +4,7 @@
 
 ## 活跃任务
 
-- [ ] 待选择：下一轮长期可持续性治理目标。
+- [ ] P1 串行：拆分 FastAPI Redis 缓存测试，目标文件 `fastapi/tests/test_cache_redis.py`。
 
 ## 最近完成
 
