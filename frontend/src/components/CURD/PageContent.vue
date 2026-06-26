@@ -2,43 +2,14 @@
   <div
     class="rounded bg-[var(--el-bg-color)] border border-[var(--el-border-color)] p-5 h-full md:flex flex-1 flex-col md:overflow-auto"
   >
-    <!-- 表格工具栏 -->
-    <div class="flex flex-col md:flex-row justify-between gap-y-2.5 mb-2.5">
-      <!-- 左侧工具栏 -->
-      <div class="toolbar-left flex gap-y-2.5 gap-x-2 md:gap-x-3 flex-wrap">
-        <template v-for="(btn, index) in toolbarLeftBtn" :key="index">
-          <el-button
-            v-hasPerm="btn.perm ?? '*:*:*'"
-            v-bind="btn.attrs"
-            :disabled="btn.name === 'delete' && removeIds.length === 0"
-            @click="handleToolbar(btn.name)"
-          >
-            {{ btn.text }}
-          </el-button>
-        </template>
-      </div>
-      <!-- 右侧工具栏 -->
-      <div class="toolbar-right flex gap-y-2.5 gap-x-2 md:gap-x-3 flex-wrap">
-        <template v-for="(btn, index) in toolbarRightBtn" :key="index">
-          <el-popover v-if="btn.name === 'filter'" placement="bottom" trigger="click">
-            <template #reference>
-              <el-button v-bind="btn.attrs"></el-button>
-            </template>
-            <el-scrollbar max-height="350px">
-              <template v-for="col in cols" :key="col.prop">
-                <el-checkbox v-if="col.prop" v-model="col.show" :label="col.label" />
-              </template>
-            </el-scrollbar>
-          </el-popover>
-          <el-button
-            v-else
-            v-hasPerm="btn.perm ?? '*:*:*'"
-            v-bind="btn.attrs"
-            @click="handleToolbar(btn.name)"
-          ></el-button>
-        </template>
-      </div>
-    </div>
+    <PageContentToolbar
+      :toolbar-left-btn="toolbarLeftBtn"
+      :toolbar-right-btn="toolbarRightBtn"
+      :cols="cols"
+      :disable-delete="removeIds.length === 0"
+      @toolbar="handleToolbar"
+      @column-show-change="handleColumnShowChange"
+    />
 
     <!-- 列表 -->
     <el-table
@@ -322,6 +293,7 @@
 <script setup lang="ts">
 import { hasPerm } from "@/utils/auth";
 import { useDateFormat, useThrottleFn } from "@vueuse/core";
+import PageContentToolbar from "@/components/CURD/PageContentToolbar.vue";
 import ProDialog from "@/components/ProDialog/index.vue";
 import {
   genFileId,
@@ -452,6 +424,9 @@ const cols = ref(
     return col;
   })
 );
+function handleColumnShowChange(col: IContentConfig["cols"][number], show: boolean) {
+  col.show = show;
+}
 // 加载状态
 const loading = ref(false);
 // 列表数据
@@ -924,13 +899,3 @@ function saveXlsx(fileData: any, fileName: string) {
 // 暴露的属性和方法
 defineExpose({ fetchPageData, exportPageData, getFilterParams, getSelectionData, handleRefresh });
 </script>
-
-<style lang="scss" scoped>
-.toolbar-left,
-.toolbar-right {
-  .el-button {
-    margin-right: 0 !important;
-    margin-left: 0 !important;
-  }
-}
-</style>
