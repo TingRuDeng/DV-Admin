@@ -89,6 +89,7 @@ import {
 } from "@/components/CURD/pageContentExcel";
 import { usePageContentData } from "@/components/CURD/usePageContentData";
 import { usePageContentFilters } from "@/components/CURD/usePageContentFilters";
+import { usePageContentTableActions } from "@/components/CURD/usePageContentTableActions";
 import { usePageContentToolbarConfig } from "@/components/CURD/usePageContentToolbarConfig";
 import type { TableInstance } from "element-plus";
 import { ref } from "vue";
@@ -159,52 +160,21 @@ const { handleFilterChange, getFilterParams } = usePageContentFilters(cols.value
 });
 
 const tableRef = ref<TableInstance>();
-
-// 行选中
-const selectionData = ref<IObject[]>([]);
-// 删除ID集合 用于批量删除
-const removeIds = ref<(number | string)[]>([]);
-function handleSelectionChange(selection: any[]) {
-  selectionData.value = selection;
-  removeIds.value = selection.map((item) => item[pk]);
-}
-
-// 获取行选中
-function getSelectionData() {
-  return selectionData.value;
-}
-
-// 删除
-function handleDelete(id?: number | string) {
-  const ids = [id || removeIds.value].join(",");
-  if (!ids) {
-    ElMessage.warning("请勾选删除项");
-    return;
-  }
-
-  ElMessageBox.confirm("确认删除?", "警告", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
-  })
-    .then(function () {
-      if (props.contentConfig.deleteAction) {
-        props.contentConfig
-          .deleteAction(ids)
-          .then(() => {
-            ElMessage.success("删除成功");
-            removeIds.value = [];
-            //清空选中项
-            tableRef.value?.clearSelection();
-            handleRefresh(true);
-          })
-          .catch(() => {});
-      } else {
-        ElMessage.error("未配置deleteAction");
-      }
-    })
-    .catch(() => {});
-}
+const {
+  selectionData,
+  removeIds,
+  getSelectionData,
+  handleSelectionChange,
+  handleDelete,
+  handleOperate,
+  handleModify,
+} = usePageContentTableActions({
+  contentConfig: props.contentConfig,
+  pk,
+  handleRefresh,
+  clearSelection: () => tableRef.value?.clearSelection(),
+  emitOperateClick: (data) => emit("operateClick", data),
+});
 
 const exportsModalVisible = ref(false);
 // 打开导出弹窗
@@ -350,35 +320,6 @@ function handleToolbar(name: string) {
     default:
       emit("toolbarClick", name);
       break;
-  }
-}
-
-// 操作列
-function handleOperate(data: IOperateData) {
-  switch (data.name) {
-    case "delete":
-      if (props.contentConfig?.deleteAction) {
-        handleDelete(data.row[pk]);
-      } else {
-        emit("operateClick", data);
-      }
-      break;
-    default:
-      emit("operateClick", data);
-      break;
-  }
-}
-
-// 属性修改
-function handleModify(field: string, value: boolean | string | number, row: Record<string, any>) {
-  if (props.contentConfig.modifyAction) {
-    props.contentConfig.modifyAction({
-      [pk]: row[pk],
-      field,
-      value,
-    });
-  } else {
-    ElMessage.error("未配置modifyAction");
   }
 }
 
