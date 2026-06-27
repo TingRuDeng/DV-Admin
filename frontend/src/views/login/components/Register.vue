@@ -95,7 +95,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import type { FormInstance } from "element-plus";
+import type { FormInstance, FormRules } from "element-plus";
 import { Lock } from "@element-plus/icons-vue";
 import { useI18n } from "vue-i18n";
 import AuthAPI, { type LoginFormData } from "@/api/auth-api";
@@ -139,8 +139,7 @@ const model = ref<Model>({
 });
 
 const rules = computed(() => {
-  // 移除嵌套的computed函数，直接创建规则对象
-  const registerRules: Partial<Record<string, any>> = {
+  const registerRules: FormRules<Model> = {
     username: [
       {
         required: true,
@@ -172,8 +171,8 @@ const rules = computed(() => {
         trigger: "blur",
       },
       {
-        validator: (_: any, value: string) => {
-          return value === model.value.password;
+        validator: (_rule, value: unknown) => {
+          return typeof value === "string" && value === model.value.password;
         },
         trigger: "blur",
         message: t("login.message.password.inconformity"),
