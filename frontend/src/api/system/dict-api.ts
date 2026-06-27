@@ -63,13 +63,3 @@ export interface DictForm {
   /** 备注 */
   remark?: string;
 }
-
-// export interface DictItemOption {
-//   /** 值 */
-//   value: number | string;
-//   /** 标签 */
-//   label: string;
-//   /** 标签类型 */
-//   tagType?: "" | "success" | "info" | "warning" | "danger";
-//   [key: string]: any;
-// }
