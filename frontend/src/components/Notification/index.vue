@@ -80,26 +80,35 @@
 </template>
 
 <script setup lang="ts">
+import type { IMessage } from "@stomp/stompjs";
+
 import ProDialog from "@/components/ProDialog/index.vue";
 import SafeHtml from "@/components/SafeHtml/index.vue";
 import NoticeAPI, { NoticePageVO, NoticeDetailVO } from "@/api/system/notice-api";
 import router from "@/router";
+import { useStomp } from "@/composables/websocket/useStomp";
+
+interface NotificationMessagePayload {
+  id: string;
+  title?: string;
+  type?: NoticePageVO["type"];
+  publishTime?: NoticePageVO["publishTime"];
+}
 
 const noticeList = ref<NoticePageVO[]>([]);
 const noticeDialogVisible = ref(false);
 const noticeDetail = ref<NoticeDetailVO | null>(null);
 
-import { useStomp } from "@/composables/websocket/useStomp";
 const { subscribe, unsubscribe, isConnected } = useStomp();
 
 watch(
   () => isConnected.value,
   (connected) => {
     if (connected) {
-      subscribe("/user/queue/message", (message: any) => {
-        const data = JSON.parse(message.body);
+      subscribe("/user/queue/message", (message: IMessage) => {
+        const data = parseNotificationMessage(message);
         const id = data.id;
-        if (!noticeList.value.some((notice) => notice.id == id)) {
+        if (!noticeList.value.some((notice) => notice.id === id)) {
           noticeList.value.unshift({
             id,
             title: data.title,
@@ -109,7 +118,7 @@ watch(
 
           ElNotification({
             title: "您收到一条新的通知消息！",
-            message: data.title,
+            message: data.title ?? "",
             type: "success",
             position: "bottom-right",
           });
@@ -118,6 +127,49 @@ watch(
     }
   }
 );
+
+function parseNotificationMessage(message: IMessage): NotificationMessagePayload {
+  const data: unknown = JSON.parse(message.body);
+  return toNotificationMessagePayload(data);
+}
+
+function toNotificationMessagePayload(data: unknown): NotificationMessagePayload {
+  if (!isNotificationMessageRecord(data)) {
+    throw new Error("通知消息格式错误");
+  }
+
+  return {
+    id: String(data.id),
+    title: normalizeOptionalString(data.title),
+    type: normalizeNoticeType(data.type),
+    publishTime: normalizePublishTime(data.publishTime),
+  };
+}
+
+function isNotificationMessageRecord(
+  data: unknown
+): data is Record<string, unknown> & { id: string | number } {
+  return isRecord(data) && (typeof data.id === "string" || typeof data.id === "number");
+}
+
+function isRecord(data: unknown): data is Record<string, unknown> {
+  return typeof data === "object" && data !== null;
+}
+
+function normalizeOptionalString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
+function normalizeNoticeType(value: unknown): NoticePageVO["type"] {
+  return typeof value === "number" ? value : undefined;
+}
+
+function normalizePublishTime(value: unknown): NoticePageVO["publishTime"] {
+  if (typeof value === "string" || value instanceof Date) {
+    return value;
+  }
+  return undefined;
+}
 
 /**
  * 获取我的通知公告
