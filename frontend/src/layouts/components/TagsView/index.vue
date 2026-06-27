@@ -40,12 +40,11 @@
 
 <script setup lang="ts">
 import { useRoute, useRouter } from "vue-router";
-import { getRouteCacheKey } from "@/utils/view-cache";
-import { usePermissionStore, useTagsViewStore } from "@/store";
+import { useTagsViewStore } from "@/store";
 import TagItem from "./TagItem.vue";
 import TagsContextMenu from "./TagsContextMenu.vue";
-import { extractAffixTags } from "./useAffixTags";
 import { useTagsContextMenu } from "./useTagsContextMenu";
+import { useTagsRouteSync } from "./useTagsRouteSync";
 
 interface LegacyWheelEvent extends WheelEvent {
   wheelDelta?: number;
@@ -54,8 +53,6 @@ interface LegacyWheelEvent extends WheelEvent {
 const router = useRouter();
 const route = useRoute();
 
-// 状态管理
-const permissionStore = usePermissionStore();
 const tagsViewStore = useTagsViewStore();
 
 const { visitedViews } = storeToRefs(tagsViewStore);
@@ -73,67 +70,7 @@ const {
   useContextMenuManager,
 } = useTagsContextMenu(visitedViews);
 
-// 路由映射缓存，提升查找性能
-const routePathMap = computed(() => {
-  const map = new Map<string, TagView>();
-  visitedViews.value.forEach((tag) => {
-    map.set(tag.path, tag);
-  });
-  return map;
-});
-
-/**
- * 初始化固定标签
- */
-const initAffixTags = () => {
-  const affixTags = extractAffixTags(permissionStore.routes);
-
-  affixTags.forEach((tag) => {
-    if (tag.name) {
-      tagsViewStore.addVisitedView(tag);
-    }
-  });
-};
-
-/**
- * 添加当前路由标签
- */
-const addCurrentTag = () => {
-  if (!route.meta?.title) return;
-
-  tagsViewStore.addView({
-    name: route.name as string,
-    title: route.meta.title,
-    path: route.path,
-    fullPath: route.fullPath,
-    cacheKey: getRouteCacheKey(route),
-    affix: route.meta.affix || false,
-    keepAlive: route.meta.keepAlive || false,
-    query: route.query,
-  });
-};
-
-/**
- * 更新当前标签
- */
-const updateCurrentTag = () => {
-  nextTick(() => {
-    const currentTag = routePathMap.value.get(route.path);
-
-    if (currentTag && currentTag.fullPath !== route.fullPath) {
-      tagsViewStore.updateVisitedView({
-        name: route.name as string,
-        title: route.meta?.title || "",
-        path: route.path,
-        fullPath: route.fullPath,
-        cacheKey: getRouteCacheKey(route),
-        affix: route.meta?.affix || false,
-        keepAlive: route.meta?.keepAlive || false,
-        query: route.query,
-      });
-    }
-  });
-};
+const { updateCurrentTag, useRouteTagSync } = useTagsRouteSync(visitedViews);
 
 /**
  * 处理中键点击
@@ -249,23 +186,9 @@ const closeAllTags = (tag: TagView | null) => {
   });
 };
 
-// 监听路由变化
-watch(
-  route,
-  () => {
-    addCurrentTag();
-    updateCurrentTag();
-  },
-  { immediate: true }
-);
-
-// 初始化
-onMounted(() => {
-  initAffixTags();
-});
-
 // 启用右键菜单管理
 useContextMenuManager();
+useRouteTagSync();
 </script>
 
 <style lang="scss" scoped>
