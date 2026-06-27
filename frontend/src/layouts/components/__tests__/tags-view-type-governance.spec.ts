@@ -10,6 +10,7 @@ const TAGS_VIEW_TYPE_FILES = [
   "src/layouts/components/TagsView/useAffixTags.ts",
   "src/layouts/components/TagsView/useTagsContextMenu.ts",
   "src/layouts/components/TagsView/useTagsRouteSync.ts",
+  "src/store/modules/tags-view-cache-helpers.ts",
 ];
 
 const TAGS_VIEW_ANY_PATTERNS = [
