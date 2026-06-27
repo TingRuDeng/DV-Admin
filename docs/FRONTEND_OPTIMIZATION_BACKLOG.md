@@ -75,8 +75,17 @@ ai_summary:
 - 页面层弹层已完成抽象收敛：`frontend/src/views` 不再直接使用 `el-dialog` / `el-drawer`
 - `tags-view-store`、`TableSelect`、WebSocket STOMP manager 和主题样式测试已完成 P1-P4 收口
 - `components/CURD` 兼容层已完成复核：兼容层外无业务调用点，旧全局组件声明已移除，新增调用由测试守卫阻断
+- 近期前端大文件治理已继续收口：`FileUpload.vue`、`NavbarActions.vue` 和 TagsView 缓存 store 的纯逻辑已拆入 helper，并补充对应单元测试
 
 ---
+
+## 2026-06-27 前端治理收口摘要
+
+- `frontend/src/components/Upload/FileUpload.vue` 已把文件展示映射、上传批次完成判断、成功响应收集、失败文件清理和删除路径解析抽入 `fileUploadHelpers.ts`。
+- `frontend/src/layouts/components/NavBar/components/NavbarActions.vue` 已把导航栏右侧动作区主题文字 class 判定抽入 `navbarActionsHelpers.ts`。
+- `frontend/src/store/modules/tags-view-store.ts` 已把缓存新增、删除、保留、更新迁移和快照构造抽入 `tags-view-cache-helpers.ts`。
+- 上述治理均保留原组件对外行为，仅新增纯逻辑测试覆盖核心分支；相关组件和 store 均低于 300 行。
+- 当前继续推进前端可持续性治理时，优先从仍接近 300 行且职责较集中的页面或组件切片，例如 `system/dept/index.vue`、`TextScroll/index.vue`、`MenuItem.vue`、`LayoutSection.vue`。
 
 ## 2026-05-23 前端治理收口摘要
 
