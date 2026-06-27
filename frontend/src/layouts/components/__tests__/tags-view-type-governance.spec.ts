@@ -9,6 +9,7 @@ const TAGS_VIEW_TYPE_FILES = [
   "src/layouts/components/TagsView/TagsContextMenu.vue",
   "src/layouts/components/TagsView/useAffixTags.ts",
   "src/layouts/components/TagsView/useTagsContextMenu.ts",
+  "src/layouts/components/TagsView/useTagsRouteSync.ts",
 ];
 
 const TAGS_VIEW_ANY_PATTERNS = [
@@ -42,8 +43,18 @@ describe("tags view type governance", () => {
 
     expect(source).toContain("<TagItem");
     expect(source).toContain("<TagsContextMenu");
+    expect(source).toContain("useTagsRouteSync");
     expect(source).not.toContain("<el-tag");
     expect(source).not.toContain("<Teleport");
     expect(source).not.toContain("RouteRecordRaw");
+  });
+
+  it("keeps TagsView index below the file size hard limit", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "src/layouts/components/TagsView/index.vue"),
+      "utf8"
+    );
+
+    expect(source.split("\n").length).toBeLessThan(300);
   });
 });
