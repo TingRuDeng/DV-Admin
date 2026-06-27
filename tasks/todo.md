@@ -4,13 +4,11 @@
 
 ## 活跃任务
 
-- [x] P1 串行：抽取 `frontend/src/store/modules/tags-view-store.ts` 的缓存状态纯 helper。
-- [x] P2 串行：新增 TagsView store 缓存 helper 测试，覆盖新增、删除、保留和更新同步规则。
-- [x] P3 串行：运行前端目标测试、质量检查、构建和通用文档校验。
-- [ ] P4 串行：完成 review-gate、提交 PR，并记录合并状态。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] TagsView 缓存 helper 抽取已通过 PR #299 合并：缓存新增、删除、仅保留、更新同步和结果快照构造已抽入 `tags-view-cache-helpers.ts`，`tags-view-store.ts` 从 280 行降至 239 行，新增缓存 helper 纯逻辑测试覆盖缓存 key 新增、删除、保留、更新迁移和快照不可变性；本轮不改变 TagsView store 公开 action、Promise 返回形状、KeepAlive 缓存 key 规则、TagsView 组件交互或后端契约，合并提交为 `0bff54d`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] Mix 布局状态逻辑抽取已通过 PR #297 合并：Logo 折叠、左侧激活菜单、侧栏路径解析和 TagsView 切换时的路由同步已抽入 `useMixLayoutState.ts`，`mix/index.vue` 从 281 行降至 234 行，新增 Mix 布局治理测试覆盖顶级路径提取、侧栏路径解析、`activeMenu` 优先级和行数守卫；本轮不改变顶部菜单点击、侧栏折叠、TagsView、AppMain、菜单 store API 或后端契约，合并提交为 `2efedf8`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] Stomp 连接状态 helper 抽取已通过 PR #295 合并：`isConnected`、`reconnectCount` 读写和外部变更回调已抽入 `stomp-connection-state.ts`，`stomp-connection-manager.ts` 从 290 行降至 282 行，WebSocket 治理测试新增状态 helper 守卫；本轮不改变 STOMP 客户端创建、订阅注册表、重连策略计算、认证错误处理或公开 manager API，合并提交为 `2e04c68`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] User 状态标签组件抽取已通过 PR #293 合并：用户启用状态标签文案、类型和样式类映射已抽入 `UserStatusTag.vue`，`user/index.vue` 从 290 行降至 285 行，User 页面治理测试新增状态组件守卫和行数守卫；本轮不改变用户查询参数、表格请求、重置密码、删除用户、导入弹窗、表单抽屉或后端 API，合并提交为 `732d84a`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
