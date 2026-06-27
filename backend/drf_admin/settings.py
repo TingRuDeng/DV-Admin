@@ -11,11 +11,21 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
-from datetime import timedelta
 from pathlib import Path
 
 import environ
 import psutil
+
+from drf_admin.settings_helpers import (
+    build_base_api,
+    build_caches,
+    build_channel_layers,
+    build_logging_config,
+    build_redis_auth_segment,
+    build_rest_framework_config,
+    build_simple_jwt_config,
+    build_white_list,
+)
 
 # 初始化 django-environ
 env = environ.Env()
@@ -151,67 +161,10 @@ DATABASES = {
 REDIS_PWD = env.str("REDIS_PWD", "")
 REDIS_HOST = env.str("REDIS_HOST", "")
 REDIS_PORT = env.int("REDIS_PORT", None)
-if REDIS_PWD:
-    REDIS_STR = f":{REDIS_PWD}@"
-else:
-    REDIS_STR = ""
+REDIS_STR = build_redis_auth_segment(REDIS_PWD)
 
 # 如果能获取到Redis配置，则使用Redis缓存；否则使用本地缓存
-if REDIS_HOST and REDIS_PORT:
-    # 使用Redis缓存
-    CACHES = {
-        "default": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": f"redis://{REDIS_STR}{REDIS_HOST}:{REDIS_PORT}/0",
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            },
-        },
-        # session
-        "session": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": f"redis://{REDIS_STR}{REDIS_HOST}:{REDIS_PORT}/1",
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            },
-        },
-        # 用户信息/ip黑名单
-        "user_info": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": f"redis://{REDIS_STR}{REDIS_HOST}:{REDIS_PORT}/2",
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            },
-        },
-        # 在线用户监测
-        "online_user": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": f"redis://{REDIS_STR}{REDIS_HOST}:{REDIS_PORT}/3",
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            },
-        },
-    }
-else:
-    # 使用本地缓存作为后备方案
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": "unique-default",
-        },
-        "session": {
-            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": "unique-session",
-        },
-        "user_info": {
-            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": "unique-user_info",
-        },
-        "online_user": {
-            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": "unique-online_user",
-        },
-    }
+CACHES = build_caches(REDIS_HOST, REDIS_PORT, REDIS_STR)
 # 设置Django session使用redis作为后端存储
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "session"
@@ -257,57 +210,12 @@ MEDIA_ROOT = BASE_DIR / "media"
 AUTH_USER_MODEL = "system.Users"
 
 # DRF配置
-REST_FRAMEWORK = {
-    # 异常处理
-    "EXCEPTION_HANDLER": "drf_admin.utils.exceptions.exception_handler",
-    # 全局分页
-    "DEFAULT_PAGINATION_CLASS": "drf_admin.utils.pagination.GlobalPagination",
-    "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",  # 登录验证
-        "drf_admin.utils.permissions.RBACPermission",  # 自定义RBAC权限认证
-    ),
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",  # DRF-JWT认证
-    ),
-    # DRF-API文档
-    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
-    "DEFAULT_THROTTLE_RATES": {
-        "anon": "10/min",
-    },
-    # 响应数据转换为驼峰格式，便于前端接收
-    "DEFAULT_RENDERER_CLASSES": (
-        "djangorestframework_camel_case.render.CamelCaseJSONRenderer",
-        "djangorestframework_camel_case.render.CamelCaseBrowsableAPIRenderer",  # 可选，用于API调试界面
-    ),
-    # 接收前端驼峰格式数据时转换为蛇形格式
-    "DEFAULT_PARSER_CLASSES": (
-        # 处理 JSON 体的转换（如 POST 数据）
-        "djangorestframework_camel_case.parser.CamelCaseJSONParser",
-        # 处理表单数据（如 multipart/form-data）
-        "djangorestframework_camel_case.parser.CamelCaseFormParser",
-        "djangorestframework_camel_case.parser.CamelCaseMultiPartParser",
-    ),
-    "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
-}
+REST_FRAMEWORK = build_rest_framework_config()
 
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=env.int("JWT_ACCESS_TOKEN_LIFETIME", default=30)),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=env.int("JWT_REFRESH_TOKEN_LIFETIME", default=1)),
-    "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": True,
-    # 'UPDATE_LAST_LOGIN': False,
-    #
-    # 'ALGORITHM': 'HS256',
-    # 'SIGNING_KEY': SECRET_KEY,  # 使用 Django 的 SECRET_KEY
-    # 'VERIFYING_KEY': None,
-    # 'AUDIENCE': None,
-    # 'ISSUER': None,
-    #
-    # 'AUTH_HEADER_TYPES': ('Bearer',),  # 令牌前缀
-    # 'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
-    # 'USER_ID_FIELD': 'id',
-    # 'USER_ID_CLAIM': 'user_id',
-}
+SIMPLE_JWT = build_simple_jwt_config(
+    env.int("JWT_ACCESS_TOKEN_LIFETIME", default=30),
+    env.int("JWT_REFRESH_TOKEN_LIFETIME", default=1),
+)
 
 AUTHENTICATION_BACKENDS = [
     "drf_admin.apps.oauth.utils.UsernameMobileAuthBackend",  # 自定义用户认证方法
@@ -320,21 +228,8 @@ DEFAULT_PWD = env.str("DEFAULT_PWD")
 API_VERSION = env.str("API_VERSION", default="v1")
 
 # 项目BASE API, 如设置时必须以/结尾，可使用v1, v2等版本号
-if API_VERSION:
-    BASE_API = f"api/{API_VERSION}/"
-else:
-    BASE_API = "api/"
-
-WHITE_LIST = [
-    f"/{BASE_API}oauth/login/",
-    f"/{BASE_API}oauth/logout/",
-    f"/{BASE_API}oauth/info/",
-    f"/{BASE_API}oauth/menus/routes/",
-    f"/{BASE_API}oauth/refresh-token/",  # 刷新令牌接口
-    f"/{BASE_API}system/users/profile/",
-    f"/{BASE_API}system/notices/my-page/",
-    f"/{BASE_API}system/dict-items/",
-]  # 权限认证白名单
+BASE_API = build_base_api(API_VERSION)
+WHITE_LIST = build_white_list(BASE_API)  # 权限认证白名单
 REGEX_URL = "^{url}$"  # 权限匹配时,严格正则url
 PROJECT_START_TIME = psutil.Process().create_time()
 
@@ -351,27 +246,7 @@ ASGI_APPLICATION = "drf_admin.routing.application"
 
 # django-channels配置 - 直接读取配置文件中的Redis配置
 # 如果能获取到Redis配置，则使用Redis作为Channel Layer后端；否则使用内存后端
-if REDIS_HOST and REDIS_PORT:
-    # 使用Redis作为Channel Layer后端
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels_redis.core.RedisChannelLayer",
-            "CONFIG": {
-                "hosts": [f"redis://{REDIS_STR}{REDIS_HOST}:{REDIS_PORT}/4"],
-                "symmetric_encryption_keys": [SECRET_KEY],
-                "capacity": 1500,
-                "expiry": 10,
-            },
-        },
-    }
-else:
-    # 使用内存后端作为后备方案
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels.layers.InMemoryChannelLayer",
-            "CONFIG": {"capacity": 1500, "expiry": 10},
-        },
-    }
+CHANNEL_LAYERS = build_channel_layers(REDIS_HOST, REDIS_PORT, REDIS_STR, SECRET_KEY)
 
 # simpleui配置项
 SIMPLEUI_HOME_INFO = False  # 设置admin站点不显示simpleui的git页
@@ -379,91 +254,6 @@ SIMPLEUI_HOME_INFO = False  # 设置admin站点不显示simpleui的git页
 # 日志配置
 LOGS_DIR = BASE_DIR.parent / "logs"
 os.makedirs(LOGS_DIR, exist_ok=True)
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,  # 是否禁用已经存在的日志器
-    "formatters": {  # 日志信息显示的格式
-        "standard": {
-            "format": "[%(asctime)s][%(levelname)s][%(filename)s:%(lineno)d]==>[%(message)s]"
-        },
-        "simple": {"format": "[%(asctime)s][%(levelname)s]==>[%(message)s]"},
-    },
-    "filters": {  # 对日志进行过滤
-        "require_debug_true": {  # django在debug模式下才输出日志
-            "()": "django.utils.log.RequireDebugTrue",
-        },
-    },
-    "handlers": {
-        "default": {
-            "level": "INFO",
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": os.path.join(LOGS_DIR, "admin_info.log"),
-            "maxBytes": 1024 * 1024 * 50,
-            "backupCount": 5,
-            "formatter": "standard",
-            "encoding": "utf-8",
-        },
-        # 向终端中输出日志
-        "console": {
-            "level": "DEBUG",
-            "filters": ["require_debug_true"],
-            "class": "logging.StreamHandler",
-            "formatter": "standard",
-        },
-        "operation": {
-            "level": "INFO",
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": os.path.join(LOGS_DIR, "admin_operation.log"),
-            "maxBytes": 1024 * 1024 * 50,  # 50 MB
-            "backupCount": 5,
-            "formatter": "simple",
-            "encoding": "utf-8",
-        },
-        "query": {
-            "level": "INFO",
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": os.path.join(LOGS_DIR, "admin_query.log"),
-            "maxBytes": 1024 * 1024 * 50,  # 50 MB
-            "backupCount": 5,
-            "formatter": "simple",
-            "encoding": "utf-8",
-        },
-        "error": {
-            "level": "ERROR",
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": os.path.join(LOGS_DIR, "admin_error.log"),
-            "maxBytes": 1024 * 1024 * 50,  # 50 MB
-            "backupCount": 5,
-            "formatter": "standard",
-            "encoding": "utf-8",
-        },
-    },
-    "loggers": {
-        # 记录视图中手动info日志
-        "info": {
-            "handlers": ["default", "console"],
-            "level": "INFO",
-            "propagate": True,
-        },
-        # 非GET方法操作日志
-        "operation": {
-            "handlers": ["operation"],
-            "level": "INFO",
-            "propagate": True,
-        },
-        # GET方法查询日志
-        "query": {
-            "handlers": ["query", "console"],
-            "level": "INFO",
-            "propagate": True,
-        },
-        # 记录视图异常日志
-        "error": {
-            "handlers": ["error", "console"],
-            "level": "ERROR",
-            "propagate": True,
-        },
-    },
-}
+LOGGING = build_logging_config(LOGS_DIR)
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
