@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] 串行：清理生产源码 any 扫描注释噪音。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] 生产源码 any 扫描注释噪音清理已通过 PR #281 合并：删除 `dict-api.ts` 中废弃的注释接口片段，调整 `uploadError.ts` 注释文案，生产源码 `any/@ts-ignore/@ts-expect-error` 扫描已无命中；本轮不改变字典 API 类型、上传错误处理逻辑、运行时行为或后端 API，合并提交为 `138e5ac`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] demo icons 图标代码生成类型边界收紧已通过 PR #279 合并：`demo/icons.vue` 的 `generateIconCode` 与 `generateElementIconCode` 参数已从显式 `any` 收紧为 `string`，SVG 图标列表改为只读字面量数组，新增 demo icons 类型治理测试防止函数参数回退；本轮不改变图标资源加载、Element Plus 图标注册、页面布局或后端 API，合并提交为 `f1b0f3d`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] Breadcrumb 路由项类型边界收紧已通过 PR #277 合并：面包屑本地路由项已用 `BreadcrumbRoute` 显式表达 `path/name/meta/redirect` 字段，dashboard fallback 移除 `as any`，`handleLink(item: any)` 收紧为明确类型并兼容 redirect 函数形式，新增 Breadcrumb 类型治理测试防止显式 any 回退；本轮不改变路由生成、权限路由、面包屑 UI 样式或后端 API，合并提交为 `ef22654`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] Notification 订阅消息类型边界收紧已通过 PR #275 合并：订阅回调参数已从 `message: any` 收紧为 STOMP `IMessage`，`JSON.parse` 结果按 `unknown` 处理并在组件边界校验通知消息字段，通知发布时间类型对齐为 `string | Date`，新增 Notification 消息类型治理测试防止回退；本轮不改变 WebSocket 连接管理器、通知 API 路径、通知详情弹窗或后端 API，合并提交为 `57db919`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
