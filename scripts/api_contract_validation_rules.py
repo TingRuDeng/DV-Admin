@@ -4,6 +4,7 @@ MAX_RUNTIME_CONTRACT_TEST_LINES = 300
 
 REQUIRED_FILES = (
     "scripts/api_contracts.py",
+    "scripts/api_capability_contracts.py",
     "scripts/api_error_codes.py",
     "scripts/api_field_contracts.py",
     "scripts/api_endpoint_contracts.py",
@@ -20,8 +21,10 @@ REQUIRED_FILES = (
     "backend/drf_admin/utils/runtime_api_contracts/test_read_contracts.py",
     "backend/drf_admin/utils/runtime_api_contracts/test_write_contracts.py",
     "backend/drf_admin/utils/test_response_contract.py",
+    "backend/drf_admin/utils/test_api_capability_contracts.py",
     "backend/drf_admin/utils/test_api_field_contracts.py",
     "fastapi/tests/test_api_contracts.py",
+    "fastapi/tests/test_api_capability_contracts.py",
     "fastapi/tests/test_api_field_contracts.py",
     "fastapi/tests/runtime_api_contracts/helpers.py",
     "fastapi/tests/runtime_api_contracts/test_dict_write_contracts.py",
@@ -56,6 +59,7 @@ REQUIRED_DOC_SNIPPETS = (
     "关键端点契约目录",
     "共享错误码契约目录",
     "scripts/validate_api_contracts.py",
+    "scripts/api_capability_contracts.py",
     "scripts/api_endpoint_contracts.py",
     "scripts/api_field_contracts.py",
     "scripts/api_error_codes.py",
@@ -77,6 +81,12 @@ REQUIRED_TEST_SNIPPETS = {
         "assert_api_field_contract_catalog",
         "django_output_keys",
         "未登记字段",
+    ),
+    "backend/drf_admin/utils/test_api_capability_contracts.py": (
+        "iter_api_capability_contracts",
+        "assert_api_capability_contract_catalog",
+        "FastAPI 独占",
+        "OperationLog",
     ),
     "backend/drf_admin/utils/runtime_api_contracts/helpers.py": (
         "iter_critical_endpoint_contracts",
@@ -124,6 +134,12 @@ REQUIRED_TEST_SNIPPETS = {
         "assert_api_field_contract_catalog",
         "fastapi_output_keys",
         "未登记字段",
+    ),
+    "fastapi/tests/test_api_capability_contracts.py": (
+        "iter_api_capability_contracts",
+        "assert_api_capability_contract_catalog",
+        "fastapi_snippets",
+        "真实路由源码",
     ),
     "fastapi/tests/runtime_api_contracts/helpers.py": (
         "iter_critical_endpoint_contracts",
