@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] 串行：收紧 CURD 通用对象类型边界。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] CURD 通用对象类型边界收紧已通过 PR #257 合并：`IObject` 已从 `Record<string, any>` 收紧为 `Record<string, unknown>`，表格单元格、搜索表单、筛选和表格操作读取点已改为局部窄化，新增通用对象类型治理测试防止回退；本轮不改变 CURD 渲染、请求、分页、筛选、导入导出或后端 API，合并提交为 `925a5d5`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] CURD 表格列扩展类型边界收紧已通过 PR #255 合并：`IContentConfig.cols` 的扩展索引已从 `[key: string]: any` 收紧为 `ICurdTableColumnExtraValue = unknown`，新增表格列扩展类型治理测试防止回退；本轮不改变 PageContent 渲染、分页、筛选、导入导出或后端 API，合并提交为 `3c2bd07`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] CURD 表单 API 类型边界收紧已通过 PR #253 合并：`PageModal.vue` 的 `defineSlots` 与 `setFormItemData` 已改为共享表单 API 类型，`IFormItems` 的 `options`、`initialValue`、`events` 已移除显式 `any`，新增表单 API 类型治理测试防止回退；本轮不改变弹窗、抽屉、表单初始化、校验或提交行为，合并提交为 `7050705`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] CURD 组件映射类型边界收紧已通过 PR #251 合并：`PageSearch.vue` 和 `PageModal.vue` 的动态组件映射已改为共享 `ICurdComponentMap` / `ICurdComponentMapValue` 类型，显式导入 Element Plus 组件并移除映射处的 `Map<..., any>` 与 `@ts-ignore`；新增组件映射类型治理测试防止回退，合并提交为 `67a4ac5`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
