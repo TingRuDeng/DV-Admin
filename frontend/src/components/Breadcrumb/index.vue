@@ -15,11 +15,20 @@
 </template>
 
 <script setup lang="ts">
-import { RouteLocationMatched } from "vue-router";
+import type { RouteLocationMatched, RouteLocationRaw } from "vue-router";
 import { compile } from "path-to-regexp";
 import router from "@/router";
 import { translateRouteTitle } from "@/utils/i18n";
 import { createLogger } from "@/utils/logger";
+
+type BreadcrumbRoute = Pick<RouteLocationMatched, "path" | "name" | "meta" | "redirect">;
+
+const DASHBOARD_BREADCRUMB: BreadcrumbRoute = {
+  path: "/dashboard",
+  name: "Dashboard",
+  meta: { title: "dashboard" },
+  redirect: undefined,
+};
 
 const breadcrumbLogger = createLogger("Breadcrumb");
 const currentRoute = useRoute();
@@ -29,20 +38,22 @@ const pathCompile = (path: string) => {
   return toPath(params);
 };
 
-const breadcrumbs = ref<Array<RouteLocationMatched>>([]);
+const breadcrumbs = ref<BreadcrumbRoute[]>([]);
 
 function getBreadcrumb() {
-  let matched = currentRoute.matched.filter((item) => item.meta && item.meta.title);
+  let matched: BreadcrumbRoute[] = currentRoute.matched.filter(
+    (item) => item.meta && item.meta.title
+  );
   const first = matched[0];
   if (!isDashboard(first)) {
-    matched = [{ path: "/dashboard", meta: { title: "dashboard" } } as any].concat(matched);
+    matched = [DASHBOARD_BREADCRUMB].concat(matched);
   }
   breadcrumbs.value = matched.filter((item) => {
     return item.meta && item.meta.title && item.meta.breadcrumb !== false;
   });
 }
 
-function isDashboard(route: RouteLocationMatched) {
+function isDashboard(route: BreadcrumbRoute | undefined) {
   const name = route && route.name;
   if (!name) {
     return false;
@@ -50,10 +61,10 @@ function isDashboard(route: RouteLocationMatched) {
   return name.toString().trim().toLocaleLowerCase() === "Dashboard".toLocaleLowerCase();
 }
 
-function handleLink(item: any) {
+function handleLink(item: BreadcrumbRoute) {
   const { redirect, path } = item;
   if (redirect) {
-    router.push(redirect).catch((err) => {
+    router.push(resolveRedirect(redirect)).catch((err) => {
       breadcrumbLogger.warn("面包屑重定向跳转失败:", err);
     });
     return;
@@ -61,6 +72,13 @@ function handleLink(item: any) {
   router.push(pathCompile(path)).catch((err) => {
     breadcrumbLogger.warn("面包屑路径跳转失败:", err);
   });
+}
+
+function resolveRedirect(redirect: NonNullable<BreadcrumbRoute["redirect"]>): RouteLocationRaw {
+  if (typeof redirect === "function") {
+    return redirect(currentRoute);
+  }
+  return redirect;
 }
 
 watch(
