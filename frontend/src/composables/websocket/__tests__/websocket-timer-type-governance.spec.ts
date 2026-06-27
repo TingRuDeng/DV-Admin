@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const WEBSOCKET_TIMER_FILES = [
   "src/composables/websocket/stomp-connection-manager.ts",
+  "src/composables/websocket/stomp-connection-state.ts",
   "src/composables/websocket/stomp-connection-timers.ts",
   "src/composables/websocket/useStomp.ts",
   "src/composables/websocket/useOnlineCount.ts",
@@ -37,5 +38,17 @@ describe("websocket timer type governance", () => {
     );
 
     expect(source.split("\n").length).toBeLessThan(300);
+  });
+
+  it("keeps Stomp connection state behind a focused helper", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "src/composables/websocket/stomp-connection-state.ts"),
+      "utf8"
+    );
+
+    expect(source).toContain("createStompConnectionState");
+    expect(source).toContain("getSnapshot");
+    expect(source).toContain("setConnected");
+    expect(source).toContain("setReconnectCount");
   });
 });

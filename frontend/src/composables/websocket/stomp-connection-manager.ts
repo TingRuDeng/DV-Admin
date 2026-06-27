@@ -5,12 +5,12 @@ import {
   isRecoverableCloseCode,
 } from "@/composables/websocket/stomp-connection-helpers";
 import { buildStompClient } from "@/composables/websocket/stomp-client-factory";
+import { createStompConnectionState } from "@/composables/websocket/stomp-connection-state";
 import { createStompConnectionTimers } from "@/composables/websocket/stomp-connection-timers";
 import { createStompSubscriptionRegistry } from "@/composables/websocket/stomp-subscription-registry";
 import type {
   StompClientLike,
   StompConnectionManagerOptions,
-  StompConnectionSnapshot,
   StompErrorFrame,
 } from "@/composables/websocket/stomp-connection-types";
 
@@ -29,22 +29,14 @@ export type {
 export function createStompConnectionManager(options: StompConnectionManagerOptions) {
   let brokerURL = options.brokerURL;
   let client: StompClientLike | null = null;
-  let isConnected = false;
   let isConnecting = false;
   let isManualDisconnect = false;
-  let reconnectCount = 0;
   const subscriptionRegistry = createStompSubscriptionRegistry(options.logger);
+  const state = createStompConnectionState({
+    onConnectedChange: options.onConnectedChange,
+    onReconnectCountChange: options.onReconnectCountChange,
+  });
   const timers = createStompConnectionTimers();
-
-  const setConnected = (value: boolean) => {
-    isConnected = value;
-    options.onConnectedChange?.(value);
-  };
-
-  const setReconnectCount = (value: number) => {
-    reconnectCount = value;
-    options.onReconnectCountChange?.(value);
-  };
 
   const createClient = () => {
     if (client && (client.active || client.connected)) {
@@ -89,19 +81,19 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
 
   const bindClientEvents = (targetClient: StompClientLike) => {
     targetClient.onConnect = () => {
-      setConnected(true);
+      state.setConnected(true);
       isConnecting = false;
-      setReconnectCount(0);
+      state.setReconnectCount(0);
       timers.clearConnectionTimeoutTimer();
       timers.clearReconnectTimer();
       options.logger.info("WebSocket连接已建立");
     };
 
     targetClient.onDisconnect = () => {
-      setConnected(false);
+      state.setConnected(false);
       isConnecting = false;
       options.logger.info("WebSocket连接已断开");
-      if (!isManualDisconnect && reconnectCount < options.maxReconnectAttempts) {
+      if (!isManualDisconnect && state.getReconnectCount() < options.maxReconnectAttempts) {
         scheduleReconnect();
       }
     };
@@ -116,7 +108,7 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
   };
 
   const handleWebSocketClose = (event: CloseEvent) => {
-    setConnected(false);
+    state.setConnected(false);
     isConnecting = false;
     options.logger.info(`WebSocket已关闭: ${event?.code} ${event?.reason}`);
 
@@ -125,7 +117,10 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
       return;
     }
 
-    if (isRecoverableCloseCode(event?.code) && reconnectCount < options.maxReconnectAttempts) {
+    if (
+      isRecoverableCloseCode(event?.code) &&
+      state.getReconnectCount() < options.maxReconnectAttempts
+    ) {
       options.logger.info("检测到连接异常关闭，将尝试重连");
       scheduleReconnect();
     }
@@ -146,18 +141,20 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
       return;
     }
 
+    const reconnectCount = state.getReconnectCount();
     if (reconnectCount >= options.maxReconnectAttempts) {
       options.logger.error(`已达到最大重连次数(${options.maxReconnectAttempts})，停止重连`);
       return;
     }
 
-    setReconnectCount(reconnectCount + 1);
-    options.logger.info(`准备重连(${reconnectCount}/${options.maxReconnectAttempts})...`);
+    const nextReconnectCount = reconnectCount + 1;
+    state.setReconnectCount(nextReconnectCount);
+    options.logger.info(`准备重连(${nextReconnectCount}/${options.maxReconnectAttempts})...`);
     timers.startReconnectTimer(runReconnect, getReconnectDelay());
   };
 
   const runReconnect = () => {
-    if (!isConnected && !isManualDisconnect && !isConnecting) {
+    if (!state.getConnected() && !isManualDisconnect && !isConnecting) {
       options.logger.info("开始重连...");
       connect();
     }
@@ -166,7 +163,7 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
   const getReconnectDelay = () => {
     return calculateReconnectDelay({
       maxReconnectDelay: options.maxReconnectDelay,
-      reconnectCount,
+      reconnectCount: state.getReconnectCount(),
       reconnectDelay: options.reconnectDelay,
       useExponentialBackoff: options.useExponentialBackoff,
     });
@@ -200,7 +197,7 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
 
     if (client.connected) {
       options.logger.debug("WebSocket已经连接,跳过重复连接");
-      setConnected(true);
+      state.setConnected(true);
       return;
     }
 
@@ -217,10 +214,10 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
   };
 
   const handleConnectionTimeout = () => {
-    if (!isConnected && isConnecting) {
+    if (!state.getConnected() && isConnecting) {
       options.logger.warn("WebSocket连接超时");
       isConnecting = false;
-      if (!isManualDisconnect && reconnectCount < options.maxReconnectAttempts) {
+      if (!isManualDisconnect && state.getReconnectCount() < options.maxReconnectAttempts) {
         scheduleReconnect();
       }
     }
@@ -239,9 +236,9 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
     timers.clearAllTimers();
     subscriptionRegistry.clear();
     deactivateClient();
-    setConnected(false);
+    state.setConnected(false);
     isConnecting = false;
-    setReconnectCount(0);
+    state.setReconnectCount(0);
   };
 
   const deactivateClient = () => {
@@ -272,17 +269,12 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
     createClient();
   };
 
-  const getSnapshot = (): StompConnectionSnapshot => ({
-    isConnected,
-    reconnectCount,
-  });
-
   createClient();
 
   return {
     connect,
     disconnect,
-    getSnapshot,
+    getSnapshot: state.getSnapshot,
     subscribe,
     unsubscribe,
     updateBrokerURL,
