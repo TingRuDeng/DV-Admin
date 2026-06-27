@@ -42,7 +42,7 @@ defineOptions({
   name: "Icons",
   inheritAttrs: false,
 });
-const svg_icons: string[] = [
+const svg_icons = [
   "api",
   "cascader",
   "client",
@@ -82,14 +82,14 @@ const svg_icons: string[] = [
   "user",
   "uv",
   "verify-code",
-];
+] as const;
 const icons = ref(ElementPlusIconsVue);
 
-function generateIconCode(symbol: any) {
+function generateIconCode(symbol: string) {
   return `<div class="i-svg:${symbol}" />`;
 }
 
-function generateElementIconCode(symbol: any) {
+function generateElementIconCode(symbol: string) {
   return `<el-icon><${symbol} /></el-icon>`;
 }
 </script>
