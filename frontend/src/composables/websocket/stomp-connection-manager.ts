@@ -5,6 +5,7 @@ import {
   isRecoverableCloseCode,
 } from "@/composables/websocket/stomp-connection-helpers";
 import { buildStompClient } from "@/composables/websocket/stomp-client-factory";
+import { createStompConnectionTimers } from "@/composables/websocket/stomp-connection-timers";
 import { createStompSubscriptionRegistry } from "@/composables/websocket/stomp-subscription-registry";
 import type {
   StompClientLike,
@@ -32,9 +33,8 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
   let isConnecting = false;
   let isManualDisconnect = false;
   let reconnectCount = 0;
-  let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
-  let connectionTimeoutTimer: ReturnType<typeof setTimeout> | undefined;
   const subscriptionRegistry = createStompSubscriptionRegistry(options.logger);
+  const timers = createStompConnectionTimers();
 
   const setConnected = (value: boolean) => {
     isConnected = value;
@@ -92,8 +92,8 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
       setConnected(true);
       isConnecting = false;
       setReconnectCount(0);
-      clearTimeout(connectionTimeoutTimer);
-      clearTimeout(reconnectTimer);
+      timers.clearConnectionTimeoutTimer();
+      timers.clearReconnectTimer();
       options.logger.info("WebSocket连接已建立");
     };
 
@@ -153,8 +153,7 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
 
     setReconnectCount(reconnectCount + 1);
     options.logger.info(`准备重连(${reconnectCount}/${options.maxReconnectAttempts})...`);
-    clearTimeout(reconnectTimer);
-    reconnectTimer = setTimeout(runReconnect, getReconnectDelay());
+    timers.startReconnectTimer(runReconnect, getReconnectDelay());
   };
 
   const runReconnect = () => {
@@ -206,8 +205,7 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
     }
 
     isConnecting = true;
-    clearTimeout(connectionTimeoutTimer);
-    connectionTimeoutTimer = setTimeout(handleConnectionTimeout, options.connectionTimeout);
+    timers.startConnectionTimeoutTimer(handleConnectionTimeout, options.connectionTimeout);
 
     try {
       client.activate();
@@ -238,19 +236,12 @@ export function createStompConnectionManager(options: StompConnectionManagerOpti
 
   const disconnect = () => {
     isManualDisconnect = true;
-    clearManagedTimers();
+    timers.clearAllTimers();
     subscriptionRegistry.clear();
     deactivateClient();
     setConnected(false);
     isConnecting = false;
     setReconnectCount(0);
-  };
-
-  const clearManagedTimers = () => {
-    clearTimeout(reconnectTimer);
-    clearTimeout(connectionTimeoutTimer);
-    reconnectTimer = undefined;
-    connectionTimeoutTimer = undefined;
   };
 
   const deactivateClient = () => {

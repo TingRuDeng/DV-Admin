@@ -3,6 +3,8 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const WEBSOCKET_TIMER_FILES = [
+  "src/composables/websocket/stomp-connection-manager.ts",
+  "src/composables/websocket/stomp-connection-timers.ts",
   "src/composables/websocket/useStomp.ts",
   "src/composables/websocket/useOnlineCount.ts",
   "src/composables/websocket/useDictSync.ts",
@@ -26,5 +28,14 @@ describe("websocket timer type governance", () => {
         .map(({ file, line, source }) => `${file}:${line}: ${source}`)
         .join("\n")}`
     ).toEqual([]);
+  });
+
+  it("keeps Stomp connection manager below the file size hard limit", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "src/composables/websocket/stomp-connection-manager.ts"),
+      "utf8"
+    );
+
+    expect(source.split("\n").length).toBeLessThan(300);
   });
 });
