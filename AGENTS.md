@@ -42,6 +42,7 @@ ai_summary:
 - 会产生改动的任务默认不能直接在 `master` / `main` 分支开发。
 - `backend/` 与 `fastapi/` 是面向同一前端的替代实现，不是上下游服务。
 - 交付前需要按受影响技术栈执行最小充分验证，并同步相关文档。
+- 单文件 300 行保留为治理风险提示，不再作为独立拆分目标；优先处理契约缺口、能力漂移、安全配置、死代码、文档事实冲突和测试盲区。
 
 ## How to verify
 
@@ -189,6 +190,11 @@ cp .env.example .env
    - 用户状态：`frontend/src/store/modules/user-store.ts`
    - 权限路由：`frontend/src/store/modules/permission-store.ts`
    - 字典缓存：`frontend/src/store/modules/dict-store.ts`
+
+5. **治理优先级**
+   - 后续可持续性治理优先级为：契约缺口、能力漂移、安全配置、死代码、文档事实冲突、测试盲区。
+   - 单文件超过 300 行应触发职责和测试边界复核，但不得仅为压缩行数制造无业务价值的拆分。
+   - 9-25 行兼容 shim 或再导出入口默认作为观察项保留；除非存在明确退场窗口或真实调用风险，不再继续为了行数拆分。
 
 ### 测试规则
 

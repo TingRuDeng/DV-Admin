@@ -7,6 +7,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.core.config import settings
+from app.main import get_api_docs_config
 
 
 class TestConfig:
@@ -102,3 +103,19 @@ class TestConfig:
         """测试生产环境检测"""
         assert hasattr(settings, "is_production")
         assert isinstance(settings.is_production, bool)
+
+    def test_api_docs_config_enabled_outside_production(self):
+        """非生产环境保留 API 文档入口，便于本地联调。"""
+        assert get_api_docs_config(is_production=False) == {
+            "docs_url": "/api/swagger/",
+            "redoc_url": "/api/redoc/",
+            "openapi_url": "/api/openapi.json",
+        }
+
+    def test_api_docs_config_disabled_in_production(self):
+        """生产环境不暴露 Swagger、Redoc 和 OpenAPI JSON。"""
+        assert get_api_docs_config(is_production=True) == {
+            "docs_url": None,
+            "redoc_url": None,
+            "openapi_url": None,
+        }
