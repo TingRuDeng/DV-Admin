@@ -123,7 +123,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import type { FormInstance } from "element-plus";
+import type { FormInstance, FormRules } from "element-plus";
 import AuthAPI, { type LoginFormData } from "@/api/auth-api";
 import router from "@/router";
 import { useUserStore } from "@/store";
@@ -167,8 +167,7 @@ const loginFormData = ref<LoginFormData>({
 });
 
 const loginRules = computed(() => {
-  // 显式指定rules类型为Partial<Record<string, any>>，允许动态添加属性
-  const rules: Partial<Record<string, any>> = {
+  const rules: FormRules<LoginFormData> = {
     username: [
       {
         required: true,
