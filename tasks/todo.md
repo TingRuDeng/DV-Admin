@@ -4,7 +4,10 @@
 
 ## 活跃任务
 
-- [ ] 待选择：下一轮长期可持续性治理目标。
+- [x] P1 串行：抽取 `frontend/src/layouts/components/NavBar/components/NavbarActions.vue` 的主题文字 class 判定 helper。
+- [x] P2 串行：新增 NavbarActions helper 测试，覆盖暗黑主题、顶部/混合布局经典蓝和浅色布局分支。
+- [x] P3 串行：运行前端目标测试、质量检查、构建和通用文档校验。
+- [ ] P4 串行：完成 review-gate、提交 PR，并记录合并状态。
 
 ## 最近完成
 
