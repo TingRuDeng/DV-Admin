@@ -4,7 +4,7 @@ interface UploadErrorLike {
   message?: unknown;
 }
 
-// 从未知上传错误中提取可展示文案，避免组件直接依赖 any.message。
+// 从未知上传错误中提取可展示文案，避免组件直接依赖未校验的 message 字段。
 export function getUploadErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) {
     return error.message;
