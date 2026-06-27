@@ -77,50 +77,12 @@
         </el-table-column>
         <el-table-column align="center" label="通告目标类型" prop="targetType" width="120">
           <template #default="scope">
-            <el-tag
-              v-if="scope.row.targetType == 1"
-              type="warning"
-              effect="light"
-              class="ff-status-tag warning"
-            >
-              全体
-            </el-tag>
-            <el-tag
-              v-if="scope.row.targetType == 2"
-              type="success"
-              effect="light"
-              class="ff-status-tag success"
-            >
-              指定
-            </el-tag>
+            <NoticeStatusTag kind="target" :value="scope.row.targetType" />
           </template>
         </el-table-column>
         <el-table-column align="center" label="发布状态" width="100">
           <template #default="scope">
-            <el-tag
-              v-if="scope.row.publishStatus == 0"
-              type="info"
-              effect="light"
-              class="ff-status-tag info"
-            >
-              未发布
-            </el-tag>
-            <el-tag
-              v-if="scope.row.publishStatus == 1"
-              type="success"
-              effect="light"
-              class="ff-status-tag success"
-            >
-              已发布
-            </el-tag>
-            <el-tag
-              v-if="scope.row.publishStatus == -1"
-              type="warning"
-              effect="light"
-              class="ff-status-tag warning"
-            >
-              已撤回
-            </el-tag>
+            <NoticeStatusTag kind="publish" :value="scope.row.publishStatus" />
           </template>
         </el-table-column>
         <el-table-column label="操作时间" width="250">
@@ -203,6 +165,7 @@ import { createPageRequest } from "@/utils/pro-table-request";
 import NoticeAPI, { NoticePageQuery, NoticePageVO } from "@/api/system/notice-api";
 import NoticeDetailDialog from "./components/NoticeDetailDialog.vue";
 import NoticeFormDrawer from "./components/NoticeFormDrawer.vue";
+import NoticeStatusTag from "./components/NoticeStatusTag.vue";
 
 const queryFormRef = ref<{ resetFields: () => void } | null>(null);
 const noticeDetailDialogRef = ref<InstanceType<typeof NoticeDetailDialog> | null>(null);
