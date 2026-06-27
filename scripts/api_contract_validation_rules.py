@@ -5,6 +5,7 @@ MAX_RUNTIME_CONTRACT_TEST_LINES = 300
 REQUIRED_FILES = (
     "scripts/api_contracts.py",
     "scripts/api_error_codes.py",
+    "scripts/api_field_contracts.py",
     "scripts/api_endpoint_contracts.py",
     "scripts/api_endpoint_contract_types.py",
     "scripts/api_endpoint_dept_contracts.py",
@@ -19,7 +20,9 @@ REQUIRED_FILES = (
     "backend/drf_admin/utils/runtime_api_contracts/test_read_contracts.py",
     "backend/drf_admin/utils/runtime_api_contracts/test_write_contracts.py",
     "backend/drf_admin/utils/test_response_contract.py",
+    "backend/drf_admin/utils/test_api_field_contracts.py",
     "fastapi/tests/test_api_contracts.py",
+    "fastapi/tests/test_api_field_contracts.py",
     "fastapi/tests/runtime_api_contracts/helpers.py",
     "fastapi/tests/runtime_api_contracts/test_dict_write_contracts.py",
     "fastapi/tests/runtime_api_contracts/test_notice_write_contracts.py",
@@ -54,6 +57,7 @@ REQUIRED_DOC_SNIPPETS = (
     "共享错误码契约目录",
     "scripts/validate_api_contracts.py",
     "scripts/api_endpoint_contracts.py",
+    "scripts/api_field_contracts.py",
     "scripts/api_error_codes.py",
     "Django 响应中间件统一输出",
     "FastAPI `ResponseModel` 默认输出",
@@ -67,6 +71,12 @@ REQUIRED_TEST_SNIPPETS = {
         "assert_endpoint_contract_catalog",
         "dicts_create",
         "dict_items_create",
+    ),
+    "backend/drf_admin/utils/test_api_field_contracts.py": (
+        "iter_api_field_contracts",
+        "assert_api_field_contract_catalog",
+        "django_output_keys",
+        "未登记字段",
     ),
     "backend/drf_admin/utils/runtime_api_contracts/helpers.py": (
         "iter_critical_endpoint_contracts",
@@ -108,6 +118,12 @@ REQUIRED_TEST_SNIPPETS = {
         "dict_items_create",
         "notices_create",
         "logs_page",
+    ),
+    "fastapi/tests/test_api_field_contracts.py": (
+        "iter_api_field_contracts",
+        "assert_api_field_contract_catalog",
+        "fastapi_output_keys",
+        "未登记字段",
     ),
     "fastapi/tests/runtime_api_contracts/helpers.py": (
         "iter_critical_endpoint_contracts",
