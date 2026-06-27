@@ -88,6 +88,7 @@ import {
   type PageContentExcelColumn,
 } from "@/components/CURD/pageContentExcel";
 import { usePageContentData } from "@/components/CURD/usePageContentData";
+import { usePageContentFilters } from "@/components/CURD/usePageContentFilters";
 import { usePageContentToolbarConfig } from "@/components/CURD/usePageContentToolbarConfig";
 import type { TableInstance } from "element-plus";
 import { ref } from "vue";
@@ -153,6 +154,9 @@ const {
   handleSizeChange,
   handleCurrentChange,
 } = usePageContentData(props.contentConfig);
+const { handleFilterChange, getFilterParams } = usePageContentFilters(cols.value, (data) => {
+  emit("filterChange", data);
+});
 
 const tableRef = ref<TableInstance>();
 
@@ -376,29 +380,6 @@ function handleModify(field: string, value: boolean | string | number, row: Reco
   } else {
     ElMessage.error("未配置modifyAction");
   }
-}
-
-// 远程数据筛选
-let filterParams: IObject = {};
-function handleFilterChange(newFilters: any) {
-  const filters: IObject = {};
-  for (const key in newFilters) {
-    const col = cols.value.find((col) => {
-      return col.columnKey === key || col["column-key"] === key;
-    });
-    if (col && col.filterJoin !== undefined) {
-      filters[key] = newFilters[key].join(col.filterJoin);
-    } else {
-      filters[key] = newFilters[key];
-    }
-  }
-  filterParams = { ...filterParams, ...filters };
-  emit("filterChange", filterParams);
-}
-
-// 获取筛选条件
-function getFilterParams() {
-  return filterParams;
 }
 
 fetchPageData();
