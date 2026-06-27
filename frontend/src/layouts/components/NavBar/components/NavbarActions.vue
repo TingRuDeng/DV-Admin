@@ -65,8 +65,6 @@ import { useRoute, useRouter } from "vue-router";
 import { defaultSettings } from "@/settings";
 import { DeviceEnum } from "@/enums/settings/device-enum";
 import { useAppStore, useSettingsStore, useUserStore } from "@/store";
-import { SidebarColor, ThemeMode } from "@/enums/settings/theme-enum";
-import { LayoutMode } from "@/enums";
 
 // 导入子组件
 import MenuSearch from "@/components/MenuSearch/index.vue";
@@ -74,6 +72,7 @@ import Fullscreen from "@/components/Fullscreen/index.vue";
 import SizeSelect from "@/components/SizeSelect/index.vue";
 import LangSelect from "@/components/LangSelect/index.vue";
 import Notification from "@/components/Notification/index.vue";
+import { resolveNavbarActionsTextClass } from "./navbarActionsHelpers";
 
 const { t } = useI18n();
 const appStore = useAppStore();
@@ -97,26 +96,7 @@ function handleProfileClick() {
 const navbarActionsClass = computed(() => {
   const { theme, sidebarColorScheme, layout } = settingStore;
 
-  // 暗黑主题下，所有布局都使用白色文字
-  if (theme === ThemeMode.DARK) {
-    return "navbar-actions--white-text";
-  }
-
-  // 明亮主题下
-  if (theme === ThemeMode.LIGHT) {
-    // 顶部布局和混合布局的顶部区域：
-    // - 如果侧边栏是经典蓝色，使用白色文字
-    // - 如果侧边栏是极简白色，使用深色文字
-    if (layout === LayoutMode.TOP || layout === LayoutMode.MIX) {
-      if (sidebarColorScheme === SidebarColor.CLASSIC_BLUE) {
-        return "navbar-actions--white-text";
-      } else {
-        return "navbar-actions--dark-text";
-      }
-    }
-  }
-
-  return "navbar-actions--dark-text";
+  return resolveNavbarActionsTextClass({ theme, sidebarColorScheme, layout });
 });
 
 /**
