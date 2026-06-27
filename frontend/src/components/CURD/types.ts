@@ -3,7 +3,7 @@ import type { FormProps, TableProps, ColProps, ButtonProps, CardProps } from "el
 import type PageContent from "./PageContent.vue";
 import type PageModal from "./PageModal.vue";
 import type PageSearch from "./PageSearch.vue";
-import type { Component, CSSProperties } from "vue";
+import type { Component, CSSProperties, Ref } from "vue";
 
 export type PageSearchInstance = InstanceType<typeof PageSearch>;
 export type PageContentInstance = InstanceType<typeof PageContent>;
@@ -13,6 +13,20 @@ export type IObject = Record<string, any>;
 export type IActionResult = unknown;
 export type ICurdComponentMapValue = Component | string;
 export type ICurdComponentMap<T extends string> = Map<T, ICurdComponentMapValue>;
+export type ICurdFormValue = unknown;
+export type ICurdFormOptionValue = string | number | boolean;
+export interface ICurdFormOption {
+  label: string;
+  value: ICurdFormOptionValue;
+  [key: string]: unknown;
+}
+export interface ICurdFormSlotProps {
+  prop?: string;
+  formData?: IObject;
+  attrs?: IObject;
+}
+export type ICurdFormSlots = Record<string, (_args: ICurdFormSlotProps) => unknown>;
+export type ICurdFormEventHandler = (...args: unknown[]) => void;
 export type IPageContentList = IObject[];
 export interface IExportActionResult {
   data: BlobPart;
@@ -207,11 +221,11 @@ export type IFormItems<T = IComponentType> = Array<{
   // 组件属性
   attrs?: IObject;
   // 组件可选项(只适用于select,radio,checkbox组件)
-  options?: Array<{ label: string; value: any; [key: string]: any }> | Ref<any[]>;
+  options?: ICurdFormOption[] | Ref<ICurdFormOption[]>;
   // 验证规则
   rules?: FormItemRule[];
   // 初始值
-  initialValue?: any;
+  initialValue?: ICurdFormValue;
   // 插槽名(适用于自定义组件，设置类型为custom)
   slotName?: string;
   // 是否隐藏
@@ -219,7 +233,7 @@ export type IFormItems<T = IComponentType> = Array<{
   // layout组件Col属性
   col?: Partial<ColProps>;
   // 组件事件
-  events?: Record<string, (...args: any) => void>;
+  events?: Record<string, ICurdFormEventHandler>;
   // 初始化数据函数扩展
   initFn?: (item: IObject) => void;
 }>;
