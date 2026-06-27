@@ -276,6 +276,14 @@ API 文档目前手动维护，容易与代码不同步。
 - `components/CURD` 目录仍包含历史 API 和类型定义，不适合作为新页面抽象基础
 - 兼容层文件仍会增加后续删除窗口的回归确认成本
 
+**2026-06-27 复核：**
+
+- `FileUpload.vue` 已把文件展示、上传结果收集、失败清理和删除路径解析抽入 `fileUploadHelpers.ts`
+- `NavbarActions.vue` 已把主题文字 class 判定抽入 `navbarActionsHelpers.ts`
+- `tags-view-store.ts` 已把缓存数组纯规则抽入 `tags-view-cache-helpers.ts`
+- 上述治理均已补纯逻辑测试，并保持用户可见行为、API 契约和后端交互不变
+- 当前仍接近 300 行且适合后续单独评估的前端目标包括 `system/dept/index.vue`、`TextScroll/index.vue`、`MenuItem.vue` 和 `LayoutSection.vue`
+
 **2026-05-23 复核：**
 - `components/CURD` 兼容层外已无业务调用点，新增调用已由 ESLint 和 Vitest 守卫阻断
 - `frontend/src/types/components.d.ts` 已移除 CURD 全局组件声明，避免模板自动补全继续暴露旧抽象
