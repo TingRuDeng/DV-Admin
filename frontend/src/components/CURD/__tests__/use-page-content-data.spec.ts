@@ -1,13 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { usePageContentData } from "@/components/CURD/usePageContentData";
-import type { IContentConfig } from "@/components/CURD/types";
+import type { IContentConfig, IObject, IPageContentDataResponse } from "@/components/CURD/types";
 
-function createContentConfig(overrides: Partial<IContentConfig> = {}): IContentConfig {
+function createContentConfig<R = IPageContentDataResponse>(
+  overrides: Partial<IContentConfig<IObject, R>> = {}
+): IContentConfig<IObject, R> {
   return {
     cols: [],
     indexAction: vi.fn().mockResolvedValue({ list: [{ id: 1 }], total: 1 }),
     ...overrides,
-  };
+  } as IContentConfig<IObject, R>;
 }
 
 describe("usePageContentData", () => {
@@ -45,7 +47,7 @@ describe("usePageContentData", () => {
   it("分页模式支持自定义请求字段和响应解析", async () => {
     const indexAction = vi.fn().mockResolvedValue({ rows: [{ id: 3 }], count: 11 });
     const page = usePageContentData(
-      createContentConfig({
+      createContentConfig<{ rows: IObject[]; count: number }>({
         indexAction,
         request: { pageName: "page", limitName: "limit" },
         parseData: (data) => ({ list: data.rows, total: data.count }),
