@@ -61,6 +61,7 @@
 import { useRoute } from "vue-router";
 import { useWindowSize } from "@vueuse/core";
 import { useLayout, useLayoutMenu } from "@/composables";
+import { useMixLayoutState } from "./useMixLayoutState";
 import BaseLayout from "../base/index.vue";
 import AppLogo from "../../components/AppLogo/index.vue";
 import MixTopMenu from "../../components/Menu/MixTopMenu.vue";
@@ -70,8 +71,6 @@ import AppMain from "../../components/AppMain/index.vue";
 import MenuItem from "../../components/Menu/components/MenuItem.vue";
 import Hamburger from "@/components/Hamburger/index.vue";
 import variables from "@/styles/variables.module.scss";
-import { isExternal } from "@/utils/index";
-import { useAppStore, usePermissionStore } from "@/store";
 
 const route = useRoute();
 
@@ -84,57 +83,11 @@ const { sideMenuRoutes, activeTopMenuPath } = useLayoutMenu();
 // 响应式窗口尺寸
 const { width } = useWindowSize();
 
-// 只有在小屏设备（移动设备）时才折叠Logo（只显示图标，隐藏文字）
-const isLogoCollapsed = computed(() => width.value < 768);
-
-// 当前激活的菜单
-const activeLeftMenuPath = computed(() => {
-  const { meta, path } = route;
-  // 如果设置了activeMenu，则使用
-  if ((meta?.activeMenu as unknown as string) && typeof meta.activeMenu === "string") {
-    return meta.activeMenu as unknown as string;
-  }
-  return path;
+const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
+  route,
+  activeTopMenuPath,
+  viewportWidth: width,
 });
-
-/**
- * 解析路径 - 混合模式下，左侧菜单是从顶级菜单下的子菜单开始的
- * 所以需要拼接顶级菜单路径
- */
-function resolvePath(routePath: string) {
-  if (isExternal(routePath)) {
-    return routePath;
-  }
-
-  if (routePath.startsWith("/")) {
-    return activeTopMenuPath.value + routePath;
-  }
-  return `${activeTopMenuPath.value}/${routePath}`;
-}
-
-// 监听路由变化，确保左侧菜单能随TagsView切换而正确激活
-watch(
-  () => route.path,
-  (newPath: string) => {
-    // 获取顶级路径
-    const topMenuPath =
-      newPath.split("/").filter(Boolean).length > 1 ? newPath.match(/^\/[^/]+/)?.[0] || "/" : "/";
-
-    // 如果当前路径属于当前激活的顶部菜单
-    if (newPath.startsWith(activeTopMenuPath.value)) {
-      // no-op
-    }
-    // 如果路径改变了顶级菜单，确保顶部菜单和左侧菜单都更新
-    else if (topMenuPath !== activeTopMenuPath.value) {
-      const appStore = useAppStore();
-      const permissionStore = usePermissionStore();
-
-      appStore.activeTopMenu(topMenuPath);
-      permissionStore.setMixLayoutSideMenus(topMenuPath);
-    }
-  },
-  { immediate: true }
-);
 </script>
 
 <style lang="scss" scoped>
