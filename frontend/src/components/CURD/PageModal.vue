@@ -134,70 +134,15 @@
 
 <script setup lang="ts">
 import { useThrottleFn } from "@vueuse/core";
-import {
-  ElCascader,
-  ElCheckbox,
-  ElCheckboxGroup,
-  ElDatePicker,
-  ElInput,
-  ElInputNumber,
-  ElOption,
-  ElRadio,
-  ElRadioGroup,
-  ElSelect,
-  ElSwitch,
-  ElText,
-  ElTimePicker,
-  ElTimeSelect,
-  ElTreeSelect,
-} from "element-plus";
 import type { FormInstance, FormRules } from "element-plus";
-import type {
-  IComponentType,
-  ICurdComponentMap,
-  ICurdComponentMapValue,
-  ICurdFormSlots,
-  ICurdFormValue,
-  IModalConfig,
-  IObject,
-} from "./types";
+import type { ICurdFormSlots, ICurdFormValue, IModalConfig, IObject } from "./types";
+import { childrenMap, componentMap } from "./pageModalComponentMaps";
 import ProDialog from "@/components/ProDialog/index.vue";
 import ProDrawer from "@/components/ProDrawer/index.vue";
-import InputTag from "@/components/InputTag/index.vue";
-import IconSelect from "@/components/IconSelect/index.vue";
 
 defineSlots<ICurdFormSlots>();
 const props = defineProps<{ modalConfig: IModalConfig }>();
 const emit = defineEmits<{ submitClick: []; customSubmit: [queryParams: IObject] }>();
-const componentMap: ICurdComponentMap<IComponentType> = new Map<
-  IComponentType,
-  ICurdComponentMapValue
->([
-  ["input", markRaw(ElInput)],
-  ["select", markRaw(ElSelect)],
-  ["switch", markRaw(ElSwitch)],
-  ["cascader", markRaw(ElCascader)],
-  ["input-number", markRaw(ElInputNumber)],
-  ["input-tag", markRaw(InputTag)],
-  ["time-picker", markRaw(ElTimePicker)],
-  ["time-select", markRaw(ElTimeSelect)],
-  ["date-picker", markRaw(ElDatePicker)],
-  ["tree-select", markRaw(ElTreeSelect)],
-  ["custom-tag", markRaw(InputTag)],
-  ["text", markRaw(ElText)],
-  ["radio", markRaw(ElRadioGroup)],
-  ["checkbox", markRaw(ElCheckboxGroup)],
-  ["icon-select", markRaw(IconSelect)],
-  ["custom", ""],
-]);
-const childrenMap: ICurdComponentMap<IComponentType> = new Map<
-  IComponentType,
-  ICurdComponentMapValue
->([
-  ["select", markRaw(ElOption)],
-  ["radio", markRaw(ElRadio)],
-  ["checkbox", markRaw(ElCheckbox)],
-]);
 
 const pk = props.modalConfig.pk ?? "id"; // 主键名，用于表单数据处理
 const modalVisible = ref(false); // 弹窗显示状态
