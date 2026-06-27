@@ -27,7 +27,7 @@
               :prop="item.prop"
               :attrs="{ style: { width: '100%' }, ...item.attrs }"
             />
-            <el-cascader
+            <ElCascader
               v-else-if="item.type === 'cascader'"
               v-model.trim="queryParams[item.prop]"
               v-bind="{ style: { width: '100%' }, ...item.attrs }"
@@ -66,8 +66,26 @@
 </template>
 
 <script setup lang="ts">
-import type { IObject, IForm, ISearchConfig, ISearchComponent } from "./types";
+import type {
+  ICurdComponentMap,
+  ICurdComponentMapValue,
+  IObject,
+  IForm,
+  ISearchConfig,
+  ISearchComponent,
+} from "./types";
 import { ArrowUp, ArrowDown } from "@element-plus/icons-vue";
+import {
+  ElCascader,
+  ElDatePicker,
+  ElInput,
+  ElInputNumber,
+  ElInputTag,
+  ElSelect,
+  ElTimePicker,
+  ElTimeSelect,
+  ElTreeSelect,
+} from "element-plus";
 import type { FormInstance } from "element-plus";
 import InputTag from "@/components/InputTag/index.vue";
 
@@ -79,17 +97,19 @@ const emit = defineEmits<{
   resetClick: [queryParams: IObject];
 }>();
 // 组件映射表
-const componentMap = new Map<ISearchComponent, any>([
-  // @ts-ignore
-  ["input", markRaw(ElInput)], // @ts-ignore
-  ["select", markRaw(ElSelect)], // @ts-ignore
-  ["cascader", markRaw(ElCascader)], // @ts-ignore
-  ["input-number", markRaw(ElInputNumber)], // @ts-ignore
-  ["date-picker", markRaw(ElDatePicker)], // @ts-ignore
-  ["time-picker", markRaw(ElTimePicker)], // @ts-ignore
-  ["time-select", markRaw(ElTimeSelect)], // @ts-ignore
-  ["tree-select", markRaw(ElTreeSelect)], // @ts-ignore
-  ["input-tag", markRaw(ElInputTag)], // @ts-ignore
+const componentMap: ICurdComponentMap<ISearchComponent> = new Map<
+  ISearchComponent,
+  ICurdComponentMapValue
+>([
+  ["input", markRaw(ElInput)],
+  ["select", markRaw(ElSelect)],
+  ["cascader", markRaw(ElCascader)],
+  ["input-number", markRaw(ElInputNumber)],
+  ["date-picker", markRaw(ElDatePicker)],
+  ["time-picker", markRaw(ElTimePicker)],
+  ["time-select", markRaw(ElTimeSelect)],
+  ["tree-select", markRaw(ElTreeSelect)],
+  ["input-tag", markRaw(ElInputTag)],
   ["custom-tag", markRaw(InputTag)],
 ]);
 

@@ -134,43 +134,66 @@
 
 <script setup lang="ts">
 import { useThrottleFn } from "@vueuse/core";
+import {
+  ElCascader,
+  ElCheckbox,
+  ElCheckboxGroup,
+  ElDatePicker,
+  ElInput,
+  ElInputNumber,
+  ElOption,
+  ElRadio,
+  ElRadioGroup,
+  ElSelect,
+  ElSwitch,
+  ElText,
+  ElTimePicker,
+  ElTimeSelect,
+  ElTreeSelect,
+} from "element-plus";
 import type { FormInstance, FormRules } from "element-plus";
-import type { IComponentType, IModalConfig, IObject } from "./types";
+import type {
+  IComponentType,
+  ICurdComponentMap,
+  ICurdComponentMapValue,
+  IModalConfig,
+  IObject,
+} from "./types";
 import ProDialog from "@/components/ProDialog/index.vue";
 import ProDrawer from "@/components/ProDrawer/index.vue";
 import InputTag from "@/components/InputTag/index.vue";
 import IconSelect from "@/components/IconSelect/index.vue";
 
 defineSlots<{ [key: string]: (_args: any) => any }>();
-// 定义接收的属性
 const props = defineProps<{ modalConfig: IModalConfig }>();
-// 自定义事件
 const emit = defineEmits<{ submitClick: []; customSubmit: [queryParams: IObject] }>();
-// 组件映射表
-
-const componentMap = new Map<IComponentType, any>([
-  // @ts-ignore
-  ["input", markRaw(ElInput)], // @ts-ignore
-  ["select", markRaw(ElSelect)], // @ts-ignore
-  ["switch", markRaw(ElSwitch)], // @ts-ignore
-  ["cascader", markRaw(ElCascader)], // @ts-ignore
-  ["input-number", markRaw(ElInputNumber)], // @ts-ignore
-  ["input-tag", markRaw(InputTag)], // @ts-ignore
-  ["time-picker", markRaw(ElTimePicker)], // @ts-ignore
-  ["time-select", markRaw(ElTimeSelect)], // @ts-ignore
-  ["date-picker", markRaw(ElDatePicker)], // @ts-ignore
-  ["tree-select", markRaw(ElTreeSelect)], // @ts-ignore"
-  ["custom-tag", markRaw(InputTag)], // @ts-ignore
-  ["text", markRaw(ElText)], // @ts-ignore
-  ["radio", markRaw(ElRadioGroup)], // @ts-ignore"
-  ["checkbox", markRaw(ElCheckboxGroup)], // @ts-ignore"
-  ["icon-select", markRaw(IconSelect)], // @ts-ignore"
+const componentMap: ICurdComponentMap<IComponentType> = new Map<
+  IComponentType,
+  ICurdComponentMapValue
+>([
+  ["input", markRaw(ElInput)],
+  ["select", markRaw(ElSelect)],
+  ["switch", markRaw(ElSwitch)],
+  ["cascader", markRaw(ElCascader)],
+  ["input-number", markRaw(ElInputNumber)],
+  ["input-tag", markRaw(InputTag)],
+  ["time-picker", markRaw(ElTimePicker)],
+  ["time-select", markRaw(ElTimeSelect)],
+  ["date-picker", markRaw(ElDatePicker)],
+  ["tree-select", markRaw(ElTreeSelect)],
+  ["custom-tag", markRaw(InputTag)],
+  ["text", markRaw(ElText)],
+  ["radio", markRaw(ElRadioGroup)],
+  ["checkbox", markRaw(ElCheckboxGroup)],
+  ["icon-select", markRaw(IconSelect)],
   ["custom", ""],
 ]);
-const childrenMap = new Map<IComponentType, any>([
-  // @ts-ignore
-  ["select", markRaw(ElOption)], // @ts-ignore
-  ["radio", markRaw(ElRadio)], // @ts-ignore"
+const childrenMap: ICurdComponentMap<IComponentType> = new Map<
+  IComponentType,
+  ICurdComponentMapValue
+>([
+  ["select", markRaw(ElOption)],
+  ["radio", markRaw(ElRadio)],
   ["checkbox", markRaw(ElCheckbox)],
 ]);
 
