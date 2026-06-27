@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] 串行：收紧 demo icons 图标代码生成类型边界。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] demo icons 图标代码生成类型边界收紧已通过 PR #279 合并：`demo/icons.vue` 的 `generateIconCode` 与 `generateElementIconCode` 参数已从显式 `any` 收紧为 `string`，SVG 图标列表改为只读字面量数组，新增 demo icons 类型治理测试防止函数参数回退；本轮不改变图标资源加载、Element Plus 图标注册、页面布局或后端 API，合并提交为 `f1b0f3d`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] Breadcrumb 路由项类型边界收紧已通过 PR #277 合并：面包屑本地路由项已用 `BreadcrumbRoute` 显式表达 `path/name/meta/redirect` 字段，dashboard fallback 移除 `as any`，`handleLink(item: any)` 收紧为明确类型并兼容 redirect 函数形式，新增 Breadcrumb 类型治理测试防止显式 any 回退；本轮不改变路由生成、权限路由、面包屑 UI 样式或后端 API，合并提交为 `ef22654`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] Notification 订阅消息类型边界收紧已通过 PR #275 合并：订阅回调参数已从 `message: any` 收紧为 STOMP `IMessage`，`JSON.parse` 结果按 `unknown` 处理并在组件边界校验通知消息字段，通知发布时间类型对齐为 `string | Date`，新增 Notification 消息类型治理测试防止回退；本轮不改变 WebSocket 连接管理器、通知 API 路径、通知详情弹窗或后端 API，合并提交为 `57db919`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] WangEditor 编辑器实例与上传配置类型边界收紧已通过 PR #273 合并：编辑器实例已从隐式 `any` 收紧为 `IDomEditor`，上传图片配置改用 `IUploadConfig` 与本地 `UploadImageConfig` 明确表达 `base64LimitSize`，移除 `uploadImage` 配置 `as any` 与 `handleCreated(editor: any)`，新增 WangEditor 类型治理测试防止回退；本轮不改变上传 API、富文本内容模型、通知表单、demo 页面或后端 API，合并提交为 `2f45eda`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
