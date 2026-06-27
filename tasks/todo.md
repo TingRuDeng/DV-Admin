@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] P1 串行：抽取 PageContent 远程筛选状态，详见 `tasks/extract-page-content-filter-state.md`。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] PageContent 远程筛选状态抽取已通过 PR #241 合并：`PageContent.vue` 从 423 行降至 404 行，筛选参数转换、`filterJoin` 拼接、`column-key` 兼容、筛选参数缓存和 `filterChange` 事件分发已拆入 `usePageContentFilters.ts`；导入导出、删除修改、数据分页、公开类型和 `defineExpose()` 保持不变，新增 composable 单测覆盖普通筛选、拼接筛选、兼容字段和增量合并，合并提交为 `9fd6c42`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] PageContent 数据分页状态抽取已通过 PR #239 合并：`PageContent.vue` 从 486 行降至 423 行，`loading/pageData/pagination/lastFormData`、分页请求参数拼装、分页切换和数据响应写入已拆入 `usePageContentData.ts`；导入导出、删除修改、筛选事件、公开类型和 `defineExpose()` 保持不变，新增 composable 单测覆盖分页请求、非分页请求、parseData、页码重置和分页切换，合并提交为 `120c953`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] PageContent Excel 文件处理逻辑抽取已通过 PR #237 合并：`PageContent.vue` 从 534 行降至 486 行，Excel buffer 写入、Excel 文件读取、行解析和浏览器保存已拆入 `pageContentExcel.ts`；导入导出业务分支、提示文案、公开类型和 `defineExpose()` 保持不变，新增 helper 单测覆盖写入、解析、空表和读取失败，合并提交为 `63007a1`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] PageContent 工具栏配置逻辑抽取已通过 PR #235 合并：`PageContent.vue` 从 606 行降至 534 行，默认按钮配置、权限标识组合、按钮权限判断和 toolbar/table toolbar 派生逻辑已拆入 `usePageContentToolbarConfig.ts`；顶部工具栏、表格操作列、业务动作分发、导入导出、公开类型和 `defineExpose()` 保持不变，合并提交为 `e70cec9`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
