@@ -39,7 +39,7 @@ ai_summary:
 ## Key facts
 
 - 本文档是跟踪入口，不是架构权威。
-- 旧前端优化方案已被本文档、`docs/ARCHITECTURE.md` 和 `docs/archive/superpowers/` 吸收。
+- 旧前端优化方案已被本文档和 `docs/ARCHITECTURE.md` 吸收；旧执行计划不再保留为现行参考。
 - 已完成治理基线不应重复规划为新增项。
 
 ## How to verify
@@ -57,7 +57,7 @@ ai_summary:
 ## 文档定位
 
 - 本文档是当前前端优化 backlog 的跟踪入口
-- 旧前端优化方案不再作为现行实施依据；仍有历史价值的内容已进入 `docs/archive/superpowers/`
+- 旧前端优化方案不再作为现行实施依据；仍有效的事实已合并到当前权威文档和本 backlog
 - 当前现状、既有规范与已落地能力，仍以 `docs/ARCHITECTURE.md`、`frontend/src/styles/README.md` 及实际代码为准
 
 ---
