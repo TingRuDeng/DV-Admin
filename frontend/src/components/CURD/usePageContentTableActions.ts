@@ -16,7 +16,7 @@ export function usePageContentTableActions(options: UsePageContentTableActionsOp
 
   function handleSelectionChange(selection: IObject[]) {
     selectionData.value = selection;
-    removeIds.value = selection.map((item) => item[pk]);
+    removeIds.value = selection.map((item) => toRowId(item[pk])).filter(isRowId);
   }
 
   function getSelectionData() {
@@ -41,7 +41,7 @@ export function usePageContentTableActions(options: UsePageContentTableActionsOp
 
   function handleOperate(data: IOperateData) {
     if (data.name === "delete" && contentConfig.deleteAction) {
-      handleDelete(data.row[pk]);
+      handleDelete(toRowId(data.row[pk]));
       return;
     }
     emitOperateClick(data);
@@ -85,4 +85,14 @@ export function usePageContentTableActions(options: UsePageContentTableActionsOp
     handleOperate,
     handleModify,
   };
+}
+
+// 删除操作只接受字符串或数字主键，其他动态值不进入删除 ID 列表。
+function toRowId(value: unknown) {
+  return typeof value === "string" || typeof value === "number" ? value : undefined;
+}
+
+// 过滤掉无法安全作为删除主键的动态值。
+function isRowId(value: string | number | undefined): value is string | number {
+  return value !== undefined;
 }
