@@ -34,6 +34,7 @@
 <script setup lang="ts">
 import { UploadRawFile, UploadRequestOptions } from "element-plus";
 import FileAPI, { FileInfo } from "@/api/file-api";
+import { getUploadErrorMessage } from "@/components/Upload/uploadError";
 
 const props = defineProps({
   /**
@@ -173,8 +174,8 @@ const onSuccess = (fileInfo: FileInfo) => {
 /**
  * 上传失败回调
  */
-const onError = (error: any) => {
-  ElMessage.error("上传失败: " + error.message);
+const onError = (error: unknown) => {
+  ElMessage.error("上传失败: " + getUploadErrorMessage(error));
 };
 </script>
 
