@@ -17,11 +17,13 @@ describe("upload file path governance", () => {
 
   it("keeps file upload deletion using the uploaded relative path", () => {
     const source = readSource("src/components/Upload/FileUpload.vue");
+    const helperSource = readSource("src/components/Upload/fileUploadHelpers.ts");
 
     expect(source).not.toContain("handleRemove(file.url!)");
-    expect(source).toContain("type UploadedFile = UploadFile & { path?: string }");
-    expect(source).toContain("path: item.path");
-    expect(source).toContain("path: res.path");
+    expect(helperSource).toContain("export type UploadedFile = UploadFile & { path?: string }");
+    expect(helperSource).toContain("path: file.path");
+    expect(helperSource).toContain("path: response.path");
+    expect(helperSource).toContain("resolveFileDeletePath");
     expect(source).toContain("FileAPI.delete(filePath)");
   });
 
