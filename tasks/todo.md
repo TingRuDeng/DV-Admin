@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] P1 串行：抽取 PageContent 文件动作，详见 `tasks/extract-page-content-file-actions.md`。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] PageContent 文件动作抽取已通过 PR #245 合并：`PageContent.vue` 从 345 行降至 223 行，导入导出弹窗状态、远程导出、本地导出、模板下载、单文件导入、批量 Excel 导入和公开 `exportPageData` 已拆入 `usePageContentFileActions.ts`；表格渲染、分页、筛选、表格操作、toolbar 分发、公开类型和 `defineExpose()` 保持不变，新增 composable 单测覆盖当前页导出、选中导出、远程导出、导入模板下载、单文件导入、批量导入空表、读取失败和公开后端导出，合并提交为 `87d60e5`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] PageContent 表格操作状态抽取已通过 PR #243 合并：`PageContent.vue` 从 404 行降至 345 行，表格选择、批量删除 ID、删除确认、操作列分发和行内修改逻辑已拆入 `usePageContentTableActions.ts`；导入导出、分页、筛选、公开类型和 `defineExpose()` 保持不变，新增 composable 单测覆盖选择状态、批量删除、指定行删除、无删除配置、操作列透传、行内修改和未配置修改提示，合并提交为 `2c08ae4`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] PageContent 远程筛选状态抽取已通过 PR #241 合并：`PageContent.vue` 从 423 行降至 404 行，筛选参数转换、`filterJoin` 拼接、`column-key` 兼容、筛选参数缓存和 `filterChange` 事件分发已拆入 `usePageContentFilters.ts`；导入导出、删除修改、数据分页、公开类型和 `defineExpose()` 保持不变，新增 composable 单测覆盖普通筛选、拼接筛选、兼容字段和增量合并，合并提交为 `9fd6c42`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] PageContent 数据分页状态抽取已通过 PR #239 合并：`PageContent.vue` 从 486 行降至 423 行，`loading/pageData/pagination/lastFormData`、分页请求参数拼装、分页切换和数据响应写入已拆入 `usePageContentData.ts`；导入导出、删除修改、筛选事件、公开类型和 `defineExpose()` 保持不变，新增 composable 单测覆盖分页请求、非分页请求、parseData、页码重置和分页切换，合并提交为 `120c953`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
