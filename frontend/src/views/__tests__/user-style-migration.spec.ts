@@ -10,12 +10,14 @@ describe("system user style migration", () => {
     expect(source).toContain("<ProSearch");
     expect(source).toContain("<ProTable");
     expect(source).toContain("<UserFormDrawer");
+    expect(source).toContain("<UserStatusTag");
     expect(source).toContain(':request="requestTableData"');
     expect(source).toContain('ref="tableRef"');
     expect(source).not.toContain(':data="pageData"');
     expect(source).toContain('class="ff-side-panel');
     expect(source).not.toContain("glass-panel");
     expect(source).not.toContain("minimal-");
+    expect(source.split("\n").length).toBeLessThan(300);
   });
 
   it("keeps the user form drawer in a focused child component", () => {
@@ -33,5 +35,16 @@ describe("system user style migration", () => {
     expect(drawerSource).toContain("defineExpose");
     expect(drawerSource).toContain("openCreate");
     expect(drawerSource).toContain("openEdit");
+  });
+
+  it("keeps user status label mapping behind a dedicated display component", () => {
+    const statusSource = readFileSync(
+      resolve(process.cwd(), "src/views/system/user/components/UserStatusTag.vue"),
+      "utf8"
+    );
+
+    expect(statusSource).toContain("UserStatusTag");
+    expect(statusSource).toContain("USER_STATUS_META_MAP");
+    expect(statusSource).toContain('class="ff-status-tag"');
   });
 });

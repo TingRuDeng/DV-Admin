@@ -80,13 +80,7 @@
             <el-table-column label="邮箱" align="center" prop="email" min-width="160" />
             <el-table-column label="状态" align="center" prop="isActive" width="80">
               <template #default="scope">
-                <el-tag
-                  :type="scope.row.isActive === 1 ? 'success' : 'info'"
-                  class="ff-status-tag"
-                  :class="scope.row.isActive === 1 ? 'success' : 'info'"
-                >
-                  {{ scope.row.isActive === 1 ? "正常" : "禁用" }}
-                </el-tag>
+                <UserStatusTag :value="scope.row.isActive" />
               </template>
             </el-table-column>
             <el-table-column label="操作" fixed="right" width="280">
@@ -147,6 +141,7 @@ import UserAPI, { UserPageQuery, UserPageVO } from "@/api/system/user-api";
 import DeptTree from "./components/DeptTree.vue";
 import UserImport from "./components/UserImport.vue";
 import UserFormDrawer from "./components/UserFormDrawer.vue";
+import UserStatusTag from "./components/UserStatusTag.vue";
 import { useUserStore } from "@/store";
 const userStore = useUserStore();
 defineOptions({
