@@ -3,7 +3,7 @@ import type { FormProps, TableProps, ColProps, ButtonProps, CardProps } from "el
 import type PageContent from "./PageContent.vue";
 import type PageModal from "./PageModal.vue";
 import type PageSearch from "./PageSearch.vue";
-import type { CSSProperties } from "vue";
+import type { Component, CSSProperties } from "vue";
 
 export type PageSearchInstance = InstanceType<typeof PageSearch>;
 export type PageContentInstance = InstanceType<typeof PageContent>;
@@ -11,6 +11,8 @@ export type PageModalInstance = InstanceType<typeof PageModal>;
 
 export type IObject = Record<string, any>;
 export type IActionResult = unknown;
+export type ICurdComponentMapValue = Component | string;
+export type ICurdComponentMap<T extends string> = Map<T, ICurdComponentMapValue>;
 export type IPageContentList = IObject[];
 export interface IExportActionResult {
   data: BlobPart;
@@ -28,6 +30,7 @@ type InputComponent = "input" | "select" | "input-number" | "cascader" | "tree-s
 type OtherComponent = "text" | "radio" | "checkbox" | "switch" | "icon-select" | "custom";
 export type ISearchComponent = DateComponent | InputComponent | "custom";
 export type IComponentType = DateComponent | InputComponent | OtherComponent;
+export type IOptionComponentType = Extract<IComponentType, "select" | "radio" | "checkbox">;
 
 type ToolbarLeft = "add" | "delete" | "import" | "export";
 type ToolbarRight = "refresh" | "filter" | "imports" | "exports" | "search";
