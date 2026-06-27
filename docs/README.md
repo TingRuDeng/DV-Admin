@@ -71,11 +71,8 @@ DV-Admin/
 │   ├── TECH_DEBT.md            # [权威-跟踪] 技术债务记录
 │   ├── AGENT_STARTER_PROMPT.md # [工具] 代理启动提示词
 │   ├── DOC_SYNC_CHECKLIST.md   # [流程] 文档同步检查清单
-│   └── archive/                # [历史] 归档文档
-│       ├── README.md
-│       ├── CODE_REVIEW_DJANGO_BACKEND.md
-│       ├── BACKEND_OPTIMIZATION_PLAN.md
-│       └── QUALITY_GATES_IMPLEMENTATION_PLAN.md
+│   └── archive/                # [历史] 归档区边界说明
+│       └── README.md
 ├── backend/
 │   └── README.md               # [模块] Django 后端说明
 ├── fastapi/
@@ -498,5 +495,5 @@ cp .env.example .env
 
 ---
 
-**最后更新：** 2026-05-23
+**最后更新：** 2026-06-27
 **维护者：** DV-Admin Team
