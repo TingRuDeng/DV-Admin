@@ -5,6 +5,9 @@
 </template>
 
 <script setup lang="ts">
+import type { PropType } from "vue";
+import type { LocationQueryRaw } from "vue-router";
+
 defineOptions({
   name: "AppLink",
   inheritAttrs: false,
@@ -12,22 +15,37 @@ defineOptions({
 
 import { isExternal } from "@/utils/index";
 
+interface AppLinkTo {
+  path: string;
+  query?: LocationQueryRaw;
+}
+
+type ExternalLinkProps = {
+  href: string;
+  target: "_blank";
+  rel: "noopener noreferrer";
+};
+
+type InternalLinkProps = {
+  to: AppLinkTo;
+};
+
 const attrs = useAttrs();
 
 const props = defineProps({
   to: {
-    type: Object,
+    type: Object as PropType<AppLinkTo>,
     required: true,
   },
 });
 
 const isExternalLink = computed(() => {
-  return isExternal(props.to.path || "");
+  return isExternal(props.to.path);
 });
 
 const linkType = computed(() => (isExternalLink.value ? "a" : "router-link"));
 
-const linkProps = (to: any) => {
+function buildLinkProps(to: AppLinkTo): ExternalLinkProps | InternalLinkProps {
   if (isExternalLink.value) {
     return {
       href: to.path,
@@ -36,10 +54,10 @@ const linkProps = (to: any) => {
     };
   }
   return { to };
-};
+}
 
 const mergedProps = computed(() => ({
   ...attrs,
-  ...linkProps(props.to),
+  ...buildLinkProps(props.to),
 }));
 </script>
