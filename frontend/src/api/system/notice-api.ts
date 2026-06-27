@@ -100,7 +100,7 @@ export interface NoticePageVO {
   /** 发布状态 */
   publishStatus?: number;
   /** 发布时间 */
-  publishTime?: Date;
+  publishTime?: string | Date;
   /** 撤回时间 */
   revokeTime?: Date;
 }
@@ -118,7 +118,7 @@ export interface NoticeDetailVO {
   /** 优先级/级别 */
   level?: string;
   /** 发布时间 */
-  publishTime?: Date;
+  publishTime?: string | Date;
   /** 发布状态 */
   publishStatus?: number;
 }
