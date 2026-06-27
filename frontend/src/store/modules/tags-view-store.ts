@@ -1,15 +1,15 @@
-import { appendCacheKeyWithLimit, getRouteCacheKey, getTagCacheKey } from "@/utils/view-cache";
+import { getRouteCacheKey } from "@/utils/view-cache";
+import {
+  appendCachedTagView,
+  createTagsViewChangeResult,
+  keepOnlyCachedTagView,
+  removeCachedTagView,
+  syncUpdatedCachedTagView,
+} from "./tags-view-cache-helpers";
 
 export interface TagsViewChangeResult {
   visitedViews: TagView[];
   cachedViews?: string[];
-}
-
-function createChangeResult(visitedViews: TagView[], cachedViews: string[]): TagsViewChangeResult {
-  return {
-    visitedViews: [...visitedViews],
-    cachedViews: [...cachedViews],
-  };
 }
 
 export const useTagsViewStore = defineStore("tagsView", () => {
@@ -33,15 +33,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   }
 
   function addCachedView(view: TagView) {
-    const cacheKey = getTagCacheKey(view);
-
-    if (cachedViews.value.includes(cacheKey)) {
-      return;
-    }
-
-    if (view.keepAlive && cacheKey) {
-      cachedViews.value = appendCacheKeyWithLimit(cachedViews.value, cacheKey);
-    }
+    cachedViews.value = appendCachedTagView(cachedViews.value, view);
   }
 
   function delVisitedView(view: TagView) {
@@ -57,12 +49,8 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   }
 
   function delCachedView(view: TagView) {
-    const cacheKey = getTagCacheKey(view);
     return new Promise<string[]>((resolve) => {
-      const index = cachedViews.value.indexOf(cacheKey);
-      if (index > -1) {
-        cachedViews.value.splice(index, 1);
-      }
+      cachedViews.value = removeCachedTagView(cachedViews.value, view);
       resolve([...cachedViews.value]);
     });
   }
@@ -76,24 +64,14 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   }
 
   function delOtherCachedViews(view: TagView) {
-    const cacheKey = getTagCacheKey(view);
     return new Promise<string[]>((resolve) => {
-      const index = cachedViews.value.indexOf(cacheKey);
-      if (index > -1) {
-        cachedViews.value = cachedViews.value.slice(index, index + 1);
-      } else {
-        // if index = -1, there is no cached tags
-        cachedViews.value = [];
-      }
+      cachedViews.value = keepOnlyCachedTagView(cachedViews.value, view);
       resolve([...cachedViews.value]);
     });
   }
 
   function removeCachedView(view: TagView) {
-    const cacheIndex = cachedViews.value.indexOf(getTagCacheKey(view));
-    if (cacheIndex > -1) {
-      cachedViews.value.splice(cacheIndex, 1);
-    }
+    cachedViews.value = removeCachedTagView(cachedViews.value, view);
   }
 
   function updateVisitedView(view: TagView) {
@@ -102,28 +80,9 @@ export const useTagsViewStore = defineStore("tagsView", () => {
       return;
     }
 
-    const previousCacheKey = getTagCacheKey(targetView);
+    const previousView = { ...targetView };
     Object.assign(targetView, view);
-    const nextCacheKey = getTagCacheKey(targetView);
-
-    if (previousCacheKey !== nextCacheKey) {
-      const previousIndex = cachedViews.value.indexOf(previousCacheKey);
-      if (previousIndex > -1) {
-        cachedViews.value.splice(previousIndex, 1);
-      }
-    }
-
-    if (targetView.keepAlive && nextCacheKey && !cachedViews.value.includes(nextCacheKey)) {
-      cachedViews.value = appendCacheKeyWithLimit(cachedViews.value, nextCacheKey);
-      return;
-    }
-
-    if (!targetView.keepAlive) {
-      const index = cachedViews.value.indexOf(nextCacheKey);
-      if (index > -1) {
-        cachedViews.value.splice(index, 1);
-      }
-    }
+    cachedViews.value = syncUpdatedCachedTagView(cachedViews.value, previousView, targetView);
   }
 
   function updateTagName(fullPath: string, title: string) {
@@ -143,7 +102,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     return new Promise<TagsViewChangeResult>((resolve) => {
       delVisitedView(view);
       delCachedView(view);
-      resolve(createChangeResult(visitedViews.value, cachedViews.value));
+      resolve(createTagsViewChangeResult(visitedViews.value, cachedViews.value));
     });
   }
 
@@ -151,7 +110,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     return new Promise<TagsViewChangeResult>((resolve) => {
       delOtherVisitedViews(view);
       delOtherCachedViews(view);
-      resolve(createChangeResult(visitedViews.value, cachedViews.value));
+      resolve(createTagsViewChangeResult(visitedViews.value, cachedViews.value));
     });
   }
 
@@ -159,7 +118,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     return new Promise<TagsViewChangeResult>((resolve) => {
       const currIndex = visitedViews.value.findIndex((v) => v.path === view.path);
       if (currIndex === -1) {
-        resolve(createChangeResult(visitedViews.value, cachedViews.value));
+        resolve(createTagsViewChangeResult(visitedViews.value, cachedViews.value));
         return;
       }
       visitedViews.value = visitedViews.value.filter((item, index) => {
@@ -170,7 +129,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
         removeCachedView(item);
         return false;
       });
-      resolve(createChangeResult(visitedViews.value, cachedViews.value));
+      resolve(createTagsViewChangeResult(visitedViews.value, cachedViews.value));
     });
   }
 
@@ -178,7 +137,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     return new Promise<TagsViewChangeResult>((resolve) => {
       const currIndex = visitedViews.value.findIndex((v) => v.path === view.path);
       if (currIndex === -1) {
-        resolve(createChangeResult(visitedViews.value, cachedViews.value));
+        resolve(createTagsViewChangeResult(visitedViews.value, cachedViews.value));
         return;
       }
       visitedViews.value = visitedViews.value.filter((item, index) => {
@@ -188,7 +147,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
         removeCachedView(item);
         return false;
       });
-      resolve(createChangeResult(visitedViews.value, cachedViews.value));
+      resolve(createTagsViewChangeResult(visitedViews.value, cachedViews.value));
     });
   }
 
@@ -197,7 +156,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
       const affixTags = visitedViews.value.filter((tag) => tag?.affix);
       visitedViews.value = affixTags;
       cachedViews.value = [];
-      resolve(createChangeResult(visitedViews.value, cachedViews.value));
+      resolve(createTagsViewChangeResult(visitedViews.value, cachedViews.value));
     });
   }
 
