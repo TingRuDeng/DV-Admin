@@ -80,9 +80,15 @@ import PageContentExportDialog from "@/components/CURD/PageContentExportDialog.v
 import PageContentImportDialog from "@/components/CURD/PageContentImportDialog.vue";
 import PageContentTableCell from "@/components/CURD/PageContentTableCell.vue";
 import PageContentToolbar from "@/components/CURD/PageContentToolbar.vue";
+import {
+  READ_XLSX_FILE_ERROR,
+  readXlsxRows,
+  saveXlsx,
+  writeXlsxBuffer,
+  type PageContentExcelColumn,
+} from "@/components/CURD/pageContentExcel";
 import { usePageContentToolbarConfig } from "@/components/CURD/usePageContentToolbarConfig";
 import type { TableInstance } from "element-plus";
-import ExcelJS from "exceljs";
 import { reactive, ref } from "vue";
 import { createLogger } from "@/utils/logger";
 import type { IContentConfig, IObject, IOperateData } from "./types";
@@ -225,21 +231,16 @@ function handleExports(exportData: PageContentExportPayload) {
     ? exportData.filename
     : props.contentConfig.permPrefix || "export";
   const sheetname = exportData.sheetname ? exportData.sheetname : "sheet";
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet(sheetname);
-  const columns: Partial<ExcelJS.Column>[] = [];
+  const columns: PageContentExcelColumn[] = [];
   cols.value.forEach((col) => {
     if (col.label && col.prop && exportData.fields.includes(col.prop)) {
       columns.push({ header: col.label, key: col.prop });
     }
   });
-  worksheet.columns = columns;
   if (exportData.origin === "remote") {
     if (props.contentConfig.exportsAction) {
       props.contentConfig.exportsAction(lastFormData).then((res) => {
-        worksheet.addRows(res);
-        workbook.xlsx
-          .writeBuffer()
+        writeXlsxBuffer({ sheetname, columns, rows: res })
           .then((buffer) => {
             saveXlsx(buffer, filename as string);
           })
@@ -249,9 +250,11 @@ function handleExports(exportData: PageContentExportPayload) {
       ElMessage.error("未配置exportsAction");
     }
   } else {
-    worksheet.addRows(exportData.origin === "selected" ? selectionData.value : pageData.value);
-    workbook.xlsx
-      .writeBuffer()
+    writeXlsxBuffer({
+      sheetname,
+      columns,
+      rows: exportData.origin === "selected" ? selectionData.value : pageData.value,
+    })
       .then((buffer) => {
         saveXlsx(buffer, filename as string);
       })
@@ -310,57 +313,25 @@ function handleImports(file: File) {
     ElMessage.error("未配置importsAction");
     return;
   }
-  // 创建Workbook实例
-  const workbook = new ExcelJS.Workbook();
-  // 使用FileReader对象来读取文件内容
-  const fileReader = new FileReader();
-  // 二进制字符串的形式加载文件
-  fileReader.readAsArrayBuffer(file);
-  fileReader.onload = (ev) => {
-    if (ev.target !== null && ev.target.result !== null) {
-      const result = ev.target.result as ArrayBuffer;
-      // 从 buffer中加载数据解析
-      workbook.xlsx
-        .load(result)
-        .then((workbook) => {
-          // 解析后的数据
-          const data = [];
-          // 获取第一个worksheet内容
-          const worksheet = workbook.getWorksheet(1);
-          if (worksheet) {
-            // 获取第一行的标题
-            const fields: any[] = [];
-            worksheet.getRow(1).eachCell((cell) => {
-              fields.push(cell.value);
-            });
-            // 遍历工作表的每一行（从第二行开始，因为第一行通常是标题行）
-            for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber++) {
-              const rowData: IObject = {};
-              const row = worksheet.getRow(rowNumber);
-              // 遍历当前行的每个单元格
-              row.eachCell((cell, colNumber) => {
-                // 获取标题对应的键，并将当前单元格的值存储到相应的属性名中
-                rowData[fields[colNumber - 1]] = cell.value;
-              });
-              // 将当前行的数据对象添加到数组中
-              data.push(rowData);
-            }
-          }
-          if (data.length === 0) {
-            ElMessage.error("未解析到数据");
-            return;
-          }
-          importsAction(data).then(() => {
-            ElMessage.success("导入数据成功");
-            importDialogRef.value?.close();
-            handleRefresh(true);
-          });
-        })
-        .catch((error) => pageContentLogger.error("导入文件解析失败:", error));
-    } else {
-      ElMessage.error("读取文件失败");
-    }
-  };
+  readXlsxRows(file)
+    .then((data) => {
+      if (data.length === 0) {
+        ElMessage.error("未解析到数据");
+        return;
+      }
+      importsAction(data).then(() => {
+        ElMessage.success("导入数据成功");
+        importDialogRef.value?.close();
+        handleRefresh(true);
+      });
+    })
+    .catch((error) => {
+      if (error instanceof Error && error.message === READ_XLSX_FILE_ERROR) {
+        ElMessage.error("读取文件失败");
+        return;
+      }
+      pageContentLogger.error("导入文件解析失败:", error);
+    });
 }
 
 // 操作栏
@@ -508,25 +479,6 @@ function exportPageData(formData: IObject = {}) {
   } else {
     ElMessage.error("未配置exportAction");
   }
-}
-
-// 浏览器保存文件
-function saveXlsx(fileData: any, fileName: string) {
-  const fileType =
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
-
-  const blob = new Blob([fileData], { type: fileType });
-  const downloadUrl = window.URL.createObjectURL(blob);
-
-  const downloadLink = document.createElement("a");
-  downloadLink.href = downloadUrl;
-  downloadLink.download = fileName;
-
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-
-  document.body.removeChild(downloadLink);
-  window.URL.revokeObjectURL(downloadUrl);
 }
 
 // 暴露的属性和方法
