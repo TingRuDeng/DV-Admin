@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] 串行：收紧 InputTag 配置属性类型边界。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] InputTag 配置属性类型边界收紧已通过 PR #261 合并：`InputTag` 的 `buttonAttrs/inputAttrs/tagAttrs` 已从 `Record<string, any>` 收紧为 Element Plus `ButtonProps/InputProps/TagProps`，保留 `buttonAttrs.btnText` 自定义按钮文本能力，新增配置属性类型治理测试防止显式 `any` 回流；本轮不改变标签新增、删除、滚动容器、CURD 调用方式或后端 API，合并提交为 `82d08b2`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] 登录表单规则类型边界收紧已通过 PR #259 合并：`Login.vue` 和 `Register.vue` 的表单规则已从 `Partial<Record<string, any>>` 收紧为 Element Plus `FormRules`，确认密码 validator 改为 `unknown` 值窄化，新增登录表单规则类型治理测试防止显式 `any` 回流；本轮不改变登录、注册、验证码、路由跳转或后端认证 API，合并提交为 `f7d6c37`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] CURD 通用对象类型边界收紧已通过 PR #257 合并：`IObject` 已从 `Record<string, any>` 收紧为 `Record<string, unknown>`，表格单元格、搜索表单、筛选和表格操作读取点已改为局部窄化，新增通用对象类型治理测试防止回退；本轮不改变 CURD 渲染、请求、分页、筛选、导入导出或后端 API，合并提交为 `925a5d5`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] CURD 表格列扩展类型边界收紧已通过 PR #255 合并：`IContentConfig.cols` 的扩展索引已从 `[key: string]: any` 收紧为 `ICurdTableColumnExtraValue = unknown`，新增表格列扩展类型治理测试防止回退；本轮不改变 PageContent 渲染、分页、筛选、导入导出或后端 API，合并提交为 `3c2bd07`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
