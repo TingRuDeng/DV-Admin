@@ -9,7 +9,7 @@ export type PageSearchInstance = InstanceType<typeof PageSearch>;
 export type PageContentInstance = InstanceType<typeof PageContent>;
 export type PageModalInstance = InstanceType<typeof PageModal>;
 
-export type IObject = Record<string, any>;
+export type IObject = Record<string, unknown>;
 export type IActionResult = unknown;
 export type ICurdComponentMapValue = Component | string;
 export type ICurdComponentMap<T extends string> = Map<T, ICurdComponentMapValue>;

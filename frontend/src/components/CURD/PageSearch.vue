@@ -29,8 +29,9 @@
             />
             <ElCascader
               v-else-if="item.type === 'cascader'"
-              v-model.trim="queryParams[item.prop]"
+              :model-value="toCascaderValue(queryParams[item.prop])"
               v-bind="{ style: { width: '100%' }, ...item.attrs }"
+              @update:model-value="setQueryValue(item.prop, $event)"
               v-on="item.events || {}"
             />
             <component
@@ -86,7 +87,7 @@ import {
   ElTimeSelect,
   ElTreeSelect,
 } from "element-plus";
-import type { FormInstance } from "element-plus";
+import type { CascaderValue, FormInstance } from "element-plus";
 import InputTag from "@/components/InputTag/index.vue";
 
 // 定义接收的属性
@@ -116,7 +117,7 @@ const componentMap: ICurdComponentMap<ISearchComponent> = new Map<
 // 存储表单实例
 const queryFormRef = ref<FormInstance>();
 // 存储查询参数
-const queryParams = reactive<IObject>({});
+const queryParams = reactive<Record<string, unknown>>({});
 // 是否显示
 const visible = ref(true);
 // 响应式的formItems
@@ -147,6 +148,14 @@ const isGrid = computed(() =>
 // 获取tooltip提示框属性
 const getTooltipProps = (tips: string | IObject) => {
   return typeof tips === "string" ? { content: tips } : tips;
+};
+// Cascader 的 modelValue 有专用联合类型，动态查询对象在组件边界做窄化。
+const toCascaderValue = (value: unknown) => {
+  return value as CascaderValue | null | undefined;
+};
+// 替代 Cascader 的动态 v-model，保持查询参数对象仍是 unknown 边界。
+const setQueryValue = (prop: string, value: unknown) => {
+  queryParams[prop] = value;
 };
 // 查询/重置操作
 const handleQuery = () => emit("queryClick", queryParams);
