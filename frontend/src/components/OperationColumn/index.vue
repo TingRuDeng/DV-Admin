@@ -69,16 +69,15 @@ const vAutoWidth = {
  * @returns {number} 返回操作组的最大宽度
  */
 const getOperationMaxWidth = () => {
-  const el = document.getElementsByClassName("operation-buttons");
+  const operationGroups = document.getElementsByClassName("operation-buttons");
 
   // 取操作组的最大宽度
   let maxWidth = 0;
-  let totalWidth: any = 0;
-  Array.prototype.forEach.call(el, (item) => {
+  Array.from(operationGroups).forEach((item) => {
     // 获取每个item的dom
-    const buttons = item.querySelectorAll(".el-button");
+    const buttons = item.querySelectorAll<HTMLElement>(".el-button");
     // 获取每行按钮的总宽度
-    totalWidth = Array.from(buttons).reduce((acc, button: any) => {
+    const totalWidth = Array.from(buttons).reduce((acc, button) => {
       return acc + button.scrollWidth + 22; // 每个按钮的宽度加上预留宽度
     }, 0);
 
