@@ -71,6 +71,8 @@ ai_summary:
 
 ## 核心模型
 
+> 字段表中同时列出 Django 与 FastAPI 不一致的物理字段名时，格式为 `Django 字段 / FastAPI 字段`。Django 基础时间字段真实物理列为 `create_time` / `update_time`；FastAPI ORM 与 schema 内部使用 `created_at` / `updated_at`，对外 JSON 可经别名输出 `createdAt` / `updatedAt`。Django 经 camel case 中间件对外输出 `createTime` / `updateTime`。本轮仅记录现状，不修改代码或迁移数据库。
+
 ### 用户模型 (Users)
 
 **表名：** `system_users`
@@ -89,8 +91,8 @@ ai_summary:
 | is_staff | boolean | 是否员工 | |
 | is_superuser | boolean | 是否超级管理员 | |
 | dept_id | int | 部门ID | FK → Departments |
-| created_at | datetime | 创建时间 | |
-| updated_at | datetime | 更新时间 | |
+| create_time / created_at | datetime | 创建时间 | Django / FastAPI |
+| update_time / updated_at | datetime | 更新时间 | Django / FastAPI |
 
 **索引：**
 - `username` (Unique)
@@ -116,8 +118,8 @@ ai_summary:
 | sort | int | 排序 | Default: 0 |
 | is_default | int | 是否默认角色 | 0:否, 1:是 |
 | desc | varchar(50) | 描述 | |
-| created_at | datetime | 创建时间 | |
-| updated_at | datetime | 更新时间 | |
+| create_time / created_at | datetime | 创建时间 | Django / FastAPI |
+| update_time / updated_at | datetime | 更新时间 | Django / FastAPI |
 
 **索引：**
 - `name` (Unique)
@@ -148,13 +150,13 @@ ai_summary:
 | icon | varchar(30) | 图标 | |
 | redirect | varchar(200) | 重定向 | |
 | perm | varchar(200) | 权限标识 | |
-| keep_alive | boolean | 是否缓存 | |
-| always_show | boolean | 是否一直显示 | |
+| keepAlive / keep_alive | boolean | 是否缓存 | Django / FastAPI |
+| alwaysShow / always_show | boolean | 是否一直显示 | Django / FastAPI |
 | params | json | 参数 | Default: [] |
 | desc | varchar(30) | 描述 | |
 | parent_id | int | 父菜单ID | FK → Permissions |
-| created_at | datetime | 创建时间 | |
-| updated_at | datetime | 更新时间 | |
+| create_time / created_at | datetime | 创建时间 | Django / FastAPI |
+| update_time / updated_at | datetime | 更新时间 | Django / FastAPI |
 
 **索引：**
 - `type`
@@ -180,8 +182,8 @@ ai_summary:
 | status | int | 状态 | 0:禁用, 1:启用 |
 | sort | int | 排序 | Default: 0 |
 | parent_id | int | 父部门ID | FK → Departments |
-| created_at | datetime | 创建时间 | |
-| updated_at | datetime | 更新时间 | |
+| create_time / created_at | datetime | 创建时间 | Django / FastAPI |
+| update_time / updated_at | datetime | 更新时间 | Django / FastAPI |
 
 **索引：**
 - `status`
@@ -206,8 +208,8 @@ ai_summary:
 | dict_code | varchar(32) | 字典编码 | Unique |
 | status | int | 状态 | 0:禁用, 1:启用 |
 | remark | varchar(50/100) | 备注/描述 | |
-| created_at | datetime | 创建时间 | |
-| updated_at | datetime | 更新时间 | |
+| create_time / created_at | datetime | 创建时间 | Django / FastAPI |
+| update_time / updated_at | datetime | 更新时间 | Django / FastAPI |
 
 **索引：**
 - `name` (Unique)
@@ -228,8 +230,8 @@ ai_summary:
 | status | int | 状态 | 0:禁用, 1:启用 |
 | tag_type | varchar(32) | 标签类型 | |
 | dict_id / dict_data_id | int | 字典ID | FK → Dicts/DictData |
-| created_at | datetime | 创建时间 | |
-| updated_at | datetime | 更新时间 | |
+| create_time / created_at | datetime | 创建时间 | Django / FastAPI |
+| update_time / updated_at | datetime | 更新时间 | Django / FastAPI |
 
 **排序与索引：**
 - Django 默认排序：`dict, value`
@@ -259,8 +261,8 @@ ai_summary:
 | publish_status | int | 发布状态 | 0:未发布, 1:已发布, -1:已撤回 |
 | publish_time | datetime | 发布时间 | |
 | revoke_time | datetime | 撤回时间 | |
-| created_at | datetime | 创建时间 | |
-| updated_at | datetime | 更新时间 | |
+| create_time / created_at | datetime | 创建时间 | Django / FastAPI |
+| update_time / updated_at | datetime | 更新时间 | Django / FastAPI |
 
 **索引：**
 - `publish_status`
@@ -279,7 +281,7 @@ ai_summary:
 | notice_id | int | 通知ID | FK → Notices |
 | user_id | int | 用户ID | Not Null |
 | read_time | datetime | 已读时间 | Auto |
-| created_at | datetime | 创建时间 | |
+| create_time / created_at | datetime | 创建时间 | Django / FastAPI |
 
 **约束：**
 - `UNIQUE(notice_id, user_id)`
@@ -289,9 +291,11 @@ ai_summary:
 
 ---
 
-### 操作日志模型 (OperationLog)
+### 操作日志模型 (OperationLog，当前 FastAPI 独有)
 
 **表名：** `system_operation_log`
+
+> Django 当前只有 `OperationLogMiddleware` 文件日志输出，没有等价 `OperationLog` 数据库模型或查询 API。
 
 | 字段 | 类型 | 说明 | 约束 |
 |------|------|------|------|

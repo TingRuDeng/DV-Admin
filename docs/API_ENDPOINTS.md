@@ -421,7 +421,7 @@ GET    /api/v1/system/notices/my-page/       # 我的通知
 
 ### 操作日志
 
-**FastAPI 与前端管理页：**
+**FastAPI 与前端管理页（当前 FastAPI 独有）：**
 ```
 GET    /api/v1/system/logs/page                    # 日志分页，支持 page/pageSize/operation/startTime/endTime
 GET    /api/v1/system/logs/visit-trend             # 访问趋势
@@ -432,6 +432,8 @@ DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
 
 **Django 当前状态：**
 - `backend/drf_admin/apps/system/urls.py` 当前未注册操作日志管理路由。
+- Django `OperationLogMiddleware` 当前仅输出日志文件，不提供 `OperationLog` 数据库模型或可查询审计日志 API。
+- 因此前端日志管理页当前依赖 FastAPI 实现；是否补 Django 实现需按独立功能计划处理。
 
 ---
 
@@ -515,18 +517,9 @@ GET /api/redoc/         # ReDoc
 
 ## 前端 API 调用注意事项
 
-### 死代码警告
+### 已清理死代码
 
-`frontend/src/api/test/` 目录下的文件调用了**不存在的后端接口**：
-
-| 文件 | 调用路径 | 状态 |
-|------|---------|------|
-| `cases-api.ts` | `/api/test/cases/` | ❌ 后端不存在 |
-| `project-api.ts` | `/api/test/projects/` | ❌ 后端不存在 |
-| `task.api.js` | `/api/test/tasks/` | ❌ 后端不存在 |
-| `device.api.js` | `/api/test/devices/` | ❌ 后端不存在 |
-
-**这些文件是前端示例/测试代码残留，不应在实际开发中使用。**
+`frontend/src/api/test/` 下曾存在的示例接口文件已清理。这些文件调用 `/api/test/cases/`、`/api/test/projects/`、`/api/test/tasks/`、`/api/test/devices/`，仓库内没有对应后端契约。
 
 ---
 
