@@ -14,6 +14,7 @@ describe("system notice style migration", () => {
     expect(source).toContain("<ProTable");
     expect(source).toContain("<NoticeFormDrawer");
     expect(source).toContain("<NoticeDetailDialog");
+    expect(source).toContain("<NoticeStatusTag");
     expect(source).toContain(':request="requestTableData"');
     expect(source).toContain('ref="tableRef"');
     expect(source).not.toContain("<ProFormDrawer");
@@ -22,6 +23,7 @@ describe("system notice style migration", () => {
     expect(source).not.toContain("<DataPanel");
     expect(source).not.toContain("minimal-");
     expect(source).not.toContain("glass-panel");
+    expect(source.split("\n").length).toBeLessThan(300);
   });
 
   it("keeps notice form implementation behind an explicit component API", () => {
@@ -46,5 +48,17 @@ describe("system notice style migration", () => {
     expect(detailSource).toContain("<SafeHtml");
     expect(detailSource).toContain("defineExpose");
     expect(detailSource).toContain("open");
+  });
+
+  it("keeps notice status label mapping behind a dedicated display component", () => {
+    const statusSource = readFileSync(
+      resolve(process.cwd(), "src/views/system/notice/components/NoticeStatusTag.vue"),
+      "utf8"
+    );
+
+    expect(statusSource).toContain("NoticeStatusTag");
+    expect(statusSource).toContain("STATUS_META_MAP");
+    expect(statusSource).toContain("kind: NoticeStatusKind");
+    expect(statusSource).toContain('class="ff-status-tag"');
   });
 });
