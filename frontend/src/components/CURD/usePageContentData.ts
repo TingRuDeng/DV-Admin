@@ -1,5 +1,10 @@
 import { reactive, ref } from "vue";
-import type { IContentConfig, IObject } from "./types";
+import type {
+  IContentConfig,
+  IObject,
+  IPageContentDataResponse,
+  IPageContentPageResult,
+} from "./types";
 
 const defaultPagination = {
   background: true,
@@ -10,7 +15,9 @@ const defaultPagination = {
   currentPage: 1,
 };
 
-export function usePageContentData(contentConfig: IContentConfig) {
+export function usePageContentData<R = IPageContentDataResponse>(
+  contentConfig: IContentConfig<IObject, R>
+) {
   const loading = ref(false);
   const pageData = ref<IObject[]>([]);
   const showPagination = contentConfig.pagination !== false;
@@ -70,13 +77,15 @@ export function usePageContentData(contentConfig: IContentConfig) {
     };
   }
 
-  function applyPageData(data: any) {
+  function applyPageData(data: R) {
     if (!showPagination) {
-      pageData.value = data;
+      pageData.value = data as IObject[];
       return;
     }
 
-    const parsedData = contentConfig.parseData ? contentConfig.parseData(data) : data;
+    const parsedData = contentConfig.parseData
+      ? contentConfig.parseData(data)
+      : (data as IPageContentPageResult);
     pagination.total = parsedData.total;
     pageData.value = parsedData.list;
   }

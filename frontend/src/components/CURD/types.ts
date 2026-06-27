@@ -10,6 +10,18 @@ export type PageContentInstance = InstanceType<typeof PageContent>;
 export type PageModalInstance = InstanceType<typeof PageModal>;
 
 export type IObject = Record<string, any>;
+export type IActionResult = unknown;
+export type IPageContentList = IObject[];
+export interface IExportActionResult {
+  data: BlobPart;
+  headers: Record<string, string>;
+}
+export interface IPageContentPageResult {
+  total: number;
+  list: IPageContentList;
+  [key: string]: unknown;
+}
+export type IPageContentDataResponse = IPageContentPageResult | IPageContentList;
 
 type DateComponent = "date-picker" | "time-picker" | "time-select" | "custom-tag" | "input-tag";
 type InputComponent = "input" | "select" | "input-number" | "cascader" | "tree-select";
@@ -55,11 +67,11 @@ export interface ISearchConfig {
   grid?: boolean | "left" | "right";
 }
 
-export interface IContentConfig<T = any> {
+export interface IContentConfig<T = IObject, R = IPageContentDataResponse> {
   // 权限前缀(如sys:user，用于组成权限标识)，不提供则不进行权限校验
   permPrefix?: string;
   // table组件属性
-  table?: Omit<TableProps<any>, "data">;
+  table?: Omit<TableProps<IObject>, "data">;
   // 分页组件位置(默认：left)
   pagePosition?: "left" | "right";
   // pagination组件属性
@@ -72,36 +84,32 @@ export interface IContentConfig<T = any> {
         >
       >;
   // 列表的网络请求函数(需返回promise)
-  indexAction: (queryParams: T) => Promise<any>;
+  indexAction: (queryParams: T) => Promise<R>;
   // 默认的分页相关的请求参数
   request?: {
     pageName: string;
     limitName: string;
   };
   // 数据格式解析的回调函数
-  parseData?: (res: any) => {
-    total: number;
-    list: IObject[];
-    [key: string]: any;
-  };
+  parseData?: (res: R) => IPageContentPageResult;
   // 修改属性的网络请求函数(需返回promise)
   modifyAction?: (data: {
-    [key: string]: any;
+    [key: string]: unknown;
     field: string;
     value: boolean | string | number;
-  }) => Promise<any>;
+  }) => Promise<IActionResult>;
   // 删除的网络请求函数(需返回promise)
-  deleteAction?: (ids: string) => Promise<any>;
+  deleteAction?: (ids: string) => Promise<IActionResult>;
   // 后端导出的网络请求函数(需返回promise)
-  exportAction?: (queryParams: T) => Promise<any>;
+  exportAction?: (queryParams: T) => Promise<IExportActionResult>;
   // 前端全量导出的网络请求函数(需返回promise)
   exportsAction?: (queryParams: T) => Promise<IObject[]>;
   // 导入模板
-  importTemplate?: string | (() => Promise<any>);
+  importTemplate?: string | (() => Promise<IExportActionResult>);
   // 后端导入的网络请求函数(需返回promise)
-  importAction?: (file: File) => Promise<any>;
+  importAction?: (file: File) => Promise<IActionResult>;
   // 前端导入的网络请求函数(需返回promise)
-  importsAction?: (data: IObject[]) => Promise<any>;
+  importsAction?: (data: IObject[]) => Promise<IActionResult>;
   // 主键名(默认为id)
   pk?: string;
   // 表格工具栏(默认:add,delete,export,也可自定义)
@@ -158,7 +166,7 @@ export interface IContentConfig<T = any> {
   }>;
 }
 
-export interface IModalConfig<T = any> {
+export interface IModalConfig<T = IObject> {
   // 权限前缀(如sys:user，用于组成权限标识)，不提供则不进行权限校验
   permPrefix?: string;
   // 标签冒号(默认：false)
@@ -178,7 +186,7 @@ export interface IModalConfig<T = any> {
   // 提交之前处理
   beforeSubmit?: (data: T) => void;
   // 提交的网络请求函数(需返回promise)
-  formAction?: (data: T) => Promise<any>;
+  formAction?: (data: T) => Promise<IActionResult>;
 }
 
 export type IForm = Partial<Omit<FormProps, "model" | "rules">>;
