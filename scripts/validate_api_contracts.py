@@ -58,6 +58,7 @@ def validate(root: Path) -> list[str]:
                 issues.append(f"{rel}: 仍包含过期文件接口路径 {snippet}")
 
     issues.extend(validate_endpoint_contract_evidence(root))
+    issues.extend(validate_field_contracts(root))
     issues.extend(validate_error_code_contract(root))
     issues.extend(validate_runtime_contract_test_size(root))
     return issues
@@ -102,6 +103,46 @@ def validate_endpoint_contract_evidence(root: Path) -> list[str]:
                 if snippet not in evidence_text:
                     issues.append(f"{contract.key}: {evidence.file} 缺少证据片段 {snippet}")
     return issues
+
+
+def validate_field_contracts(root: Path) -> list[str]:
+    """校验字段契约目录、来源证据和收敛目标自洽。"""
+    issues: list[str] = []
+    try:
+        contracts = load_field_contracts(root)
+    except (AssertionError, ImportError) as exc:
+        return [f"scripts/api_field_contracts.py: 字段契约目录无效：{exc}"]
+
+    for contract in contracts:
+        for backend, dotted_path in (("Django", contract.django_source), ("FastAPI", contract.fastapi_source)):
+            source_path, class_name = resolve_dotted_source(root, dotted_path)
+            if not source_path.exists():
+                issues.append(f"{contract.key}: {backend} 字段来源文件不存在 {source_path.relative_to(root)}")
+                continue
+            if f"class {class_name}" not in read_text(source_path):
+                issues.append(f"{contract.key}: {source_path.relative_to(root)} 缺少字段来源类 {class_name}")
+    return issues
+
+
+def load_field_contracts(root: Path):
+    """从仓库根目录加载字段契约目录。"""
+    root_text = str(root)
+    if root_text not in sys.path:
+        sys.path.insert(0, root_text)
+    from scripts.api_field_contracts import assert_api_field_contract_catalog, iter_api_field_contracts
+
+    assert_api_field_contract_catalog()
+    return iter_api_field_contracts()
+
+
+def resolve_dotted_source(root: Path, dotted_path: str) -> tuple[Path, str]:
+    """把后端 dotted path 映射到仓库内源码文件路径。"""
+    module_name, class_name = dotted_path.rsplit(".", 1)
+    if module_name.startswith("drf_admin."):
+        return root / "backend" / Path(*module_name.split(".")).with_suffix(".py"), class_name
+    if module_name.startswith("app."):
+        return root / "fastapi" / Path(*module_name.split(".")).with_suffix(".py"), class_name
+    return root / Path(*module_name.split(".")).with_suffix(".py"), class_name
 
 
 def load_endpoint_contracts(root: Path):

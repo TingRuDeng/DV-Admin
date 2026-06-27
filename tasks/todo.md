@@ -4,10 +4,14 @@
 
 ## 活跃任务
 
-- [ ] 待选择：下一轮长期可持续性治理目标。
+- [x] P1 串行：新增共享 API 字段契约目录，冻结首批字段漂移面。
+- [x] P2 串行：新增 Django/FastAPI 字段契约测试，阻断未登记字段漂移。
+- [x] P3 串行：扩展 API 契约校验器，校验字段契约自洽、证据和测试挂钩。
+- [x] P4 串行：执行文档、契约、Django、FastAPI 和 diff 验证，完成 review-gate。
 
 ## 最近完成
 
+- [x] API 字段漂移契约一期已完成本地验证：新增 `scripts/api_field_contracts.py` 作为首批双后端响应字段契约清单，覆盖用户、角色、菜单、字典、字典项和部门树等高价值对象；新增 Django/FastAPI 字段契约测试，允许已登记差异通过、阻断新增未登记字段漂移；`scripts/validate_api_contracts.py` 已校验字段契约自洽、源类存在、测试入口和文档挂钩。验证通过：API 契约校验、文档校验、脚本编译、Django 目标契约测试、Django ruff、Django 全量 pytest（117 passed）、FastAPI 目标契约测试、FastAPI `make quality`（580 passed，覆盖率 88.37%）和 `git diff --check`。
 - [x] 五项架构审查建议处理已通过 PR #308 合并：FastAPI 生产环境 Swagger/Redoc/OpenAPI 已按 `settings.is_production` 关闭并补配置回归测试；`frontend/src/api/test/` 四个无后端契约示例 API 已删除；数据库字段事实、操作日志 FastAPI 独占能力和 Django 能力缺口已同步到文档与技术债；治理规则已从纯行数导向调整为契约缺口、能力漂移、安全配置、死代码、文档事实冲突和测试盲区优先；远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过，合并提交为 `98838ee`。
 - [x] NavbarActions 主题 class helper 抽取已通过 PR #303 合并：导航栏右侧动作区的主题文字 class 判定已抽入 `navbarActionsHelpers.ts`，`NavbarActions.vue` 从 274 行降至 254 行，新增 NavbarActions helper 纯逻辑测试覆盖暗黑主题、顶部/混合布局经典蓝和浅色布局分支；本轮不改变用户菜单、登出跳转、桌面工具项显示、系统设置入口、CSS class 名称或后端 API，合并提交为 `3cba1e3`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FileUpload 展示 helper 抽取已通过 PR #301 合并：文件展示映射、上传批次完成判断、成功响应收集、失败文件清理和删除路径解析已抽入 `fileUploadHelpers.ts`，`FileUpload.vue` 从 279 行降至 255 行，新增 FileUpload helper 纯逻辑测试覆盖展示映射、上传完成判断、成功响应收集、失败文件清理和删除路径优先级；本轮不改变上传请求参数、删除路径契约、下载行为、`modelValue` 结构或后端 API，合并提交为 `2dbda90`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
