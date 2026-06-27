@@ -48,11 +48,19 @@ import {
   UploadRequestOptions,
 } from "element-plus";
 
-import FileAPI, { FileInfo } from "@/api/file-api";
+import FileAPI from "@/api/file-api";
 import { createLogger } from "@/utils/logger";
+import {
+  collectSuccessfulFileInfos,
+  createUploadedFiles,
+  isUploadBatchFinished,
+  removeUploadFilesByUid,
+  resolveFileDeletePath,
+  type FileModel,
+  type UploadedFile,
+} from "./fileUploadHelpers";
 
 const fileUploadLogger = createLogger("FileUpload");
-type FileModel = Pick<FileInfo, "name" | "url"> & Partial<Pick<FileInfo, "path">>;
 
 const props = defineProps({
   /**
@@ -118,24 +126,13 @@ const modelValue = defineModel("modelValue", {
   default: () => [],
 });
 
-type UploadedFile = UploadFile & { path?: string };
-
 const fileList = ref([] as UploadedFile[]);
 
 // 监听 modelValue 转换用于显示的 fileList
 watch(
   modelValue,
   (value) => {
-    fileList.value = value.map((item) => {
-      const name = item.name ? item.name : item.url?.substring(item.url.lastIndexOf("/") + 1);
-      return {
-        name,
-        url: item.url,
-        path: item.path,
-        status: "success",
-        uid: getUid(),
-      } as UploadedFile;
-    });
+    fileList.value = createUploadedFiles(value);
   },
   {
     immediate: true,
@@ -189,28 +186,13 @@ function handleUpload(options: UploadRequestOptions) {
 const handleSuccess = (_response: unknown, _uploadFile: UploadFile, files: UploadFiles) => {
   ElMessage.success("上传成功");
   //只有当状态为success或者fail，代表文件上传全部完成了，失败也算完成
-  if (
-    files.every((file: UploadFile) => {
-      return file.status === "success" || file.status === "fail";
-    })
-  ) {
-    const fileInfos = [] as FileInfo[];
-    files.forEach((file: UploadedFile) => {
-      if (file.status === "success") {
-        //只取携带response的才是刚上传的
-        const res = file.response as FileInfo | undefined;
-        if (res) {
-          file.path = res.path;
-          fileInfos.push({ name: res.name, url: res.url, path: res.path });
-        }
-      } else {
-        //失败上传 从fileList删掉，不展示
-        fileList.value.splice(
-          fileList.value.findIndex((e) => e.uid === file.uid),
-          1
-        );
-      }
+  if (isUploadBatchFinished(files)) {
+    const { fileInfos, failedUids, uploadedPathsByUid } = collectSuccessfulFileInfos(files);
+    fileList.value.forEach((file) => {
+      file.path = uploadedPathsByUid.get(file.uid) ?? file.path;
     });
+    // 失败上传从 fileList 删除，不展示。
+    fileList.value = removeUploadFilesByUid(fileList.value, failedUids);
     if (fileInfos.length > 0) {
       modelValue.value = [...modelValue.value, ...fileInfos];
     }
@@ -229,7 +211,7 @@ const handleError = (error: unknown) => {
  * 删除文件
  */
 function handleRemove(file: UploadedFile) {
-  const filePath = file.path ?? modelValue.value.find((item) => item.url === file.url)?.path;
+  const filePath = resolveFileDeletePath(file, modelValue.value);
   if (!filePath) {
     ElMessage.warning("缺少文件路径，无法删除");
     return;
@@ -249,12 +231,6 @@ function handleDownload(file: UploadUserFile) {
   if (url) {
     FileAPI.download(url, name);
   }
-}
-
-/** 获取一个不重复的id */
-function getUid(): number {
-  // 时间戳左移13位（相当于乘以8192） + 4位随机数
-  return (Date.now() << 13) | Math.floor(Math.random() * 8192);
 }
 </script>
 <style lang="scss" scoped>
