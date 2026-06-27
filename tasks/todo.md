@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] 串行：收紧上传组件错误回调类型边界。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] 上传组件错误回调类型边界收紧已通过 PR #265 合并：`SingleImageUpload`、`FileUpload`、`MultiImageUpload` 的上传失败回调参数已从显式 `any` 收紧为 `unknown`，新增 `uploadError` helper 在窄化后读取未知错误的 `message`，并新增上传错误类型治理测试防止 `error: any` 回流；本轮不改变上传请求、删除请求、文件列表结构、错误提示语义或后端 API，合并提交为 `19852f8`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] OperationColumn DOM 测量类型边界收紧已通过 PR #263 合并：`getOperationMaxWidth()` 已移除 `totalWidth: any` 与 `button: any`，按钮 DOM 查询收紧为 `querySelectorAll<HTMLElement>(".el-button")`，新增 OperationColumn 类型治理测试防止显式 `any` 回流；本轮不改变表格操作列渲染、插槽协议、按钮间距、最终宽度计算或后端 API，合并提交为 `efad8ed`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] InputTag 配置属性类型边界收紧已通过 PR #261 合并：`InputTag` 的 `buttonAttrs/inputAttrs/tagAttrs` 已从 `Record<string, any>` 收紧为 Element Plus `ButtonProps/InputProps/TagProps`，保留 `buttonAttrs.btnText` 自定义按钮文本能力，新增配置属性类型治理测试防止显式 `any` 回流；本轮不改变标签新增、删除、滚动容器、CURD 调用方式或后端 API，合并提交为 `82d08b2`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] 登录表单规则类型边界收紧已通过 PR #259 合并：`Login.vue` 和 `Register.vue` 的表单规则已从 `Partial<Record<string, any>>` 收紧为 Element Plus `FormRules`，确认密码 validator 改为 `unknown` 值窄化，新增登录表单规则类型治理测试防止显式 `any` 回流；本轮不改变登录、注册、验证码、路由跳转或后端认证 API，合并提交为 `f7d6c37`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
