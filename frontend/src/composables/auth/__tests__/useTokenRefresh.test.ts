@@ -30,7 +30,7 @@ vi.mock("@/utils/logger", () => ({
 function createRequestConfig() {
   return {
     headers: {},
-    url: "/api/test",
+    url: "/api/mock-token-refresh",
   } as InternalAxiosRequestConfig;
 }
 

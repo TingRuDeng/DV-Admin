@@ -4,7 +4,11 @@
 
 ## 活跃任务
 
-- [ ] 待选择：下一轮长期可持续性治理目标。
+- [x] P1 串行：关闭 FastAPI 生产环境 API 文档暴露并补回归测试。
+- [x] P2 串行：删除 `frontend/src/api/test/` 死代码并调整前端治理测试。
+- [x] P3 串行：修正数据库字段事实和操作日志双后端能力缺口文档。
+- [x] P4 串行：调整治理规则，降低纯行数导向。
+- [x] P5 串行：执行文档、契约、FastAPI、前端和 diff 验证，完成 review-gate。
 
 ## 最近完成
 
@@ -111,6 +115,8 @@
 FastAPI 依赖锁定治理已完成：`.gitignore` 已显式允许 `fastapi/uv.lock`，锁文件已纳入仓库；`uv lock --check`、`uv sync --locked --group dev`、`make quality`、文档校验、脚本编译和 diff 检查均通过。
 
 本轮文件上传 / 删除契约治理已完成：FastAPI 上传响应新增 `path` 并按 `files/{user_id}` 隔离保存；删除接口改为只接受上传返回的相对路径，并校验目录边界与用户归属；前端文件上传和多图上传删除时改传 `path`，缺少路径时显式提示；文件接口文档、契约校验和 Playwright 报告的 Prettier ignore 治理已同步。验证通过：FastAPI `make quality`（504 passed，覆盖率 81.23%）、前端 `pnpm run quality`（64 files / 165 tests）、前端 `pnpm run build`、文档/API 契约校验和 `git diff --check`。
+
+本轮五项架构审查建议处理已完成：FastAPI 生产环境 API 文档入口按 `settings.is_production` 关闭；`frontend/src/api/test/` 无契约示例接口已删除；数据库字段事实、操作日志 FastAPI 独占能力和 Django 能力缺口已同步到文档与技术债；治理规则已从纯行数导向调整为契约缺口、能力漂移、安全配置、死代码、文档事实冲突和测试盲区优先。验证通过：文档/API/模型契约校验、FastAPI `make -C fastapi quality`（579 passed，覆盖率 88.37%）、前端 `pnpm --dir frontend run quality`（89 files / 259 tests）、前端 `pnpm --dir frontend run build`、死代码扫描和 `git diff --check`。
 
 本轮进入双后端关键端点契约治理：新增 `scripts/api_endpoint_contracts.py` 作为关键端点契约目录，覆盖认证、用户、菜单、字典、字典项和文件接口的路径、方法、权限、分页和关键字段；Django/FastAPI 契约测试已开始共同断言该目录，`scripts/validate_api_contracts.py` 会校验证据文件中的路径、权限和调用片段，避免契约目录脱离真实代码。
 
