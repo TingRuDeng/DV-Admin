@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] 串行：抽取 Stomp 连接状态 helper，降低 300 行边界风险。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] Stomp 连接状态 helper 抽取已通过 PR #295 合并：`isConnected`、`reconnectCount` 读写和外部变更回调已抽入 `stomp-connection-state.ts`，`stomp-connection-manager.ts` 从 290 行降至 282 行，WebSocket 治理测试新增状态 helper 守卫；本轮不改变 STOMP 客户端创建、订阅注册表、重连策略计算、认证错误处理或公开 manager API，合并提交为 `2e04c68`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] User 状态标签组件抽取已通过 PR #293 合并：用户启用状态标签文案、类型和样式类映射已抽入 `UserStatusTag.vue`，`user/index.vue` 从 290 行降至 285 行，User 页面治理测试新增状态组件守卫和行数守卫；本轮不改变用户查询参数、表格请求、重置密码、删除用户、导入弹窗、表单抽屉或后端 API，合并提交为 `732d84a`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] Notice 状态标签组件抽取已通过 PR #291 合并：通知目标类型和发布状态标签文案、类型和样式类映射已抽入 `NoticeStatusTag.vue`，`notice/index.vue` 从 291 行降至 254 行，Notice 页面治理测试新增状态组件守卫和行数守卫；本轮不改变通知查询参数、表格请求、发布/撤回/删除动作、表单抽屉、详情弹窗或后端 API，合并提交为 `a5d488c`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] TagsView 路由标签同步抽取已通过 PR #289 合并：固定标签初始化、当前路由标签添加和当前标签 fullPath/query 更新已抽入 `useTagsRouteSync.ts`，`TagsView/index.vue` 从 293 行降至 216 行，TagsView 类型治理测试新增 composable 扫描和行数守卫；本轮不改变标签项 UI、右键菜单 UI、TagsView store API、缓存键规则或后端 API，合并提交为 `95d3922`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
