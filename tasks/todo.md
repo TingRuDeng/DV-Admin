@@ -4,13 +4,11 @@
 
 ## 活跃任务
 
-- [x] P1 串行：抽取 `frontend/src/components/Upload/FileUpload.vue` 的文件展示与上传结果纯 helper。
-- [x] P2 串行：新增 FileUpload helper 测试，覆盖展示映射、上传完成判断、成功结果收集和删除路径解析。
-- [x] P3 串行：运行前端目标测试、质量检查、构建和通用文档校验。
-- [ ] P4 串行：完成 review-gate、提交 PR，并记录合并状态。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] FileUpload 展示 helper 抽取已通过 PR #301 合并：文件展示映射、上传批次完成判断、成功响应收集、失败文件清理和删除路径解析已抽入 `fileUploadHelpers.ts`，`FileUpload.vue` 从 279 行降至 255 行，新增 FileUpload helper 纯逻辑测试覆盖展示映射、上传完成判断、成功响应收集、失败文件清理和删除路径优先级；本轮不改变上传请求参数、删除路径契约、下载行为、`modelValue` 结构或后端 API，合并提交为 `2dbda90`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] TagsView 缓存 helper 抽取已通过 PR #299 合并：缓存新增、删除、仅保留、更新同步和结果快照构造已抽入 `tags-view-cache-helpers.ts`，`tags-view-store.ts` 从 280 行降至 239 行，新增缓存 helper 纯逻辑测试覆盖缓存 key 新增、删除、保留、更新迁移和快照不可变性；本轮不改变 TagsView store 公开 action、Promise 返回形状、KeepAlive 缓存 key 规则、TagsView 组件交互或后端契约，合并提交为 `0bff54d`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] Mix 布局状态逻辑抽取已通过 PR #297 合并：Logo 折叠、左侧激活菜单、侧栏路径解析和 TagsView 切换时的路由同步已抽入 `useMixLayoutState.ts`，`mix/index.vue` 从 281 行降至 234 行，新增 Mix 布局治理测试覆盖顶级路径提取、侧栏路径解析、`activeMenu` 优先级和行数守卫；本轮不改变顶部菜单点击、侧栏折叠、TagsView、AppMain、菜单 store API 或后端契约，合并提交为 `2efedf8`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] Stomp 连接状态 helper 抽取已通过 PR #295 合并：`isConnected`、`reconnectCount` 读写和外部变更回调已抽入 `stomp-connection-state.ts`，`stomp-connection-manager.ts` 从 290 行降至 282 行，WebSocket 治理测试新增状态 helper 守卫；本轮不改变 STOMP 客户端创建、订阅注册表、重连策略计算、认证错误处理或公开 manager API，合并提交为 `2e04c68`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
