@@ -19,4 +19,8 @@ describe("登录表单规则类型治理", () => {
     expect(LOGIN_SOURCE).toMatch(/const rules: FormRules<LoginFormData>/);
     expect(REGISTER_SOURCE).toMatch(/const registerRules: FormRules<Model>/);
   });
+
+  it("登录组件保持低于文件大小硬限制", () => {
+    expect(LOGIN_SOURCE.split("\n").length).toBeLessThan(300);
+  });
 });

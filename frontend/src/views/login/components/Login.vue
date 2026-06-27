@@ -76,13 +76,6 @@
         </div>
       </el-form-item>
 
-      <!--      <div class="flex-x-between w-full">-->
-      <!--        <el-checkbox v-model="loginFormData.rememberMe">{{ t("login.rememberMe") }}</el-checkbox>-->
-      <!--        <el-link type="primary" underline="never" @click="toOtherForm('resetPwd')">-->
-      <!--          {{ t("login.forgetPassword") }}-->
-      <!--        </el-link>-->
-      <!--      </div>-->
-
       <!-- 登录按钮 -->
       <el-form-item>
         <el-button :loading="loading" type="primary" class="w-full" @click="handleLoginSubmit">
@@ -90,36 +83,6 @@
         </el-button>
       </el-form-item>
     </el-form>
-
-    <!--    <div flex-center gap-10px>-->
-    <!--      <el-text size="default">{{ t("login.noAccount") }}</el-text>-->
-    <!--      <el-link type="primary" underline="never" @click="toOtherForm('register')">-->
-    <!--        {{ t("login.reg") }}-->
-    <!--      </el-link>-->
-    <!--    </div>-->
-
-    <!-- 第三方登录 -->
-    <!--    <div class="third-party-login">-->
-    <!--      <div class="divider-container">-->
-    <!--        <div class="divider-line"></div>-->
-    <!--        <span class="divider-text">{{ t("login.otherLoginMethods") }}</span>-->
-    <!--        <div class="divider-line"></div>-->
-    <!--      </div>-->
-    <!--      <div class="flex-center gap-x-5 w-full text-[var(&#45;&#45;el-text-color-secondary)]">-->
-    <!--        <CommonWrapper>-->
-    <!--          <div text-20px class="i-svg:wechat" />-->
-    <!--        </CommonWrapper>-->
-    <!--        <CommonWrapper>-->
-    <!--          <div text-20px cursor-pointer class="i-svg:qq" />-->
-    <!--        </CommonWrapper>-->
-    <!--        <CommonWrapper>-->
-    <!--          <div text-20px cursor-pointer class="i-svg:github" />-->
-    <!--        </CommonWrapper>-->
-    <!--        <CommonWrapper>-->
-    <!--          <div text-20px cursor-pointer class="i-svg:gitee" />-->
-    <!--        </CommonWrapper>-->
-    <!--      </div>-->
-    <!--    </div>-->
   </div>
 </template>
 <script setup lang="ts">
@@ -127,7 +90,6 @@ import type { FormInstance, FormRules } from "element-plus";
 import AuthAPI, { type LoginFormData } from "@/api/auth-api";
 import router from "@/router";
 import { useUserStore } from "@/store";
-// import CommonWrapper from "@/components/CommonWrapper/index.vue";
 import { AuthStorage } from "@/utils/auth";
 import { createLogger } from "@/utils/logger";
 import { defaultSettings } from "@/settings";
@@ -250,11 +212,6 @@ function checkCapsLock(event: KeyboardEvent) {
     isCapsLock.value = event.getModifierState("CapsLock");
   }
 }
-
-// const emit = defineEmits(["update:modelValue"]);
-// function toOtherForm(type: "register" | "resetPwd") {
-//   emit("update:modelValue", type);
-// }
 </script>
 
 <style scoped>
@@ -268,27 +225,5 @@ function checkCapsLock(event: KeyboardEvent) {
   white-space: nowrap;
   border: 0;
   clip: rect(0, 0, 0, 0);
-}
-</style>
-<style lang="scss" scoped>
-.third-party-login {
-  .divider-container {
-    display: flex;
-    align-items: center;
-    margin: 40px 0;
-
-    .divider-line {
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(to right, transparent, var(--el-border-color-light), transparent);
-    }
-
-    .divider-text {
-      padding: 0 16px;
-      font-size: 12px;
-      color: var(--el-text-color-regular);
-      white-space: nowrap;
-    }
-  }
 }
 </style>
