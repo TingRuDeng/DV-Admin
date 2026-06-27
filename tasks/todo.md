@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] 串行：清理 Login 已注释死模板，降低 300 行边界风险。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] Login 死模板清理已通过 PR #287 合并：删除已注释的记住我/注册/第三方登录模板、注释导入和未使用样式，`Login.vue` 从 294 行降至 229 行，登录表单规则治理测试新增行数守卫；本轮不改变登录提交、验证码刷新、默认凭据、路由跳转、注册/重置密码组件或后端 API，合并提交为 `a355f08`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] Stomp 连接计时器抽取已通过 PR #285 合并：重连计时器与连接超时计时器管理已抽入 `stomp-connection-timers.ts`，`stomp-connection-manager.ts` 从 299 行降至 290 行，WebSocket 定时器治理测试已覆盖新 helper 并新增 manager 行数守卫；本轮不改变 STOMP 客户端创建、订阅注册表、重连策略计算、认证错误处理或公开 API，合并提交为 `a2ed762`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] PageModal 静态组件映射表抽取已通过 PR #283 合并：`componentMap` 与 `childrenMap` 已抽入 `pageModalComponentMaps.ts`，`PageModal.vue` 从 300 行降至 245 行，组件映射治理测试已覆盖新 helper 并新增 PageModal 行数守卫；本轮不改变表单模板结构、弹窗/抽屉行为、slot 协议、`defineExpose()` 公开 API 或后端 API，合并提交为 `9f895d3`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] 生产源码 any 扫描注释噪音清理已通过 PR #281 合并：删除 `dict-api.ts` 中废弃的注释接口片段，调整 `uploadError.ts` 注释文案，生产源码 `any/@ts-ignore/@ts-expect-error` 扫描已无命中；本轮不改变字典 API 类型、上传错误处理逻辑、运行时行为或后端 API，合并提交为 `138e5ac`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
