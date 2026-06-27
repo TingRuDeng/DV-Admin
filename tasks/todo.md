@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] 串行：收紧 CURD 组件映射类型边界。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] CURD 组件映射类型边界收紧已通过 PR #251 合并：`PageSearch.vue` 和 `PageModal.vue` 的动态组件映射已改为共享 `ICurdComponentMap` / `ICurdComponentMapValue` 类型，显式导入 Element Plus 组件并移除映射处的 `Map<..., any>` 与 `@ts-ignore`；新增组件映射类型治理测试防止回退，合并提交为 `67a4ac5`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] CURD 数据请求与解析类型边界收紧已通过 PR #249 合并：`IContentConfig` 新增响应泛型，数据请求、解析、导出文件响应、导入导出和表单提交 action 已从可控的 `Promise<any>` 收敛为明确响应或 `unknown`；`usePageContentData.applyPageData` 移除显式 `any`，新增类型治理测试防止数据 action 和 parser 回退，合并提交为 `ac9e5d6`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] Django settings 配置构建职责拆分已通过 PR #247 合并：`backend/drf_admin/settings.py` 从 469 行降至 259 行，DRF、JWT、API 白名单、Redis 缓存、Channels 和日志配置构建已拆入 `settings_helpers.py`；环境变量名称、缓存别名、JWT 轮换策略、权限白名单、Channels Redis db 和日志文件名保持不变，新增 settings helper 单测覆盖 DRF/JWT、API 前缀、白名单、Redis/本地缓存、Channels 和日志配置，合并提交为 `9d72ed4`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] PageContent 文件动作抽取已通过 PR #245 合并：`PageContent.vue` 从 345 行降至 223 行，导入导出弹窗状态、远程导出、本地导出、模板下载、单文件导入、批量 Excel 导入和公开 `exportPageData` 已拆入 `usePageContentFileActions.ts`；表格渲染、分页、筛选、表格操作、toolbar 分发、公开类型和 `defineExpose()` 保持不变，新增 composable 单测覆盖当前页导出、选中导出、远程导出、导入模板下载、单文件导入、批量导入空表、读取失败和公开后端导出，合并提交为 `87d60e5`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
