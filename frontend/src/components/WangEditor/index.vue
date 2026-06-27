@@ -31,13 +31,28 @@
 <script setup lang="ts">
 import "@wangeditor-next/editor/dist/css/style.css";
 import { Toolbar, Editor } from "@wangeditor-next/editor-for-vue";
-import { IToolbarConfig, IEditorConfig } from "@wangeditor-next/editor";
+import type {
+  IDomEditor,
+  IEditorConfig,
+  IToolbarConfig,
+  IUploadConfig,
+} from "@wangeditor-next/editor";
 
 // 文件上传 API
 import FileAPI from "@/api/file-api";
 
-// 上传图片回调函数类型
-type InsertFnType = (_url: string, _alt: string, _href: string) => void;
+type InsertImageFn =
+  NonNullable<IUploadConfig["customUpload"]> extends (
+    _file: File,
+    insertFn: infer TInsertFn,
+    _editor: IDomEditor
+  ) => void
+    ? TInsertFn
+    : never;
+
+type UploadImageConfig = IUploadConfig & {
+  base64LimitSize: number;
+};
 
 defineProps({
   height: {
@@ -52,29 +67,35 @@ const modelValue = defineModel("modelValue", {
 });
 
 // 编辑器实例，必须用 shallowRef，重要！
-const editorRef = shallowRef();
+const editorRef = shallowRef<IDomEditor>();
 
 // 工具栏配置
 const toolbarConfig = ref<Partial<IToolbarConfig>>({});
 
 // 编辑器配置
+const uploadImageConfig: UploadImageConfig = {
+  metaWithUrl: false,
+  base64LimitSize: 0,
+  onSuccess() {},
+  onFailed() {},
+  onError() {},
+  customUpload(file: File, insertFn: InsertImageFn) {
+    // 上传图片成功后沿用当前插入参数顺序，避免改变富文本内容表现。
+    FileAPI.uploadFile(file).then((res) => {
+      insertFn(res.url, res.name, res.url);
+    });
+  },
+};
+
 const editorConfig = ref<Partial<IEditorConfig>>({
   placeholder: "请输入内容...",
   MENU_CONF: {
-    uploadImage: {
-      customUpload(file: File, insertFn: InsertFnType) {
-        // 上传图片
-        FileAPI.uploadFile(file).then((res) => {
-          // 插入图片
-          insertFn(res.url, res.name, res.url);
-        });
-      },
-    } as any,
+    uploadImage: uploadImageConfig,
   },
 });
 
 // 记录 editor 实例，重要！
-const handleCreated = (editor: any) => {
+const handleCreated = (editor: IDomEditor) => {
   editorRef.value = editor;
 };
 
