@@ -59,6 +59,7 @@ def validate(root: Path) -> list[str]:
 
     issues.extend(validate_endpoint_contract_evidence(root))
     issues.extend(validate_field_contracts(root))
+    issues.extend(validate_api_capability_contracts(root))
     issues.extend(validate_error_code_contract(root))
     issues.extend(validate_runtime_contract_test_size(root))
     return issues
@@ -133,6 +134,49 @@ def load_field_contracts(root: Path):
 
     assert_api_field_contract_catalog()
     return iter_api_field_contracts()
+
+
+def validate_api_capability_contracts(root: Path) -> list[str]:
+    """校验单后端 API 能力边界契约及其正反向证据。"""
+    issues: list[str] = []
+    try:
+        contracts = load_api_capability_contracts(root)
+    except (AssertionError, ImportError) as exc:
+        return [f"scripts/api_capability_contracts.py: 能力边界契约目录无效：{exc}"]
+
+    for contract in contracts:
+        fastapi_path = root / contract.fastapi_source
+        if not fastapi_path.exists():
+            issues.append(f"{contract.key}: FastAPI 能力来源文件不存在 {contract.fastapi_source}")
+            continue
+        fastapi_text = read_text(fastapi_path)
+        for snippet in contract.fastapi_snippets:
+            if snippet not in fastapi_text:
+                issues.append(f"{contract.key}: {contract.fastapi_source} 缺少 FastAPI 能力证据 {snippet}")
+
+        django_path = root / contract.django_absent_source
+        if not django_path.exists():
+            issues.append(f"{contract.key}: Django 缺席证据文件不存在 {contract.django_absent_source}")
+            continue
+        django_text = read_text(django_path)
+        for snippet in contract.django_forbidden_snippets:
+            if snippet in django_text:
+                issues.append(f"{contract.key}: {contract.django_absent_source} 出现独占能力禁止片段 {snippet}")
+    return issues
+
+
+def load_api_capability_contracts(root: Path):
+    """从仓库根目录加载 API 能力边界契约目录。"""
+    root_text = str(root)
+    if root_text not in sys.path:
+        sys.path.insert(0, root_text)
+    from scripts.api_capability_contracts import (
+        assert_api_capability_contract_catalog,
+        iter_api_capability_contracts,
+    )
+
+    assert_api_capability_contract_catalog()
+    return iter_api_capability_contracts()
 
 
 def resolve_dotted_source(root: Path, dotted_path: str) -> tuple[Path, str]:
