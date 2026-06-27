@@ -13,7 +13,7 @@ export function usePageContentFilters(
     for (const key in newFilters) {
       const col = findFilterColumn(cols, key);
       if (col && col.filterJoin !== undefined) {
-        filters[key] = newFilters[key].join(col.filterJoin);
+        filters[key] = joinFilterValue(newFilters[key], col.filterJoin);
       } else {
         filters[key] = newFilters[key];
       }
@@ -34,4 +34,9 @@ export function usePageContentFilters(
 
 function findFilterColumn(cols: PageContentColumn[], key: string) {
   return cols.find((col) => col.columnKey === key || col["column-key"] === key);
+}
+
+// 只有数组筛选值支持 filterJoin，其他动态值保持原样透传。
+function joinFilterValue(value: unknown, join: string) {
+  return Array.isArray(value) ? value.map(String).join(join) : value;
 }
