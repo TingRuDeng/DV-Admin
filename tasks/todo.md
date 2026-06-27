@@ -4,7 +4,10 @@
 
 ## 活跃任务
 
-- [ ] 待选择：下一轮长期可持续性治理目标。
+- [x] P1 串行：抽取 `frontend/src/store/modules/tags-view-store.ts` 的缓存状态纯 helper。
+- [x] P2 串行：新增 TagsView store 缓存 helper 测试，覆盖新增、删除、保留和更新同步规则。
+- [x] P3 串行：运行前端目标测试、质量检查、构建和通用文档校验。
+- [ ] P4 串行：完成 review-gate、提交 PR，并记录合并状态。
 
 ## 最近完成
 
