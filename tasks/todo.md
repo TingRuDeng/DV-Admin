@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] 串行：收紧 Notification 订阅消息类型边界。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] Notification 订阅消息类型边界收紧已通过 PR #275 合并：订阅回调参数已从 `message: any` 收紧为 STOMP `IMessage`，`JSON.parse` 结果按 `unknown` 处理并在组件边界校验通知消息字段，通知发布时间类型对齐为 `string | Date`，新增 Notification 消息类型治理测试防止回退；本轮不改变 WebSocket 连接管理器、通知 API 路径、通知详情弹窗或后端 API，合并提交为 `57db919`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] WangEditor 编辑器实例与上传配置类型边界收紧已通过 PR #273 合并：编辑器实例已从隐式 `any` 收紧为 `IDomEditor`，上传图片配置改用 `IUploadConfig` 与本地 `UploadImageConfig` 明确表达 `base64LimitSize`，移除 `uploadImage` 配置 `as any` 与 `handleCreated(editor: any)`，新增 WangEditor 类型治理测试防止回退；本轮不改变上传 API、富文本内容模型、通知表单、demo 页面或后端 API，合并提交为 `2f45eda`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] IconSelect 标签页事件类型边界收紧已通过 PR #271 合并：`IconSelect` 的 `handleTabClick(tabPane: any)` 已收紧为 Element Plus `TabsPaneContext`，`activeTab` 收紧为 `TabPaneName`，标签页缺少 `name` 时显式抛错，新增 IconSelect 类型治理测试防止标签页事件类型回退；本轮不改变图标加载、搜索逻辑、图标命名规则、CURD 表单组件映射或后端 API，合并提交为 `2e4ec6e`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] AppLink 跳转目标类型边界收紧已通过 PR #269 合并：`AppLink` 新增 `AppLinkTo` 显式表达当前 `{ path, query }` 跳转对象结构，外链和内部路由 props 构建结果收紧为明确联合类型，移除 `linkProps(to: any)`，新增 AppLink 类型治理测试防止跳转目标回退到显式 `any`；本轮不改变菜单路径拼接、外链判断、`router-link` 透传语义或后端 API，合并提交为 `c648728`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
