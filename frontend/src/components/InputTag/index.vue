@@ -20,13 +20,19 @@
         @blur.stop.prevent="handleInputConfirm"
       />
       <el-button v-else v-bind="config.buttonAttrs" @click="showInput">
-        {{ config.buttonAttrs.btnText ? config.buttonAttrs.btnText : "+ New Tag" }}
+        {{ config.buttonAttrs.btnText ?? "+ New Tag" }}
       </el-button>
     </div>
   </el-scrollbar>
 </template>
 <script setup lang="ts">
-import type { InputInstance } from "element-plus";
+import type { ButtonProps, InputInstance, InputProps, TagProps } from "element-plus";
+
+interface InputTagConfig {
+  buttonAttrs: Partial<ButtonProps> & { btnText?: string };
+  inputAttrs: Partial<InputProps>;
+  tagAttrs: Partial<TagProps>;
+}
 
 const inputValue = ref("");
 const inputVisible = ref(false);
@@ -35,19 +41,12 @@ const inputRef = ref<InputInstance>();
 // 定义 model，用于与父组件的 v-model绑定
 const tags = defineModel<string[]>();
 
-defineProps({
-  config: {
-    type: Object as () => {
-      buttonAttrs: Record<string, any>;
-      inputAttrs: Record<string, any>;
-      tagAttrs: Record<string, any>;
-    },
-    default: () => ({
-      buttonAttrs: {},
-      inputAttrs: {},
-      tagAttrs: {},
-    }),
-  },
+withDefaults(defineProps<{ config?: InputTagConfig }>(), {
+  config: () => ({
+    buttonAttrs: {},
+    inputAttrs: {},
+    tagAttrs: {},
+  }),
 });
 
 const handleClose = (tag: string) => {
