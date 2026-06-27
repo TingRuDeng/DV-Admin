@@ -4,14 +4,11 @@
 
 ## 活跃任务
 
-- [x] P1 串行：关闭 FastAPI 生产环境 API 文档暴露并补回归测试。
-- [x] P2 串行：删除 `frontend/src/api/test/` 死代码并调整前端治理测试。
-- [x] P3 串行：修正数据库字段事实和操作日志双后端能力缺口文档。
-- [x] P4 串行：调整治理规则，降低纯行数导向。
-- [x] P5 串行：执行文档、契约、FastAPI、前端和 diff 验证，完成 review-gate。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] 五项架构审查建议处理已通过 PR #308 合并：FastAPI 生产环境 Swagger/Redoc/OpenAPI 已按 `settings.is_production` 关闭并补配置回归测试；`frontend/src/api/test/` 四个无后端契约示例 API 已删除；数据库字段事实、操作日志 FastAPI 独占能力和 Django 能力缺口已同步到文档与技术债；治理规则已从纯行数导向调整为契约缺口、能力漂移、安全配置、死代码、文档事实冲突和测试盲区优先；远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过，合并提交为 `98838ee`。
 - [x] NavbarActions 主题 class helper 抽取已通过 PR #303 合并：导航栏右侧动作区的主题文字 class 判定已抽入 `navbarActionsHelpers.ts`，`NavbarActions.vue` 从 274 行降至 254 行，新增 NavbarActions helper 纯逻辑测试覆盖暗黑主题、顶部/混合布局经典蓝和浅色布局分支；本轮不改变用户菜单、登出跳转、桌面工具项显示、系统设置入口、CSS class 名称或后端 API，合并提交为 `3cba1e3`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] FileUpload 展示 helper 抽取已通过 PR #301 合并：文件展示映射、上传批次完成判断、成功响应收集、失败文件清理和删除路径解析已抽入 `fileUploadHelpers.ts`，`FileUpload.vue` 从 279 行降至 255 行，新增 FileUpload helper 纯逻辑测试覆盖展示映射、上传完成判断、成功响应收集、失败文件清理和删除路径优先级；本轮不改变上传请求参数、删除路径契约、下载行为、`modelValue` 结构或后端 API，合并提交为 `2dbda90`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] TagsView 缓存 helper 抽取已通过 PR #299 合并：缓存新增、删除、仅保留、更新同步和结果快照构造已抽入 `tags-view-cache-helpers.ts`，`tags-view-store.ts` 从 280 行降至 239 行，新增缓存 helper 纯逻辑测试覆盖缓存 key 新增、删除、保留、更新迁移和快照不可变性；本轮不改变 TagsView store 公开 action、Promise 返回形状、KeepAlive 缓存 key 规则、TagsView 组件交互或后端契约，合并提交为 `0bff54d`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
