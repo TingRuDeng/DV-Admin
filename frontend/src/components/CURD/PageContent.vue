@@ -87,9 +87,10 @@ import {
   writeXlsxBuffer,
   type PageContentExcelColumn,
 } from "@/components/CURD/pageContentExcel";
+import { usePageContentData } from "@/components/CURD/usePageContentData";
 import { usePageContentToolbarConfig } from "@/components/CURD/usePageContentToolbarConfig";
 import type { TableInstance } from "element-plus";
-import { reactive, ref } from "vue";
+import { ref } from "vue";
 import { createLogger } from "@/utils/logger";
 import type { IContentConfig, IObject, IOperateData } from "./types";
 import type { PageContentExportPayload } from "@/components/CURD/PageContentExportDialog.vue";
@@ -141,31 +142,17 @@ const cols = ref(
 function handleColumnShowChange(col: IContentConfig["cols"][number], show: boolean) {
   col.show = show;
 }
-// 加载状态
-const loading = ref(false);
-// 列表数据
-const pageData = ref<IObject[]>([]);
-// 显示分页
-const showPagination = props.contentConfig.pagination !== false;
-// 分页配置
-const defaultPagination = {
-  background: true,
-  layout: "total, sizes, prev, pager, next, jumper",
-  pageSize: 20,
-  pageSizes: [10, 20, 30, 50],
-  total: 0,
-  currentPage: 1,
-};
-const pagination = reactive(
-  typeof props.contentConfig.pagination === "object"
-    ? { ...defaultPagination, ...props.contentConfig.pagination }
-    : defaultPagination
-);
-// 分页相关的请求参数
-const request = props.contentConfig.request ?? {
-  pageName: "pageNum",
-  limitName: "pageSize",
-};
+const {
+  loading,
+  pageData,
+  showPagination,
+  pagination,
+  fetchPageData,
+  getLastFormData,
+  handleRefresh,
+  handleSizeChange,
+  handleCurrentChange,
+} = usePageContentData(props.contentConfig);
 
 const tableRef = ref<TableInstance>();
 
@@ -181,11 +168,6 @@ function handleSelectionChange(selection: any[]) {
 // 获取行选中
 function getSelectionData() {
   return selectionData.value;
-}
-
-// 刷新
-function handleRefresh(isRestart = false) {
-  fetchPageData(lastFormData, isRestart);
 }
 
 // 删除
@@ -239,7 +221,7 @@ function handleExports(exportData: PageContentExportPayload) {
   });
   if (exportData.origin === "remote") {
     if (props.contentConfig.exportsAction) {
-      props.contentConfig.exportsAction(lastFormData).then((res) => {
+      props.contentConfig.exportsAction(getLastFormData()).then((res) => {
         writeXlsxBuffer({ sheetname, columns, rows: res })
           .then((buffer) => {
             saveXlsx(buffer, filename as string);
@@ -396,16 +378,6 @@ function handleModify(field: string, value: boolean | string | number, row: Reco
   }
 }
 
-// 分页切换
-function handleSizeChange(value: number) {
-  pagination.pageSize = value;
-  handleRefresh();
-}
-function handleCurrentChange(value: number) {
-  pagination.currentPage = value;
-  handleRefresh();
-}
-
 // 远程数据筛选
 let filterParams: IObject = {};
 function handleFilterChange(newFilters: any) {
@@ -429,41 +401,6 @@ function getFilterParams() {
   return filterParams;
 }
 
-// 获取分页数据
-let lastFormData = {};
-function fetchPageData(formData: IObject = {}, isRestart = false) {
-  loading.value = true;
-  // 上一次搜索条件
-  lastFormData = formData;
-  // 重置页码
-  if (isRestart) {
-    pagination.currentPage = 1;
-  }
-  props.contentConfig
-    .indexAction(
-      showPagination
-        ? {
-            [request.pageName]: pagination.currentPage,
-            [request.limitName]: pagination.pageSize,
-            ...formData,
-          }
-        : formData
-    )
-    .then((data) => {
-      if (showPagination) {
-        if (props.contentConfig.parseData) {
-          data = props.contentConfig.parseData(data);
-        }
-        pagination.total = data.total;
-        pageData.value = data.list;
-      } else {
-        pageData.value = data;
-      }
-    })
-    .finally(() => {
-      loading.value = false;
-    });
-}
 fetchPageData();
 
 // 导出Excel
