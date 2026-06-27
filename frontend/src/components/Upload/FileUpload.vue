@@ -220,8 +220,8 @@ const handleSuccess = (_response: unknown, _uploadFile: UploadFile, files: Uploa
 /**
  * 上传失败
  */
-const handleError = (_error: any) => {
-  fileUploadLogger.error("文件上传失败:", _error);
+const handleError = (error: unknown) => {
+  fileUploadLogger.error("文件上传失败:", error);
   ElMessage.error("上传失败");
 };
 
