@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] 串行：抽取 TagsView 路由标签同步逻辑，降低 300 行边界风险。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] TagsView 路由标签同步抽取已通过 PR #289 合并：固定标签初始化、当前路由标签添加和当前标签 fullPath/query 更新已抽入 `useTagsRouteSync.ts`，`TagsView/index.vue` 从 293 行降至 216 行，TagsView 类型治理测试新增 composable 扫描和行数守卫；本轮不改变标签项 UI、右键菜单 UI、TagsView store API、缓存键规则或后端 API，合并提交为 `95d3922`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] Login 死模板清理已通过 PR #287 合并：删除已注释的记住我/注册/第三方登录模板、注释导入和未使用样式，`Login.vue` 从 294 行降至 229 行，登录表单规则治理测试新增行数守卫；本轮不改变登录提交、验证码刷新、默认凭据、路由跳转、注册/重置密码组件或后端 API，合并提交为 `a355f08`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] Stomp 连接计时器抽取已通过 PR #285 合并：重连计时器与连接超时计时器管理已抽入 `stomp-connection-timers.ts`，`stomp-connection-manager.ts` 从 299 行降至 290 行，WebSocket 定时器治理测试已覆盖新 helper 并新增 manager 行数守卫；本轮不改变 STOMP 客户端创建、订阅注册表、重连策略计算、认证错误处理或公开 API，合并提交为 `a2ed762`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] PageModal 静态组件映射表抽取已通过 PR #283 合并：`componentMap` 与 `childrenMap` 已抽入 `pageModalComponentMaps.ts`，`PageModal.vue` 从 300 行降至 245 行，组件映射治理测试已覆盖新 helper 并新增 PageModal 行数守卫；本轮不改变表单模板结构、弹窗/抽屉行为、slot 协议、`defineExpose()` 公开 API 或后端 API，合并提交为 `9f895d3`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
