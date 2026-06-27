@@ -1,5 +1,14 @@
 <template>
   <PageShell class="ff-log-page">
+    <el-alert
+      v-if="logCapability.unsupported"
+      :title="OPERATION_LOG_UNSUPPORTED_MESSAGE"
+      type="warning"
+      show-icon
+      :closable="false"
+      class="mb-4"
+    />
+
     <ProSearch
       ref="queryFormRef"
       :model="queryParams"
@@ -52,6 +61,7 @@ defineOptions({
 import LogAPI, { LogPageQuery, LogPageVO } from "@/api/system/log-api";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
+import { isOperationLogUnsupportedError, OPERATION_LOG_UNSUPPORTED_MESSAGE } from "./logCapability";
 
 interface LogPageRequestParams extends PageQuery {
   operation?: string;
@@ -64,6 +74,9 @@ const tableRef = ref<ProTableExpose | null>(null);
 const queryParams = reactive<Omit<LogPageRequestParams, "pageNum" | "pageSize">>({
   operation: "",
   createTime: undefined,
+});
+const logCapability = reactive({
+  unsupported: false,
 });
 
 /** 将页面筛选状态转换为 FastAPI 日志分页接口契约。 */
@@ -88,9 +101,23 @@ function toDateTimeEnd(date?: string) {
   return date ? `${date}T23:59:59` : undefined;
 }
 
-const requestTableData = createPageRequest<LogPageRequestParams, LogPageVO>((params) =>
-  LogAPI.getPage(buildLogPageQuery(params))
-);
+const requestTableData = createPageRequest<LogPageRequestParams, LogPageVO>(async (params) => {
+  try {
+    const result = await LogAPI.getPage(buildLogPageQuery(params));
+    logCapability.unsupported = false;
+    return result;
+  } catch (error) {
+    if (!isOperationLogUnsupportedError(error)) {
+      throw error;
+    }
+
+    logCapability.unsupported = true;
+    return {
+      list: [],
+      total: 0,
+    };
+  }
+});
 
 /** 查询（重置页码后获取数据） */
 function handleQuery() {

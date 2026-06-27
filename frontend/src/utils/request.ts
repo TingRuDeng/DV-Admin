@@ -122,10 +122,18 @@ httpRequest.interceptors.response.use(
         return Promise.reject(new Error(refreshTokenError.message));
       }
 
-      default:
+      default: {
         requestLogger.error("响应业务错误:", response.data);
         ElMessage.error(errorEnvelope.message);
-        return Promise.reject(new Error(errorEnvelope.message));
+        const httpError = new Error(errorEnvelope.message) as Error & {
+          status?: number;
+          response?: unknown;
+        };
+        // 保留 HTTP 状态，页面可以区分能力不支持和普通业务失败。
+        httpError.status = response.status;
+        httpError.response = response;
+        return Promise.reject(httpError);
+      }
     }
   }
 );

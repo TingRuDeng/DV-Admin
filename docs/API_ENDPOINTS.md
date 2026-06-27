@@ -436,7 +436,8 @@ DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
 **Django 当前状态：**
 - `backend/drf_admin/apps/system/urls.py` 当前未注册操作日志管理路由。
 - Django `OperationLogMiddleware` 当前仅输出日志文件，不提供 `OperationLog` 数据库模型或可查询审计日志 API。
-- 因此前端日志管理页当前依赖 FastAPI 实现；是否补 Django 实现需按独立功能计划处理。
+- 因此前端日志管理页当前依赖 FastAPI 实现；当前前端会在日志分页接口返回 404/405 时显示“后端未提供可查询操作日志能力”的不可用提示，其他错误仍按真实请求失败处理。
+- 是否补 Django `OperationLog` 模型、迁移、路由和权限需按独立功能计划处理。
 
 ---
 
