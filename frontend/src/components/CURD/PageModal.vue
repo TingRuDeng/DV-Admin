@@ -156,6 +156,8 @@ import type {
   IComponentType,
   ICurdComponentMap,
   ICurdComponentMapValue,
+  ICurdFormSlots,
+  ICurdFormValue,
   IModalConfig,
   IObject,
 } from "./types";
@@ -164,7 +166,7 @@ import ProDrawer from "@/components/ProDrawer/index.vue";
 import InputTag from "@/components/InputTag/index.vue";
 import IconSelect from "@/components/IconSelect/index.vue";
 
-defineSlots<{ [key: string]: (_args: any) => any }>();
+defineSlots<ICurdFormSlots>();
 const props = defineProps<{ modalConfig: IModalConfig }>();
 const emit = defineEmits<{ submitClick: []; customSubmit: [queryParams: IObject] }>();
 const componentMap: ICurdComponentMap<IComponentType> = new Map<
@@ -275,7 +277,7 @@ defineExpose({
   // 获取表单数据
   getFormData: (key: string) => formData[key] ?? formData,
   // 设置表单项值
-  setFormItemData: (key: string, value: any) => (formData[key] = value),
+  setFormItemData: (key: string, value: ICurdFormValue) => (formData[key] = value),
   // 禁用表单
   handleDisabled: (disable: boolean) => {
     formDisable.value = disable;
