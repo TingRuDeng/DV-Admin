@@ -13,6 +13,7 @@ export type IObject = Record<string, any>;
 export type IActionResult = unknown;
 export type ICurdComponentMapValue = Component | string;
 export type ICurdComponentMap<T extends string> = Map<T, ICurdComponentMapValue>;
+export type ICurdTableColumnExtraValue = unknown;
 export type ICurdFormValue = unknown;
 export type ICurdFormOptionValue = string | number | boolean;
 export interface ICurdFormOption {
@@ -177,7 +178,7 @@ export interface IContentConfig<T = IObject, R = IPageContentDataResponse> {
     operat?: Array<ToolbarTable | IToolsButton>;
     // filter值拼接符
     filterJoin?: string;
-    [key: string]: any;
+    [key: string]: ICurdTableColumnExtraValue;
     // 初始化数据函数
     initFn?: (item: IObject) => void;
   }>;
