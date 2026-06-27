@@ -8,6 +8,7 @@
 </template>
 <script setup lang="ts">
 import { useDictStore } from "@/store";
+import type { DictValue } from "@/components/Dict/types";
 
 const props = defineProps({
   code: String, // 字典编码
@@ -28,7 +29,7 @@ const dictStore = useDictStore();
  * @param value 字典项的值
  * @returns 包含 label 和 tagType 的对象
  */
-const getLabelAndTagByValue = async (dictCode: string, value: any) => {
+const getLabelAndTagByValue = async (dictCode: string, value: DictValue) => {
   // 按需加载字典数据
   await dictStore.loadDictItems(dictCode);
   // 从缓存中获取字典数据
