@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] P1 串行：抽取 PageContent Excel 文件处理逻辑，详见 `tasks/extract-page-content-excel-helpers.md`。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] PageContent Excel 文件处理逻辑抽取已通过 PR #237 合并：`PageContent.vue` 从 534 行降至 486 行，Excel buffer 写入、Excel 文件读取、行解析和浏览器保存已拆入 `pageContentExcel.ts`；导入导出业务分支、提示文案、公开类型和 `defineExpose()` 保持不变，新增 helper 单测覆盖写入、解析、空表和读取失败，合并提交为 `63007a1`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] PageContent 工具栏配置逻辑抽取已通过 PR #235 合并：`PageContent.vue` 从 606 行降至 534 行，默认按钮配置、权限标识组合、按钮权限判断和 toolbar/table toolbar 派生逻辑已拆入 `usePageContentToolbarConfig.ts`；顶部工具栏、表格操作列、业务动作分发、导入导出、公开类型和 `defineExpose()` 保持不变，合并提交为 `e70cec9`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] PageContent 表格单元格组件拆分已通过 PR #233 合并：`PageContent.vue` 从 716 行降至 606 行，`image/list/url/switch/input/price/percent/icon/date/tool` 内置单元格渲染已拆入 `PageContentTableCell.vue`；列循环、自定义插槽、行内修改、操作按钮事件、分页、导入导出、公开类型和 `defineExpose()` 保持不变，合并提交为 `e1c7a55`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] PageContent 导入弹窗组件拆分已通过 PR #231 合并：`PageContent.vue` 从 813 行降至 716 行，导入弹窗 UI、上传控件、本地表单状态、校验、关闭重置和提交事件已拆入 `PageContentImportDialog.vue`；模板下载、单文件导入、Excel 批量解析、分页刷新、导出弹窗、表格列渲染、公开类型和 `defineExpose()` 保持不变，合并提交为 `6009988`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
