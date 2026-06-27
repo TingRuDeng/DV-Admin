@@ -4,10 +4,11 @@
 
 ## 活跃任务
 
-- [ ] 串行：收紧 IconSelect 标签页事件类型边界。
+- [ ] 待选择：下一轮长期可持续性治理目标。
 
 ## 最近完成
 
+- [x] IconSelect 标签页事件类型边界收紧已通过 PR #271 合并：`IconSelect` 的 `handleTabClick(tabPane: any)` 已收紧为 Element Plus `TabsPaneContext`，`activeTab` 收紧为 `TabPaneName`，标签页缺少 `name` 时显式抛错，新增 IconSelect 类型治理测试防止标签页事件类型回退；本轮不改变图标加载、搜索逻辑、图标命名规则、CURD 表单组件映射或后端 API，合并提交为 `2e4ec6e`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] AppLink 跳转目标类型边界收紧已通过 PR #269 合并：`AppLink` 新增 `AppLinkTo` 显式表达当前 `{ path, query }` 跳转对象结构，外链和内部路由 props 构建结果收紧为明确联合类型，移除 `linkProps(to: any)`，新增 AppLink 类型治理测试防止跳转目标回退到显式 `any`；本轮不改变菜单路径拼接、外链判断、`router-link` 透传语义或后端 API，合并提交为 `c648728`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] Dict 字典值类型边界收紧已通过 PR #267 合并：新增 `DictValue` / `DictModelValue` 共享类型，`Dict/index.vue` 的选择值、复选值和 change 事件已移除显式 `any`，`DictLabel.vue` 的标签查询值已收紧为 `DictValue`，新增字典值类型治理测试防止 `ref<any>`、`handleChange(val: any)` 和 `value: any` 回流；本轮不改变字典接口、字典缓存、字典项数据结构、select/radio/checkbox 的 `v-model` 对外语义或后端 API，合并提交为 `b5bcd81`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
 - [x] 上传组件错误回调类型边界收紧已通过 PR #265 合并：`SingleImageUpload`、`FileUpload`、`MultiImageUpload` 的上传失败回调参数已从显式 `any` 收紧为 `unknown`，新增 `uploadError` helper 在窄化后读取未知错误的 `message`，并新增上传错误类型治理测试防止 `error: any` 回流；本轮不改变上传请求、删除请求、文件列表结构、错误提示语义或后端 API，合并提交为 `19852f8`，远端 Django Backend Quality、FastAPI Backend Quality、Frontend Quality 均通过。
