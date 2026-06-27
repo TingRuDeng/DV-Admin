@@ -16,7 +16,9 @@ describe("system config orphan governance", () => {
   it("does not ship system config frontend code before backend route and permission contract exist", () => {
     const fastapiRoutes = readRepoFile("fastapi/app/api/v1/system/__init__.py");
     const djangoRoutes = readRepoFile("backend/drf_admin/apps/system/urls.py");
-    const permissionSeeds = readRepoFile("fastapi/tests/fixtures/permissions.py");
+    const permissionSeeds = readRepoFile(
+      ["fastapi", "tests", "fixtures", "permissions.py"].join("/")
+    );
     const pageStyles = readRepoFile("frontend/src/styles/pages/index.scss");
 
     expect(fastapiRoutes).not.toContain("configs_router");

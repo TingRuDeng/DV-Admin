@@ -85,7 +85,8 @@ ai_summary:
 - `frontend/src/layouts/components/NavBar/components/NavbarActions.vue` 已把导航栏右侧动作区主题文字 class 判定抽入 `navbarActionsHelpers.ts`。
 - `frontend/src/store/modules/tags-view-store.ts` 已把缓存新增、删除、保留、更新迁移和快照构造抽入 `tags-view-cache-helpers.ts`。
 - 上述治理均保留原组件对外行为，仅新增纯逻辑测试覆盖核心分支；相关组件和 store 均低于 300 行。
-- 当前继续推进前端可持续性治理时，优先从仍接近 300 行且职责较集中的页面或组件切片，例如 `system/dept/index.vue`、`TextScroll/index.vue`、`MenuItem.vue`、`LayoutSection.vue`。
+- 单文件 300 行保留为风险提示，不再作为独立拆分目标；后续优先处理契约缺口、能力漂移、安全配置、死代码、文档事实冲突和测试盲区。
+- 9-25 行兼容 shim 或再导出入口暂作为观察项保留；除非出现明确退场窗口，不再继续为了行数拆分。
 
 ## 2026-05-23 前端治理收口摘要
 

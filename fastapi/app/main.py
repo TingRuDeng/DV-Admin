@@ -30,6 +30,19 @@ from app.core.redis import redis_manager
 from app.middleware import RequestLoggingMiddleware, SlowQueryMiddleware
 from app.utils.logger import setup_logger
 
+API_DOCS_CONFIG: dict[str, str | None] = {
+    "docs_url": "/api/swagger/",
+    "redoc_url": "/api/redoc/",
+    "openapi_url": "/api/openapi.json",
+}
+
+
+def get_api_docs_config(is_production: bool) -> dict[str, str | None]:
+    """根据运行环境决定是否暴露 API 文档入口。"""
+    if is_production:
+        return {key: None for key in API_DOCS_CONFIG}
+    return API_DOCS_CONFIG.copy()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -82,13 +95,14 @@ def create_app() -> FastAPI:
     """
     创建 FastAPI 应用实例
     """
+    docs_config = get_api_docs_config(settings.is_production)
     app = FastAPI(
         title=settings.app_name,
         description="DV-Admin FastAPI 后端服务",
         version=settings.version,
-        docs_url="/api/swagger/",
-        redoc_url="/api/redoc/",
-        openapi_url="/api/openapi.json",
+        docs_url=docs_config["docs_url"],
+        redoc_url=docs_config["redoc_url"],
+        openapi_url=docs_config["openapi_url"],
         lifespan=lifespan,
     )
 
