@@ -82,6 +82,7 @@
 
 <script setup lang="ts">
 import * as ElementPlusIconsVue from "@element-plus/icons-vue";
+import type { TabPaneName, TabsPaneContext } from "element-plus";
 
 const props = defineProps({
   modelValue: {
@@ -99,7 +100,7 @@ const emit = defineEmits(["update:modelValue"]);
 const iconSelectRef = ref();
 const popoverContentRef = ref();
 const popoverVisible = ref(false);
-const activeTab = ref("svg");
+const activeTab = ref<TabPaneName>("svg");
 
 const svgIcons = ref<string[]>([]);
 const elementIcons = ref<string[]>(Object.keys(ElementPlusIconsVue));
@@ -125,9 +126,17 @@ function loadIcons() {
   filteredSvgIcons.value = svgIcons.value;
 }
 
-function handleTabClick(tabPane: any) {
-  activeTab.value = tabPane.props.name;
+function handleTabClick(tabPane: TabsPaneContext) {
+  activeTab.value = getTabPaneName(tabPane);
   filterIcons();
+}
+
+function getTabPaneName(tabPane: TabsPaneContext): TabPaneName {
+  const tabName = tabPane.props.name;
+  if (tabName === undefined) {
+    throw new Error("IconSelect 标签页缺少 name");
+  }
+  return tabName;
 }
 
 function filterIcons() {
