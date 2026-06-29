@@ -28,7 +28,8 @@ class DictItemService(DictCacheMixin):
 
         total = await query.count()
         items = (
-            await query.order_by("dict_data_id", "value")
+            await query.prefetch_related("dict_data")
+            .order_by("dict_data_id", "value")
             .offset((page - 1) * page_size)
             .limit(page_size)
             .all()
@@ -38,15 +39,14 @@ class DictItemService(DictCacheMixin):
             total=total,
             page=page,
             page_size=page_size,
-            results=[serialize_dict_item(item) for item in items],
+            results=[serialize_dict_item(item, item.dict_data.name) for item in items],
         )
 
     async def get_items(self, dict_id: int) -> list[DictItemOut]:
         """获取字典项列表。"""
-        await _require_dict_data(dict_id)
-
+        dict_data = await _require_dict_data(dict_id)
         items = await DictItems.filter(dict_data_id=dict_id).order_by("value").all()
-        return [serialize_dict_item(item) for item in items]
+        return [serialize_dict_item(item, dict_data.name) for item in items]
 
     async def create_item(
         self,
@@ -65,7 +65,7 @@ class DictItemService(DictCacheMixin):
         )
 
         await self._clear_dict_cache(dict_data.dict_code)
-        return serialize_dict_item(item)
+        return serialize_dict_item(item, dict_data.name)
 
     async def update_item(
         self,
@@ -87,7 +87,7 @@ class DictItemService(DictCacheMixin):
         if dict_data:
             await self._clear_dict_cache(dict_data.dict_code)
 
-        return serialize_dict_item(item)
+        return serialize_dict_item(item, dict_data.name if dict_data else None)
 
     async def delete_item(self, dict_id: int, item_id: int) -> None:
         """删除字典项。"""

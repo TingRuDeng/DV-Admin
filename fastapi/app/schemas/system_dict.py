@@ -105,6 +105,7 @@ class DictItemOut(TimestampSchema):
     status: int = Field(default=1, description="状态")
     tag_type: str | None = Field(default=None, description="标签类型", serialization_alias="tagType")
     dict_data_id: int = Field(description="字典类型ID", serialization_alias="dict")
+    dict_name: str | None = Field(default=None, description="字典类型名称", serialization_alias="dictName")
 
 
 class DictWithItems(DictDataOut):

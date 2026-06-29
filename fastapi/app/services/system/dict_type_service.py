@@ -60,7 +60,7 @@ class DictTypeService(DictCacheMixin):
 
         return DictWithItems(
             **serialize_dict_data(dict_data).model_dump(),
-            items=[serialize_dict_item(item) for item in items],
+            items=[serialize_dict_item(item, dict_data.name) for item in items],
         )
 
     async def create_dict(self, dict_data: DictDataCreate) -> DictDataOut:
@@ -129,4 +129,3 @@ def _extract_update_fields(dict_data: DictDataUpdate) -> dict[str, object]:
         for field, value in dict_data.model_dump(exclude_unset=True).items()
         if value is not None
     }
-

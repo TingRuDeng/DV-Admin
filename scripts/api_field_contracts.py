@@ -130,8 +130,8 @@ API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
     ),
     FieldContract(
         key="dict_items_out",
-        canonical=frozenset({"dict", "id", "label", "status", "tagType", "value"}),
-        django_only=frozenset({"createTime", "dictName", "updateTime"}),
+        canonical=frozenset({"dict", "dictName", "id", "label", "status", "tagType", "value"}),
+        django_only=frozenset({"createTime", "updateTime"}),
         fastapi_only=frozenset({"createdAt", "updatedAt"}),
         django_source="drf_admin.apps.system.serializers.dicts.DictItemsSerializer",
         fastapi_source="app.schemas.system_dict.DictItemOut",

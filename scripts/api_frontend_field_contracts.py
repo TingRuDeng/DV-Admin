@@ -129,7 +129,7 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
     FrontendFieldContract(
         key="dict_items_page_type",
         frontend_source="frontend/src/api/system/dict-items-api.ts",
-        required_fields=frozenset({"dictCode", "id", "label", "status", "value"}),
+        required_fields=frozenset({"dictCode", "dictName", "id", "label", "status", "value"}),
         tracked_backend_contract="dict_items_out",
     ),
     FrontendFieldContract(
