@@ -78,4 +78,5 @@ class MenuOut(TimestampSchema):
 class MenuTree(MenuOut):
     """菜单树形结构"""
 
+    label: str | None = Field(default=None, description="树节点显示名称")
     children: list["MenuTree"] = Field(default=[], description="子菜单")

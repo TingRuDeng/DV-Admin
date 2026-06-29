@@ -21,7 +21,7 @@
 ## 执行计划
 
 - [x] 阶段 1：收敛用户/角色字段 `roleNames`、`roles`、`rolesList`、`permissions`。
-- [ ] 阶段 2：收敛菜单父级和树字段 `parent`、`parentId`、`children`、`label`。
+- [x] 阶段 2：收敛菜单父级和树字段 `parent`、`parentId`、`children`、`label`。
 - [ ] 阶段 3：收敛部门树字段 `children`、`parentName` 与部门时间字段。
 - [ ] 阶段 4：收敛字典项展示字段 `dictName`，并梳理字典字段。
 - [ ] 阶段 5：统一时间字段策略 `createTime/updateTime` 与 `createdAt/updatedAt`。
@@ -33,3 +33,5 @@
 - 阶段 1 现状：Django 用户输出有 `roles/rolesList`，FastAPI 用户输出有 `roleNames/roles`；Django 角色分页有 `permissions`，FastAPI 角色详情有 `permissions` 但分页缺失。
 - 阶段 1 红灯测试：补充 FastAPI 用户分页/表单角色字段测试，以及角色分页 `permissions` 测试。
 - 阶段 1 实现：用户输出统一提供 `roles` 与 `roleNames`，角色分页统一提供 `permissions`；`rolesList` 暂作为 Django 旧扩展字段保留到第 6 阶段复核。
+- 阶段 2 红灯测试：补充 FastAPI 菜单树 `label/children/parent_id` 和详情 `parent_id` 断言。
+- 阶段 2 实现：菜单对外父级字段统一为 `parentId`，FastAPI 菜单树补 `label`，Django 菜单 serializer 显式输出并接收 `parentId`。

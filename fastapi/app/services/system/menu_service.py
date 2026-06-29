@@ -177,6 +177,7 @@ class MenuService:
                     MenuTree(
                         id=menu.id,
                         name=menu.name,
+                        label=menu.name,
                         type=menu.type,
                         route_name=menu.route_name,
                         route_path=menu.route_path,
