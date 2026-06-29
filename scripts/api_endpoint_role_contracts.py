@@ -30,6 +30,7 @@ ROLE_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         path="/api/v1/system/roles/",
         auth_required=True,
         request_fields=("name",),
+        response_fields=("id", "name", "code"),
         permissions=("system:roles:add",),
         evidence=(
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("roles", "RolesViewSet")),
@@ -43,6 +44,7 @@ ROLE_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         method="PUT",
         path="/api/v1/system/roles/{id}/",
         auth_required=True,
+        response_fields=("id", "name", "code"),
         permissions=("system:roles:edit",),
         evidence=(
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("roles", "RolesViewSet")),

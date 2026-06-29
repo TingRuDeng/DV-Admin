@@ -18,6 +18,21 @@ class FieldContract:
 
 API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
     FieldContract(
+        key="auth_info",
+        canonical=frozenset(
+            {"avatar", "deptName", "email", "gender", "id", "mobile", "name", "perms", "roleNames", "roles", "username"}
+        ),
+        fastapi_only=frozenset({"createdAt", "deptId", "isActive", "updatedAt"}),
+        django_source="drf_admin.apps.system.models.Users.get_user_info",
+        fastapi_source="app.schemas.oauth.UserInfo",
+    ),
+    FieldContract(
+        key="auth_routes",
+        canonical=frozenset({"children", "component", "meta", "name", "path", "redirect"}),
+        django_source="drf_admin.apps.system.models.Users.get_menus",
+        fastapi_source="app.db.models.oauth_user_access.build_menu_item",
+    ),
+    FieldContract(
         key="users_out",
         canonical=frozenset({"deptId", "deptName", "email", "id", "isActive", "mobile", "name", "username"}),
         django_only=frozenset({"dateJoined", "isSuperuser", "roles", "rolesList"}),
@@ -164,19 +179,35 @@ API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
     ),
 )
 
-READ_ENDPOINT_FIELD_CONTRACTS: dict[str, str] = {
+ENDPOINT_FIELD_CONTRACTS: dict[str, str] = {
+    "auth_info": "auth_info",
+    "auth_routes": "auth_routes",
     "users_page": "users_out",
     "users_form": "users_form_out",
+    "users_create": "users_out",
+    "users_update": "users_out",
     "roles_page": "roles_out",
     "roles_form": "roles_with_permissions",
+    "roles_create": "roles_out",
+    "roles_update": "roles_out",
     "menus_tree": "menus_tree",
+    "menus_create": "menus_out",
+    "menus_update": "menus_out",
     "depts_tree": "depts_tree",
+    "depts_create": "depts_out",
+    "depts_update": "depts_out",
     "dicts_page": "dicts_out",
+    "dicts_create": "dicts_out",
+    "dicts_update": "dicts_out",
     "dict_items_page": "dict_items_out",
+    "dict_items_create": "dict_items_out",
+    "dict_items_update": "dict_items_out",
     "notices_page": "notices_page",
+    "notices_create": "notices_page",
+    "notices_update": "notices_page",
 }
 
-FIELD_CONTRACT_EXEMPT_READ_ENDPOINTS = frozenset({"logs_page"})
+FIELD_CONTRACT_EXEMPT_ENDPOINTS = frozenset({"auth_login", "files_upload", "logs_page"})
 
 
 def iter_api_field_contracts() -> tuple[FieldContract, ...]:
@@ -184,14 +215,24 @@ def iter_api_field_contracts() -> tuple[FieldContract, ...]:
     return API_FIELD_CONTRACTS
 
 
+def iter_endpoint_field_contracts() -> tuple[tuple[str, str], ...]:
+    """返回端点到字段契约的覆盖关系。"""
+    return tuple(ENDPOINT_FIELD_CONTRACTS.items())
+
+
 def iter_read_endpoint_field_contracts() -> tuple[tuple[str, str], ...]:
-    """返回读端点到字段契约的覆盖关系。"""
-    return tuple(READ_ENDPOINT_FIELD_CONTRACTS.items())
+    """返回端点到字段契约的覆盖关系，保留旧入口兼容测试。"""
+    return iter_endpoint_field_contracts()
+
+
+def iter_field_contract_exempt_endpoints() -> frozenset[str]:
+    """返回不适用双后端字段契约的端点。"""
+    return FIELD_CONTRACT_EXEMPT_ENDPOINTS
 
 
 def iter_field_contract_exempt_read_endpoints() -> frozenset[str]:
-    """返回不适用双后端字段契约的读端点。"""
-    return FIELD_CONTRACT_EXEMPT_READ_ENDPOINTS
+    """返回不适用双后端字段契约的端点，保留旧入口兼容测试。"""
+    return iter_field_contract_exempt_endpoints()
 
 
 def iter_api_field_converge_items() -> tuple[tuple[str, str], ...]:
@@ -209,7 +250,7 @@ def assert_api_field_contract_catalog() -> None:
     assert len(keys) == len(API_FIELD_CONTRACTS)
     for contract in API_FIELD_CONTRACTS:
         _assert_field_contract(contract)
-    for field_contract_key in READ_ENDPOINT_FIELD_CONTRACTS.values():
+    for field_contract_key in ENDPOINT_FIELD_CONTRACTS.values():
         assert field_contract_key in keys
 
 

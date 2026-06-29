@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const FRONTEND_FIELD_CONTRACT_FILE = "../scripts/api_frontend_field_contracts.py";
 const REQUIRED_FRONTEND_API_FILES = [
+  "frontend/src/api/auth-api.ts",
   "frontend/src/api/system/user-api.ts",
   "frontend/src/api/system/role-api.ts",
   "frontend/src/api/system/menu-api.ts",

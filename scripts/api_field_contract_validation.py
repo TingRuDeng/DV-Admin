@@ -4,6 +4,8 @@ import re
 import sys
 from pathlib import Path
 
+from scripts.api_field_source_introspection import resolve_dotted_source, source_has_symbol
+
 
 def validate_field_contracts(root: Path) -> list[str]:
     """校验字段契约目录、来源证据、读端点覆盖和收敛目标。"""
@@ -17,18 +19,18 @@ def validate_field_contracts(root: Path) -> list[str]:
         issues.extend(validate_backend_sources(root, contract))
 
     endpoint_keys = {contract.key for contract in endpoint_contracts}
-    covered_endpoint_keys = {endpoint_key for endpoint_key, _field_contract_key in load_read_endpoint_field_contracts(root)}
-    for endpoint_key, field_contract_key in load_read_endpoint_field_contracts(root):
+    covered_endpoint_keys = {endpoint_key for endpoint_key, _field_contract_key in load_endpoint_field_contracts(root)}
+    for endpoint_key, field_contract_key in load_endpoint_field_contracts(root):
         if endpoint_key not in endpoint_keys:
-            issues.append(f"scripts/api_field_contracts.py: 读端点字段契约引用了不存在的端点 {endpoint_key}")
+            issues.append(f"scripts/api_field_contracts.py: 端点字段契约引用了不存在的端点 {endpoint_key}")
         if not field_contract_key:
-            issues.append(f"scripts/api_field_contracts.py: 读端点 {endpoint_key} 未绑定字段契约")
-    exempt_endpoint_keys = load_field_contract_exempt_read_endpoints(root)
+            issues.append(f"scripts/api_field_contracts.py: 端点 {endpoint_key} 未绑定字段契约")
+    exempt_endpoint_keys = load_field_contract_exempt_endpoints(root)
     for endpoint_key in iter_field_contract_required_endpoint_keys(endpoint_contracts):
         if endpoint_key in exempt_endpoint_keys:
             continue
         if endpoint_key not in covered_endpoint_keys:
-            issues.append(f"scripts/api_field_contracts.py: 读端点 {endpoint_key} 缺少字段契约覆盖关系")
+            issues.append(f"scripts/api_field_contracts.py: 端点 {endpoint_key} 缺少字段契约覆盖关系")
 
     issues.extend(validate_converge_debt_doc(root, converge_items))
     return issues
@@ -38,12 +40,13 @@ def validate_backend_sources(root: Path, contract) -> list[str]:
     """校验单个字段契约的 Django/FastAPI 来源类存在。"""
     issues: list[str] = []
     for backend, dotted_path in (("Django", contract.django_source), ("FastAPI", contract.fastapi_source)):
-        source_path, class_name = resolve_dotted_source(root, dotted_path)
+        source_path, symbol_chain = resolve_dotted_source(root, dotted_path)
         if not source_path.exists():
             issues.append(f"{contract.key}: {backend} 字段来源文件不存在 {source_path.relative_to(root)}")
             continue
-        if f"class {class_name}" not in read_text(source_path):
-            issues.append(f"{contract.key}: {source_path.relative_to(root)} 缺少字段来源类 {class_name}")
+        if not source_has_symbol(read_text(source_path), symbol_chain):
+            symbol_name = ".".join(symbol_chain)
+            issues.append(f"{contract.key}: {source_path.relative_to(root)} 缺少字段来源符号 {symbol_name}")
     return issues
 
 
@@ -68,13 +71,13 @@ def validate_frontend_field_contracts(root: Path) -> list[str]:
 
 
 def iter_field_contract_required_endpoint_keys(endpoint_contracts) -> tuple[str, ...]:
-    """返回必须绑定字段契约的系统 GET 对象端点。"""
+    """返回必须绑定字段契约的前端对象响应端点。"""
     return tuple(
         contract.key
         for contract in endpoint_contracts
-        if contract.method == "GET"
+        if contract.method in {"GET", "POST", "PUT", "PATCH"}
         and contract.response_fields
-        and any(evidence.file.startswith("frontend/src/api/system/") for evidence in contract.evidence)
+        and any(evidence.file.startswith("frontend/src/api/") for evidence in contract.evidence)
     )
 
 
@@ -105,24 +108,24 @@ def load_field_contract_data(root: Path):
     return iter_api_field_contracts(), iter_critical_endpoint_contracts(), iter_api_field_converge_items()
 
 
-def load_read_endpoint_field_contracts(root: Path) -> tuple[tuple[str, str], ...]:
-    """加载读端点到字段契约的覆盖关系。"""
+def load_endpoint_field_contracts(root: Path) -> tuple[tuple[str, str], ...]:
+    """加载端点到字段契约的覆盖关系。"""
     root_text = str(root)
     if root_text not in sys.path:
         sys.path.insert(0, root_text)
-    from scripts.api_field_contracts import iter_read_endpoint_field_contracts
+    from scripts.api_field_contracts import iter_endpoint_field_contracts
 
-    return iter_read_endpoint_field_contracts()
+    return iter_endpoint_field_contracts()
 
 
-def load_field_contract_exempt_read_endpoints(root: Path) -> frozenset[str]:
-    """加载不适用双后端字段契约的读端点。"""
+def load_field_contract_exempt_endpoints(root: Path) -> frozenset[str]:
+    """加载不适用双后端字段契约的端点。"""
     root_text = str(root)
     if root_text not in sys.path:
         sys.path.insert(0, root_text)
-    from scripts.api_field_contracts import iter_field_contract_exempt_read_endpoints
+    from scripts.api_field_contracts import iter_field_contract_exempt_endpoints
 
-    return iter_field_contract_exempt_read_endpoints()
+    return iter_field_contract_exempt_endpoints()
 
 
 def load_frontend_field_contracts(root: Path):
@@ -143,16 +146,6 @@ def has_typescript_field_declaration(source_text: str, field: str) -> bool:
     """判断 TypeScript 接口中是否存在指定字段声明。"""
     pattern = rf"(^|\n)\s*{re.escape(field)}\??\s*:"
     return re.search(pattern, source_text) is not None
-
-
-def resolve_dotted_source(root: Path, dotted_path: str) -> tuple[Path, str]:
-    """把后端 dotted path 映射到仓库内源码文件路径。"""
-    module_name, class_name = dotted_path.rsplit(".", 1)
-    if module_name.startswith("drf_admin."):
-        return root / "backend" / Path(*module_name.split(".")).with_suffix(".py"), class_name
-    if module_name.startswith("app."):
-        return root / "fastapi" / Path(*module_name.split(".")).with_suffix(".py"), class_name
-    return root / Path(*module_name.split(".")).with_suffix(".py"), class_name
 
 
 def read_text(path: Path) -> str:

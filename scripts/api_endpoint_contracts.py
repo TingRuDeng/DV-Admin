@@ -130,6 +130,7 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         path="/api/v1/system/users/",
         auth_required=True,
         request_fields=("username", "name", "password"),
+        response_fields=("id", "username", "name"),
         permissions=("system:users:add",),
         evidence=(
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("users", "UsersViewSet")),
@@ -142,6 +143,7 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         method="PUT",
         path="/api/v1/system/users/{id}/",
         auth_required=True,
+        response_fields=("id", "username", "name"),
         permissions=("system:users:edit",),
         evidence=(
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("users", "UsersViewSet")),

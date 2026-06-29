@@ -15,6 +15,18 @@ class FrontendFieldContract:
 
 API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
     FrontendFieldContract(
+        key="auth_info_type",
+        frontend_source="frontend/src/api/auth-api.ts",
+        required_fields=frozenset({"avatar", "id", "name", "perms", "roles", "username"}),
+        tracked_backend_contract="auth_info",
+    ),
+    FrontendFieldContract(
+        key="auth_routes_type",
+        frontend_source="frontend/src/api/auth-api.ts",
+        required_fields=frozenset({"children", "component", "meta", "name", "path", "redirect"}),
+        tracked_backend_contract="auth_routes",
+    ),
+    FrontendFieldContract(
         key="users_page_type",
         frontend_source="frontend/src/api/system/user-api.ts",
         required_fields=frozenset(
