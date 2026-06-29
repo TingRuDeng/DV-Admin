@@ -17,7 +17,21 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
     FrontendFieldContract(
         key="auth_info_type",
         frontend_source="frontend/src/api/auth-api.ts",
-        required_fields=frozenset({"avatar", "id", "name", "perms", "roles", "username"}),
+        required_fields=frozenset(
+            {
+                "avatar",
+                "deptName",
+                "email",
+                "gender",
+                "id",
+                "mobile",
+                "name",
+                "perms",
+                "roleNames",
+                "roles",
+                "username",
+            }
+        ),
         tracked_backend_contract="auth_info",
     ),
     FrontendFieldContract(
