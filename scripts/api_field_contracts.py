@@ -45,6 +45,13 @@ API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
         fastapi_source="app.schemas.system_role.RoleOut",
     ),
     FieldContract(
+        key="roles_with_permissions",
+        canonical=frozenset({"code", "desc", "id", "isDefault", "name", "permissions", "sort", "status"}),
+        fastapi_only=frozenset({"createdAt", "updatedAt"}),
+        django_source="drf_admin.apps.system.serializers.roles.RolesSerializer",
+        fastapi_source="app.schemas.system_role.RoleWithPermissions",
+    ),
+    FieldContract(
         key="menus_out",
         canonical=frozenset(
             {
@@ -109,12 +116,19 @@ API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
     ),
     FieldContract(
         key="dict_items_out",
-        canonical=frozenset({"dict", "id", "label", "status", "value"}),
-        django_only=frozenset({"createTime", "dictName", "tagType", "updateTime"}),
+        canonical=frozenset({"dict", "id", "label", "status", "tagType", "value"}),
+        django_only=frozenset({"createTime", "dictName", "updateTime"}),
         fastapi_only=frozenset({"createdAt", "updatedAt"}),
-        converge=frozenset({"tagType"}),
         django_source="drf_admin.apps.system.serializers.dicts.DictItemsSerializer",
         fastapi_source="app.schemas.system_dict.DictItemOut",
+    ),
+    FieldContract(
+        key="depts_out",
+        canonical=frozenset({"id", "name", "parentId", "sort", "status"}),
+        fastapi_only=frozenset({"createdAt", "updatedAt"}),
+        converge=frozenset({"createdAt", "updatedAt"}),
+        django_source="drf_admin.apps.system.serializers.departments.DepartmentsSerializer",
+        fastapi_source="app.schemas.system_dept.DeptOut",
     ),
     FieldContract(
         key="depts_tree",
@@ -125,12 +139,68 @@ API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
         django_source="drf_admin.apps.system.serializers.departments.DepartmentsTreeSerializer",
         fastapi_source="app.schemas.system_dept.DeptTree",
     ),
+    FieldContract(
+        key="notices_page",
+        canonical=frozenset(
+            {
+                "content",
+                "createTime",
+                "id",
+                "level",
+                "publishStatus",
+                "publishTime",
+                "publisherId",
+                "publisherName",
+                "revokeTime",
+                "targetType",
+                "title",
+                "type",
+            }
+        ),
+        django_only=frozenset({"targetUserIds", "updateTime"}),
+        converge=frozenset({"targetUserIds", "updateTime"}),
+        django_source="drf_admin.apps.system.serializers.notices.NoticesSerializer",
+        fastapi_source="app.schemas.system_notice.NoticePageOut",
+    ),
 )
+
+READ_ENDPOINT_FIELD_CONTRACTS: dict[str, str] = {
+    "users_page": "users_out",
+    "users_form": "users_form_out",
+    "roles_page": "roles_out",
+    "roles_form": "roles_with_permissions",
+    "menus_tree": "menus_tree",
+    "depts_tree": "depts_tree",
+    "dicts_page": "dicts_out",
+    "dict_items_page": "dict_items_out",
+    "notices_page": "notices_page",
+}
+
+FIELD_CONTRACT_EXEMPT_READ_ENDPOINTS = frozenset({"logs_page"})
 
 
 def iter_api_field_contracts() -> tuple[FieldContract, ...]:
     """返回不可变 API 字段契约目录。"""
     return API_FIELD_CONTRACTS
+
+
+def iter_read_endpoint_field_contracts() -> tuple[tuple[str, str], ...]:
+    """返回读端点到字段契约的覆盖关系。"""
+    return tuple(READ_ENDPOINT_FIELD_CONTRACTS.items())
+
+
+def iter_field_contract_exempt_read_endpoints() -> frozenset[str]:
+    """返回不适用双后端字段契约的读端点。"""
+    return FIELD_CONTRACT_EXEMPT_READ_ENDPOINTS
+
+
+def iter_api_field_converge_items() -> tuple[tuple[str, str], ...]:
+    """返回所有待收敛字段，用于技术债看板和验证脚本展示。"""
+    return tuple(
+        (contract.key, field)
+        for contract in API_FIELD_CONTRACTS
+        for field in sorted(contract.converge)
+    )
 
 
 def assert_api_field_contract_catalog() -> None:
@@ -139,6 +209,8 @@ def assert_api_field_contract_catalog() -> None:
     assert len(keys) == len(API_FIELD_CONTRACTS)
     for contract in API_FIELD_CONTRACTS:
         _assert_field_contract(contract)
+    for field_contract_key in READ_ENDPOINT_FIELD_CONTRACTS.values():
+        assert field_contract_key in keys
 
 
 def _assert_field_contract(contract: FieldContract) -> None:

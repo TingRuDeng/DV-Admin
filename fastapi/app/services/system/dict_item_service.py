@@ -60,6 +60,7 @@ class DictItemService(DictCacheMixin):
             label=item_data.label,
             value=item_data.value,
             status=item_data.status,
+            tag_type=item_data.tag_type,
             dict_data_id=dict_id,
         )
 

@@ -13,6 +13,7 @@ def serialize_dict_item(item: DictItems) -> DictItemOut:
         label=item.label,
         value=item.value,
         status=item.status,
+        tag_type=item.tag_type,
         dict_data_id=item.dict_data_id,
         created_at=item.created_at,
         updated_at=item.updated_at,

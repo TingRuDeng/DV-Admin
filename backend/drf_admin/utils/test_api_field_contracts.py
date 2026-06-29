@@ -4,6 +4,9 @@ from djangorestframework_camel_case.util import camelize
 from scripts.api_field_contracts import (
     assert_api_field_contract_catalog,
     iter_api_field_contracts,
+    iter_api_field_converge_items,
+    iter_field_contract_exempt_read_endpoints,
+    iter_read_endpoint_field_contracts,
 )
 
 
@@ -25,3 +28,17 @@ def test_django_output_keys_match_api_field_contracts():
 
         assert contract.canonical <= actual, f"{contract.key} Django 缺少权威字段: {contract.canonical - actual}"
         assert actual <= allowed, f"{contract.key} Django 出现未登记字段: {actual - allowed}"
+
+
+def test_api_field_contracts_track_read_endpoint_coverage_and_converge_debt():
+    """字段契约必须显式登记读端点覆盖关系和待收敛字段。"""
+    assert_api_field_contract_catalog()
+
+    coverage = dict(iter_read_endpoint_field_contracts())
+    converge_items = iter_api_field_converge_items()
+    exempt_endpoints = iter_field_contract_exempt_read_endpoints()
+
+    assert "notices_page" in coverage
+    assert coverage["roles_form"] == "roles_with_permissions"
+    assert ("dict_items_out", "tagType") not in converge_items
+    assert "logs_page" in exempt_endpoints

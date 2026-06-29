@@ -228,7 +228,7 @@ ai_summary:
 | label | varchar(32) | 标签 | Not Null |
 | value | varchar(32) | 值 | Not Null |
 | status | int | 状态 | 0:禁用, 1:启用 |
-| tag_type | varchar(32) | 标签类型 | |
+| tag_type | varchar(32) | 标签类型 | Django / FastAPI |
 | dict_id / dict_data_id | int | 字典ID | FK → Dicts/DictData |
 | create_time / created_at | datetime | 创建时间 | Django / FastAPI |
 | update_time / updated_at | datetime | 更新时间 | Django / FastAPI |

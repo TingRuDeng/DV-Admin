@@ -51,6 +51,20 @@ ROLE_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         ),
     ),
     EndpointContract(
+        key="roles_form",
+        method="GET",
+        path="/api/v1/system/roles/{id}/",
+        auth_required=True,
+        response_fields=("id", "name", "permissions"),
+        permissions=("system:roles:query",),
+        evidence=(
+            ContractEvidence("backend/drf_admin/apps/system/urls.py", ("roles", "RolesViewSet")),
+            ContractEvidence("fastapi/app/api/v1/system/roles.py", ("/{role_id}/", "RoleWithPermissions")),
+            ContractEvidence("frontend/src/api/system/role-api.ts", ("getFormData", "/api/system/roles")),
+            ContractEvidence("docs/API_ENDPOINTS.md", ("GET    /api/v1/system/roles/{id}/",)),
+        ),
+    ),
+    EndpointContract(
         key="roles_delete",
         method="DELETE",
         path="/api/v1/system/roles/",

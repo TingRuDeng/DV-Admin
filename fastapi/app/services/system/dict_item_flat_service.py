@@ -21,6 +21,7 @@ class DictItemFlatService(DictCacheMixin):
             label=item_data.label,
             value=item_data.value,
             status=item_data.status,
+            tag_type=item_data.tag_type,
             dict_data_id=item_data.dict_data_id,
         )
 
@@ -118,6 +119,7 @@ def _to_cache_item(item: DictItems) -> dict[str, object]:
         "label": item.label,
         "value": item.value,
         "status": item.status,
+        "tag_type": item.tag_type,
         "dict_data_id": item.dict_data_id,
         "created_at": item.created_at.isoformat() if item.created_at else None,
         "updated_at": item.updated_at.isoformat() if item.updated_at else None,
