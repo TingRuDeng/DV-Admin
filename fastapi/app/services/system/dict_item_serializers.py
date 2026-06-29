@@ -16,6 +16,6 @@ def serialize_dict_item(item: DictItems, dict_name: str | None = None) -> DictIt
         tag_type=item.tag_type,
         dict_data_id=item.dict_data_id,
         dict_name=dict_name,
-        created_at=item.created_at,
-        updated_at=item.updated_at,
+        create_time=item.created_at,
+        update_time=item.updated_at,
     )

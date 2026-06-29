@@ -18,8 +18,8 @@ def serialize_dict_data(dict_data: DictData) -> DictDataOut:
         dict_code=dict_data.dict_code,
         status=dict_data.status,
         remark=dict_data.remark,
-        created_at=dict_data.created_at,
-        updated_at=dict_data.updated_at,
+        create_time=dict_data.created_at,
+        update_time=dict_data.updated_at,
     )
 
 

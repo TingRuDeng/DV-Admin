@@ -19,8 +19,8 @@ def build_role_out(role: Roles, permission_ids: list[int] | None = None) -> Role
         is_default=role.is_default,
         desc=role.desc,
         permissions=permission_ids or [],
-        created_at=role.created_at,
-        updated_at=role.updated_at,
+        create_time=role.created_at,
+        update_time=role.updated_at,
     )
 
 
@@ -38,8 +38,8 @@ def build_role_with_permissions(
         is_default=role.is_default,
         desc=role.desc,
         permissions=permission_ids,
-        created_at=role.created_at,
-        updated_at=role.updated_at,
+        create_time=role.created_at,
+        update_time=role.updated_at,
     )
 
 
