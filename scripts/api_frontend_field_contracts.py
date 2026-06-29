@@ -30,7 +30,7 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
         key="users_page_type",
         frontend_source="frontend/src/api/system/user-api.ts",
         required_fields=frozenset(
-            {"avatar", "deptName", "email", "gender", "id", "isActive", "mobile", "name", "roleNames", "username"}
+            {"avatar", "deptName", "email", "gender", "id", "isActive", "mobile", "name", "roleNames", "roles", "username"}
         ),
         tracked_backend_contract="users_out",
     ),
@@ -38,14 +38,14 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
         key="users_form_type",
         frontend_source="frontend/src/api/system/user-api.ts",
         required_fields=frozenset(
-            {"avatar", "deptId", "email", "gender", "id", "isActive", "mobile", "name", "roles", "username"}
+            {"avatar", "deptId", "email", "gender", "id", "isActive", "mobile", "name", "roleNames", "roles", "username"}
         ),
         tracked_backend_contract="users_form_out",
     ),
     FrontendFieldContract(
         key="roles_page_type",
         frontend_source="frontend/src/api/system/role-api.ts",
-        required_fields=frozenset({"desc", "id", "name", "sort", "status"}),
+        required_fields=frozenset({"desc", "id", "name", "permissions", "sort", "status"}),
         tracked_backend_contract="roles_out",
     ),
     FrontendFieldContract(
