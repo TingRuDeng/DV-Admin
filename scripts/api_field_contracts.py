@@ -146,10 +146,8 @@ API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
     ),
     FieldContract(
         key="depts_tree",
-        canonical=frozenset({"id", "label", "name", "parentId", "sort", "status"}),
-        django_only=frozenset({"parentName"}),
-        fastapi_only=frozenset({"children", "createdAt", "updatedAt"}),
-        converge=frozenset({"children", "parentName"}),
+        canonical=frozenset({"children", "id", "label", "name", "parentId", "sort", "status"}),
+        fastapi_only=frozenset({"createdAt", "updatedAt"}),
         django_source="drf_admin.apps.system.serializers.departments.DepartmentsTreeSerializer",
         fastapi_source="app.schemas.system_dept.DeptTree",
     ),
