@@ -38,7 +38,7 @@ class DjangoRuntimeReadApiContractTestCase(TestCase):
             assert_response_fields(data, contract.response_fields)
 
         users_data = assert_success_payload(
-            self.client.get(contracts["users_page"].path, {"page": 1, "pageSize": PAGE_SIZE_SAMPLE}),
+            self.client.get(contracts["users_page"].path, {"pageNum": 1, "pageSize": PAGE_SIZE_SAMPLE}),
             contracts["users_page"],
         )
         assert len(users_data["list"]) == PAGE_SIZE_SAMPLE
@@ -58,11 +58,10 @@ class DjangoRuntimeReadApiContractTestCase(TestCase):
         """字典项列表必须按前端 `dictCode` 参数过滤，避免跨后端查询语义漂移。"""
         contract = contracts_by_key()["dict_items_page"]
         data = assert_success_payload(
-            self.client.get(contract.path, {"page": 1, "pageSize": 10, "dictCode": "runtime_contract"}),
+            self.client.get(contract.path, {"pageNum": 1, "pageSize": 10, "dictCode": "runtime_contract"}),
             contract,
         )
 
         values = {item["value"] for item in data["list"]}
         assert data["total"] == 2
         assert values == {"enabled", "disabled"}
-

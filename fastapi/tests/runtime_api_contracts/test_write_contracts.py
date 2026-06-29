@@ -124,7 +124,7 @@ def assert_user_delete_contract(context: UserWriteContext, user_id: int) -> None
     assert_success_payload(response, contract)
 
     users_data = assert_success_payload(
-        context.client.get(context.contracts["users_page"].path, params={"page": 1, "pageSize": 100}),
+        context.client.get(context.contracts["users_page"].path, params={"pageNum": 1, "pageSize": 100}),
         context.contracts["users_page"],
     )
     usernames = {user["username"] for user in users_data["list"]}

@@ -3,9 +3,10 @@
 """
 
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
 
 from app.api.deps import require_permissions
+from app.api.pagination import PaginationParams, page_params
 from app.schemas.base import PageResult, ResponseModel
 from app.schemas.system import (
     BulkDelete,
@@ -23,15 +24,14 @@ router = APIRouter()
 @router.get("/", response_model=ResponseModel[PageResult[RoleOut]])
 async def get_roles(
     request: Request,
-    page: int = Query(1, ge=1, description="页码"),
-    page_size: int = Query(10, alias="pageSize", ge=1, le=100, description="每页数量"),
+    pagination: PaginationParams = Depends(page_params),
     search: str | None = Query(None, description="搜索关键词"),
     current_user=require_permissions("system:roles:query"),
 ):
     """获取角色分页列表"""
     result = await role_service.get_page(
-        page=page,
-        page_size=page_size,
+        page=pagination.page,
+        page_size=pagination.page_size,
         search=search,
     )
     return ResponseModel.success(data=result)

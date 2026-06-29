@@ -432,7 +432,7 @@ GET    /api/v1/system/notices/my-page/       # 我的通知
 
 **FastAPI 与前端管理页（当前 FastAPI 独有）：**
 ```
-GET    /api/v1/system/logs/page                    # 日志分页，支持 page/pageSize/operation/startTime/endTime
+GET    /api/v1/system/logs/page                    # 日志分页，支持 pageNum/pageSize/operation/startTime/endTime
 GET    /api/v1/system/logs/visit-trend             # 访问趋势
 GET    /api/v1/system/logs/visit-stats             # 访问统计
 DELETE /api/v1/system/logs/{ids}                   # 删除日志

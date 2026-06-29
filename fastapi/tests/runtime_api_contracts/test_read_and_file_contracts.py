@@ -17,7 +17,8 @@ from runtime_api_contracts.helpers import (
     sample_query_params,
 )
 
-from app.db.models.system import Departments, OperationLog, Roles
+from app.db.models.oauth import Users
+from app.db.models.system import Departments, DictData, DictItems, OperationLog, Roles
 
 
 @pytest_asyncio.fixture
@@ -56,6 +57,57 @@ async def runtime_contract_roles(db):
 
 
 @pytest_asyncio.fixture
+async def runtime_contract_page_samples(db):
+    """创建分页行为测试样本，用唯一搜索条件隔离本轮数据。"""
+    suffix = uuid.uuid4().hex[:6]
+    dict_suffix = uuid.uuid4().hex[:6]
+    users = []
+    for index in range(2):
+        user = await Users.create(
+            username=f"runtime_page_user_{index}_{suffix}",
+            password="runtime-password",
+            name=f"运行时分页用户{index}_{suffix}",
+            is_active=1,
+            email=f"runtime_page_user_{index}_{suffix}@example.com",
+            mobile=f"139{uuid.uuid4().hex[:8]}",
+        )
+        users.append(user)
+
+    dicts = []
+    for index in range(2):
+        dict_data = await DictData.create(
+            name=f"运行时分页字典{index}_{dict_suffix}",
+            dict_code=f"runtime_page_dict_{index}_{dict_suffix}",
+            status=1,
+        )
+        dicts.append(dict_data)
+
+    dict_items = []
+    item_dict = await DictData.create(
+        name=f"运行时分页字典项_{suffix}",
+        dict_code=f"runtime_page_items_{suffix}",
+        status=1,
+    )
+    for index in range(2):
+        item = await DictItems.create(
+            label=f"运行时分页字典项{index}_{suffix}",
+            value=f"runtime_page_item_{index}_{suffix}",
+            status=1,
+            dict_data_id=item_dict.id,
+        )
+        dict_items.append(item)
+
+    return {
+        "suffix": suffix,
+        "dict_suffix": dict_suffix,
+        "users": users,
+        "dicts": dicts,
+        "dict_items": dict_items,
+        "item_dict_code": item_dict.dict_code,
+    }
+
+
+@pytest_asyncio.fixture
 async def runtime_contract_departments(db):
     """创建运行时部门样本，用于证明部门树查询参数真实生效。"""
     suffix = uuid.uuid4().hex[:6]
@@ -85,13 +137,87 @@ def test_fastapi_read_runtime_samples_match_endpoint_catalog(
     assert_log_page(auth_client, contracts)
 
 
+def test_fastapi_page_num_reaches_second_page(
+    auth_client,
+    runtime_contract_logs,
+    runtime_contract_roles,
+    runtime_contract_page_samples,
+):
+    """分页接口必须使用前端真实发送的 pageNum 参数访问第二页。"""
+    contracts = contracts_by_key()
+    suffix = runtime_contract_page_samples["suffix"]
+
+    assert_second_page_item(
+        auth_client,
+        contracts,
+        "users_page",
+        {"pageNum": 2, "pageSize": 1, "search": suffix},
+        "username",
+        runtime_contract_page_samples["users"][1].username,
+    )
+    assert_second_page_item(
+        auth_client,
+        contracts,
+        "roles_page",
+        {"pageNum": 2, "pageSize": 1, "search": "运行时角色"},
+        "id",
+        runtime_contract_roles[1].id,
+    )
+    assert_second_page_item(
+        auth_client,
+        contracts,
+        "dicts_page",
+        {"pageNum": 2, "pageSize": 1, "search": runtime_contract_page_samples["dict_suffix"]},
+        "dictCode",
+        runtime_contract_page_samples["dicts"][0].dict_code,
+    )
+    assert_second_page_item(
+        auth_client,
+        contracts,
+        "dict_items_page",
+        {
+            "pageNum": 2,
+            "pageSize": 1,
+            "dictCode": runtime_contract_page_samples["item_dict_code"],
+        },
+        "value",
+        runtime_contract_page_samples["dict_items"][1].value,
+    )
+    assert_second_page_item(
+        auth_client,
+        contracts,
+        "logs_page",
+        {"pageNum": 2, "pageSize": 1, "operation": "运行时日志操作"},
+        "id",
+        runtime_contract_logs[0].id,
+    )
+
+
 def assert_page_size(auth_client, contracts: dict[str, Any], key: str) -> None:
     """验证分页接口真实使用 pageSize 参数。"""
     data = assert_success_payload(
-        auth_client.get(contracts[key].path, params={"page": 1, "pageSize": PAGE_SIZE_SAMPLE}),
+        auth_client.get(contracts[key].path, params={"pageNum": 1, "pageSize": PAGE_SIZE_SAMPLE}),
         contracts[key],
     )
     assert len(data["list"]) == PAGE_SIZE_SAMPLE
+
+
+def assert_second_page_item(
+    auth_client,
+    contracts: dict[str, Any],
+    key: str,
+    params: dict[str, Any],
+    field: str,
+    expected_value: Any,
+) -> None:
+    """验证 pageNum 能驱动接口返回第二页数据。"""
+    data = assert_success_payload(
+        auth_client.get(contracts[key].path, params=params),
+        contracts[key],
+    )
+    assert data["total"] >= 2
+    assert len(data["list"]) == 1
+    assert data["list"][0][field] == expected_value
 
 
 def assert_dept_filter(auth_client, contracts: dict[str, Any], department) -> None:
@@ -111,7 +237,7 @@ def assert_dept_filter(auth_client, contracts: dict[str, Any], department) -> No
 def assert_log_page(auth_client, contracts: dict[str, Any]) -> None:
     """验证日志分页字段使用前端真实依赖的 camelCase 响应契约。"""
     data = assert_success_payload(
-        auth_client.get(contracts["logs_page"].path, params={"page": 1, "pageSize": PAGE_SIZE_SAMPLE}),
+        auth_client.get(contracts["logs_page"].path, params={"pageNum": 1, "pageSize": PAGE_SIZE_SAMPLE}),
         contracts["logs_page"],
     )
     assert len(data["list"]) == PAGE_SIZE_SAMPLE
