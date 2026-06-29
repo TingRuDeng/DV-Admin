@@ -25,7 +25,7 @@
 - [x] 阶段 3：收敛部门树字段 `children`、`parentName`；部门时间字段并入第 5 阶段。
 - [x] 阶段 4：收敛字典项展示字段 `dictName`，并梳理字典字段。
 - [x] 阶段 5：统一时间字段策略 `createTime/updateTime` 与 `createdAt/updatedAt`。
-- [ ] 阶段 6：复核非 `converge` 单端扩展字段并清理技术债。
+- [x] 阶段 6：复核非 `converge` 单端扩展字段并清理技术债。
 
 ## 进度记录
 
@@ -40,3 +40,4 @@
 - 阶段 4 实现：FastAPI 字典项输出补 `dictName`，覆盖分页、详情、创建/更新和按编码缓存路径；前端分页类型同步声明 `dictName`。
 - 阶段 5 红灯测试：补充共享业务资源时间字段别名测试，确认当前 FastAPI 仍输出 `createdAt/updatedAt`。
 - 阶段 5 实现：新增共享业务资源时间戳基类，菜单、部门、字典类型和字典项对外统一输出 `createTime/updateTime`；FastAPI 独占日志模型不受影响。
+- 阶段 6 实现：Django 用户输出补齐 `avatar/gender`，角色输出时间字段统一为 `createTime/updateTime`；剩余认证信息和用户历史字段作为已复核单端扩展登记。

@@ -13,6 +13,7 @@ class UsersSerializer(serializers.ModelSerializer):
     """
     用户增删改查序列化器
     """
+    avatar = serializers.SerializerMethodField()
     roles_list = serializers.SerializerMethodField()
     role_names = serializers.SerializerMethodField()
     date_joined = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', read_only=True)
@@ -23,7 +24,7 @@ class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = ['id', 'username', 'name', 'mobile', 'email', 'is_active', 'dept_id', 'dept_name',
-                  'date_joined', 'roles', 'roles_list', 'role_names', 'is_superuser']
+                  'avatar', 'gender', 'date_joined', 'roles', 'roles_list', 'role_names', 'is_superuser']
 
     def validate(self, attrs):
         # 数据验证
@@ -42,6 +43,9 @@ class UsersSerializer(serializers.ModelSerializer):
 
     def get_role_names(self, obj):
         return ','.join(role.name for role in obj.roles.all())
+
+    def get_avatar(self, obj):
+        return "/media/" + str(obj.image)
 
     def create(self, validated_data):
         user = super().create(validated_data)
