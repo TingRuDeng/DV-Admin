@@ -150,8 +150,10 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
                 "publisherId",
                 "revokeTime",
                 "targetType",
+                "targetUserIds",
                 "title",
                 "type",
+                "updateTime",
             }
         ),
         tracked_backend_contract="notices_page",
