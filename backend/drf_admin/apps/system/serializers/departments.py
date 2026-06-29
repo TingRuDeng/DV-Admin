@@ -20,6 +20,8 @@ class DepartmentsSerializer(serializers.ModelSerializer):
             'status',
             'sort',
             'parent_id',
+            'create_time',
+            'update_time',
         ]
 
     def update(self, instance, validated_data):
@@ -64,4 +66,6 @@ class DepartmentsTreeSerializer(serializers.ModelSerializer):
             'status',
             'sort',
             'parent_id',
+            'create_time',
+            'update_time',
         ]

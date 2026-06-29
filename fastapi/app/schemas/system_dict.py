@@ -4,7 +4,7 @@
 
 from pydantic import AliasChoices, Field
 
-from app.schemas.base import BaseSchema, TimestampSchema
+from app.schemas.base import BaseSchema, SharedTimestampSchema
 
 
 class DictDataBase(BaseSchema):
@@ -50,7 +50,7 @@ class DictDataUpdate(BaseSchema):
     )
 
 
-class DictDataOut(TimestampSchema):
+class DictDataOut(SharedTimestampSchema):
     """字典类型响应数据"""
 
     name: str = Field(description="字典名称")
@@ -97,7 +97,7 @@ class DictItemUpdate(BaseSchema):
     )
 
 
-class DictItemOut(TimestampSchema):
+class DictItemOut(SharedTimestampSchema):
     """字典项响应数据"""
 
     label: str = Field(description="标签")

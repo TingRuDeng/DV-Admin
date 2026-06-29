@@ -71,7 +71,7 @@ ai_summary:
 
 ## 核心模型
 
-> 字段表中同时列出 Django 与 FastAPI 不一致的物理字段名时，格式为 `Django 字段 / FastAPI 字段`。Django 基础时间字段真实物理列为 `create_time` / `update_time`；FastAPI ORM 与 schema 内部使用 `created_at` / `updated_at`，对外 JSON 可经别名输出 `createdAt` / `updatedAt`。Django 经 camel case 中间件对外输出 `createTime` / `updateTime`。本轮仅记录现状，不修改代码或迁移数据库。
+> 字段表中同时列出 Django 与 FastAPI 不一致的物理字段名时，格式为 `Django 字段 / FastAPI 字段`。Django 基础时间字段真实物理列为 `create_time` / `update_time`；FastAPI ORM 内部使用 `created_at` / `updated_at`。共享业务资源对外 JSON 已统一为 `createTime` / `updateTime`；FastAPI 独占日志模型仍按自身契约输出 `createdAt`。
 
 ### 用户模型 (Users)
 

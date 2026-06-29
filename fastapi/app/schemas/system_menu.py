@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import Field
 
-from app.schemas.base import BaseSchema, TimestampSchema
+from app.schemas.base import BaseSchema, SharedTimestampSchema
 
 
 class MenuBase(BaseSchema):
@@ -55,7 +55,7 @@ class MenuUpdate(BaseSchema):
     parent_id: int | None = Field(default=None, description="父菜单ID")
 
 
-class MenuOut(TimestampSchema):
+class MenuOut(SharedTimestampSchema):
     """菜单响应数据"""
 
     name: str = Field(description="名称")
