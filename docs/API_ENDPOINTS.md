@@ -228,7 +228,8 @@ POST /api/v1/oauth/refresh-token/
 
 **请求方式：**
 - Django：支持查询参数 `?refreshToken=token`，也兼容请求体 `refreshToken/refresh`。
-- FastAPI：当前只接收查询参数 `?refreshToken=token`。
+- FastAPI：从请求体读取 `refreshToken`（`RefreshTokenRequest`，无查询参数）。
+- 前端 `auth-api.ts` 统一以请求体 `{ refreshToken }` 调用，与两套后端均兼容。
 
 **响应：**
 ```json
@@ -421,10 +422,12 @@ PUT    /api/v1/system/notices/{id}/revoke    # 撤回通知
 GET    /api/v1/system/notices/my-page/       # 我的通知
 ```
 
-**Django 当前薄实现保留的我的通知接口：**
+**我的通知接口（Django & FastAPI）：**
 ```
-GET    /api/v1/system/notices/my-page/       # 我的通知
+GET    /api/v1/system/notices/my-page/       # 我的通知，支持 pageNum/pageSize/title/isRead
 ```
+
+> Django 返回当前用户可见的已发布通知（全体通知 + 指定到该用户的通知），分页结构与 FastAPI 对齐为 `list/total`。差异：Django 当前无 `NoticeReads` 模型，不跟踪每用户已读状态，`isRead` 统一返回 0；按 `isRead=1` 过滤时返回空列表。FastAPI 通过 `NoticeReads` 返回真实已读状态。
 
 ---
 
