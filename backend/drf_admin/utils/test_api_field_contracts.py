@@ -53,5 +53,6 @@ def test_api_field_contracts_track_endpoint_coverage_and_converge_debt():
     assert "notices_page" in coverage
     assert coverage["roles_form"] == "roles_with_permissions"
     assert ("dict_items_out", "tagType") not in converge_items
-    assert "logs_page" in exempt_endpoints
+    assert coverage["logs_page"] == "logs_out"
+    assert "logs_page" not in exempt_endpoints
     assert "auth_login" in exempt_endpoints
