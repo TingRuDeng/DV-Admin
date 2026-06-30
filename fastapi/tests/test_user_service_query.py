@@ -21,6 +21,21 @@ class TestUserServiceGetPage:
         assert result.page_size == 10
 
     @pytest.mark.asyncio
+    async def test_get_page_includes_role_ids_and_names(self, db, test_user_for_service, test_role_for_service):
+        """用户分页输出必须同时包含角色 ID 和角色名称。"""
+        await test_user_for_service.roles.add(test_role_for_service)
+
+        result = await user_service.get_page(
+            page=1,
+            page_size=10,
+            search=test_user_for_service.username,
+        )
+
+        page_user = next(item for item in result.list if item.id == test_user_for_service.id)
+        assert page_user.roles == [test_role_for_service.id]
+        assert page_user.role_names == test_role_for_service.name
+
+    @pytest.mark.asyncio
     async def test_get_page_with_search(self, db, test_user_for_service):
         """测试带搜索条件的分页查询"""
         # 按用户名搜索
@@ -96,6 +111,16 @@ class TestUserServiceGetForm:
         assert result.id == test_user_for_service.id
         assert result.username == test_user_for_service.username
         assert hasattr(result, 'roles')
+
+    @pytest.mark.asyncio
+    async def test_get_form_includes_role_ids_and_names(self, db, test_user_for_service, test_role_for_service):
+        """用户表单输出必须同时包含角色 ID 和角色名称。"""
+        await test_user_for_service.roles.add(test_role_for_service)
+
+        result = await user_service.get_form(test_user_for_service.id)
+
+        assert result.roles == [test_role_for_service.id]
+        assert result.role_names == test_role_for_service.name
 
     @pytest.mark.asyncio
     async def test_get_form_nonexistent_user(self, db):

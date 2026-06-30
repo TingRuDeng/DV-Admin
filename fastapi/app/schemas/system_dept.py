@@ -4,7 +4,7 @@
 
 from pydantic import Field
 
-from app.schemas.base import BaseSchema, TimestampSchema
+from app.schemas.base import BaseSchema, SharedTimestampSchema
 
 
 class DeptBase(BaseSchema):
@@ -31,7 +31,7 @@ class DeptUpdate(BaseSchema):
     parent_id: int | None = Field(default=None, description="父部门ID")
 
 
-class DeptOut(TimestampSchema):
+class DeptOut(SharedTimestampSchema):
     """部门响应数据"""
 
     name: str = Field(description="部门名称")

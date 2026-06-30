@@ -43,8 +43,8 @@ class MenuService:
             params=menu.params,
             desc=menu.desc,
             parent_id=menu.parent_id,
-            created_at=menu.created_at,
-            updated_at=menu.updated_at,
+            create_time=menu.created_at,
+            update_time=menu.updated_at,
         )
 
     async def create(self, menu_data: MenuCreate) -> MenuOut:
@@ -92,8 +92,8 @@ class MenuService:
             params=menu.params,
             desc=menu.desc,
             parent_id=menu.parent_id,
-            created_at=menu.created_at,
-            updated_at=menu.updated_at,
+            create_time=menu.created_at,
+            update_time=menu.updated_at,
         )
 
     async def update(self, menu_id: int, menu_data: MenuUpdate) -> MenuOut:
@@ -134,8 +134,8 @@ class MenuService:
             params=menu.params,
             desc=menu.desc,
             parent_id=menu.parent_id,
-            created_at=menu.created_at,
-            updated_at=menu.updated_at,
+            create_time=menu.created_at,
+            update_time=menu.updated_at,
         )
 
     async def delete(self, menu_id: int) -> None:
@@ -177,6 +177,7 @@ class MenuService:
                     MenuTree(
                         id=menu.id,
                         name=menu.name,
+                        label=menu.name,
                         type=menu.type,
                         route_name=menu.route_name,
                         route_path=menu.route_path,
@@ -191,8 +192,8 @@ class MenuService:
                         params=menu.params,
                         desc=menu.desc,
                         parent_id=menu.parent_id,
-                        created_at=menu.created_at,
-                        updated_at=menu.updated_at,
+                        create_time=menu.created_at,
+                        update_time=menu.updated_at,
                         children=children,
                     )
                 )

@@ -20,6 +20,16 @@ class TestNoticeServiceGetPage:
         assert len(result.list) >= 1
 
     @pytest.mark.asyncio
+    async def test_get_page_includes_target_users_and_update_time(self, db, test_notices_for_service):
+        """后台分页输出必须包含目标用户和更新时间字段。"""
+        notice = test_notices_for_service[0]
+        result = await notice_service.get_page(page_num=1, page_size=10, title=notice.title)
+
+        page_notice = next(item for item in result.list if item.id == notice.id)
+        assert page_notice.target_user_ids == list(notice.target_user_ids or [])
+        assert page_notice.update_time == notice.updated_at
+
+    @pytest.mark.asyncio
     async def test_get_page_with_title(self, db, test_notices_for_service):
         """测试按标题过滤。"""
         result = await notice_service.get_page(

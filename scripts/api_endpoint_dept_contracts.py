@@ -32,6 +32,7 @@ DEPT_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         path="/api/v1/system/departments/",
         auth_required=True,
         request_fields=("name",),
+        response_fields=("id", "name", "status"),
         permissions=("system:departments:add",),
         evidence=(
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("departments", "DepartmentsViewSet")),
@@ -45,6 +46,7 @@ DEPT_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         method="PUT",
         path="/api/v1/system/departments/{id}/",
         auth_required=True,
+        response_fields=("id", "name", "status"),
         permissions=("system:departments:edit",),
         evidence=(
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("departments", "DepartmentsViewSet")),

@@ -53,9 +53,9 @@ class RoleService:
             query = query.filter(name__icontains=search)
 
         total = await query.count()
-        roles = await query.offset((page - 1) * page_size).limit(page_size).all()
+        roles = await query.prefetch_related("permissions").offset((page - 1) * page_size).limit(page_size).all()
 
-        role_list = [build_role_out(role) for role in roles]
+        role_list = [build_role_out(role, [perm.id for perm in role.permissions]) for role in roles]
 
         return PageResult.create(
             total=total, page=page, page_size=page_size, results=role_list
@@ -101,7 +101,8 @@ class RoleService:
         # 清除角色选项缓存
         await self._clear_role_cache()
 
-        return build_role_out(role)
+        await role.fetch_related("permissions")
+        return build_role_out(role, [perm.id for perm in role.permissions])
 
     async def update(self, role_id: int, role_data: RoleUpdate) -> RoleOut:
         """
@@ -128,7 +129,8 @@ class RoleService:
         # 清除缓存
         await self._clear_role_cache(role_id)
 
-        return build_role_out(role)
+        await role.fetch_related("permissions")
+        return build_role_out(role, [perm.id for perm in role.permissions])
 
     async def assign_menus(self, role_id: int, menu_ids: list[int]) -> list[int]:
         """

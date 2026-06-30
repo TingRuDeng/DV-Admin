@@ -8,7 +8,7 @@ from app.schemas.system import RoleOut, RoleUpdate, RoleWithPermissions
 ROLE_MENU_TYPES = {"CATALOG", "MENU"}
 
 
-def build_role_out(role: Roles) -> RoleOut:
+def build_role_out(role: Roles, permission_ids: list[int] | None = None) -> RoleOut:
     """将角色模型转换为角色列表输出结构。"""
     return RoleOut(
         id=role.id,
@@ -18,8 +18,9 @@ def build_role_out(role: Roles) -> RoleOut:
         sort=role.sort,
         is_default=role.is_default,
         desc=role.desc,
-        created_at=role.created_at,
-        updated_at=role.updated_at,
+        permissions=permission_ids or [],
+        create_time=role.created_at,
+        update_time=role.updated_at,
     )
 
 
@@ -37,8 +38,8 @@ def build_role_with_permissions(
         is_default=role.is_default,
         desc=role.desc,
         permissions=permission_ids,
-        created_at=role.created_at,
-        updated_at=role.updated_at,
+        create_time=role.created_at,
+        update_time=role.updated_at,
     )
 
 

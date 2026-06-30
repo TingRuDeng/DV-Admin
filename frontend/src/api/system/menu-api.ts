@@ -57,7 +57,7 @@ export interface MenuVO {
   /** 菜单名称 */
   name?: string;
   /** 父菜单ID */
-  parent?: string;
+  parentId?: string;
   /** 按钮权限标识 */
   perm?: string;
   /** 跳转路径 */
@@ -77,7 +77,7 @@ export interface MenuForm {
   /** 菜单ID */
   id?: string;
   /** 父菜单ID */
-  parent?: string;
+  parentId?: string;
   /** 菜单名称 */
   name?: string;
   /** 是否可见(1-是 0-否) */

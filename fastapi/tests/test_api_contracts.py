@@ -42,6 +42,28 @@ def test_fastapi_page_result_matches_frontend_pagination_contract():
     assert page["total"] == 1
 
 
+def test_shared_resource_timestamps_use_django_compatible_aliases():
+    """共享业务资源对外时间字段统一使用 createTime/updateTime。"""
+    from datetime import datetime, timezone
+
+    from app.schemas.system import DeptOut, DictDataOut, MenuOut, RoleOut
+
+    now = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    samples = [
+        DeptOut(id=1, name="部门", status=1, sort=1, parent_id=None, created_at=now, updated_at=now),
+        DictDataOut(id=1, name="字典", dict_code="demo", status=1, remark="", created_at=now, updated_at=now),
+        MenuOut(id=1, name="菜单", type="MENU", created_at=now, updated_at=now),
+        RoleOut(id=1, name="角色", code="role", status=1, sort=1, created_at=now, updated_at=now),
+    ]
+
+    for sample in samples:
+        payload = sample.model_dump(by_alias=True)
+        assert "createTime" in payload
+        assert "updateTime" in payload
+        assert "createdAt" not in payload
+        assert "updatedAt" not in payload
+
+
 def test_fastapi_critical_endpoint_contract_catalog_matches_route_contracts():
     assert_endpoint_contract_catalog()
     contracts = {contract.key: contract for contract in CRITICAL_ENDPOINT_CONTRACTS}

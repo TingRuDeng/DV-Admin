@@ -21,11 +21,12 @@ class DictItemFlatService(DictCacheMixin):
             label=item_data.label,
             value=item_data.value,
             status=item_data.status,
+            tag_type=item_data.tag_type,
             dict_data_id=item_data.dict_data_id,
         )
 
         await self._clear_dict_cache(dict_data.dict_code)
-        return serialize_dict_item(item)
+        return serialize_dict_item(item, dict_data.name)
 
     async def update_item_flat(
         self,
@@ -46,7 +47,7 @@ class DictItemFlatService(DictCacheMixin):
         if dict_data:
             await self._clear_dict_cache(dict_data.dict_code)
 
-        return serialize_dict_item(item)
+        return serialize_dict_item(item, dict_data.name if dict_data else None)
 
     async def delete_item_flat(self, item_id: int) -> None:
         """删除字典项。"""
@@ -108,17 +109,19 @@ async def _fetch_active_items_by_code(code: str) -> list[dict[str, object]]:
         .all()
     )
 
-    return [_to_cache_item(item) for item in items]
+    return [_to_cache_item(item, dict_data) for item in items]
 
 
-def _to_cache_item(item: DictItems) -> dict[str, object]:
+def _to_cache_item(item: DictItems, dict_data: DictData) -> dict[str, object]:
     """将字典项转换为可缓存的基础结构。"""
     return {
         "id": item.id,
         "label": item.label,
         "value": item.value,
         "status": item.status,
+        "tag_type": item.tag_type,
         "dict_data_id": item.dict_data_id,
+        "dict_name": dict_data.name,
         "created_at": item.created_at.isoformat() if item.created_at else None,
         "updated_at": item.updated_at.isoformat() if item.updated_at else None,
     }
