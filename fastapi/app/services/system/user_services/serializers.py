@@ -21,6 +21,7 @@ class UserSerializerMixin:
 
         # 获取角色名称
         await user.fetch_related("roles")
+        role_ids = [role.id for role in user.roles]
         role_names = ",".join([role.name for role in user.roles])
 
         return UserOut(
@@ -34,6 +35,7 @@ class UserSerializerMixin:
             is_active=user.is_active,
             dept_id=user.dept_id,
             dept_name=dept_name,
+            roles=role_ids,
             role_names=role_names,
             created_at=user.created_at,
             updated_at=user.updated_at,
@@ -52,6 +54,7 @@ class UserSerializerMixin:
         dept_name = depts.get(user.dept_id) if user.dept_id else None
 
         # 角色已通过 prefetch_related 加载，直接访问
+        role_ids = [role.id for role in user.roles]
         role_names = ",".join([role.name for role in user.roles])
 
         return UserOut(
@@ -65,6 +68,7 @@ class UserSerializerMixin:
             is_active=user.is_active,
             dept_id=user.dept_id,
             dept_name=dept_name,
+            roles=role_ids,
             role_names=role_names,
             created_at=user.created_at,
             updated_at=user.updated_at,
@@ -80,5 +84,6 @@ class UserSerializerMixin:
         await user.fetch_related("roles")
         role_ids = [role.id for role in user.roles]
 
-        return UserFormOut(**base.model_dump(), roles=role_ids)
-
+        base_data = base.model_dump()
+        base_data["roles"] = role_ids
+        return UserFormOut(**base_data)

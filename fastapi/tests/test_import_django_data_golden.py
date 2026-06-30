@@ -55,7 +55,7 @@ GOLDEN_FIXTURE_ROWS = [
     {
         "model": "system.dictitems",
         "pk": 31,
-        "fields": {"label": "启用", "value": "1", "status": 1, "dict": 30},
+        "fields": {"label": "启用", "value": "1", "status": 1, "tag_type": "success", "dict": 30},
     },
     {
         "model": "system.roles",
@@ -118,6 +118,7 @@ async def assert_dict_records() -> None:
     assert dict_data.dict_code == "status"
     assert dict_data.remark == "状态字典"
     assert dict_item.dict_data_id == dict_data.id
+    assert dict_item.tag_type == "success"
 
 
 async def assert_role_and_user_records() -> None:

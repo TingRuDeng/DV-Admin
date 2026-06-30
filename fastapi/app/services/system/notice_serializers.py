@@ -20,10 +20,12 @@ def notice_to_page_out(notice: Notices) -> NoticePageOut:
         type=notice.type,
         level=notice.level,
         target_type=notice.target_type,
+        target_user_ids=list(notice.target_user_ids or []),
         publisher_id=notice.publisher_id,
         publisher_name=notice.publisher_name,
         publish_status=notice.publish_status,
         create_time=notice.created_at,
+        update_time=notice.updated_at,
         publish_time=notice.publish_time,
         revoke_time=notice.revoke_time,
     )

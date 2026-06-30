@@ -85,13 +85,95 @@ def test_fastapi_read_runtime_samples_match_endpoint_catalog(
     assert_log_page(auth_client, contracts)
 
 
+def test_fastapi_page_num_reaches_second_page(
+    auth_client,
+    runtime_contract_logs,
+    runtime_contract_roles,
+    runtime_contract_page_samples,
+):
+    """分页接口必须使用前端真实发送的 pageNum 参数访问第二页。"""
+    contracts = contracts_by_key()
+    suffix = runtime_contract_page_samples["suffix"]
+
+    assert_second_page_item(
+        auth_client,
+        contracts,
+        "users_page",
+        {"pageNum": 2, "pageSize": 1, "search": suffix},
+        "username",
+        runtime_contract_page_samples["users"][1].username,
+    )
+    assert_second_page_item(
+        auth_client,
+        contracts,
+        "roles_page",
+        {"pageNum": 2, "pageSize": 1, "search": "运行时角色"},
+        "id",
+        runtime_contract_roles[1].id,
+    )
+    assert_second_page_item(
+        auth_client,
+        contracts,
+        "dicts_page",
+        {"pageNum": 2, "pageSize": 1, "search": runtime_contract_page_samples["dict_suffix"]},
+        "dictCode",
+        runtime_contract_page_samples["dicts"][0].dict_code,
+    )
+    assert_second_page_item(
+        auth_client,
+        contracts,
+        "dict_items_page",
+        {
+            "pageNum": 2,
+            "pageSize": 1,
+            "dictCode": runtime_contract_page_samples["item_dict_code"],
+        },
+        "value",
+        runtime_contract_page_samples["dict_items"][1].value,
+    )
+    assert_second_page_item(
+        auth_client,
+        contracts,
+        "notices_page",
+        {"pageNum": 2, "pageSize": 1, "title": runtime_contract_page_samples["notice_suffix"]},
+        "id",
+        runtime_contract_page_samples["notices"][0].id,
+    )
+    assert_second_page_item(
+        auth_client,
+        contracts,
+        "logs_page",
+        {"pageNum": 2, "pageSize": 1, "operation": "运行时日志操作"},
+        "id",
+        runtime_contract_logs[0].id,
+    )
+
+
 def assert_page_size(auth_client, contracts: dict[str, Any], key: str) -> None:
     """验证分页接口真实使用 pageSize 参数。"""
     data = assert_success_payload(
-        auth_client.get(contracts[key].path, params={"page": 1, "pageSize": PAGE_SIZE_SAMPLE}),
+        auth_client.get(contracts[key].path, params={"pageNum": 1, "pageSize": PAGE_SIZE_SAMPLE}),
         contracts[key],
     )
     assert len(data["list"]) == PAGE_SIZE_SAMPLE
+
+
+def assert_second_page_item(
+    auth_client,
+    contracts: dict[str, Any],
+    key: str,
+    params: dict[str, Any],
+    field: str,
+    expected_value: Any,
+) -> None:
+    """验证 pageNum 能驱动接口返回第二页数据。"""
+    data = assert_success_payload(
+        auth_client.get(contracts[key].path, params=params),
+        contracts[key],
+    )
+    assert data["total"] >= 2
+    assert len(data["list"]) == 1
+    assert data["list"][0][field] == expected_value
 
 
 def assert_dept_filter(auth_client, contracts: dict[str, Any], department) -> None:
@@ -111,7 +193,7 @@ def assert_dept_filter(auth_client, contracts: dict[str, Any], department) -> No
 def assert_log_page(auth_client, contracts: dict[str, Any]) -> None:
     """验证日志分页字段使用前端真实依赖的 camelCase 响应契约。"""
     data = assert_success_payload(
-        auth_client.get(contracts["logs_page"].path, params={"page": 1, "pageSize": PAGE_SIZE_SAMPLE}),
+        auth_client.get(contracts["logs_page"].path, params={"pageNum": 1, "pageSize": PAGE_SIZE_SAMPLE}),
         contracts["logs_page"],
     )
     assert len(data["list"]) == PAGE_SIZE_SAMPLE

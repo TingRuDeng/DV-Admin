@@ -14,7 +14,7 @@ class RolesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Roles
-        fields = ['id', 'name', 'code', 'permissions', 'status', 'sort', 'desc', 'is_default']
+        fields = ['id', 'name', 'code', 'permissions', 'status', 'sort', 'desc', 'is_default', 'create_time', 'update_time']
         extra_kwargs = {
             'permissions': {
                 'read_only': True,

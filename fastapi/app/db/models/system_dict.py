@@ -44,6 +44,7 @@ class DictItems(BaseModel):
     label = fields.CharField(max_length=32, description="标签")
     value = fields.CharField(max_length=32, description="值")
     status = fields.IntField(default=1, description="状态")
+    tag_type = fields.CharField(max_length=32, null=True, description="标签类型")
 
     dict_data: fields.ForeignKeyRelation[DictData] = fields.ForeignKeyField(
         "models.DictData",

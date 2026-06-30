@@ -10,10 +10,35 @@ class MenusSerializer(serializers.ModelSerializer):
     """
     菜单管理序列化器
     """
+    parent_id = serializers.PrimaryKeyRelatedField(
+        source='parent',
+        queryset=Permissions.objects.all(),
+        required=False,
+        allow_null=True,
+    )
 
     class Meta:
         model = Permissions
-        fields = '__all__'
+        fields = [
+            'id',
+            'name',
+            'type',
+            'route_name',
+            'route_path',
+            'component',
+            'sort',
+            'visible',
+            'icon',
+            'redirect',
+            'perm',
+            'keepAlive',
+            'alwaysShow',
+            'params',
+            'parent_id',
+            'desc',
+            'create_time',
+            'update_time',
+        ]
 
     # def validate(self, attrs):
     #     if attrs.get('menu') is True:
@@ -51,9 +76,33 @@ class MenusTreeSerializer(TreeSerializer):
     """
     菜单数据序列化器(Element Tree)
     """
+    parent_id = serializers.PrimaryKeyRelatedField(source='parent', read_only=True)
+    children = serializers.ListField(read_only=True, required=False)
+
     class Meta:
         model = Permissions
-        fields = '__all__'
+        fields = [
+            'id',
+            'label',
+            'children',
+            'name',
+            'type',
+            'route_name',
+            'route_path',
+            'component',
+            'sort',
+            'visible',
+            'icon',
+            'redirect',
+            'perm',
+            'keepAlive',
+            'alwaysShow',
+            'params',
+            'parent_id',
+            'desc',
+            'create_time',
+            'update_time',
+        ]
 
 
 class MenusOptionsSerializer(TreeSerializer):

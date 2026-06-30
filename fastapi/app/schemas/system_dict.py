@@ -4,7 +4,7 @@
 
 from pydantic import AliasChoices, Field
 
-from app.schemas.base import BaseSchema, TimestampSchema
+from app.schemas.base import BaseSchema, SharedTimestampSchema
 
 
 class DictDataBase(BaseSchema):
@@ -50,7 +50,7 @@ class DictDataUpdate(BaseSchema):
     )
 
 
-class DictDataOut(TimestampSchema):
+class DictDataOut(SharedTimestampSchema):
     """字典类型响应数据"""
 
     name: str = Field(description="字典名称")
@@ -65,6 +65,12 @@ class DictItemBase(BaseSchema):
     label: str = Field(max_length=32, description="标签")
     value: str = Field(max_length=32, description="值")
     status: int = Field(default=1, description="状态")
+    tag_type: str | None = Field(
+        default=None,
+        description="标签类型",
+        validation_alias=AliasChoices("tagType", "tag_type"),
+        serialization_alias="tagType",
+    )
 
 
 class DictItemCreate(DictItemBase):
@@ -83,15 +89,23 @@ class DictItemUpdate(BaseSchema):
     label: str | None = Field(default=None, max_length=32, description="标签")
     value: str | None = Field(default=None, max_length=32, description="值")
     status: int | None = Field(default=None, description="状态")
+    tag_type: str | None = Field(
+        default=None,
+        description="标签类型",
+        validation_alias=AliasChoices("tagType", "tag_type"),
+        serialization_alias="tagType",
+    )
 
 
-class DictItemOut(TimestampSchema):
+class DictItemOut(SharedTimestampSchema):
     """字典项响应数据"""
 
     label: str = Field(description="标签")
     value: str = Field(description="值")
     status: int = Field(default=1, description="状态")
+    tag_type: str | None = Field(default=None, description="标签类型", serialization_alias="tagType")
     dict_data_id: int = Field(description="字典类型ID", serialization_alias="dict")
+    dict_name: str | None = Field(default=None, description="字典类型名称", serialization_alias="dictName")
 
 
 class DictWithItems(DictDataOut):

@@ -18,8 +18,8 @@ def serialize_dict_data(dict_data: DictData) -> DictDataOut:
         dict_code=dict_data.dict_code,
         status=dict_data.status,
         remark=dict_data.remark,
-        created_at=dict_data.created_at,
-        updated_at=dict_data.updated_at,
+        create_time=dict_data.created_at,
+        update_time=dict_data.updated_at,
     )
 
 
@@ -60,7 +60,7 @@ class DictTypeService(DictCacheMixin):
 
         return DictWithItems(
             **serialize_dict_data(dict_data).model_dump(),
-            items=[serialize_dict_item(item) for item in items],
+            items=[serialize_dict_item(item, dict_data.name) for item in items],
         )
 
     async def create_dict(self, dict_data: DictDataCreate) -> DictDataOut:
@@ -129,4 +129,3 @@ def _extract_update_fields(dict_data: DictDataUpdate) -> dict[str, object]:
         for field, value in dict_data.model_dump(exclude_unset=True).items()
         if value is not None
     }
-

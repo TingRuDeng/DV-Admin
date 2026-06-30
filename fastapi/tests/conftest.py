@@ -17,6 +17,7 @@ if str(TESTS_DIR) not in sys.path:
 pytest_plugins = [
     "fixtures.database",
     "fixtures.client",
+    "runtime_api_contracts.pagination_fixtures",
 ]
 
 

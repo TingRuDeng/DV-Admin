@@ -98,8 +98,8 @@ def assert_response_fields(data: Any, fields: tuple[str, ...]) -> None:
 def sample_query_params(contract) -> dict[str, Any]:
     """按前端共享契约构造查询参数，避免误用后端私有参数名。"""
     params: dict[str, Any] = {}
-    if "page" in contract.query_params:
-        params["page"] = 1
+    if "pageNum" in contract.query_params:
+        params["pageNum"] = 1
     if "pageSize" in contract.query_params:
         params["pageSize"] = PAGE_SIZE_SAMPLE
     return params

@@ -37,8 +37,8 @@ class DeptService:
             status=dept.status,
             sort=dept.sort,
             parent_id=dept.parent_id,
-            created_at=dept.created_at,
-            updated_at=dept.updated_at,
+            create_time=dept.created_at,
+            update_time=dept.updated_at,
         )
 
     async def create(self, dept_data: DeptCreate) -> DeptOut:
@@ -64,8 +64,8 @@ class DeptService:
             status=dept.status,
             sort=dept.sort,
             parent_id=dept.parent_id,
-            created_at=dept.created_at,
-            updated_at=dept.updated_at,
+            create_time=dept.created_at,
+            update_time=dept.updated_at,
         )
 
     async def update(self, dept_id: int, dept_data: DeptUpdate) -> DeptOut:
@@ -100,8 +100,8 @@ class DeptService:
             status=dept.status,
             sort=dept.sort,
             parent_id=dept.parent_id,
-            created_at=dept.created_at,
-            updated_at=dept.updated_at,
+            create_time=dept.created_at,
+            update_time=dept.updated_at,
         )
 
     async def delete(self, dept_id: int) -> None:
@@ -147,8 +147,8 @@ class DeptService:
                         status=dept.status,
                         sort=dept.sort,
                         parent_id=dept.parent_id,
-                        created_at=dept.created_at,
-                        updated_at=dept.updated_at,
+                        create_time=dept.created_at,
+                        update_time=dept.updated_at,
                         children=children,
                     )
                 )

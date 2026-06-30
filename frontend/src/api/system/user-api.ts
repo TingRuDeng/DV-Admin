@@ -179,6 +179,8 @@ export interface UserPageVO {
   name?: string;
   /** 角色名称，多个使用英文逗号(,)分割 */
   roleNames?: string;
+  /** 角色ID集合 */
+  roles?: number[];
   /** 用户状态(1:启用;0:禁用) */
   isActive?: number;
   /** 用户名 */
@@ -203,6 +205,8 @@ export interface UserForm {
   name?: string;
   /** 角色ID集合 */
   roles?: number[];
+  /** 角色名称，多个使用英文逗号(,)分割 */
+  roleNames?: string;
   /** 用户状态(1:正常;0:禁用) */
   isActive?: number;
   /** 用户名 */

@@ -20,6 +20,8 @@ class DepartmentsSerializer(serializers.ModelSerializer):
             'status',
             'sort',
             'parent_id',
+            'create_time',
+            'update_time',
         ]
 
     def update(self, instance, validated_data):
@@ -51,23 +53,19 @@ class DepartmentsTreeSerializer(serializers.ModelSerializer):
     """
     id = serializers.IntegerField()
     label = serializers.CharField(max_length=20, source='name')
+    children = serializers.ListField(read_only=True, required=False)
     parent_id = serializers.IntegerField(required=False, allow_null=True)
-    parent_name = serializers.SerializerMethodField()
-
-    def get_parent_name(self, obj):
-        """获取上级部门名称"""
-        if obj.parent:
-            return obj.parent.name
-        return None
 
     class Meta:
         model = Departments
         fields = [
             'id',
             'label',
+            'children',
             'name',
             'status',
             'sort',
             'parent_id',
-            'parent_name',
+            'create_time',
+            'update_time',
         ]

@@ -3,9 +3,10 @@
 """
 
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
 
 from app.api.deps import require_permissions
+from app.api.pagination import PaginationParams, page_params
 from app.schemas.base import PageResult, ResponseModel
 from app.schemas.system import (
     BulkDelete,
@@ -25,15 +26,14 @@ router = APIRouter()
 @router.get("/", response_model=ResponseModel[PageResult[DictDataOut]])
 async def get_dicts(
     request: Request,
-    page: int = Query(1, ge=1, description="页码"),
-    page_size: int = Query(10, alias="pageSize", ge=1, le=100, description="每页数量"),
+    pagination: PaginationParams = Depends(page_params),
     search: str | None = Query(None, description="搜索关键词"),
     current_user=require_permissions("system:dicts:query"),
 ):
     """获取字典类型分页列表"""
     result = await dict_service.get_dict_page(
-        page=page,
-        page_size=page_size,
+        page=pagination.page,
+        page_size=pagination.page_size,
         search=search,
     )
     return ResponseModel.success(data=result)

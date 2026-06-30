@@ -87,6 +87,8 @@ export interface RolePageVO {
   // updateTime?: Date;
   /** 备注 */
   desc?: string;
+  /** 权限ID集合 */
+  permissions?: number[];
 }
 export interface RoleForm {
   /** 角色ID */

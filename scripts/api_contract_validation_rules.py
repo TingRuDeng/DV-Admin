@@ -7,6 +7,9 @@ REQUIRED_FILES = (
     "scripts/api_capability_contracts.py",
     "scripts/api_error_codes.py",
     "scripts/api_field_contracts.py",
+    "scripts/api_field_contract_validation.py",
+    "scripts/api_field_source_introspection.py",
+    "scripts/api_frontend_field_contracts.py",
     "scripts/api_endpoint_contracts.py",
     "scripts/api_endpoint_contract_types.py",
     "scripts/api_endpoint_dept_contracts.py",
@@ -32,6 +35,7 @@ REQUIRED_FILES = (
     "fastapi/tests/runtime_api_contracts/test_read_and_file_contracts.py",
     "fastapi/tests/runtime_api_contracts/test_write_contracts.py",
     "frontend/src/utils/__tests__/api-contract.test.ts",
+    "frontend/src/api/__tests__/api-frontend-field-contract-governance.spec.ts",
     "frontend/src/enums/api/code-enum.ts",
     "backend/drf_admin/apps/system/README.md",
     "docs/API_ENDPOINTS.md",
@@ -62,7 +66,11 @@ REQUIRED_DOC_SNIPPETS = (
     "scripts/api_capability_contracts.py",
     "scripts/api_endpoint_contracts.py",
     "scripts/api_field_contracts.py",
+    "scripts/api_field_contract_validation.py",
+    "scripts/api_frontend_field_contracts.py",
     "scripts/api_error_codes.py",
+    "读端点字段契约覆盖关系",
+    "converge",
     "Django 响应中间件统一输出",
     "FastAPI `ResponseModel` 默认输出",
 )
@@ -78,6 +86,9 @@ REQUIRED_TEST_SNIPPETS = {
     ),
     "backend/drf_admin/utils/test_api_field_contracts.py": (
         "iter_api_field_contracts",
+        "iter_endpoint_field_contracts",
+        "iter_api_field_converge_items",
+        "iter_field_contract_exempt_endpoints",
         "assert_api_field_contract_catalog",
         "django_output_keys",
         "未登记字段",
@@ -131,6 +142,9 @@ REQUIRED_TEST_SNIPPETS = {
     ),
     "fastapi/tests/test_api_field_contracts.py": (
         "iter_api_field_contracts",
+        "iter_endpoint_field_contracts",
+        "iter_api_field_converge_items",
+        "iter_field_contract_exempt_endpoints",
         "assert_api_field_contract_catalog",
         "fastapi_output_keys",
         "未登记字段",
@@ -175,6 +189,11 @@ REQUIRED_TEST_SNIPPETS = {
         "normalizeApiErrorEnvelope",
         "list",
         "total",
+    ),
+    "frontend/src/api/__tests__/api-frontend-field-contract-governance.spec.ts": (
+        "api_frontend_field_contracts.py",
+        "iter_api_frontend_field_contracts",
+        "required_fields",
     ),
 }
 

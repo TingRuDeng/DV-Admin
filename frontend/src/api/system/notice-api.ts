@@ -97,10 +97,14 @@ export interface NoticePageVO {
   priority?: number;
   /** 目标类型 */
   targetType?: number;
+  /** 目标用户ID列表 */
+  targetUserIds?: number[] | string;
   /** 发布状态 */
   publishStatus?: number;
   /** 发布时间 */
   publishTime?: string | Date;
+  /** 更新时间 */
+  updateTime?: string | Date;
   /** 撤回时间 */
   revokeTime?: Date;
 }
