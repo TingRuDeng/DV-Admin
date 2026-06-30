@@ -49,10 +49,10 @@ class TestDictCRUD:
 class TestDictItems:
     """字典项测试"""
 
-    def test_get_dict_items_forbidden(self, auth_client: TestClient):
-        # 需要 dict_items:query 权限
+    def test_get_dict_items_accessible_with_dictitems_query(self, auth_client: TestClient):
+        # 需要 system:dictitems:query 权限（已授予 auth_client），不再是 dicts:view
         response = auth_client.get("/api/v1/system/dicts/1/items")
-        assert response.status_code in [200, 403]
+        assert response.status_code in [200, 404]
 
     def test_get_dict_by_code_not_found(self, auth_client: TestClient):
         response = auth_client.get("/api/v1/system/dicts/code/nonexistent")

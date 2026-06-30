@@ -99,7 +99,7 @@ async def batch_delete_dicts(
 async def get_dict_items(
     request: Request,
     dict_id: int,
-    current_user=require_permissions("system:dicts:view"),
+    current_user=require_permissions("system:dictitems:query"),
 ):
     """获取字典项列表"""
     items = await dict_service.get_items(dict_id)
