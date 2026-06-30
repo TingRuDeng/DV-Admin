@@ -4,17 +4,19 @@ from scripts.api_capability_contracts import (
 )
 
 
-def test_django_absent_log_capabilities_stay_marked_fastapi_only():
-    """Django 未实现日志管理路由时，操作日志能力必须保持 FastAPI 独占登记。"""
+def test_log_capabilities_are_no_longer_fastapi_only():
+    """操作日志已在 Django 与 FastAPI 双实现，不得再登记为单后端独占能力。"""
     assert_api_capability_contract_catalog()
 
     contracts = iter_api_capability_contracts()
-    assert {contract.owner_backend for contract in contracts} == {"FastAPI"}
-    assert {contract.key for contract in contracts} >= {
-        "system_logs_page",
-        "system_logs_visit_trend",
-        "system_logs_visit_stats",
-        "system_logs_delete",
-        "system_logs_clear",
-    }
-    assert all("OperationLog" in contract.reason for contract in contracts)
+    keys = {contract.key for contract in contracts}
+    assert not (
+        keys
+        & {
+            "system_logs_page",
+            "system_logs_visit_trend",
+            "system_logs_visit_stats",
+            "system_logs_delete",
+            "system_logs_clear",
+        }
+    )

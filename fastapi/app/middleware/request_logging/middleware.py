@@ -4,6 +4,7 @@
 记录 HTTP 请求和响应信息，并生成请求 ID 用于链路追踪。
 """
 
+import json
 import time
 import uuid
 from collections.abc import Callable
@@ -22,6 +23,34 @@ from app.middleware.request_logging.body import (
 from app.middleware.request_logging.client import get_client_ip, parse_user_agent
 from app.middleware.request_logging.constants import EXCLUDED_BODY_PATHS, EXCLUDED_PATHS
 from app.utils.logger import clear_request_id, set_request_id
+
+# 只持久化写操作，避免 GET 轮询淹没审计表
+PERSISTED_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
+SENSITIVE_KEYWORDS = ("password", "token", "secret", "key", "authorization")
+
+
+def mask_sensitive_body(body: str) -> str:
+    """掩码请求体中的敏感字段；非 JSON 或解析失败时返回空串以避免泄露。"""
+    if not body:
+        return ""
+    try:
+        parsed = json.loads(body)
+    except (ValueError, TypeError):
+        return ""
+
+    def _mask(value: object, depth: int = 0) -> object:
+        if depth > 10:
+            return "***MAX_DEPTH***"
+        if isinstance(value, dict):
+            return {
+                k: ("******" if any(s in k.lower() for s in SENSITIVE_KEYWORDS) else _mask(v, depth + 1))
+                for k, v in value.items()
+            }
+        if isinstance(value, list):
+            return [_mask(item, depth + 1) for item in value]
+        return value
+
+    return json.dumps(_mask(parsed), ensure_ascii=False)[:4096]
 
 
 class RequestLogContext(TypedDict):
@@ -104,12 +133,48 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             response = await self._log_response(response, context, start_time)
             response.headers["X-Request-ID"] = request_id
+            await self._persist_operation_log(request, response, context, start_time)
             return response
         except Exception as error:
             self._log_error(error, context, start_time)
             raise
         finally:
             clear_request_id()
+
+    async def _persist_operation_log(
+        self,
+        request: Request,
+        response: Response,
+        context: RequestLogContext,
+        start_time: float,
+    ) -> None:
+        """将写操作落库到 OperationLog；任何失败都不得影响主请求。"""
+        if context["method"] not in PERSISTED_METHODS:
+            return
+        if not context["path"].startswith("/api/"):
+            return
+        try:
+            from app.services.system.log_service import log_service
+
+            user = getattr(request.state, "user", None)
+            request_log = context["request_log"]
+            await log_service.create_log(
+                user_id=getattr(user, "id", None),
+                username=getattr(user, "username", "") or "",
+                name=getattr(user, "name", "") or "",
+                method=context["method"],
+                path=context["path"][:500],
+                query_params=str(request_log.get("query_params", ""))[:4096],
+                request_body=mask_sensitive_body(str(request_log.get("body", ""))),
+                response_status=response.status_code,
+                ip=(context["client_ip"] or "")[:50],
+                browser=str(request_log.get("browser", ""))[:100],
+                os=str(request_log.get("os", ""))[:100],
+                execution_time=int((time.time() - start_time) * 1000),
+                status=1 if response.status_code < 400 else 0,
+            )
+        except Exception as error:  # noqa: BLE001  审计落库失败不能影响业务请求
+            logger.warning(f"操作日志落库失败: {error}")
 
     async def _build_request_context(
         self,

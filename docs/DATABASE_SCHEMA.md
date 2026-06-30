@@ -291,11 +291,11 @@ ai_summary:
 
 ---
 
-### 操作日志模型 (OperationLog，当前 FastAPI 独有)
+### 操作日志模型 (OperationLog，Django & FastAPI)
 
 **表名：** `system_operation_log`
 
-> Django 当前只有 `OperationLogMiddleware` 文件日志输出，没有等价 `OperationLog` 数据库模型或查询 API。
+> 两套后端均实现 `OperationLog` 模型与写操作落库中间件。Django 模型见 `backend/drf_admin/apps/system/models_log.py`，FastAPI 见 `fastapi/app/db/models/system_log.py`。Django 该模型直接使用 `created_at/updated_at`（不复用 BaseModel 的 create_time/update_time），以对齐 FastAPI 与前端 `LogPageVO`；`/logs/page` 列表项字段集合由双后端字段契约 `logs_out` 锁定。
 
 | 字段 | 类型 | 说明 | 约束 |
 |------|------|------|------|
@@ -317,6 +317,7 @@ ai_summary:
 | status | int | 状态 | 0:失败, 1:成功 |
 | error_msg | text | 错误信息 | |
 | created_at | datetime | 创建时间 | |
+| updated_at | datetime | 更新时间 | |
 
 **索引：**
 - `user_id`

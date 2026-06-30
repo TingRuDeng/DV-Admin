@@ -21,63 +21,9 @@ class ApiCapabilityContract:
 LOG_CAPABILITY_REASON = "Django 当前只有文件日志中间件，没有可查询 OperationLog 模型或日志管理 API。"
 
 
-API_CAPABILITY_CONTRACTS: tuple[ApiCapabilityContract, ...] = (
-    ApiCapabilityContract(
-        key="system_logs_page",
-        method="GET",
-        path="/api/v1/system/logs/page",
-        owner_backend="FastAPI",
-        reason=LOG_CAPABILITY_REASON,
-        fastapi_source="fastapi/app/api/v1/system/log_routes/query.py",
-        fastapi_snippets=frozenset(("@router.get(", '"/page"', "system:logs:query")),
-        django_absent_source="backend/drf_admin/apps/system/urls.py",
-        django_forbidden_snippets=frozenset(("logs", "system/logs")),
-    ),
-    ApiCapabilityContract(
-        key="system_logs_visit_trend",
-        method="GET",
-        path="/api/v1/system/logs/visit-trend",
-        owner_backend="FastAPI",
-        reason=LOG_CAPABILITY_REASON,
-        fastapi_source="fastapi/app/api/v1/system/log_routes/analytics.py",
-        fastapi_snippets=frozenset(("@router.get(", '"/visit-trend"', "system:logs:query")),
-        django_absent_source="backend/drf_admin/apps/system/urls.py",
-        django_forbidden_snippets=frozenset(("logs", "system/logs")),
-    ),
-    ApiCapabilityContract(
-        key="system_logs_visit_stats",
-        method="GET",
-        path="/api/v1/system/logs/visit-stats",
-        owner_backend="FastAPI",
-        reason=LOG_CAPABILITY_REASON,
-        fastapi_source="fastapi/app/api/v1/system/log_routes/analytics.py",
-        fastapi_snippets=frozenset(("@router.get(", '"/visit-stats"', "system:logs:query")),
-        django_absent_source="backend/drf_admin/apps/system/urls.py",
-        django_forbidden_snippets=frozenset(("logs", "system/logs")),
-    ),
-    ApiCapabilityContract(
-        key="system_logs_delete",
-        method="DELETE",
-        path="/api/v1/system/logs/{ids}",
-        owner_backend="FastAPI",
-        reason=LOG_CAPABILITY_REASON,
-        fastapi_source="fastapi/app/api/v1/system/log_routes/mutation.py",
-        fastapi_snippets=frozenset(("@router.delete(", '"/{ids}"', "system:logs:delete")),
-        django_absent_source="backend/drf_admin/apps/system/urls.py",
-        django_forbidden_snippets=frozenset(("logs", "system/logs")),
-    ),
-    ApiCapabilityContract(
-        key="system_logs_clear",
-        method="DELETE",
-        path="/api/v1/system/logs/clear/{days}",
-        owner_backend="FastAPI",
-        reason=LOG_CAPABILITY_REASON,
-        fastapi_source="fastapi/app/api/v1/system/log_routes/mutation.py",
-        fastapi_snippets=frozenset(("@router.delete(", '"/clear/{days}"', "system:logs:delete")),
-        django_absent_source="backend/drf_admin/apps/system/urls.py",
-        django_forbidden_snippets=frozenset(("logs", "system/logs")),
-    ),
-)
+# 操作日志已在 Django 与 FastAPI 双实现，不再属于单后端独占能力，目录暂为空。
+# 该机制保留用于登记未来可能出现的单后端独占 API 能力。
+API_CAPABILITY_CONTRACTS: tuple[ApiCapabilityContract, ...] = ()
 
 
 def iter_api_capability_contracts() -> tuple[ApiCapabilityContract, ...]:
