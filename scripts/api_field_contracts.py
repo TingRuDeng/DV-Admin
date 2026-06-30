@@ -163,6 +163,34 @@ API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
         django_source="drf_admin.apps.system.serializers.notices.NoticesSerializer",
         fastapi_source="app.schemas.system_notice.NoticePageOut",
     ),
+    FieldContract(
+        key="logs_out",
+        canonical=frozenset(
+            {
+                "browser",
+                "createdAt",
+                "errorMsg",
+                "executionTime",
+                "id",
+                "ip",
+                "method",
+                "name",
+                "operation",
+                "os",
+                "path",
+                "queryParams",
+                "requestBody",
+                "responseBody",
+                "responseStatus",
+                "status",
+                "updatedAt",
+                "userId",
+                "username",
+            }
+        ),
+        django_source="drf_admin.apps.system.serializers.logs.OperationLogSerializer",
+        fastapi_source="app.schemas.system_log.OperationLogOut",
+    ),
 )
 
 ENDPOINT_FIELD_CONTRACTS: dict[str, str] = {
@@ -191,9 +219,10 @@ ENDPOINT_FIELD_CONTRACTS: dict[str, str] = {
     "notices_page": "notices_page",
     "notices_create": "notices_page",
     "notices_update": "notices_page",
+    "logs_page": "logs_out",
 }
 
-FIELD_CONTRACT_EXEMPT_ENDPOINTS = frozenset({"auth_login", "files_upload", "logs_page"})
+FIELD_CONTRACT_EXEMPT_ENDPOINTS = frozenset({"auth_login", "files_upload"})
 
 
 def iter_api_field_contracts() -> tuple[FieldContract, ...]:

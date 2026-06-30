@@ -155,7 +155,7 @@ ai_summary:
 共享契约不是靠字段名已经完全一致来保证，而是靠前端真实依赖的公共语义来约束：
 
 - `scripts/api_contracts.py` 定义成功响应、错误响应和分页载荷的跨后端断言。
-- `scripts/api_capability_contracts.py` 定义单后端 API 能力边界契约，首批锁定操作日志为 FastAPI 独占能力。
+- `scripts/api_capability_contracts.py` 定义单后端 API 能力边界契约；操作日志已双实现后目录暂为空，机制保留用于登记未来可能出现的单后端独占能力。
 - `scripts/api_endpoint_contracts.py` 定义关键端点契约目录，锁定路径、方法、权限、分页和关键字段。
 - `scripts/api_field_contracts.py` 定义首批响应字段契约目录，锁定已登记的 Django/FastAPI 字段漂移面。
 - `scripts/api_field_contract_validation.py` 校验字段来源类、读端点字段契约覆盖关系和 `converge` 收敛债务文档登记。
@@ -433,7 +433,7 @@ GET    /api/v1/system/notices/my-page/       # 我的通知，支持 pageNum/pag
 
 ### 操作日志
 
-**FastAPI 与前端管理页（当前 FastAPI 独有）：**
+**Django & FastAPI 与前端管理页：**
 ```
 GET    /api/v1/system/logs/page                    # 日志分页，支持 pageNum/pageSize/operation/startTime/endTime
 GET    /api/v1/system/logs/visit-trend             # 访问趋势
@@ -442,11 +442,11 @@ DELETE /api/v1/system/logs/{ids}                   # 删除日志
 DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
 ```
 
-**Django 当前状态：**
-- `backend/drf_admin/apps/system/urls.py` 当前未注册操作日志管理路由。
-- Django `OperationLogMiddleware` 当前仅输出日志文件，不提供 `OperationLog` 数据库模型或可查询审计日志 API。
-- 因此前端日志管理页当前依赖 FastAPI 实现；当前前端会在日志分页接口返回 404/405 时显示“后端未提供可查询操作日志能力”的不可用提示，其他错误仍按真实请求失败处理。
-- 是否补 Django `OperationLog` 模型、迁移、路由和权限需按独立功能计划处理。
+**双实现说明：**
+- 两套后端均提供 `OperationLog` 模型、写操作落库中间件与上述查询/删除路由，前端日志管理页在两端均可用。
+- 写操作（POST/PUT/PATCH/DELETE）由请求日志中间件落库；GET 读请求不落库，避免审计表被轮询淹没。
+- 请求体落库前会掩码 `password/token/secret/key/authorization` 等敏感字段。
+- Django 权限码 `system:logs:query` / `system:logs:delete` 与 FastAPI 一致；`/logs/page` 列表项字段集合由双后端字段契约 `logs_out` 锁定。
 
 ---
 

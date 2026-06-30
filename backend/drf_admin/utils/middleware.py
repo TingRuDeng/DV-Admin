@@ -3,6 +3,7 @@
 import json
 import logging
 import re
+import time
 from typing import Any
 
 from django.http import HttpRequest, HttpResponse
@@ -17,6 +18,8 @@ from drf_admin.utils.request_id import get_request_id
 
 SENSITIVE_KEYWORDS = ["password", "token", "secret", "key", "authorization"]
 MAX_LOG_LENGTH = 4096
+# 只持久化写操作，避免 GET 轮询淹没审计表
+PERSISTED_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 
 
 def mask_sensitive_data(data: Any, depth: int = 0) -> Any:
@@ -62,7 +65,9 @@ class OperationLogMiddleware:
 
         request_body = mask_sensitive_data(request_body)
 
+        start = time.perf_counter()
         response = self.get_response(request)
+        execution_time = int((time.perf_counter() - start) * 1000)
 
         try:
             response_body = self._extract_response_body(response)
@@ -89,7 +94,49 @@ class OperationLogMiddleware:
         else:
             logger.info(log_info)
 
+        self._persist_operation_log(request, response, request_body, request_ip, execution_time)
+
         return response
+
+    def _persist_operation_log(
+        self,
+        request: HttpRequest,
+        response: HttpResponse,
+        request_body: Any,
+        request_ip: str,
+        execution_time: int,
+    ) -> None:
+        """将写操作落库到 OperationLog；任何失败都不得影响主请求。"""
+        if request.method not in PERSISTED_METHODS:
+            return
+        if not request.path.startswith("/api/"):
+            return
+        try:
+            from drf_admin.apps.system.models import OperationLog
+
+            user = getattr(request, "user", None)
+            authenticated = bool(user and getattr(user, "is_authenticated", False))
+            user_agent = getattr(request, "user_agent", None)
+            browser = getattr(getattr(user_agent, "browser", None), "family", "") or ""
+            os_family = getattr(getattr(user_agent, "os", None), "family", "") or ""
+
+            OperationLog.objects.create(
+                user_id=getattr(user, "id", None) if authenticated else None,
+                username=getattr(user, "username", "") if authenticated else "",
+                name=getattr(user, "name", "") if authenticated else "",
+                method=request.method,
+                path=request.path[:500],
+                query_params=self._truncate_log(dict(request.GET)),
+                request_body=self._truncate_log(request_body),
+                response_status=response.status_code,
+                ip=(request_ip or "")[:50],
+                browser=browser[:100],
+                os=os_family[:100],
+                execution_time=execution_time,
+                status=1 if response.status_code < 400 else 0,
+            )
+        except Exception as exc:  # noqa: BLE001  审计落库失败不能影响业务请求
+            logging.error(f"操作日志落库失败: {exc}, 请求URL：{request.path}")
 
     def _parse_request_body(self, request: HttpRequest) -> dict:
         """解析请求体"""

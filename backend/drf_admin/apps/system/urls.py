@@ -1,7 +1,7 @@
 
 from django.urls import include, path
 
-from drf_admin.apps.system.views import departments, dicts, menus, notices, roles, users
+from drf_admin.apps.system.views import departments, dicts, logs, menus, notices, roles, users
 from drf_admin.utils import routers
 
 router = routers.AdminRouter()
@@ -30,6 +30,13 @@ urlpatterns = [
     })),  # 更新或删除通知公告
     # path('dept/options/', departments.DepartmentsTreeViewSet.as_view()),  # 部门树状列表
     path('roles/<int:pk>/menu-ids/', roles.RoleMenuIdsAPIView.as_view()),  # 角色菜单ID列表
+
+    # 操作日志（与 FastAPI 对齐；显式路径需先于 logs/<ids> 注册）
+    path('logs/page', logs.LogPageAPIView.as_view()),  # 操作日志分页
+    path('logs/visit-trend', logs.VisitTrendAPIView.as_view()),  # 访问趋势
+    path('logs/visit-stats', logs.VisitStatsAPIView.as_view()),  # 访问统计
+    path('logs/clear/<int:days>', logs.LogClearAPIView.as_view()),  # 清理历史日志
+    path('logs/<str:ids>', logs.LogDeleteAPIView.as_view()),  # 批量删除日志
 
     path('', include(router.urls)),
 ]
