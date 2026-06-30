@@ -87,6 +87,21 @@ export interface UserInfo {
   /** 头像URL */
   avatar?: string;
 
+  /** 部门名称 */
+  deptName?: string;
+
+  /** 邮箱 */
+  email?: string;
+
+  /** 性别 */
+  gender?: number;
+
+  /** 手机号 */
+  mobile?: string;
+
+  /** 角色名称 */
+  roleNames?: string;
+
   /** 角色 */
   roles: string[];
 

@@ -24,6 +24,7 @@ MENU_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         path="/api/v1/system/menus/",
         auth_required=True,
         request_fields=("name", "type"),
+        response_fields=("id", "name", "type"),
         permissions=("system:permissions:add",),
         evidence=(
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("menus", "MenusViewSet")),
@@ -37,6 +38,7 @@ MENU_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         method="PUT",
         path="/api/v1/system/menus/{id}/",
         auth_required=True,
+        response_fields=("id", "name", "type"),
         permissions=("system:permissions:edit",),
         evidence=(
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("menus", "MenusViewSet")),

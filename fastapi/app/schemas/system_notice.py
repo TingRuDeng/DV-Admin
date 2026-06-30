@@ -59,10 +59,12 @@ class NoticePageOut(BaseSchema):
     type: int = Field(default=0, description="类型")
     level: str = Field(default="L", description="级别")
     target_type: int = Field(default=1, description="目标类型(1:全体;2:指定)")
+    target_user_ids: list[int] = Field(default=[], description="目标用户ID列表")
     publisher_id: int | None = Field(default=None, description="发布人ID")
     publisher_name: str = Field(default="", description="发布人名称")
     publish_status: int = Field(default=0, description="发布状态")
     create_time: datetime | None = Field(default=None, description="创建时间")
+    update_time: datetime | None = Field(default=None, description="更新时间")
     publish_time: datetime | None = Field(default=None, description="发布时间")
     revoke_time: datetime | None = Field(default=None, description="撤回时间")
 

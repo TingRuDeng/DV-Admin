@@ -58,6 +58,7 @@ class UserOut(TimestampSchema):
     is_active: int = Field(default=1, description="是否激活")
     dept_id: int | None = Field(default=None, description="部门ID")
     dept_name: str | None = Field(default=None, description="部门名称")
+    roles: list[int] = Field(default=[], description="角色ID列表")
     role_names: str | None = Field(default=None, description="角色名称")
 
     @field_validator("role_names", mode="before")

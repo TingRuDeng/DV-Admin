@@ -83,6 +83,22 @@ class TestDictServiceCreateItem:
         assert result.value == item_data.value
         assert result.status == 1
 
+    @pytest.mark.asyncio
+    async def test_create_item_preserves_tag_type(self, db, test_dict_data_for_service):
+        """测试创建字典项时保留标签类型。"""
+        item_data = DictItemCreate(
+            label=f"标签类型项_{uuid.uuid4().hex[:8]}",
+            value=f"tag_value_{uuid.uuid4().hex[:8]}",
+            status=1,
+            tag_type="success",
+            dict_data_id=test_dict_data_for_service.id,
+        )
+
+        result = await dict_service.create_item(test_dict_data_for_service.id, item_data)
+
+        assert result.tag_type == "success"
+        assert result.model_dump(by_alias=True)["tagType"] == "success"
+
 
 class TestDictServiceUpdateItem:
     """测试更新字典项。"""

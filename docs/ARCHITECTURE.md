@@ -150,7 +150,7 @@ frontend/src/
 - `UnoCSS` 主要用于布局和局部原子样式，共享视觉皮肤统一放在 `skins/*`
 - `_minimal-saas.scss` 仅作为未迁移页面的兼容层，不再作为新增样式的主入口
 - `components/CURD` 作为历史兼容层保留；新页面/重构页面统一使用 `ProSearch`、`ProTable`、`ProFormDrawer`
-- `ProTable` 支持受控模式与 `request(params)=>{list,total}` 请求驱动模式，分页参数统一为 `pageNum/pageSize`
+- `ProTable` 支持受控模式与 `request(params)=>{list,total}` 请求驱动模式，对外分页参数统一为 `pageNum/pageSize`
 - 页面层（`src/views`）统一约束为 `ProTable(request)` 用法；受控模式仅作为组件层复用能力保留
 - 系统页 `requestTableData` 统一通过 `utils/pro-table-request.ts`（`createPageRequest` / `createListRequest`）接入，避免重复手写分页映射
 

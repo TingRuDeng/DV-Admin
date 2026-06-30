@@ -55,6 +55,17 @@ class TestMenuServiceGetTree:
         result = await menu_service.get_tree()
         assert len(result) >= 1
 
+    @pytest.mark.asyncio
+    async def test_get_tree_includes_label_children_and_parent_id(self, db, test_menus_for_service):
+        """菜单树输出必须包含树组件字段和统一父级 ID 字段。"""
+        result = await menu_service.get_tree()
+        catalog = next(item for item in result if item.id == test_menus_for_service["catalog"].id)
+        child = next(item for item in catalog.children if item.id == test_menus_for_service["menu"].id)
+
+        assert catalog.label == catalog.name
+        assert isinstance(catalog.children, list)
+        assert child.parent_id == catalog.id
+
 
 class TestMenuServiceGetOptions:
     """测试获取菜单选项"""
@@ -76,6 +87,7 @@ class TestMenuServiceGet:
         result = await menu_service.get(menu.id)
         assert result.id == menu.id
         assert result.name == menu.name
+        assert result.parent_id == test_menus_for_service["catalog"].id
 
     @pytest.mark.asyncio
     async def test_get_nonexistent(self, db):

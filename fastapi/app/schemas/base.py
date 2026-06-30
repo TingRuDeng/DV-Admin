@@ -7,7 +7,7 @@
 from datetime import datetime
 from typing import Generic, List, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 from app.core.error_codes import SERVER_ERROR_CODE, SUCCESS_CODE
@@ -133,3 +133,24 @@ class TimestampSchema(BaseSchema):
     id: int = Field(description="ID")
     created_at: datetime = Field(description="创建时间")
     updated_at: datetime = Field(description="更新时间")
+
+
+class SharedTimestampSchema(BaseSchema):
+    """
+    共享业务资源时间戳 Schema
+
+    Django 对外经 camel case 中间件输出 createTime/updateTime。
+    FastAPI 共享资源使用该基类对齐外部契约，同时继续接受内部 created_at/updated_at。
+    """
+
+    id: int = Field(description="ID")
+    create_time: datetime = Field(
+        description="创建时间",
+        validation_alias=AliasChoices("create_time", "created_at", "createTime", "createdAt"),
+        serialization_alias="createTime",
+    )
+    update_time: datetime = Field(
+        description="更新时间",
+        validation_alias=AliasChoices("update_time", "updated_at", "updateTime", "updatedAt"),
+        serialization_alias="updateTime",
+    )

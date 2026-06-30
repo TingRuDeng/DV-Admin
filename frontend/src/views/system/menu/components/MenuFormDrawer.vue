@@ -12,9 +12,9 @@
     @submit="handleSubmitWrapper"
     @close="handleClose"
   >
-    <el-form-item label="父级菜单" prop="parent">
+    <el-form-item label="父级菜单" prop="parentId">
       <el-tree-select
-        v-model="formData.parent"
+        v-model="formData.parentId"
         placeholder="选择上级菜单"
         :data="menuOptions"
         node-key="id"
@@ -129,7 +129,7 @@ const dialogState = reactive({
 const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "600px" : "90%"));
 
 const rules: FormRules = {
-  parent: [{ required: true, message: "请选择父级菜单", trigger: "blur" }],
+  parentId: [{ required: true, message: "请选择父级菜单", trigger: "blur" }],
   name: [{ required: true, message: "请输入菜单名称", trigger: "blur" }],
   type: [{ required: true, message: "请选择菜单类型", trigger: "blur" }],
   routeName: [{ required: true, message: "请输入路由名称", trigger: "blur" }],
@@ -141,7 +141,7 @@ const rules: FormRules = {
 function createDefaultMenuForm(): MenuForm {
   return {
     id: undefined,
-    parent: "0",
+    parentId: "0",
     visible: 1,
     sort: 1,
     type: "MENU",
@@ -159,7 +159,7 @@ async function loadMenuOptions() {
 async function openCreate(parent?: string) {
   formData.value = {
     ...createDefaultMenuForm(),
-    parent: parent || "0",
+    parentId: parent || "0",
   };
   initialMenuFormData.value = { ...formData.value };
   dialogState.title = "新增菜单";
@@ -173,8 +173,8 @@ async function openEdit(menuId: string) {
   dialogState.visible = true;
   await loadMenuOptions();
   const data = await MenuAPI.getFormData(menuId);
-  if (data.parent === null || data.parent === undefined) {
-    data.parent = "0";
+  if (data.parentId === null || data.parentId === undefined) {
+    data.parentId = "0";
   }
   initialMenuFormData.value = { ...data };
   formData.value = data;
@@ -206,10 +206,10 @@ function submitMenuForm() {
   const menuId = formData.value.id;
   const submitData = { ...formData.value };
 
-  if (submitData.parent === "0") {
-    delete submitData.parent;
+  if (submitData.parentId === "0") {
+    delete submitData.parentId;
   }
-  if (menuId && submitData.parent === menuId) {
+  if (menuId && submitData.parentId === menuId) {
     ElMessage.error("父级菜单不能为当前菜单");
     formLoading.value = false;
     return;

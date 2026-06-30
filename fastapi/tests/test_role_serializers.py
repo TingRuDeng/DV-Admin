@@ -29,7 +29,7 @@ class TestRoleSerializers:
             desc="输出描述",
         )
 
-        result = build_role_out(role)
+        result = build_role_out(role, [5, 4])
 
         assert result.id == role.id
         assert result.name == role.name
@@ -38,6 +38,7 @@ class TestRoleSerializers:
         assert result.sort == 7
         assert result.is_default == 1
         assert result.desc == "输出描述"
+        assert result.permissions == [5, 4]
 
     @pytest.mark.asyncio
     async def test_build_role_with_permissions_keeps_permission_ids(self, db):

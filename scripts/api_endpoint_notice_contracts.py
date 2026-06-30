@@ -28,6 +28,7 @@ NOTICE_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         path="/api/v1/system/notices",
         auth_required=True,
         request_fields=("title", "content", "type", "level", "targetType"),
+        response_fields=("id", "title", "content"),
         permissions=("system:notices:add",),
         evidence=(
             ContractEvidence("fastapi/app/api/v1/system/notices.py", ("@router.post", "system:notices:add")),
@@ -40,6 +41,7 @@ NOTICE_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         method="PUT",
         path="/api/v1/system/notices/{id}",
         auth_required=True,
+        response_fields=("id", "title", "content"),
         permissions=("system:notices:edit",),
         evidence=(
             ContractEvidence("fastapi/app/api/v1/system/notices.py", ("@router.put", "system:notices:edit")),

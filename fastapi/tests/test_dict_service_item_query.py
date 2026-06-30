@@ -23,6 +23,18 @@ class TestDictServiceGetItemPage:
         assert result.page_size == 10
 
     @pytest.mark.asyncio
+    async def test_get_item_page_includes_dict_name(self, db, test_dict_data_for_service, test_dict_item_for_service):
+        """字典项分页输出必须包含归属字典名称。"""
+        result = await dict_service.get_item_page(
+            page=1,
+            page_size=10,
+            dict_id=test_dict_data_for_service.id,
+        )
+
+        page_item = next(item for item in result.list if item.id == test_dict_item_for_service.id)
+        assert page_item.dict_name == test_dict_data_for_service.name
+
+    @pytest.mark.asyncio
     async def test_get_item_page_with_dict_id(self, db, test_dict_data_for_service, test_dict_item_for_service):
         """测试按字典类型 ID 过滤。"""
         result = await dict_service.get_item_page(

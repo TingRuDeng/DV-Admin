@@ -25,6 +25,20 @@ class TestRoleServiceGetPage:
         assert result.page_size == 10
 
     @pytest.mark.asyncio
+    async def test_get_page_includes_permissions(self, db, test_role_for_service, test_permission_for_service):
+        """角色分页输出必须包含权限 ID 列表。"""
+        await test_role_for_service.permissions.add(test_permission_for_service)
+
+        result = await role_service.get_page(
+            page=1,
+            page_size=10,
+            search=test_role_for_service.name,
+        )
+
+        page_role = next(item for item in result.list if item.id == test_role_for_service.id)
+        assert page_role.permissions == [test_permission_for_service.id]
+
+    @pytest.mark.asyncio
     async def test_get_page_with_search(self, db, test_role_for_service):
         """测试带搜索条件的分页查询。"""
         result = await role_service.get_page(

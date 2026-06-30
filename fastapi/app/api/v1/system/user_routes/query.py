@@ -1,8 +1,9 @@
 """用户查询 API 路由。"""
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
 
 from app.api.deps import require_permissions
+from app.api.pagination import PaginationParams, page_params
 from app.db.models.oauth import Users
 from app.schemas.base import PageResult, ResponseModel
 from app.schemas.system import UserFormOut, UserOut
@@ -20,7 +21,7 @@ router = APIRouter()
 分页查询用户列表，支持多条件筛选和搜索。
 
 ### 请求参数
-- `page` (可选): 页码，默认 1，最小值 1
+- `pageNum` (可选): 页码，默认 1，最小值 1
 - `pageSize` (可选): 每页数量，默认 10，范围 1-100
 - `search` (可选): 搜索关键词，匹配用户名、姓名、邮箱、手机号
 - `isActive` (可选): 状态筛选，1: 启用, 0: 禁用
@@ -93,16 +94,15 @@ router = APIRouter()
 )
 async def get_users(
     request: Request,
-    page: int = Query(1, ge=1, description="页码"),
-    page_size: int = Query(10, alias="pageSize", ge=1, le=100, description="每页数量"),
+    pagination: PaginationParams = Depends(page_params),
     search: str | None = Query(None, description="搜索关键词"),
     is_active: int | None = Query(None, description="状态"),
     dept: int | None = Query(None, description="部门ID"),
     current_user: Users = require_permissions("system:users:query"),
 ) -> ResponseModel[PageResult[UserOut]]:
     result = await user_service.get_page(
-        page=page,
-        page_size=page_size,
+        page=pagination.page,
+        page_size=pagination.page_size,
         search=search,
         is_active=is_active,
         dept_id=dept,

@@ -3,9 +3,10 @@
 """
 from datetime import datetime
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
 
 from app.api.deps import require_permissions
+from app.api.pagination import PaginationParams, page_params
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
 from app.schemas.system import OperationLogPageResult
@@ -24,7 +25,7 @@ router = APIRouter()
 分页查询系统操作日志，支持多条件筛选。
 
 ### 请求参数
-- `page` (可选): 页码，默认 1，最小值 1
+- `pageNum` (可选): 页码，默认 1，最小值 1
 - `pageSize` (可选): 每页数量，默认 10，范围 1-100
 - `username` (可选): 用户名，模糊匹配
 - `operation` (可选): 操作描述，模糊匹配
@@ -39,8 +40,7 @@ router = APIRouter()
 )
 async def get_log_page(
     request: Request,
-    page: int = Query(1, ge=1, description="页码"),
-    page_size: int = Query(10, alias="pageSize", ge=1, le=100, description="每页数量"),
+    pagination: PaginationParams = Depends(page_params),
     username: str | None = Query(None, description="用户名"),
     operation: str | None = Query(None, description="操作描述"),
     method: str | None = Query(None, description="请求方法"),
@@ -50,8 +50,8 @@ async def get_log_page(
     current_user: Users = require_permissions("system:logs:query"),
 ):
     data = await log_service.get_page(
-        page=page,
-        page_size=page_size,
+        page=pagination.page,
+        page_size=pagination.page_size,
         username=username,
         operation=operation,
         method=method,

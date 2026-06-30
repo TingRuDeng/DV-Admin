@@ -158,6 +158,8 @@ ai_summary:
 - `scripts/api_capability_contracts.py` 定义单后端 API 能力边界契约，首批锁定操作日志为 FastAPI 独占能力。
 - `scripts/api_endpoint_contracts.py` 定义关键端点契约目录，锁定路径、方法、权限、分页和关键字段。
 - `scripts/api_field_contracts.py` 定义首批响应字段契约目录，锁定已登记的 Django/FastAPI 字段漂移面。
+- `scripts/api_field_contract_validation.py` 校验字段来源类、读端点字段契约覆盖关系和 `converge` 收敛债务文档登记。
+- `scripts/api_frontend_field_contracts.py` 定义前端 API 类型字段契约目录，锁定前端已声明的高价值字段必须挂靠后端字段契约。
 - `scripts/api_error_codes.py` 定义共享错误码契约目录，锁定前端刷新逻辑和双后端错误语义。
 - `backend/drf_admin/utils/test_response_contract.py` 覆盖 Django 响应中间件的成功、错误和幂等包裹。
 - `backend/drf_admin/utils/test_api_capability_contracts.py` 覆盖 Django 缺席能力边界登记。
@@ -166,6 +168,7 @@ ai_summary:
 - `fastapi/tests/test_api_capability_contracts.py` 覆盖 FastAPI 独占能力路由源码证据。
 - `fastapi/tests/test_api_field_contracts.py` 覆盖 FastAPI schema 对外字段集合。
 - `frontend/src/utils/__tests__/api-contract.test.ts` 覆盖前端对 Django `msg/errors` 与 FastAPI `message` 的兼容读取。
+- `frontend/src/api/__tests__/api-frontend-field-contract-governance.spec.ts` 覆盖前端字段契约文件入口和首批 API 类型文件登记。
 - `scripts/validate_api_contracts.py` 校验契约定义、测试文件和本文档入口是否同步。
 
 共享错误码契约目录只记录当前前端与双后端共同依赖的公共错误语义。登录失败、验证码失败等普通业务失败使用 `40000`；只有 Access Token 无效或过期才能使用 `40001`，避免前端误触发 token 刷新流程。
@@ -225,7 +228,8 @@ POST /api/v1/oauth/refresh-token/
 
 **请求方式：**
 - Django：支持查询参数 `?refreshToken=token`，也兼容请求体 `refreshToken/refresh`。
-- FastAPI：当前只接收查询参数 `?refreshToken=token`。
+- FastAPI：从请求体读取 `refreshToken`（`RefreshTokenRequest`，无查询参数）。
+- 前端 `auth-api.ts` 统一以请求体 `{ refreshToken }` 调用，与两套后端均兼容。
 
 **响应：**
 ```json
@@ -418,10 +422,12 @@ PUT    /api/v1/system/notices/{id}/revoke    # 撤回通知
 GET    /api/v1/system/notices/my-page/       # 我的通知
 ```
 
-**Django 当前薄实现保留的我的通知接口：**
+**我的通知接口（Django & FastAPI）：**
 ```
-GET    /api/v1/system/notices/my-page/       # 我的通知
+GET    /api/v1/system/notices/my-page/       # 我的通知，支持 pageNum/pageSize/title/isRead
 ```
+
+> Django 返回当前用户可见的已发布通知（全体通知 + 指定到该用户的通知），分页结构与 FastAPI 对齐为 `list/total`。差异：Django 当前无 `NoticeReads` 模型，不跟踪每用户已读状态，`isRead` 统一返回 0；按 `isRead=1` 过滤时返回空列表。FastAPI 通过 `NoticeReads` 返回真实已读状态。
 
 ---
 
@@ -429,7 +435,7 @@ GET    /api/v1/system/notices/my-page/       # 我的通知
 
 **FastAPI 与前端管理页（当前 FastAPI 独有）：**
 ```
-GET    /api/v1/system/logs/page                    # 日志分页，支持 page/pageSize/operation/startTime/endTime
+GET    /api/v1/system/logs/page                    # 日志分页，支持 pageNum/pageSize/operation/startTime/endTime
 GET    /api/v1/system/logs/visit-trend             # 访问趋势
 GET    /api/v1/system/logs/visit-stats             # 访问统计
 DELETE /api/v1/system/logs/{ids}                   # 删除日志
