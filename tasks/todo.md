@@ -8,6 +8,9 @@
 
 ## 最近完成
 
+- [x] 操作日志前端清理已通过 PR #319 合并：删除已失效的 404/405「切到 FastAPI」降级提示、`logCapability.ts` 及其治理测试，移除 `log-api.ts` 中无人调用且与两端响应不匹配的死方法 `getVisitTrend/getVisitStats`；前端 `quality`（90 files/260 tests）、`build` 与契约/路由校验通过。
+- [x] 初始化种子缺失/死数据与权限码漂移已通过 PR #318 合并：种子补日志管理、通知公告菜单及 `system:logs:*`/`system:notices:*` 权限并分配 admin（功能此前不可达），删除 21 条死测试种子记录，FastAPI `/dicts/{id}/items`、`/users/options`、`/users/{id}` 的 `:view` 权限码对齐为已存在的 `:query`；真实 `loaddata`、Django/FastAPI 门禁与五个根校验器通过。
+- [x] 双后端操作日志审计能力已通过 PR #317 合并：修复 FastAPI「有接口但永不落库」与 Django「无模型/路由」的双端不可用，两端中间件对写操作落库（敏感字段掩码、失败不阻断），Django 新增 `OperationLog` 模型+迁移+查询/统计/删除路由，新增双后端字段契约 `logs_out`（两端 19 个 key 一致），操作日志移出能力豁免；Django 133 passed、FastAPI 595 passed、覆盖率 88.45%。
 - [x] FastAPI 字典项 `tagType` 字段收敛已完成本地验证：FastAPI `DictItems` 新增 `tag_type` 物理字段，`DictItemCreate/Update/Out` 支持 `tagType/tag_type` 输入与 `tagType` 输出，字典项创建、更新、缓存和 Django fixture 导入路径均保留标签类型；`dict_items_out.tagType` 已从 `converge` 技术债移入共享字段契约，`docs/DATABASE_SCHEMA.md` 与 `docs/TECH_DEBT.md` 已同步。验证通过：RED 目标测试先因 `DictItemOut` 缺少 `tag_type` 失败，GREEN 后目标测试、API/文档/模型契约校验、Django/FastAPI 字段契约测试、FastAPI `make quality`（583 passed，覆盖率 88.38%）和 `git diff --check`。
 - [x] API 字段契约覆盖与收敛债务看板已完成本地验证：补齐 `depts_out`、`notices_page`、`roles_with_permissions` 字段契约，新增 `users_form` 与 `roles_form` 读端点契约，增加读端点到字段契约的覆盖关系，拆出 `scripts/api_field_contract_validation.py` 校验字段来源、读端点覆盖和 `converge` 技术债登记；`docs/TECH_DEBT.md` 已明确说明 green 只代表漂移已登记，不代表双后端行为等价。验证通过：脚本编译、文档校验、API 契约校验、模型契约校验、Django/FastAPI 字段契约目标测试、前端 `quality`、前端 `build` 和 `git diff --check`。
 - [x] 前端 API 字段类型契约治理一期已完成本地验证：新增 `scripts/api_frontend_field_contracts.py`，首批将用户、角色、菜单、部门、字典和字典项前端 API 类型字段挂靠到既有后端字段契约；`scripts/validate_api_contracts.py` 已校验前端字段契约自洽、来源文件存在和 TypeScript 字段声明；前端新增静态治理测试锁定契约入口和首批 API 文件登记；文档和技术债已同步。验证通过：脚本编译、文档校验、API 契约校验、模型契约校验、前端目标测试、前端 `quality`、前端 `build` 和 `git diff --check`。
