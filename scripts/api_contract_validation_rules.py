@@ -96,8 +96,8 @@ REQUIRED_TEST_SNIPPETS = {
     "backend/drf_admin/utils/test_api_capability_contracts.py": (
         "iter_api_capability_contracts",
         "assert_api_capability_contract_catalog",
-        "FastAPI 独占",
-        "OperationLog",
+        "system_logs_page",
+        "双实现",
     ),
     "backend/drf_admin/utils/runtime_api_contracts/helpers.py": (
         "iter_critical_endpoint_contracts",
@@ -153,7 +153,7 @@ REQUIRED_TEST_SNIPPETS = {
         "iter_api_capability_contracts",
         "assert_api_capability_contract_catalog",
         "fastapi_snippets",
-        "真实路由源码",
+        "证据片段",
     ),
     "fastapi/tests/runtime_api_contracts/helpers.py": (
         "iter_critical_endpoint_contracts",

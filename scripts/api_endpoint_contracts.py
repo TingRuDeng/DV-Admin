@@ -184,6 +184,14 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
                 ("/page", "system:logs:query", "page_params", 'alias="startTime"'),
             ),
             ContractEvidence("fastapi/app/api/pagination.py", ("page_params", 'alias="pageNum"', 'alias="pageSize"')),
+            ContractEvidence(
+                "backend/drf_admin/apps/system/urls.py",
+                ("logs/page", "LogPageAPIView"),
+            ),
+            ContractEvidence(
+                "backend/drf_admin/apps/system/views/logs.py",
+                ("system:logs:query", "page_num", "start_time"),
+            ),
             ContractEvidence("frontend/src/api/system/log-api.ts", ("getPage", "/api/system/logs")),
             ContractEvidence("docs/API_ENDPOINTS.md", ("GET    /api/v1/system/logs/page",)),
             ContractEvidence("fastapi/app/api/v1/README.md", ("GET /api/v1/system/logs/page",)),

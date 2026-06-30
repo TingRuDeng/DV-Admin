@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from drf_admin.utils.models import BaseModel
 
+from .models_log import OperationLog  # noqa: F401  注册操作日志模型
 from .models_notice import Notices  # noqa: F401  注册通知公告模型
 
 
