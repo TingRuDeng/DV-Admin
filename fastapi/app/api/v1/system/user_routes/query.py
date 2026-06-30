@@ -118,7 +118,7 @@ async def get_users(
 获取所有启用状态的用户列表，用于下拉选择框。
 
 ### 权限要求
-- 需要 `system:users:view` 权限
+- 需要 `system:users:query` 权限
 
 ### 响应数据
 返回用户选项列表，每个选项包含：
@@ -154,7 +154,7 @@ async def get_users(
 )
 async def get_user_options(
     request: Request,
-    current_user: Users = require_permissions("system:users:view"),
+    current_user: Users = require_permissions("system:users:query"),
 ) -> ResponseModel[list[dict]]:
     options = await user_service.get_options()
     return ResponseModel.success(data=options)
@@ -171,7 +171,7 @@ async def get_user_options(
 - `userId` (必填): 用户ID
 
 ### 权限要求
-- 需要 `system:users:view` 权限
+- 需要 `system:users:query` 权限
 
 ### 响应数据
 返回用户详细信息：
@@ -240,7 +240,7 @@ async def get_user_options(
 async def get_user(
     request: Request,
     user_id: int,
-    current_user: Users = require_permissions("system:users:view"),
+    current_user: Users = require_permissions("system:users:query"),
 ) -> ResponseModel[UserFormOut]:
     user = await user_service.get_form(user_id)
     return ResponseModel.success(data=user)
