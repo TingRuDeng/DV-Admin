@@ -1,0 +1,33 @@
+# 五类技术债顺序治理
+
+## 目标
+
+- 先提交 P2 文档事实修复，再依次推进 5 类值得优先处理的技术债。
+- 用可执行契约和目标测试降低文档漂移、双后端行为差异和运行时回归风险。
+
+## 非目标
+
+- 不为行数继续拆兼容层。
+- 不在没有慢查询证据前添加数据库索引。
+- 不在没有 PRD 前直接实现审计日志、批量任务和导入导出大功能。
+
+## 执行计划
+
+- [x] 阶段 0：提交 P2 操作日志双实现文档事实修复。
+- [x] 阶段 1：API 文档自动化 / 契约覆盖增强。
+- [ ] 阶段 2：错误处理统一。
+- [ ] 阶段 3：Django 测试覆盖补强。
+- [ ] 阶段 4：模型差异迁移边界收口。
+- [ ] 阶段 5：审计日志 UX、批量操作与导入导出状态 PRD。
+
+## 进度记录
+
+- 阶段 0：已提交 `docs: 修正操作日志双实现架构事实`。
+- 阶段 1：新增 `scripts/docs_fact_validation.py`，由 `scripts/validate_docs.py` 调用，禁止操作日志旧独占事实回流到文档或能力契约脚本；补充 `backend/drf_admin/utils/test_docs_validator_structure.py` 结构测试。
+
+## 验证结果
+
+- 阶段 1：
+  - `cd backend && uv run pytest drf_admin/utils/test_docs_validator_structure.py -q`：2 passed。
+  - `python3 scripts/validate_docs.py . --profile generic`：通过。
+  - `python3 -m py_compile scripts/validate_docs.py scripts/docs_fact_validation.py`：通过。
