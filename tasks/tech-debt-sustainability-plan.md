@@ -51,3 +51,18 @@
 - 阶段 5：
   - `python3 scripts/validate_docs.py . --profile generic`：通过。
   - `git diff --check`：通过。
+- 最终门禁：
+  - `python3 scripts/validate_docs.py . --profile generic`：通过。
+  - `python3 scripts/validate_api_contracts.py .`：通过。
+  - `python3 scripts/validate_model_contracts.py .`：通过。
+  - `git diff --check`：通过。
+  - `CI=true pnpm --dir frontend run quality`：90 files / 261 tests passed。
+  - `cd backend && uv run ruff check .`：通过。
+  - `cd backend && uv run pytest`：135 passed。
+  - `cd fastapi && make quality`：595 passed，覆盖率 88.41%。
+
+## Review 小结
+
+- 五类技术债按已确认顺序推进完成：文档事实守卫、错误码归一化、Django 行为级分页测试、模型旧结构哨兵、审计与任务状态 PRD。
+- 本轮没有引入数据库迁移或新运行时依赖；产品能力类事项仅形成 PRD，未提前编码。
+- 剩余风险主要是 PRD 中待确认的异步队列、任务保留时长、日志脱敏策略和重试粒度，需要在进入实现前由产品/维护者确认。
