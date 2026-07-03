@@ -6,9 +6,26 @@ from pathlib import Path
 
 from scripts.api_endpoint_contract_types import EndpointContract
 
-
 FASTAPI_ONLY_ENDPOINT_KEYS = {"files_upload", "files_delete"}
 DJANGO_ROUTER_RESOURCES = {"users", "roles", "menus", "dicts", "dict-items", "departments"}
+FASTAPI_ROUTE_BASES = {
+    "fastapi/app/api/v1/files/upload.py": "files",
+    "fastapi/app/api/v1/oauth/routes/login.py": "oauth",
+    "fastapi/app/api/v1/oauth/routes/menus.py": "oauth",
+    "fastapi/app/api/v1/oauth/routes/profile.py": "oauth",
+    "fastapi/app/api/v1/oauth/routes/session.py": "oauth",
+    "fastapi/app/api/v1/system/depts.py": "system/departments",
+    "fastapi/app/api/v1/system/dict_items.py": "system/dict-items",
+    "fastapi/app/api/v1/system/dicts.py": "system/dicts",
+    "fastapi/app/api/v1/system/log_routes/analytics.py": "system/logs",
+    "fastapi/app/api/v1/system/log_routes/mutation.py": "system/logs",
+    "fastapi/app/api/v1/system/log_routes/query.py": "system/logs",
+    "fastapi/app/api/v1/system/menus.py": "system/menus",
+    "fastapi/app/api/v1/system/notices.py": "system/notices",
+    "fastapi/app/api/v1/system/roles.py": "system/roles",
+    "fastapi/app/api/v1/system/user_routes/mutation.py": "system/users",
+    "fastapi/app/api/v1/system/user_routes/query.py": "system/users",
+}
 FASTAPI_SYSTEM_PREFIXES = {
     "users": 'prefix="/users"',
     "roles": 'prefix="/roles"',
@@ -45,21 +62,26 @@ def validate_django_contract_route(contract: EndpointContract, routes: dict[str,
     return [f"{contract.key}: Django 路由覆盖校验暂不支持路径 {contract.path}"]
 
 
-def validate_fastapi_contract_route(contract: EndpointContract, routes: dict[str, str]) -> list[str]:
+def validate_fastapi_contract_route(contract: EndpointContract, routes: dict[str, object]) -> list[str]:
     """校验单个端点在 FastAPI v1 router 树中有覆盖。"""
     route = normalized_contract_route(contract)
     if route.startswith("oauth/"):
-        return validate_fastapi_prefixed_route(contract, routes, "oauth")
-    if route.startswith("system/"):
+        issues = validate_fastapi_prefixed_route(contract, routes, "oauth")
+    elif route.startswith("system/"):
         route_tail = route.removeprefix("system/")
         resource = route_tail.split("/", 1)[0]
         expected_prefix = FASTAPI_SYSTEM_PREFIXES.get(resource)
-        if expected_prefix and expected_prefix in routes["system"]:
-            return []
-        return [f"{contract.key}: FastAPI system router 未覆盖资源前缀 {resource!r}"]
-    if route == "files" or route.startswith("files/"):
-        return validate_fastapi_prefixed_route(contract, routes, "files")
-    return [f"{contract.key}: FastAPI 路由覆盖校验暂不支持路径 {contract.path}"]
+        if expected_prefix and expected_prefix in str(routes["system"]):
+            issues = []
+        else:
+            issues = [f"{contract.key}: FastAPI system router 未覆盖资源前缀 {resource!r}"]
+    elif route == "files" or route.startswith("files/"):
+        issues = validate_fastapi_prefixed_route(contract, routes, "files")
+    else:
+        issues = [f"{contract.key}: FastAPI 路由覆盖校验暂不支持路径 {contract.path}"]
+    if issues:
+        return issues
+    return validate_fastapi_endpoint_route(contract, routes)
 
 
 def validate_django_oauth_route(
@@ -127,14 +149,25 @@ def is_django_detail_action_route(
 
 def validate_fastapi_prefixed_route(
     contract: EndpointContract,
-    routes: dict[str, str],
+    routes: dict[str, object],
     prefix_name: str,
 ) -> list[str]:
     """校验 FastAPI v1 总入口包含指定一级 router。"""
     expected = f"{prefix_name}.router"
-    if expected in routes["v1"]:
+    if expected in str(routes["v1"]):
         return []
     return [f"{contract.key}: FastAPI v1 router 未 include {expected}"]
+
+
+def validate_fastapi_endpoint_route(contract: EndpointContract, routes: dict[str, object]) -> list[str]:
+    """校验 FastAPI 具体 method/path，而不是只校验资源前缀。"""
+    endpoints = routes.get("fastapi_endpoints")
+    if not isinstance(endpoints, set):
+        return []
+    expected = (contract.method, normalized_contract_route(contract))
+    if expected in endpoints:
+        return []
+    return [f"{contract.key}: FastAPI 未覆盖具体端点 {contract.method} {expected[1]!r}"]
 
 
 def load_django_routes(root: Path) -> dict[str, object]:
@@ -150,11 +183,12 @@ def load_django_routes(root: Path) -> dict[str, object]:
     }
 
 
-def load_fastapi_routes(root: Path) -> dict[str, str]:
+def load_fastapi_routes(root: Path) -> dict[str, object]:
     """读取 FastAPI v1 和 system router 入口文本。"""
     return {
         "v1": read_text(root / "fastapi/app/api/v1/__init__.py"),
         "system": read_text(root / "fastapi/app/api/v1/system/__init__.py"),
+        "fastapi_endpoints": extract_fastapi_endpoints(root),
     }
 
 
@@ -164,7 +198,7 @@ def extract_django_path_routes(text: str) -> set[str]:
     for match in re.finditer(r"path\('([^']+)'", text):
         route = normalize_django_path(match.group(1))
         routes.add(route)
-        if "{ids}" in route:
+        if route.startswith("notices/") and "{ids}" in route:
             routes.add(route.replace("{ids}", "{id}"))
     return routes
 
@@ -197,6 +231,31 @@ def normalized_contract_route(contract: EndpointContract) -> str:
     return contract.path.removeprefix("/api/v1/").rstrip("/")
 
 
+def extract_fastapi_endpoints(root: Path) -> set[tuple[str, str]]:
+    """从已知 FastAPI 路由文件中提取 method/path 端点集合。"""
+    endpoints: set[tuple[str, str]] = set()
+    for relative_file, route_base in FASTAPI_ROUTE_BASES.items():
+        text = read_text(root / relative_file)
+        endpoints.update(extract_fastapi_file_endpoints(text, route_base))
+    return endpoints
+
+
+def extract_fastapi_file_endpoints(text: str, route_base: str) -> set[tuple[str, str]]:
+    """提取单个 FastAPI 路由文件里的装饰器端点。"""
+    endpoints: set[tuple[str, str]] = set()
+    pattern = r"@router\.(get|post|put|patch|delete)\(\s*(?:\n\s*)?['\"]([^'\"]*)['\"]"
+    for method, route_path in re.findall(pattern, text):
+        endpoints.add((method.upper(), normalize_fastapi_route(route_base, route_path)))
+    return endpoints
+
+
+def normalize_fastapi_route(route_base: str, route_path: str) -> str:
+    """组合 router 前缀与装饰器路径，并统一动态 ID 占位符。"""
+    parts = [part.strip("/") for part in (route_base, route_path) if part.strip("/")]
+    route = "/".join(parts)
+    return re.sub(r"\{[A-Za-z_]+_id\}", "{id}", route)
+
+
 def is_placeholder(segment: str) -> bool:
     """判断路径片段是否为端点契约占位符。"""
     return segment.startswith("{") and segment.endswith("}")
@@ -207,7 +266,10 @@ def load_endpoint_contracts(root: Path) -> tuple[EndpointContract, ...]:
     root_text = str(root)
     if root_text not in sys.path:
         sys.path.insert(0, root_text)
-    from scripts.api_contracts import assert_endpoint_contract_catalog, iter_critical_endpoint_contracts
+    from scripts.api_contracts import (
+        assert_endpoint_contract_catalog,
+        iter_critical_endpoint_contracts,
+    )
 
     assert_endpoint_contract_catalog()
     return iter_critical_endpoint_contracts()
