@@ -24,6 +24,15 @@ def test_cross_document_fact_validation_is_split_from_docs_cli():
     assert "FastAPI 独占日志模型" in fact_validator
 
 
+def test_api_route_coverage_validation_is_split_from_api_contract_cli():
+    """API 路由覆盖校验必须独立维护，避免契约 CLI 继续膨胀。"""
+    entrypoint = read_text("scripts/validate_api_contracts.py")
+    assert "from scripts.api_route_coverage_validation import validate_route_coverage" in entrypoint
+    assert "validate_route_coverage(root)" in entrypoint
+    assert "DJANGO_ROUTER_RESOURCES" not in entrypoint
+    assert (ROOT / "scripts/api_route_coverage_validation.py").exists()
+
+
 def read_text(relative_path: str) -> str:
     """读取仓库内文本文件。"""
     return (ROOT / relative_path).read_text(encoding="utf-8")
