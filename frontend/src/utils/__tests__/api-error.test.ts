@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ApiCodeEnum } from "@/enums/api/code-enum";
 import { getApiErrorMessage, normalizeApiErrorEnvelope } from "@/utils/api-error";
 
 describe("getApiErrorMessage", () => {
@@ -41,5 +42,14 @@ describe("getApiErrorMessage", () => {
       raw: payload,
     });
     expect(getApiErrorMessage(payload, "兜底错误")).toBe("用户名不能为空；密码不能为空");
+  });
+
+  it("normalizes numeric string code for shared auth error handling", () => {
+    expect(
+      normalizeApiErrorEnvelope({
+        code: "40001",
+        message: "token expired",
+      }).code
+    ).toBe(ApiCodeEnum.ACCESS_TOKEN_INVALID);
   });
 });

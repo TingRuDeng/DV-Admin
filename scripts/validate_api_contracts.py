@@ -20,6 +20,7 @@ from scripts.api_contract_validation_rules import (
     RUNTIME_CONTRACT_TEST_PATTERNS,
 )
 from scripts.api_field_contract_validation import validate_field_contracts, validate_frontend_field_contracts
+from scripts.api_route_coverage_validation import validate_route_coverage
 
 
 def validate(root: Path) -> list[str]:
@@ -63,6 +64,7 @@ def validate(root: Path) -> list[str]:
     issues.extend(validate_frontend_field_contracts(root))
     issues.extend(validate_api_capability_contracts(root))
     issues.extend(validate_error_code_contract(root))
+    issues.extend(validate_route_coverage(root))
     issues.extend(validate_runtime_contract_test_size(root))
     return issues
 

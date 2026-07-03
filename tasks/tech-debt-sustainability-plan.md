@@ -1,0 +1,68 @@
+# 五类技术债顺序治理
+
+## 目标
+
+- 先提交 P2 文档事实修复，再依次推进 5 类值得优先处理的技术债。
+- 用可执行契约和目标测试降低文档漂移、双后端行为差异和运行时回归风险。
+
+## 非目标
+
+- 不为行数继续拆兼容层。
+- 不在没有慢查询证据前添加数据库索引。
+- 不在没有 PRD 前直接实现审计日志、批量任务和导入导出大功能。
+
+## 执行计划
+
+- [x] 阶段 0：提交 P2 操作日志双实现文档事实修复。
+- [x] 阶段 1：API 文档自动化 / 契约覆盖增强。
+- [x] 阶段 2：错误处理统一。
+- [x] 阶段 3：Django 测试覆盖补强。
+- [x] 阶段 4：模型差异迁移边界收口。
+- [x] 阶段 5：审计日志 UX、批量操作与导入导出状态 PRD。
+
+## 进度记录
+
+- 阶段 0：已提交 `docs: 修正操作日志双实现架构事实`。
+- 阶段 1：新增 `scripts/docs_fact_validation.py`，由 `scripts/validate_docs.py` 调用，禁止操作日志旧独占事实回流到文档或能力契约脚本；补充 `backend/drf_admin/utils/test_docs_validator_structure.py` 结构测试。
+- 阶段 2：补充前端错误归一化测试，覆盖后端适配层返回数字字符串错误码时仍识别共享认证错误码；`frontend/src/utils/api-error.ts` 仅接受安全整数或整数字符串，避免 token 刷新分支因错误码类型漂移失效。
+- 阶段 3：在 Django 读接口运行时契约测试中补充用户分页第二页行为断言，确保 `pageNum=2&pageSize=1` 返回不同记录且 `total` 保持一致。
+- 阶段 4：新增 `scripts/model_legacy_schema_validation.py`，接入 `scripts/validate_model_contracts.py`，禁止旧 FastAPI 表名、旧 through 表和旧关联字段重新进入模型代码。
+- 阶段 5：新增 `tasks/audit-batch-import-export-prd.md`，明确审计日志详情、批量任务状态、导入导出任务化的范围、非目标、数据契约草案、分期计划和验收标准；`docs/TECH_DEBT.md` 已挂接该 PRD。
+
+## 验证结果
+
+- 阶段 1：
+  - `cd backend && uv run pytest drf_admin/utils/test_docs_validator_structure.py -q`：2 passed。
+  - `python3 scripts/validate_docs.py . --profile generic`：通过。
+  - `python3 -m py_compile scripts/validate_docs.py scripts/docs_fact_validation.py`：通过。
+- 阶段 2：
+  - RED：`CI=true pnpm --dir frontend run test:unit -- api-error`：新增用例先失败，`code` 收到 `undefined`。
+  - GREEN：`CI=true pnpm --dir frontend run test:unit -- api-error`：90 files / 261 tests passed。
+  - `python3 scripts/validate_api_contracts.py .`：通过。
+- 阶段 3：
+  - `cd backend && uv run pytest drf_admin/utils/runtime_api_contracts/test_read_contracts.py -q`：2 passed。
+  - `cd backend && uv run ruff check drf_admin/utils/runtime_api_contracts/test_read_contracts.py`：通过。
+  - `python3 scripts/validate_api_contracts.py .`：通过。
+- 阶段 4：
+  - `python3 scripts/validate_model_contracts.py .`：通过。
+  - `python3 -m py_compile scripts/validate_model_contracts.py scripts/model_legacy_schema_validation.py`：通过。
+  - `cd backend && uv run pytest drf_admin/utils/test_model_contract_validator_structure.py -q`：5 passed。
+  - `cd backend && uv run ruff check drf_admin/utils/test_model_contract_validator_structure.py`：通过。
+- 阶段 5：
+  - `python3 scripts/validate_docs.py . --profile generic`：通过。
+  - `git diff --check`：通过。
+- 最终门禁：
+  - `python3 scripts/validate_docs.py . --profile generic`：通过。
+  - `python3 scripts/validate_api_contracts.py .`：通过。
+  - `python3 scripts/validate_model_contracts.py .`：通过。
+  - `git diff --check`：通过。
+  - `CI=true pnpm --dir frontend run quality`：90 files / 261 tests passed。
+  - `cd backend && uv run ruff check .`：通过。
+  - `cd backend && uv run pytest`：135 passed。
+  - `cd fastapi && make quality`：595 passed，覆盖率 88.41%。
+
+## Review 小结
+
+- 五类技术债按已确认顺序推进完成：文档事实守卫、错误码归一化、Django 行为级分页测试、模型旧结构哨兵、审计与任务状态 PRD。
+- 本轮没有引入数据库迁移或新运行时依赖；产品能力类事项仅形成 PRD，未提前编码。
+- 剩余风险主要是 PRD 中待确认的异步队列、任务保留时长、日志脱敏策略和重试粒度，需要在进入实现前由产品/维护者确认。

@@ -17,10 +17,6 @@ class ApiCapabilityContract:
     django_absent_source: str
     django_forbidden_snippets: frozenset[str]
 
-
-LOG_CAPABILITY_REASON = "Django 当前只有文件日志中间件，没有可查询 OperationLog 模型或日志管理 API。"
-
-
 # 操作日志已在 Django 与 FastAPI 双实现，不再属于单后端独占能力，目录暂为空。
 # 该机制保留用于登记未来可能出现的单后端独占 API 能力。
 API_CAPABILITY_CONTRACTS: tuple[ApiCapabilityContract, ...] = ()

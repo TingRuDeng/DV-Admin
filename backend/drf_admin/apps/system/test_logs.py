@@ -101,6 +101,16 @@ class OperationLogPageTestCase(TestCase):
         second_ids = {row["id"] for row in second["list"]}
         self.assertTrue(first_ids.isdisjoint(second_ids))
 
+    def test_page_rejects_invalid_status(self):
+        """无效 status 参数应返回 400，而不是抛出服务端异常。"""
+        response = self.client.get("/api/v1/system/logs/page", {"status": "invalid"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_page_rejects_invalid_pagination(self):
+        """无效分页参数应返回 400，避免把外部输入转换错误暴露为 500。"""
+        response = self.client.get("/api/v1/system/logs/page", {"pageNum": "invalid"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_visit_stats_shape(self):
         """访问统计返回汇总字段。"""
         data = self.client.get("/api/v1/system/logs/visit-stats").json()["data"]
@@ -115,11 +125,21 @@ class OperationLogPageTestCase(TestCase):
         self.assertIsInstance(data, list)
         self.assertTrue(all("date" in row and "count" in row for row in data))
 
+    def test_visit_trend_rejects_invalid_date(self):
+        """访问趋势日期参数非法时应返回 400。"""
+        response = self.client.get("/api/v1/system/logs/visit-trend", {"startDate": "not-a-date"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_delete_logs_by_ids(self):
         """按 ID 批量删除日志（删除操作本身也会被审计，故按目标 ID 校验）。"""
         ids_to_delete = [log.id for log in OperationLog.objects.all()[:2]]
         self.client.delete(f"/api/v1/system/logs/{','.join(str(i) for i in ids_to_delete)}")
         self.assertFalse(OperationLog.objects.filter(id__in=ids_to_delete).exists())
+
+    def test_delete_rejects_invalid_ids(self):
+        """批量删除 ID 非法时应返回 400，不能抛出未处理 ValueError。"""
+        response = self.client.delete("/api/v1/system/logs/1,invalid")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class OperationLogPermissionTestCase(TestCase):
