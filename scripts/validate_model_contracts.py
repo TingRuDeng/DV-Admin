@@ -19,6 +19,7 @@ from model_fastapi_validation import (
     validate_fastapi_relation_through_tables,
 )
 from model_index_validation import validate_fastapi_model_indexes, validate_fastapi_unique_together
+from model_legacy_schema_validation import validate_legacy_schema_markers
 from model_test_validation import validate_tests
 
 
@@ -61,6 +62,7 @@ def validate(root: Path) -> list[str]:
     issues.extend(validate_fastapi_field_constraints(root))
     issues.extend(validate_fastapi_model_indexes(root))
     issues.extend(validate_fastapi_unique_together(root))
+    issues.extend(validate_legacy_schema_markers(root))
     issues.extend(validate_docs(root))
     issues.extend(validate_tests(root))
     return issues

@@ -38,6 +38,15 @@ def test_import_mapping_validation_uses_split_config_module():
     assert 'read_text(root / "fastapi/app/db/import_django_data.py")' not in entrypoint
 
 
+def test_legacy_schema_validation_is_split_from_cli_entrypoint():
+    """历史 FastAPI 结构哨兵必须独立维护，避免旧迁移边界散落在入口。"""
+    entrypoint = read_text("scripts/validate_model_contracts.py")
+    assert "from model_legacy_schema_validation import validate_legacy_schema_markers" in entrypoint
+    assert "system_dict_data" not in entrypoint
+    assert "system_users_roles" not in entrypoint
+    assert (ROOT / "scripts/model_legacy_schema_validation.py").exists()
+
+
 def read_text(relative_path: str) -> str:
     """读取仓库内文本文件。"""
     return (ROOT / relative_path).read_text(encoding="utf-8")

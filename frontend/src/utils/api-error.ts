@@ -34,7 +34,21 @@ function normalizeErrorValue(value: unknown): string | undefined {
 }
 
 function normalizeCode(value: unknown): number | undefined {
-  return typeof value === "number" ? value : undefined;
+  if (typeof value === "number" && Number.isSafeInteger(value)) {
+    return value;
+  }
+
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmedCode = value.trim();
+  if (!/^\d+$/.test(trimmedCode)) {
+    return undefined;
+  }
+
+  const parsedCode = Number(trimmedCode);
+  return Number.isSafeInteger(parsedCode) ? parsedCode : undefined;
 }
 
 function normalizeFastApiValidationErrors(data: unknown): string | undefined {
