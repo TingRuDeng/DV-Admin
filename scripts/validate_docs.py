@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 from docs_contract_validation import validate_contract_entrypoints
+from docs_fact_validation import validate_doc_facts
 
 AI_CONTEXT_PATH = Path("docs/AI_CONTEXT.md")
 DEFAULT_PROFILE = "generic"
@@ -33,6 +34,7 @@ def validate_root(root, profile=DEFAULT_PROFILE):
         return issues
     issues.extend(validate_profile_files(base, profile))
     issues.extend(validate_contract_entrypoints(base))
+    issues.extend(validate_doc_facts(base))
     issues.extend(validate_authority_docs(base, legacy_detail_docs(base)))
     issues.extend(validate_ai_context(base))
     issues.extend(validate_links(base))

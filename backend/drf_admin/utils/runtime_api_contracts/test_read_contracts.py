@@ -42,6 +42,14 @@ class DjangoRuntimeReadApiContractTestCase(TestCase):
             contracts["users_page"],
         )
         assert len(users_data["list"]) == PAGE_SIZE_SAMPLE
+        second_users_data = assert_success_payload(
+            self.client.get(contracts["users_page"].path, {"pageNum": 2, "pageSize": PAGE_SIZE_SAMPLE}),
+            contracts["users_page"],
+        )
+        assert users_data["total"] >= 2
+        assert second_users_data["total"] == users_data["total"]
+        assert len(second_users_data["list"]) == PAGE_SIZE_SAMPLE
+        assert second_users_data["list"][0]["id"] != users_data["list"][0]["id"]
 
         depts_data = assert_success_payload(
             self.client.get(

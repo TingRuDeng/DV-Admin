@@ -209,8 +209,9 @@ backend/drf_admin/
 **可观测性约定：**
 - Django request id 来源优先级：复用请求头 `X-Request-ID`，缺失时生成新值。
 - Django 响应头固定回写 `X-Request-ID`，操作日志同步输出 `RequestId` 字段。
-- Django `OperationLogMiddleware` 当前仅写入日志文件，不提供可查询的 `OperationLog` 数据库模型或日志管理 API。
-- FastAPI 当前提供可查询操作日志模型和 `/api/v1/system/logs/*` 管理接口；该能力尚未在 Django 实现中对齐，前端日志管理页会对 404/405 返回显式不可用提示，API 能力边界契约会继续锁定该 FastAPI 独占事实。
+- Django 与 FastAPI 均提供 `OperationLog` 模型、写操作落库中间件和 `/api/v1/system/logs/*` 查询/统计/删除接口。
+- 两端操作日志只记录 POST/PUT/PATCH/DELETE 写请求，GET 不落库；落库失败不阻断主请求，敏感字段会先掩码。
+- Django 与 FastAPI 的日志权限码统一为 `system:logs:query` / `system:logs:delete`，`/logs/page` 列表字段由双后端字段契约 `logs_out` 锁定。
 - Django 健康检查端点位于 `/health`、`/health/live`、`/health/ready`。
 - FastAPI 已有结构化日志、慢请求日志和 `/health` 探针，二者都可被部署探针直接调用。
 
