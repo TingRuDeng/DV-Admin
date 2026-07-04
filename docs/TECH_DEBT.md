@@ -210,10 +210,14 @@ API 文档目前手动维护，容易与代码不同步。
 - 容易遗漏新增的 API
 - 响应格式可能不一致
 
+**当前治理进展：**
+- `scripts/validate_api_contracts.py` 已接入 `scripts/api_route_coverage_validation.py`，关键端点契约会静态校验 Django URLConf/AdminRouter 与 FastAPI 具体 `method + path` 路由覆盖。
+- 当前仍未从 OpenAPI/Swagger 自动生成完整文档，`docs/API_ENDPOINTS.md` 仍是人工维护的核心概要。
+
 **计划解决方案：**
 1. 从 OpenAPI/Swagger 自动生成文档
-2. 在现有 `scripts/validate_api_contracts.py` 基础上扩展路由覆盖校验
-3. 使用工具自动更新
+2. 保持现有契约校验对文档入口、关键端点和路由覆盖的守卫
+3. 使用工具自动更新或生成可审查 diff
 
 **预计工作量：** 2-3 天
 
@@ -542,5 +546,5 @@ API 文档目前手动维护，容易与代码不同步。
 
 ---
 
-**最后更新：** 2026-06-30
+**最后更新：** 2026-07-04
 **维护者：** DV-Admin Team
