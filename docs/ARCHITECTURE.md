@@ -15,6 +15,7 @@ ai_summary:
     - "fastapi/app/main.py"
     - "fastapi/app/schemas/base.py"
     - "scripts/api_contracts.py"
+    - "scripts/api_route_coverage_validation.py"
   verify_with:
     - "python3 scripts/validate_docs.py . --profile generic"
     - "python3 scripts/validate_api_contracts.py ."
@@ -49,6 +50,7 @@ ai_summary:
 - `backend/` 是 Django/DRF 实现，`fastapi/` 是 FastAPI/Tortoise ORM 替代实现。
 - 共享 API 或数据契约变化时，需要同时考虑两套后端兼容性。
 - Django 与 FastAPI 都提供健康检查能力；Django 请求链路会通过 `X-Request-ID` 串联响应和操作日志。
+- 关键 API 端点不仅校验契约目录，还会静态校验 Django/FastAPI 路由中是否存在对应 `method + path`。
 
 ## How to verify
 
@@ -251,7 +253,7 @@ fastapi/app/
 
 **核心特性：**
 - 异步架构，高并发支持
-- 自动 API 文档 (Swagger/ReDoc)
+- 非生产环境自动 API 文档（Swagger/ReDoc/OpenAPI JSON），生产环境关闭文档入口
 - 健康检查端点
 - 慢查询监控
 - 结构化日志
@@ -565,5 +567,5 @@ CHANNEL_LAYERS = {
 
 ---
 
-**最后更新：** 2026-03-23
+**最后更新：** 2026-07-04
 **维护者：** DV-Admin Team

@@ -7,7 +7,9 @@ ai_summary:
   source_of_truth:
     - "backend/drf_admin/apps/oauth/urls.py"
     - "backend/drf_admin/apps/oauth/views/oauth.py"
+    - "backend/drf_admin/apps/system/urls.py"
     - "backend/drf_admin/apps/system/views/health.py"
+    - "backend/drf_admin/apps/system/views/logs.py"
     - "backend/drf_admin/utils/middleware.py"
     - "fastapi/app/api/v1/oauth/auth.py"
     - "fastapi/app/api/v1/oauth/routes/login.py"
@@ -15,11 +17,16 @@ ai_summary:
     - "fastapi/app/api/v1/oauth/routes/profile.py"
     - "fastapi/app/api/v1/oauth/routes/menus.py"
     - "fastapi/app/api/v1/oauth/routes/captcha.py"
+    - "fastapi/app/api/v1/system/__init__.py"
+    - "fastapi/app/api/v1/system/log_routes/query.py"
+    - "fastapi/app/api/v1/system/log_routes/mutation.py"
     - "fastapi/app/api/health.py"
     - "fastapi/app/schemas/base.py"
     - "frontend/src/api/auth-api.ts"
     - "frontend/src/utils/request.ts"
     - "scripts/api_contracts.py"
+    - "scripts/api_endpoint_contracts.py"
+    - "scripts/api_route_coverage_validation.py"
     - "scripts/validate_api_contracts.py"
   verify_with:
     - "python3 scripts/validate_docs.py . --profile generic"
@@ -62,7 +69,7 @@ ai_summary:
 - 两套后端共享 `/api/v1/` 契约前缀，但仍存在局部差异端点。
 - 前端成功分支主要依赖 `code/data`，错误分支会读取 `errors`、`msg` 或 `message`。
 - 刷新 token、验证码和健康检查端点是契约差异高风险区域。
-- 共享响应与分页契约由 `scripts/api_contracts.py`、Django/FastAPI 后端测试和前端契约测试共同锁定。
+- 共享响应、分页、字段、错误码、能力边界和关键端点路由覆盖由 `scripts/api_contracts.py`、`scripts/api_endpoint_contracts.py`、`scripts/api_route_coverage_validation.py`、Django/FastAPI 后端测试和前端契约测试共同锁定。
 
 ## How to verify
 
@@ -91,8 +98,8 @@ ai_summary:
 - 所有错误码
 
 **获取完整 API 文档：**
-- Django: 访问 `/api/swagger/` 或 `/api/redoc/`
-- FastAPI: 访问 `/api/swagger/` 或 `/api/redoc/`
+- Django: 仅在 `ENABLE_SWAGGER=true` 时访问 `/api/swagger/` 或 `/api/redoc/`
+- FastAPI: 非生产环境访问 `/api/swagger/`、`/api/redoc/` 或 `/api/openapi.json`；生产环境按 `settings.is_production` 关闭这三个入口
 
 ---
 
@@ -161,6 +168,7 @@ ai_summary:
 - `scripts/api_field_contract_validation.py` 校验字段来源类、读端点字段契约覆盖关系和 `converge` 收敛债务文档登记。
 - `scripts/api_frontend_field_contracts.py` 定义前端 API 类型字段契约目录，锁定前端已声明的高价值字段必须挂靠后端字段契约。
 - `scripts/api_error_codes.py` 定义共享错误码契约目录，锁定前端刷新逻辑和双后端错误语义。
+- `scripts/api_route_coverage_validation.py` 校验关键端点契约能对应到 Django URLConf/AdminRouter 和 FastAPI 具体 `method + path` 路由；通知公告的 `{ids}` 到 `{id}` 兼容只限其共用路由场景。
 - `backend/drf_admin/utils/test_response_contract.py` 覆盖 Django 响应中间件的成功、错误和幂等包裹。
 - `backend/drf_admin/utils/test_api_capability_contracts.py` 覆盖操作日志不再登记为单后端独占能力。
 - `backend/drf_admin/utils/test_api_field_contracts.py` 覆盖 Django serializer 对外字段集合。
@@ -447,6 +455,7 @@ DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
 - 写操作（POST/PUT/PATCH/DELETE）由请求日志中间件落库；GET 读请求不落库，避免审计表被轮询淹没。
 - 请求体落库前会掩码 `password/token/secret/key/authorization` 等敏感字段。
 - Django 权限码 `system:logs:query` / `system:logs:delete` 与 FastAPI 一致；`/logs/page` 列表项字段集合由双后端字段契约 `logs_out` 锁定。
+- Django 对非法 `status/pageNum/pageSize/startTime/endTime/startDate/endDate/ids` 会返回 400，避免把外部输入解析错误暴露为 500；FastAPI 侧通过 Query/Path 类型约束处理同类入参。
 
 ---
 
@@ -495,7 +504,12 @@ GET /health/live   # 存活检查
 ```
 GET /api/swagger/       # Swagger UI
 GET /api/redoc/         # ReDoc
+GET /api/openapi.json   # OpenAPI JSON（FastAPI 非生产环境）
 ```
+
+**暴露策略：**
+- Django API 文档入口由 `ENABLE_SWAGGER` 控制，默认不暴露。
+- FastAPI 在生产环境关闭 `/api/swagger/`、`/api/redoc/` 和 `/api/openapi.json`。
 
 ---
 
@@ -536,7 +550,7 @@ GET /api/redoc/         # ReDoc
 
 ---
 
-**最后更新：** 2026-05-23
+**最后更新：** 2026-07-04
 **维护者：** DV-Admin Team
 
 **重要提醒：** 本文档不保证完整性，实际开发请以代码为准。
