@@ -12,12 +12,16 @@ ai_summary:
     - "frontend/.env.development"
     - "backend/dev.sh"
     - "fastapi/scripts/dev.sh"
+    - "scripts/validate_api_contracts.py"
+    - "scripts/api_route_coverage_validation.py"
   verify_with:
     - "python3 scripts/validate_docs.py . --profile generic"
+    - "python3 scripts/validate_api_contracts.py ."
     - "python3 -m py_compile scripts/validate_docs.py"
   stale_when:
     - "代理工作流、分支策略或质量门禁变化"
     - "默认端口、启动脚本、后端替代关系或文档入口变化"
+    - "API 契约校验入口或关键端点路由覆盖规则变化"
 ---
 # DV-Admin 代理工作指南
 
@@ -42,17 +46,20 @@ ai_summary:
 - 会产生改动的任务默认不能直接在 `master` / `main` 分支开发。
 - `backend/` 与 `fastapi/` 是面向同一前端的替代实现，不是上下游服务。
 - 交付前需要按受影响技术栈执行最小充分验证，并同步相关文档。
+- 共享 API 契约门禁覆盖响应包裹、分页、字段、前端字段、错误码、能力边界和关键端点 `method + path` 路由覆盖。
 - 单文件 300 行保留为治理风险提示，不再作为独立拆分目标；优先处理契约缺口、能力漂移、安全配置、死代码、文档事实冲突和测试盲区。
 
 ## How to verify
 
 - quick: `python3 scripts/validate_docs.py . --profile generic`
+- quick: `python3 scripts/validate_api_contracts.py .`
 - quick: `python3 -m py_compile scripts/validate_docs.py`
 
 ## Stale when
 
 - 分支策略、质量门禁、默认端口或启动脚本变化。
 - 文档导航入口、后端替代关系或代理执行规则变化。
+- API 契约校验入口或关键端点路由覆盖规则变化。
 
 ## 目的
 
@@ -358,5 +365,5 @@ uv run python manage.py migrate --env dev
 
 ---
 
-**最后更新：** 2026-05-23
+**最后更新：** 2026-07-04
 **维护者：** DV-Admin Team
