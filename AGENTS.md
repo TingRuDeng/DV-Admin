@@ -61,33 +61,6 @@ ai_summary:
 - 文档导航入口、后端替代关系或代理执行规则变化。
 - API 契约校验入口或关键端点路由覆盖规则变化。
 
-## 目的
-
-定义代理在本仓库执行任务时必须遵循的入口规则、分支约束、验证门禁与文档同步要求。
-
-## 适合读者
-
-- 在 DV-Admin 仓库执行改动的 AI 代理
-- 负责审核代理执行过程的人类维护者
-
-## 一分钟摘要
-
-- 所有会产生改动的任务，默认不能直接在 `master/main` 开发。
-- Django 与 FastAPI 是同域替代实现，涉及共享契约必须保持兼容。
-- 完成任务前必须按对应技术栈执行质量检查，并同步文档。
-- 文档导航入口是 `docs/README.md`，代码与文档冲突时信任代码并回写文档。
-
-## 权威边界
-
-- 本文件负责执行规则与门禁，不负责完整架构事实。
-- 架构事实以 `docs/ARCHITECTURE.md` 为主，接口与模型事实分别以 `docs/API_ENDPOINTS.md`、`docs/DATABASE_SCHEMA.md` 为主。
-
-## 如何验证
-
-- 规则入口唯一性：检查仓库根目录是否仅由 `AGENTS.md` 作为主规则入口。
-- 启动命令与端口：核对 `backend/dev.sh`、`fastapi/scripts/dev.sh`、`frontend/.env.development`。
-- 质量门禁：核对 `.github/workflows/quality-gates.yml` 与本文件测试章节是否一致。
-
 ## 仓库概述
 
 DV-Admin 是一个基于 RBAC 模型权限控制的中小型应用基础开发平台，采用前后端分离架构。
@@ -353,17 +326,6 @@ uv run python manage.py migrate --env dev
 
 - Django/FastAPI 会自动降级到内存缓存
 - 检查 Redis 服务状态：`redis-cli ping`
-
----
-
-## 联系与支持
-
-- **项目文档入口：** `docs/README.md`
-- **架构设计：** `docs/ARCHITECTURE.md`
-- **已知问题：** `docs/KNOWN_PITFALLS.md`
-- **技术债务：** `docs/TECH_DEBT.md`
-
----
 
 **最后更新：** 2026-07-04
 **维护者：** DV-Admin Team
