@@ -11,8 +11,11 @@ ai_summary:
     - "docs/API_ENDPOINTS.md"
     - "docs/DATABASE_SCHEMA.md"
     - "scripts/validate_docs.py"
+    - "scripts/validate_api_contracts.py"
+    - "scripts/api_route_coverage_validation.py"
   verify_with:
     - "python3 scripts/validate_docs.py . --profile generic"
+    - "python3 scripts/validate_api_contracts.py ."
     - "python3 -m py_compile scripts/validate_docs.py"
   stale_when:
     - "文档入口新增、迁移或改名"
@@ -42,10 +45,12 @@ ai_summary:
 - 当前项目已有旧文档体系，本次按升级模式保留有效内容。
 - `AGENTS.md` 是代理规则入口，`docs/AI_CONTEXT.md` 是短上下文地图。
 - `backend/` 与 `fastapi/` 是同域替代实现，前端通常只连接其中一套。
+- 关键 API 契约由 `scripts/validate_api_contracts.py` 校验，其中包含 `scripts/api_route_coverage_validation.py` 的 `method + path` 路由覆盖守卫。
 
 ## How to verify
 
 - quick: `python3 scripts/validate_docs.py . --profile generic`
+- quick: `python3 scripts/validate_api_contracts.py .`
 - quick: `python3 -m py_compile scripts/validate_docs.py`
 
 ## Stale when
@@ -78,7 +83,11 @@ DV-Admin/
 ├── fastapi/
 │   └── README.md               # [模块] FastAPI 后端说明
 ├── scripts/
-│   └── validate_docs.py        # [校验] 文档结构与链接校验
+│   ├── validate_docs.py        # [校验] 文档结构与链接校验
+│   ├── validate_api_contracts.py # [校验] API 契约入口
+│   ├── api_route_coverage_validation.py # [校验] 关键端点 method/path 路由覆盖
+│   ├── validate_model_contracts.py # [校验] 共享模型契约
+│   └── validate_django_migrations.py # [校验] Django 迁移链跟踪
 └── frontend/
     └── README.md               # [模块] 前端说明
 ```
@@ -239,8 +248,10 @@ cp .env.example .env
 2. docs/API_ENDPOINTS.md        # 查阅现有 API
 3. docs/DATABASE_SCHEMA.md      # 理解数据模型
 4. 搜索前端调用点                # grep -r "api/xxx" frontend/src/
-5. 修改代码并测试
-6. 更新 docs/API_ENDPOINTS.md   # 同步文档
+5. 如新增 FastAPI 路由文件，更新 scripts/api_route_coverage_validation.py
+6. 修改代码并测试
+7. 更新 docs/API_ENDPOINTS.md   # 同步文档
+8. 运行 python3 scripts/validate_api_contracts.py .
 ```
 
 **说明：** 如果本次 API 修改影响共享对外契约，需要同时评估 Django 与 FastAPI 两套替代实现。
@@ -468,7 +479,7 @@ cp .env.example .env
 
 | 文档 | 自动化方式 | 优先级 |
 |------|-----------|--------|
-| `API_ENDPOINTS.md` | 从 OpenAPI/Swagger 生成 | 高 |
+| `API_ENDPOINTS.md` | 在现有契约校验基础上继续探索从 OpenAPI/Swagger 生成 | 高 |
 | `DATABASE_SCHEMA.md` | 从模型定义生成 | 中 |
 | `TECH_DEBT.md` | 从代码注释/issue 提取 | 低 |
 
@@ -495,5 +506,5 @@ cp .env.example .env
 
 ---
 
-**最后更新：** 2026-06-27
+**最后更新：** 2026-07-04
 **维护者：** DV-Admin Team
