@@ -75,7 +75,7 @@ DV-Admin/
 │   ├── KNOWN_PITFALLS.md       # [权威] 已知陷阱和常见错误
 │   ├── TECH_DEBT.md            # [权威-跟踪] 技术债务记录
 │   ├── AGENT_STARTER_PROMPT.md # [工具] 代理启动提示词
-│   ├── DOC_SYNC_CHECKLIST.md   # [流程] 文档同步检查清单
+│   ├── DOC_SYNC_CHECKLIST.md   # [权威-流程] 文档同步检查清单
 │   └── archive/                # [历史] 归档区边界说明
 │       └── README.md
 ├── backend/
@@ -198,7 +198,8 @@ cp .env.example .env
 |------|------|------|
 | **权威** | 规则、导航、架构与风险边界事实入口 | `AGENTS.md`, `docs/README.md`, `docs/AI_CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/KNOWN_PITFALLS.md` |
 | **权威-概览** | 经过代码核验的核心概要，非全量清单 | `docs/API_ENDPOINTS.md`, `docs/DATABASE_SCHEMA.md` |
-| **权威-跟踪** | 已确认且持续维护的治理事项 | `docs/TECH_DEBT.md`, `docs/DOC_SYNC_CHECKLIST.md` |
+| **权威-跟踪** | 已确认且持续维护的治理事项 | `docs/TECH_DEBT.md` |
+| **权威-流程** | 提交和交付阶段必须遵循的流程门禁 | `docs/DOC_SYNC_CHECKLIST.md` |
 | **跟踪** | 迭代规划与待办，不作为当前事实规范 | `docs/FRONTEND_OPTIMIZATION_BACKLOG.md` |
 | **模块** | 模块级说明，模块内权威 | 各子目录 `README.md` |
 | **历史** | 归档文档，仅供参考 | `docs/archive/` |
