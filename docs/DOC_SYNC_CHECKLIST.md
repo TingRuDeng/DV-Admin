@@ -1,6 +1,54 @@
+---
+ai_summary:
+  purpose: "定义 DV-Admin 代码变更后的文档同步验收门禁。"
+  read_when:
+    - "准备提交或开 PR 前"
+    - "评估某次改动是否需要更新文档时"
+  source_of_truth:
+    - "docs/DOC_SYNC_CHECKLIST.md"
+    - "docs/README.md"
+    - "AGENTS.md"
+    - "scripts/validate_docs.py"
+  verify_with:
+    - "python3 scripts/validate_docs.py . --profile generic"
+    - "python3 -m py_compile scripts/validate_docs.py"
+  stale_when:
+    - "文档体系新增、迁移或改名"
+    - "文档校验脚本规则变化"
+    - "PR 文档同步门禁变化"
+---
+
 # DV-Admin 文档同步检查清单
 
 > 本文档定义代码变更时需要同步更新的文档。提交 PR 前请确保完成相关检查。
+
+## Purpose
+
+定义代码、配置、契约或架构变更后的文档同步检查入口，确保 PR 交付时能说明哪些文档已更新或为何无需更新。
+
+## Source of truth
+
+- `docs/DOC_SYNC_CHECKLIST.md`
+- `docs/README.md`
+- `AGENTS.md`
+- `scripts/validate_docs.py`
+
+## Key facts
+
+- API、数据库模型、架构、权限、配置和技术债变更都需要评估文档影响。
+- 若判断某次改动无文档影响，PR 描述必须写明理由。
+- 结构、AI 索引和本地链接由 `scripts/validate_docs.py` 校验。
+
+## How to verify
+
+- quick: `python3 scripts/validate_docs.py . --profile generic`
+- quick: `python3 -m py_compile scripts/validate_docs.py`
+
+## Stale when
+
+- 文档导航、权威边界或文档同步责任变化。
+- `scripts/validate_docs.py` 的 authority doc contract 规则变化。
+- PR 模板或质量门禁对文档同步的要求变化。
 
 ## 目的
 
@@ -17,23 +65,6 @@
 - 代码改动后必须判断是否影响 API、模型、架构、坑点或技术债务文档。
 - 如果判定“无文档影响”，必须在 PR 中给出理由。
 - 除人工清单外，应运行 `python3 scripts/validate_docs.py` 做结构与链接校验。
-
-```yaml
-ai_summary:
-  authority: "文档同步验收门禁"
-  scope: "变更类型到文档更新义务的映射与收尾检查"
-  read_when:
-    - "准备提交或开 PR 前"
-    - "评估某次改动是否需要更新文档时"
-  verify_with:
-    - "docs/DOC_SYNC_CHECKLIST.md"
-    - "scripts/validate_docs.py"
-    - "docs/README.md"
-    - "AGENTS.md"
-  stale_when:
-    - "文档体系新增/迁移而清单未更新"
-    - "校验脚本规则变化但清单未同步"
-```
 
 ## 权威边界
 
