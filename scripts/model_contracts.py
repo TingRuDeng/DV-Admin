@@ -139,6 +139,18 @@ DJANGO_FASTAPI_RELATION_CONTRACTS: tuple[DjangoFastapiRelationContract, ...] = (
         fastapi_forward_key="permissions_id",
     ),
     DjangoFastapiRelationContract(
+        django_model="system.roles",
+        django_field="data_depts",
+        django_through_table="system_roles_to_system_departments",
+        django_backward_key="roles_id",
+        django_forward_key="departments_id",
+        fastapi_model="Roles",
+        fastapi_field="data_depts",
+        fastapi_through_table="system_roles_to_system_departments",
+        fastapi_backward_key="roles_id",
+        fastapi_forward_key="departments_id",
+    ),
+    DjangoFastapiRelationContract(
         django_model="system.users",
         django_field="roles",
         django_through_table="system_users_to_system_roles",

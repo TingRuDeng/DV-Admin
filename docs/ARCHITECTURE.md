@@ -338,6 +338,8 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
   - mobile               - status               - route_name
   - roles[]              - permissions[]        - route_path
   - dept                 - is_default           - perm
+                         - data_scope
+                         - data_depts[]
                                                 - parent
 ```
 
@@ -363,6 +365,12 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 2. 根据角色获取权限列表
 3. 前端根据权限生成动态路由
 4. API 请求时后端验证权限标识
+
+**数据范围控制：**
+- 角色包含 `dataScope` 与 `deptIds`，用于表达全部数据、本人数据、本部门、本部门及以下和自定义部门。
+- 多角色用户的数据范围按并集合并；任一角色拥有全部数据时不追加数据范围过滤。
+- 超级管理员默认拥有全部数据。
+- 当前第一阶段已在 Django 与 FastAPI 的用户列表和操作日志列表强制应用数据范围过滤；前端表单只负责配置，不作为安全边界。
 
 ---
 

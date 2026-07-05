@@ -59,13 +59,17 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
     FrontendFieldContract(
         key="roles_page_type",
         frontend_source="frontend/src/api/system/role-api.ts",
-        required_fields=frozenset({"desc", "id", "name", "permissions", "sort", "status"}),
+        required_fields=frozenset(
+            {"dataScope", "deptIds", "desc", "id", "name", "permissions", "sort", "status"}
+        ),
         tracked_backend_contract="roles_out",
     ),
     FrontendFieldContract(
         key="roles_form_type",
         frontend_source="frontend/src/api/system/role-api.ts",
-        required_fields=frozenset({"desc", "id", "isDefault", "name", "sort", "status"}),
+        required_fields=frozenset(
+            {"dataScope", "deptIds", "desc", "id", "isDefault", "name", "sort", "status"}
+        ),
         tracked_backend_contract="roles_out",
     ),
     FrontendFieldContract(

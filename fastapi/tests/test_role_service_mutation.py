@@ -88,6 +88,26 @@ class TestRoleServiceCreate:
         assert result.is_default == 1
         assert result.desc == "这是一个完整的角色描述"
 
+    @pytest.mark.asyncio
+    async def test_create_role_with_custom_data_scope(self, db):
+        """创建角色时应保存自定义数据范围部门。"""
+        from app.db.models.system import Departments, Roles
+
+        dept = await Departments.create(name=f"数据权限部门_{uuid.uuid4().hex[:6]}", status=1, sort=1)
+        role_data = RoleCreate(
+            name=f"数据权限角色_{uuid.uuid4().hex[:8]}",
+            code=f"data_scope_role_{uuid.uuid4().hex[:8]}",
+            status=1,
+            sort=1,
+            data_scope=Roles.DATA_SCOPE_CUSTOM,
+            dept_ids=[dept.id],
+        )
+
+        result = await role_service.create(role_data)
+
+        assert result.data_scope == Roles.DATA_SCOPE_CUSTOM
+        assert result.dept_ids == [dept.id]
+
 
 class TestRoleServiceUpdate:
     """测试更新角色。"""
@@ -150,3 +170,16 @@ class TestRoleServiceUpdate:
         result = await role_service.update(test_role_for_service.id, update_data)
 
         assert result.status == 0
+
+    @pytest.mark.asyncio
+    async def test_update_role_custom_data_scope(self, db, test_role_for_service):
+        """更新角色时应同步自定义部门范围。"""
+        from app.db.models.system import Departments, Roles
+
+        dept = await Departments.create(name=f"更新权限部门_{uuid.uuid4().hex[:6]}", status=1, sort=1)
+        update_data = RoleUpdate(data_scope=Roles.DATA_SCOPE_CUSTOM, dept_ids=[dept.id])
+
+        result = await role_service.update(test_role_for_service.id, update_data)
+
+        assert result.data_scope == Roles.DATA_SCOPE_CUSTOM
+        assert result.dept_ids == [dept.id]

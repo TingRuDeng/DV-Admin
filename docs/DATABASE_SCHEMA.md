@@ -117,6 +117,7 @@ ai_summary:
 | status | int | 状态 | 0:禁用, 1:启用 |
 | sort | int | 排序 | Default: 0 |
 | is_default | int | 是否默认角色 | 0:否, 1:是 |
+| data_scope | int | 数据权限范围 | 1:全部, 2:本人, 3:本部门, 4:本部门及以下, 5:自定义部门 |
 | desc | varchar(50) | 描述 | |
 | create_time / created_at | datetime | 创建时间 | Django / FastAPI |
 | update_time / updated_at | datetime | 更新时间 | Django / FastAPI |
@@ -126,9 +127,11 @@ ai_summary:
 - `code`
 - `status`
 - `is_default`
+- `data_scope`
 
 **关系：**
 - `permissions`: Many-to-Many → Permissions
+- `data_depts`: Many-to-Many → Departments (through: `system_roles_to_system_departments`)
 - `users`: Many-to-Many → Users
 
 ---
@@ -350,6 +353,17 @@ ai_summary:
 |------|------|------|
 | roles_id | int | 角色ID |
 | permissions_id | int | 权限ID |
+
+---
+
+### 角色-数据权限部门关联表
+
+**表名：** `system_roles_to_system_departments`
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| roles_id | int | 角色ID |
+| departments_id | int | 部门ID |
 
 ---
 

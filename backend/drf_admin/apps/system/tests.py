@@ -3,18 +3,38 @@
 系统管理 - 用户接口测试
 """
 
+from django.core.cache import cache
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from drf_admin.apps.system.models import Users
+from drf_admin.apps.system.models import Departments, Permissions, Roles, Users
 from drf_admin.apps.system.test_helpers import create_admin_user
+
+
+def create_scoped_user_permission_role(data_scope, dept=None):
+    """创建带用户查询权限的数据范围角色。"""
+    role = Roles.objects.create(
+        name=f"数据范围角色{data_scope}",
+        code=f"scope_role_{data_scope}",
+        status=1,
+        data_scope=data_scope,
+    )
+    permission, _ = Permissions.objects.get_or_create(
+        perm="system:users:query",
+        defaults={"name": "system:users:query", "type": "BUTTON"},
+    )
+    role.permissions.add(permission)
+    if dept is not None:
+        role.data_depts.add(dept)
+    return role
 
 
 class UsersListTestCase(TestCase):
     """用户列表接口测试"""
 
     def setUp(self):
+        cache.clear()
         self.client = APIClient()
         self.user = create_admin_user()
         self.client.force_authenticate(user=self.user)
@@ -42,6 +62,42 @@ class UsersListTestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["code"], 20000)
+
+    def test_dept_data_scope_filters_users(self):
+        """部门数据范围用户只能看到本部门用户。"""
+        visible_dept = Departments.objects.create(name="可见部门", status=1, sort=1)
+        hidden_dept = Departments.objects.create(name="隐藏部门", status=1, sort=2)
+        role = create_scoped_user_permission_role(Roles.DATA_SCOPE_DEPT)
+        scoped_user = Users.objects.create_user(
+            username="scoped_admin",
+            password="admin123",
+            name="范围管理员",
+            dept=visible_dept,
+            is_active=1,
+        )
+        scoped_user.roles.add(role)
+        visible_user = Users.objects.create_user(
+            username="visible_user",
+            password="admin123",
+            name="可见用户",
+            dept=visible_dept,
+            is_active=1,
+        )
+        hidden_user = Users.objects.create_user(
+            username="hidden_user",
+            password="admin123",
+            name="隐藏用户",
+            dept=hidden_dept,
+            is_active=1,
+        )
+        self.client.force_authenticate(user=scoped_user)
+
+        response = self.client.get("/api/v1/system/users/", {"pageNum": 1, "pageSize": 20})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        usernames = {item["username"] for item in response.data["data"]["list"]}
+        self.assertIn(visible_user.username, usernames)
+        self.assertNotIn(hidden_user.username, usernames)
 
 
 class UsersCreateTestCase(TestCase):

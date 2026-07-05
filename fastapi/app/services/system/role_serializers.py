@@ -8,7 +8,11 @@ from app.schemas.system import RoleOut, RoleUpdate, RoleWithPermissions
 ROLE_MENU_TYPES = {"CATALOG", "MENU"}
 
 
-def build_role_out(role: Roles, permission_ids: list[int] | None = None) -> RoleOut:
+def build_role_out(
+    role: Roles,
+    permission_ids: list[int] | None = None,
+    dept_ids: list[int] | None = None,
+) -> RoleOut:
     """将角色模型转换为角色列表输出结构。"""
     return RoleOut(
         id=role.id,
@@ -17,8 +21,10 @@ def build_role_out(role: Roles, permission_ids: list[int] | None = None) -> Role
         status=role.status,
         sort=role.sort,
         is_default=role.is_default,
+        data_scope=role.data_scope,
         desc=role.desc,
         permissions=permission_ids or [],
+        dept_ids=dept_ids or [],
         create_time=role.created_at,
         update_time=role.updated_at,
     )
@@ -27,6 +33,7 @@ def build_role_out(role: Roles, permission_ids: list[int] | None = None) -> Role
 def build_role_with_permissions(
     role: Roles,
     permission_ids: list[int],
+    dept_ids: list[int] | None = None,
 ) -> RoleWithPermissions:
     """将角色模型和权限 ID 转换为角色详情输出结构。"""
     return RoleWithPermissions(
@@ -36,8 +43,10 @@ def build_role_with_permissions(
         status=role.status,
         sort=role.sort,
         is_default=role.is_default,
+        data_scope=role.data_scope,
         desc=role.desc,
         permissions=permission_ids,
+        dept_ids=dept_ids or [],
         create_time=role.created_at,
         update_time=role.updated_at,
     )
@@ -46,7 +55,7 @@ def build_role_with_permissions(
 def build_role_update_fields(role_data: RoleUpdate) -> dict[str, Any]:
     """提取需要落库的角色更新字段，跳过未传入字段。"""
     update_fields: dict[str, Any] = {}
-    for field_name in ("name", "code", "status", "sort", "is_default", "desc"):
+    for field_name in ("name", "code", "status", "sort", "is_default", "data_scope", "desc"):
         value = getattr(role_data, field_name)
         if value is not None:
             update_fields[field_name] = value

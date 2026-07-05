@@ -4,11 +4,14 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from tortoise import fields
 
 from app.db.models.base import BaseModel
+
+if TYPE_CHECKING:
+    from app.db.models.system_dept import Departments
 
 
 class Permissions(BaseModel):
@@ -78,6 +81,12 @@ class Roles(BaseModel):
     定义系统中的角色，角色可以关联多个权限。
     """
 
+    DATA_SCOPE_ALL = 1
+    DATA_SCOPE_SELF = 2
+    DATA_SCOPE_DEPT = 3
+    DATA_SCOPE_DEPT_AND_CHILDREN = 4
+    DATA_SCOPE_CUSTOM = 5
+
     name = fields.CharField(max_length=32, unique=True, description="角色名称")
     code = fields.CharField(max_length=32, null=True, description="角色编码")
     status = fields.IntField(default=1, description="状态")
@@ -87,6 +96,7 @@ class Roles(BaseModel):
         description="是否默认角色（新用户自动分配）",
     )
     desc = fields.CharField(max_length=50, default="", description="描述")
+    data_scope = fields.IntField(default=DATA_SCOPE_ALL, description="数据权限范围")
 
     permissions: fields.ManyToManyRelation[Permissions] = fields.ManyToManyField(
         "models.Permissions",
@@ -96,6 +106,14 @@ class Roles(BaseModel):
         forward_key="permissions_id",
         description="权限",
     )
+    data_depts: fields.ManyToManyRelation[Departments] = fields.ManyToManyField(
+        "models.Departments",
+        related_name="data_scope_roles",
+        through="system_roles_to_system_departments",
+        backward_key="roles_id",
+        forward_key="departments_id",
+        description="数据权限部门",
+    )
 
     class Meta:
         table = "system_roles"
@@ -104,6 +122,7 @@ class Roles(BaseModel):
             ("code",),
             ("status",),
             ("is_default",),
+            ("data_scope",),
         )
 
     def __str__(self) -> str:

@@ -3,6 +3,8 @@
 import pytest
 
 from app.core.exceptions import NotFound
+from app.db.models.oauth import Users
+from app.db.models.system import Departments, Permissions, Roles
 from app.services.system.user_service import user_service
 
 pytest_plugins = ["user_service_fixtures"]
@@ -77,6 +79,52 @@ class TestUserServiceGetPage:
 
         assert result.total == 0
         assert len(result.list) == 0
+
+    @pytest.mark.asyncio
+    async def test_get_page_filters_by_current_user_dept_scope(self, db):
+        """部门数据范围用户只能看到本部门用户。"""
+        visible_dept = await Departments.create(name="可见部门", status=1, sort=1)
+        hidden_dept = await Departments.create(name="隐藏部门", status=1, sort=2)
+        permission = await Permissions.create(name="system:users:query", type="BUTTON", perm="system:users:query")
+        role = await Roles.create(
+            name="用户数据范围角色",
+            code="user_scope_role",
+            status=1,
+            data_scope=Roles.DATA_SCOPE_DEPT,
+        )
+        await role.permissions.add(permission)
+        scoped_user = await Users.create(
+            username="scoped_user",
+            password="admin123",
+            name="范围用户",
+            dept_id=visible_dept.id,
+            is_active=1,
+        )
+        await scoped_user.roles.add(role)
+        visible_user = await Users.create(
+            username="visible_scope_user",
+            password="admin123",
+            name="可见用户",
+            dept_id=visible_dept.id,
+            is_active=1,
+        )
+        hidden_user = await Users.create(
+            username="hidden_scope_user",
+            password="admin123",
+            name="隐藏用户",
+            dept_id=hidden_dept.id,
+            is_active=1,
+        )
+
+        result = await user_service.get_page(
+            page=1,
+            page_size=20,
+            current_user=scoped_user,
+        )
+
+        usernames = {user.username for user in result.list}
+        assert visible_user.username in usernames
+        assert hidden_user.username not in usernames
 
 
 class TestUserServiceGet:
