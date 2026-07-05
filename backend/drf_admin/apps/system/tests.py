@@ -153,6 +153,7 @@ class UsersCreateTestCase(TestCase):
     """用户创建接口测试"""
 
     def setUp(self):
+        cache.clear()
         self.client = APIClient()
         self.user = create_admin_user()
         self.client.force_authenticate(user=self.user)
@@ -167,11 +168,58 @@ class UsersCreateTestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_create_user_rejects_sensitive_fields_without_write_permission(self):
+        """无字段写入权限时，创建用户不得写入手机号和邮箱。"""
+        response = self.client.post(
+            "/api/v1/system/users/",
+            {
+                "username": "sensitive_create",
+                "password": "newpass123",
+                "name": "敏感创建",
+                "mobile": "13800138010",
+                "email": "sensitive-create@example.com",
+                "is_active": 1,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("字段写入权限", str(response.data))
+
+    def test_create_user_allows_sensitive_fields_with_write_permission(self):
+        """拥有字段写入权限时，创建用户可以写入手机号和邮箱。"""
+        role = self.user.roles.first()
+        permission, _ = Permissions.objects.get_or_create(
+            perm="system:users:field:write",
+            defaults={"name": "system:users:field:write", "type": "BUTTON"},
+        )
+        role.permissions.add(permission)
+        cache.delete(f"user_info_{self.user.id}_perms")
+
+        response = self.client.post(
+            "/api/v1/system/users/",
+            {
+                "username": "plain_create",
+                "password": "newpass123",
+                "name": "允许创建",
+                "mobile": "13800138011",
+                "email": "plain-create@example.com",
+                "is_active": 1,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        created = Users.objects.get(username="plain_create")
+        self.assertEqual(created.mobile, "13800138011")
+        self.assertEqual(created.email, "plain-create@example.com")
+
 
 class UsersDetailTestCase(TestCase):
     """用户详情接口测试"""
 
     def setUp(self):
+        cache.clear()
         self.client = APIClient()
         self.user = create_admin_user()
         self.client.force_authenticate(user=self.user)
@@ -198,6 +246,48 @@ class UsersDetailTestCase(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_update_user_rejects_sensitive_fields_without_write_permission(self):
+        """无字段写入权限时，更新用户不得写入手机号和邮箱。"""
+        response = self.client.put(
+            f"/api/v1/system/users/{self.user.id}/",
+            {
+                "username": "admin",
+                "name": "更新后的名称",
+                "mobile": "13800138012",
+                "email": "sensitive-update@example.com",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("字段写入权限", str(response.data))
+
+    def test_update_user_allows_sensitive_fields_with_write_permission(self):
+        """拥有字段写入权限时，更新用户可以写入手机号和邮箱。"""
+        role = self.user.roles.first()
+        permission, _ = Permissions.objects.get_or_create(
+            perm="system:users:field:write",
+            defaults={"name": "system:users:field:write", "type": "BUTTON"},
+        )
+        role.permissions.add(permission)
+        cache.delete(f"user_info_{self.user.id}_perms")
+
+        response = self.client.put(
+            f"/api/v1/system/users/{self.user.id}/",
+            {
+                "username": "admin",
+                "name": "允许更新",
+                "mobile": "13800138013",
+                "email": "plain-update@example.com",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.mobile, "13800138013")
+        self.assertEqual(self.user.email, "plain-update@example.com")
 
     def test_delete_user(self):
         """测试删除用户"""

@@ -378,6 +378,11 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 - 操作日志敏感字段 `requestBody/responseBody/ip` 默认保留字段但脱敏；拥有 `system:logs:field:plain` 或 `is_superuser` 时返回原文。
 - 字段读取控制只影响响应输出，不改变查询范围、写入校验和字段契约集合。
 
+**字段写入控制：**
+- 当前第三阶段已在 Django 与 FastAPI 的后台用户创建和更新路径接入字段写入拒绝。
+- 后台用户管理请求中显式写入非空 `mobile/email` 时，需要 `system:users:field:write` 或 `is_superuser`。
+- 字段写入控制不影响个人中心资料维护路径，不改变数据库字段和响应字段集合。
+
 ---
 
 ## 数据流向
