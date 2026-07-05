@@ -15,6 +15,7 @@ from drf_admin.apps.system.serializers.users import (
     UsersPartialSerializer,
     UsersSerializer,
 )
+from drf_admin.apps.system.services.data_scope import apply_user_data_scope
 from drf_admin.utils.views import AdminViewSet, AutoPermissionAPIView
 
 
@@ -67,6 +68,10 @@ class UsersViewSet(AdminViewSet):
             return UsersPartialSerializer
         else:
             return UsersSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return apply_user_data_scope(queryset, self.request.user)
 
 
 class UsersOptionsViewSet(AutoPermissionAPIView, ListAPIView):

@@ -15,6 +15,7 @@ class RoleBase(BaseSchema):
     status: int = Field(default=1, description="状态")
     sort: int = Field(default=0, description="排序")
     is_default: int = Field(default=0, description="是否默认")
+    data_scope: int = Field(default=1, description="数据权限范围")
     desc: str | None = Field(default=None, description="描述")
 
 
@@ -22,6 +23,7 @@ class RoleCreate(RoleBase):
     """创建角色请求"""
 
     permission_ids: list[int] = Field(default=[], description="权限ID列表")
+    dept_ids: list[int] = Field(default=[], description="数据权限部门ID列表")
 
 
 class RoleUpdate(BaseSchema):
@@ -32,8 +34,10 @@ class RoleUpdate(BaseSchema):
     status: int | None = Field(default=None, description="状态")
     sort: int | None = Field(default=None, description="排序")
     is_default: int | None = Field(default=None, description="是否默认")
+    data_scope: int | None = Field(default=None, description="数据权限范围")
     desc: str | None = Field(default=None, description="描述")
     permission_ids: list[int] | None = Field(default=None, description="权限ID列表")
+    dept_ids: list[int] | None = Field(default=None, description="数据权限部门ID列表")
 
 
 class RoleOut(SharedTimestampSchema):
@@ -44,8 +48,10 @@ class RoleOut(SharedTimestampSchema):
     status: int = Field(default=1, description="状态")
     sort: int = Field(default=0, description="排序")
     is_default: int = Field(default=0, description="是否默认")
+    data_scope: int = Field(default=1, description="数据权限范围")
     desc: str | None = Field(default=None, description="描述")
     permissions: list[int] = Field(default=[], description="权限ID列表")
+    dept_ids: list[int] = Field(default=[], description="数据权限部门ID列表")
 
 
 class RoleWithPermissions(RoleOut):

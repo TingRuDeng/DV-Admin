@@ -9,6 +9,7 @@ from app.db.models.oauth import Users
 from app.db.models.system import Departments
 from app.schemas.base import PageResult
 from app.schemas.system import UserFormOut, UserOut
+from app.services.system.data_scope import apply_user_data_scope
 from app.services.system.user_services.serializers import UserSerializerMixin
 
 
@@ -25,12 +26,13 @@ class UserQueryMixin(UserSerializerMixin):
         search: str | None = None,
         is_active: int | None = None,
         dept_id: int | None = None,
+        current_user: Users | None = None,
     ) -> PageResult[UserOut]:
         """
         获取用户分页列表
         """
         # 构建查询条件
-        query = Users.all()
+        query = await apply_user_data_scope(Users.all(), current_user)
 
         if search:
             query = query.filter(

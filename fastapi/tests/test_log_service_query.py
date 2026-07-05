@@ -7,7 +7,8 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from app.db.models.system import OperationLog
+from app.db.models.oauth import Users
+from app.db.models.system import Departments, OperationLog, Permissions, Roles
 from app.services.system.log_service import log_service
 
 pytest_plugins = ["log_service_fixtures"]
@@ -97,3 +98,61 @@ class TestLogServiceGetPage:
 
         result2 = await log_service.get_page(page=2, page_size=10)
         assert len(result2.results) >= 5
+
+    @pytest.mark.asyncio
+    async def test_get_page_filters_by_current_user_dept_scope(self, db):
+        """部门数据范围只返回本部门用户产生的操作日志。"""
+        visible_dept = await Departments.create(name="日志可见部门", status=1, sort=1)
+        hidden_dept = await Departments.create(name="日志隐藏部门", status=1, sort=2)
+        permission = await Permissions.create(name="system:logs:query", type="BUTTON", perm="system:logs:query")
+        role = await Roles.create(
+            name="日志数据范围角色",
+            code="log_scope_role",
+            status=1,
+            data_scope=Roles.DATA_SCOPE_DEPT,
+        )
+        await role.permissions.add(permission)
+        scoped_user = await Users.create(
+            username="log_scoped_user",
+            password="admin123",
+            name="日志范围用户",
+            dept_id=visible_dept.id,
+            is_active=1,
+        )
+        await scoped_user.roles.add(role)
+        visible_user = await Users.create(
+            username="log_visible_user",
+            password="admin123",
+            name="日志可见用户",
+            dept_id=visible_dept.id,
+            is_active=1,
+        )
+        hidden_user = await Users.create(
+            username="log_hidden_user",
+            password="admin123",
+            name="日志隐藏用户",
+            dept_id=hidden_dept.id,
+            is_active=1,
+        )
+        await OperationLog.create(
+            user_id=visible_user.id,
+            username=visible_user.username,
+            operation="可见操作",
+            method="POST",
+            path="/api/visible",
+            status=1,
+        )
+        await OperationLog.create(
+            user_id=hidden_user.id,
+            username=hidden_user.username,
+            operation="隐藏操作",
+            method="POST",
+            path="/api/hidden",
+            status=1,
+        )
+
+        result = await log_service.get_page(page=1, page_size=20, current_user=scoped_user)
+
+        operations = {log.operation for log in result.list}
+        assert "可见操作" in operations
+        assert "隐藏操作" not in operations

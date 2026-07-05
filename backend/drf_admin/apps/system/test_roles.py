@@ -6,7 +6,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from drf_admin.apps.system.models import Permissions, Roles
+from drf_admin.apps.system.models import Departments, Permissions, Roles
 from drf_admin.apps.system.test_helpers import create_admin_user
 
 
@@ -52,6 +52,23 @@ class RolesCreateTestCase(TestCase):
         
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_create_role_with_custom_data_scope(self):
+        """创建角色时应保存自定义数据范围部门。"""
+        dept = Departments.objects.create(name="测试部门", status=1, sort=1)
+        response = self.client.post("/api/v1/system/roles/", {
+            "name": "数据权限角色",
+            "code": "data_scope_role",
+            "sort": 1,
+            "status": 1,
+            "dataScope": Roles.DATA_SCOPE_CUSTOM,
+            "deptIds": [dept.id],
+        }, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = response.data["data"]
+        self.assertEqual(data["dataScope"], Roles.DATA_SCOPE_CUSTOM)
+        self.assertEqual(data["deptIds"], [dept.id])
+
 
 class RolesDetailTestCase(TestCase):
     """角色详情接口测试"""
@@ -80,6 +97,20 @@ class RolesDetailTestCase(TestCase):
         }, format="json")
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_update_role_custom_data_scope(self):
+        """更新角色时应同步自定义部门范围。"""
+        dept = Departments.objects.create(name="更新部门", status=1, sort=1)
+        response = self.client.put(f"/api/v1/system/roles/{self.role.id}/", {
+            "name": self.role.name,
+            "dataScope": Roles.DATA_SCOPE_CUSTOM,
+            "deptIds": [dept.id],
+        }, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.data["data"]
+        self.assertEqual(data["dataScope"], Roles.DATA_SCOPE_CUSTOM)
+        self.assertEqual(data["deptIds"], [dept.id])
 
     def test_delete_role(self):
         """测试删除角色"""
