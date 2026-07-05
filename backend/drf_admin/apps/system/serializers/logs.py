@@ -3,6 +3,7 @@
 from rest_framework import serializers
 
 from drf_admin.apps.system.models import OperationLog
+from drf_admin.apps.system.services.field_permission import apply_log_field_permissions
 
 
 class OperationLogSerializer(serializers.ModelSerializer):
@@ -35,3 +36,10 @@ class OperationLogSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get("request")
+        if request is None:
+            return data
+        return apply_log_field_permissions(data, request.user)

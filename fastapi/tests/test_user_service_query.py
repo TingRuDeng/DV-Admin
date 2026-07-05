@@ -126,6 +126,85 @@ class TestUserServiceGetPage:
         assert visible_user.username in usernames
         assert hidden_user.username not in usernames
 
+    @pytest.mark.asyncio
+    async def test_get_page_masks_sensitive_fields_without_plain_permission(self, db):
+        """无字段原文权限时，用户手机号和邮箱应脱敏但字段仍保留。"""
+        permission = await Permissions.create(
+            name="system:users:query",
+            type="BUTTON",
+            perm="system:users:query",
+        )
+        role = await Roles.create(name="字段脱敏角色", code="masked_user_role", status=1)
+        await role.permissions.add(permission)
+        current_user = await Users.create(
+            username="masked_reader",
+            password="admin123",
+            name="脱敏读取者",
+            is_active=1,
+        )
+        await current_user.roles.add(role)
+        await Users.create(
+            username="sensitive_fastapi_user",
+            password="admin123",
+            name="敏感用户",
+            mobile="13800138000",
+            email="sensitive@example.com",
+            is_active=1,
+        )
+
+        result = await user_service.get_page(
+            page=1,
+            page_size=20,
+            search="sensitive_fastapi_user",
+            current_user=current_user,
+        )
+
+        item = result.list[0]
+        assert item.mobile == "138****8000"
+        assert item.email == "s********@example.com"
+
+    @pytest.mark.asyncio
+    async def test_get_page_keeps_sensitive_fields_with_plain_permission(self, db):
+        """拥有字段原文权限时，用户手机号和邮箱返回原文。"""
+        query_permission = await Permissions.create(
+            name="system:users:query",
+            type="BUTTON",
+            perm="system:users:query",
+        )
+        plain_permission = await Permissions.create(
+            name="system:users:field:plain",
+            type="BUTTON",
+            perm="system:users:field:plain",
+        )
+        role = await Roles.create(name="字段原文角色", code="plain_user_role", status=1)
+        await role.permissions.add(query_permission, plain_permission)
+        current_user = await Users.create(
+            username="plain_reader",
+            password="admin123",
+            name="原文读取者",
+            is_active=1,
+        )
+        await current_user.roles.add(role)
+        await Users.create(
+            username="plain_fastapi_user",
+            password="admin123",
+            name="原文字段用户",
+            mobile="13800138001",
+            email="plain@example.com",
+            is_active=1,
+        )
+
+        result = await user_service.get_page(
+            page=1,
+            page_size=20,
+            search="plain_fastapi_user",
+            current_user=current_user,
+        )
+
+        item = result.list[0]
+        assert item.mobile == "13800138001"
+        assert item.email == "plain@example.com"
+
 
 class TestUserServiceGet:
     """测试获取用户详情"""

@@ -3,12 +3,22 @@
 from app.db.models.oauth import Users
 from app.db.models.system import Departments
 from app.schemas.system import UserFormOut, UserOut
+from app.services.system.field_permission import (
+    USER_FIELD_PLAIN_PERMISSION,
+    can_view_plain_fields,
+    mask_email,
+    mask_mobile,
+)
 
 
 class UserSerializerMixin:
     """集中处理用户输出模型转换，避免查询和写操作重复拼字段。"""
 
-    async def _serialize_user(self, user: Users) -> UserOut:
+    async def _serialize_user(
+        self,
+        user: Users,
+        current_user: Users | None = None,
+    ) -> UserOut:
         """
         序列化用户对象（处理关联字段）
         """
@@ -24,12 +34,18 @@ class UserSerializerMixin:
         role_ids = [role.id for role in user.roles]
         role_names = ",".join([role.name for role in user.roles])
 
+        email, mobile = await self._visible_contact_fields(
+            email=user.email,
+            mobile=user.mobile,
+            current_user=current_user,
+        )
+
         return UserOut(
             id=user.id,
             username=user.username,
             name=user.name,
-            email=user.email,
-            mobile=user.mobile,
+            email=email,
+            mobile=mobile,
             avatar=user.avatar,
             gender=user.gender,
             is_active=user.is_active,
@@ -42,7 +58,12 @@ class UserSerializerMixin:
         )
 
 
-    async def _serialize_user_optimized(self, user: Users, depts: dict[int, str]) -> UserOut:
+    async def _serialize_user_optimized(
+        self,
+        user: Users,
+        depts: dict[int, str],
+        current_user: Users | None = None,
+    ) -> UserOut:
         """
         序列化用户对象（优化版本，避免 N+1 查询）
 
@@ -57,12 +78,18 @@ class UserSerializerMixin:
         role_ids = [role.id for role in user.roles]
         role_names = ",".join([role.name for role in user.roles])
 
+        email, mobile = await self._visible_contact_fields(
+            email=user.email,
+            mobile=user.mobile,
+            current_user=current_user,
+        )
+
         return UserOut(
             id=user.id,
             username=user.username,
             name=user.name,
-            email=user.email,
-            mobile=user.mobile,
+            email=email,
+            mobile=mobile,
             avatar=user.avatar,
             gender=user.gender,
             is_active=user.is_active,
@@ -75,11 +102,15 @@ class UserSerializerMixin:
         )
 
 
-    async def _serialize_user_form(self, user: Users) -> UserFormOut:
+    async def _serialize_user_form(
+        self,
+        user: Users,
+        current_user: Users | None = None,
+    ) -> UserFormOut:
         """
         序列化用户对象（表单回填用）
         """
-        base = await self._serialize_user(user)
+        base = await self._serialize_user(user, current_user)
 
         await user.fetch_related("roles")
         role_ids = [role.id for role in user.roles]
@@ -87,3 +118,18 @@ class UserSerializerMixin:
         base_data = base.model_dump()
         base_data["roles"] = role_ids
         return UserFormOut(**base_data)
+
+    async def _visible_contact_fields(
+        self,
+        email: str | None,
+        mobile: str | None,
+        current_user: Users | None,
+    ) -> tuple[str | None, str | None]:
+        """根据当前读取者权限返回用户联系方式。"""
+        can_view_plain = await can_view_plain_fields(
+            current_user,
+            USER_FIELD_PLAIN_PERMISSION,
+        )
+        if can_view_plain:
+            return email, mobile
+        return mask_email(email), mask_mobile(mobile)

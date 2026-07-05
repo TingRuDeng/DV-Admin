@@ -6,6 +6,7 @@ from django.conf import settings
 from rest_framework import serializers
 
 from drf_admin.apps.system.models import Users
+from drf_admin.apps.system.services.field_permission import apply_user_field_permissions
 from drf_admin.utils.views import OptionsSerializer
 
 
@@ -46,6 +47,13 @@ class UsersSerializer(serializers.ModelSerializer):
 
     def get_avatar(self, obj):
         return "/media/" + str(obj.image)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get("request")
+        if request is None:
+            return data
+        return apply_user_field_permissions(data, request.user)
 
     def create(self, validated_data):
         user = super().create(validated_data)
