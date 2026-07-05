@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
 from drf_admin.apps.system.models import Notices
 from drf_admin.apps.system.serializers.notices import NoticesSerializer
+from drf_admin.apps.system.services.data_scope import apply_notice_admin_data_scope
 from drf_admin.utils.views import AdminViewSet, AutoPermissionAPIView
 
 
@@ -19,6 +20,10 @@ class NoticesViewSet(AdminViewSet):
     serializer_class = NoticesSerializer
     filter_backends = (SearchFilter, OrderingFilter)
     search_fields = ("title", "content")
+
+    def get_queryset(self):
+        """按发布人数据范围限制后台通知管理对象。"""
+        return apply_notice_admin_data_scope(super().get_queryset(), self.request.user)
 
     @staticmethod
     def get_action_permission_mapping():
@@ -76,7 +81,7 @@ class NoticesViewSet(AdminViewSet):
         notice_ids = parse_notice_ids(ids)
         queryset = self.get_queryset().filter(id__in=notice_ids)
         if queryset.count() != len(set(notice_ids)):
-            raise ValidationError("通知不存在")
+            raise NotFound("通知不存在")
         if queryset.filter(publish_status=1).exists():
             raise ValidationError("已发布通知不允许删除")
         queryset.delete()

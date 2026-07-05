@@ -30,6 +30,17 @@ async def apply_log_data_scope(query: QuerySet[T], current_user: Users | None) -
     return query.filter(user_id__in=list(visible_user_ids))
 
 
+async def apply_notice_admin_data_scope(
+    query: QuerySet[T],
+    current_user: Users | None,
+) -> QuerySet[T]:
+    """按发布人数据范围过滤后台通知管理查询。"""
+    visible_user_ids = await get_visible_user_ids(current_user)
+    if visible_user_ids is None:
+        return query
+    return query.filter(publisher_id__in=list(visible_user_ids))
+
+
 async def get_visible_user_ids(current_user: Users | None) -> set[int] | None:
     """计算当前用户可见的用户 ID；返回 None 表示无需过滤。"""
     if current_user is None or current_user.is_superuser:

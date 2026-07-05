@@ -438,6 +438,7 @@ GET    /api/v1/system/notices/my-page/       # 我的通知
 ```
 
 > 后台通知创建/更新请求中显式写入非空 `targetUserIds` 时，需要 `system:notices:target:write` 或 `is_superuser`。
+> 后台通知管理列表、更新、删除、发布和撤回会按通知 `publisherId` 套用当前用户角色数据范围；FastAPI 表单查询也使用同一规则。不在范围内的通知按不存在处理。
 
 **我的通知接口（Django & FastAPI）：**
 ```

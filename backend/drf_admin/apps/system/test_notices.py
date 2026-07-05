@@ -7,7 +7,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from drf_admin.apps.system.models import Notices, Permissions
+from drf_admin.apps.system.models import Departments, Notices, Permissions, Roles, Users
 from drf_admin.apps.system.test_helpers import create_admin_user
 
 
@@ -19,6 +19,29 @@ def grant_notice_target_write(user):
     )
     user.roles.first().permissions.add(permission)
     cache.delete(f"user_info_{user.id}_perms")
+
+
+def create_scoped_notice_permission_role(data_scope):
+    """创建带通知管理权限的数据范围角色。"""
+    role = Roles.objects.create(
+        name=f"通知数据范围角色{data_scope}",
+        code=f"notice_scope_role_{data_scope}",
+        status=1,
+        data_scope=data_scope,
+    )
+    for code in (
+        "system:notices:query",
+        "system:notices:edit",
+        "system:notices:delete",
+        "system:notices:publish",
+        "system:notices:revoke",
+    ):
+        permission, _ = Permissions.objects.get_or_create(
+            perm=code,
+            defaults={"name": code, "type": "BUTTON"},
+        )
+        role.permissions.add(permission)
+    return role
 
 
 class NoticesListTestCase(TestCase):
@@ -35,6 +58,56 @@ class NoticesListTestCase(TestCase):
         response = self.client.get("/api/v1/system/notices/")
         
         self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND])
+
+    def test_admin_list_filters_notices_by_publisher_dept_scope(self):
+        """部门数据范围只返回本部门用户发布的后台通知。"""
+        visible_dept = Departments.objects.create(name="通知可见部门", status=1, sort=1)
+        hidden_dept = Departments.objects.create(name="通知隐藏部门", status=1, sort=2)
+        role = create_scoped_notice_permission_role(Roles.DATA_SCOPE_DEPT)
+        scoped_user = Users.objects.create_user(
+            username="notice_scoped_admin",
+            password="admin123",
+            name="通知范围管理员",
+            dept=visible_dept,
+            is_active=1,
+        )
+        scoped_user.roles.add(role)
+        visible_publisher = Users.objects.create_user(
+            username="notice_visible_publisher",
+            password="admin123",
+            name="通知可见发布人",
+            dept=visible_dept,
+            is_active=1,
+        )
+        hidden_publisher = Users.objects.create_user(
+            username="notice_hidden_publisher",
+            password="admin123",
+            name="通知隐藏发布人",
+            dept=hidden_dept,
+            is_active=1,
+        )
+        Notices.objects.create(
+            title="可见部门通知",
+            content="内容",
+            target_type=1,
+            publisher_id=visible_publisher.id,
+            publisher_name=visible_publisher.username,
+        )
+        Notices.objects.create(
+            title="隐藏部门通知",
+            content="内容",
+            target_type=1,
+            publisher_id=hidden_publisher.id,
+            publisher_name=hidden_publisher.username,
+        )
+        self.client.force_authenticate(user=scoped_user)
+
+        response = self.client.get("/api/v1/system/notices/page", {"pageNum": 1, "pageSize": 20})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        titles = {item["title"] for item in response.data["data"]["list"]}
+        self.assertIn("可见部门通知", titles)
+        self.assertNotIn("隐藏部门通知", titles)
 
 
 class NoticesCreateTestCase(TestCase):
@@ -150,6 +223,39 @@ class NoticesDetailTestCase(TestCase):
         
         self.assertIn(response.status_code, [status.HTTP_204_NO_CONTENT, status.HTTP_404_NOT_FOUND, status.HTTP_403_FORBIDDEN])
 
+    def test_delete_rejects_notice_outside_publisher_dept_scope(self):
+        """删除接口不能绕过通知发布人部门数据范围。"""
+        visible_dept = Departments.objects.create(name="通知可见部门", status=1, sort=1)
+        hidden_dept = Departments.objects.create(name="通知隐藏部门", status=1, sort=2)
+        role = create_scoped_notice_permission_role(Roles.DATA_SCOPE_DEPT)
+        scoped_user = Users.objects.create_user(
+            username="notice_delete_scoped_admin",
+            password="admin123",
+            name="通知删除范围管理员",
+            dept=visible_dept,
+            is_active=1,
+        )
+        scoped_user.roles.add(role)
+        hidden_publisher = Users.objects.create_user(
+            username="notice_delete_hidden_publisher",
+            password="admin123",
+            name="通知删除隐藏人",
+            dept=hidden_dept,
+            is_active=1,
+        )
+        hidden_notice = Notices.objects.create(
+            title="隐藏部门待删除通知",
+            content="内容",
+            target_type=1,
+            publisher_id=hidden_publisher.id,
+            publisher_name=hidden_publisher.username,
+        )
+        self.client.force_authenticate(user=scoped_user)
+
+        response = self.client.delete(f"/api/v1/system/notices/{hidden_notice.id}")
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
 
 class NoticesPublishTestCase(TestCase):
     """通知公告发布接口测试"""
@@ -164,6 +270,39 @@ class NoticesPublishTestCase(TestCase):
         response = self.client.post("/api/v1/system/notices/1/publish/")
         
         self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND, status.HTTP_403_FORBIDDEN])
+
+    def test_publish_rejects_notice_outside_publisher_dept_scope(self):
+        """发布接口不能绕过通知发布人部门数据范围。"""
+        visible_dept = Departments.objects.create(name="通知可见部门", status=1, sort=1)
+        hidden_dept = Departments.objects.create(name="通知隐藏部门", status=1, sort=2)
+        role = create_scoped_notice_permission_role(Roles.DATA_SCOPE_DEPT)
+        scoped_user = Users.objects.create_user(
+            username="notice_publish_scoped_admin",
+            password="admin123",
+            name="通知发布范围管理员",
+            dept=visible_dept,
+            is_active=1,
+        )
+        scoped_user.roles.add(role)
+        hidden_publisher = Users.objects.create_user(
+            username="notice_publish_hidden_publisher",
+            password="admin123",
+            name="通知发布隐藏人",
+            dept=hidden_dept,
+            is_active=1,
+        )
+        hidden_notice = Notices.objects.create(
+            title="隐藏部门待发布通知",
+            content="内容",
+            target_type=1,
+            publisher_id=hidden_publisher.id,
+            publisher_name=hidden_publisher.username,
+        )
+        self.client.force_authenticate(user=scoped_user)
+
+        response = self.client.put(f"/api/v1/system/notices/{hidden_notice.id}/publish")
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class NoticesMyPageTestCase(TestCase):
