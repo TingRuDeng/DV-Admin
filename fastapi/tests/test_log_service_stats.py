@@ -56,6 +56,38 @@ class TestLogServiceGetVisitStats:
         assert result.fail_count == 2
 
     @pytest.mark.asyncio
+    async def test_get_visit_stats_top_users_and_paths_cover_all_logs(self, db):
+        """Top 统计应覆盖全量日志，不能只统计最近 1000 条。"""
+        await OperationLog.all().delete()
+
+        for _ in range(20):
+            await OperationLog.create(
+                username="历史高频用户",
+                operation="历史操作",
+                method="GET",
+                path="/api/history/hot",
+                status=1,
+                execution_time=20,
+            )
+        for i in range(1000):
+            await OperationLog.create(
+                username=f"recent_user_{i}",
+                operation="近期操作",
+                method="GET",
+                path=f"/api/recent/{i}",
+                status=1,
+                execution_time=10,
+            )
+
+        result = await log_service.get_visit_stats()
+
+        assert result.total_count == 1020
+        assert result.top_users[0]["username"] == "历史高频用户"
+        assert result.top_users[0]["count"] == 20
+        assert result.top_paths[0]["path"] == "/api/history/hot"
+        assert result.top_paths[0]["count"] == 20
+
+    @pytest.mark.asyncio
     async def test_get_visit_stats_empty(self, db):
         """测试无数据时的访问统计。"""
         await OperationLog.all().delete()
