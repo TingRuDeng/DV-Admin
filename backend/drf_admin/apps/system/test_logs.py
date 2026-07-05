@@ -119,6 +119,43 @@ class OperationLogPageTestCase(TestCase):
         self.assertEqual(data["failCount"], 1)
         self.assertIn("topUsers", data)
 
+    def test_visit_stats_top_users_and_paths_cover_all_logs(self):
+        """Top 统计应覆盖全量日志，不能只统计最近 1000 条。"""
+        OperationLog.objects.all().delete()
+        OperationLog.objects.bulk_create(
+            [
+                OperationLog(
+                    username="历史高频用户",
+                    operation="历史操作",
+                    method="GET",
+                    path="/api/history/hot",
+                    status=1,
+                    execution_time=20,
+                )
+                for _ in range(20)
+            ]
+        )
+        OperationLog.objects.bulk_create(
+            [
+                OperationLog(
+                    username=f"recent_user_{index}",
+                    operation="近期操作",
+                    method="GET",
+                    path=f"/api/recent/{index}",
+                    status=1,
+                    execution_time=10,
+                )
+                for index in range(1000)
+            ]
+        )
+
+        data = self.client.get("/api/v1/system/logs/visit-stats").json()["data"]
+
+        self.assertEqual(data["totalCount"], 1020)
+        self.assertEqual(data["avgExecutionTime"], 10)
+        self.assertEqual(data["topUsers"][0], {"username": "历史高频用户", "count": 20})
+        self.assertEqual(data["topPaths"][0], {"path": "/api/history/hot", "count": 20})
+
     def test_visit_trend_shape(self):
         """访问趋势返回按日聚合列表。"""
         data = self.client.get("/api/v1/system/logs/visit-trend").json()["data"]

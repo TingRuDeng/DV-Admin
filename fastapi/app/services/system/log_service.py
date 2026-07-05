@@ -4,14 +4,13 @@
 from datetime import datetime, timedelta
 from typing import Any
 
+from tortoise.functions import Avg, Count
+
 from app.db.models.system import OperationLog
 from app.schemas.system import OperationLogPageResult, VisitStatsOut, VisitTrendOut
 from app.services.system.log_serializers import operation_log_to_out
 from app.services.system.log_stats_helpers import (
     build_visit_trend,
-    calculate_avg_execution_time,
-    count_top_paths,
-    count_top_users,
 )
 from app.services.system.log_time import local_now, normalize_local_time
 
@@ -115,9 +114,8 @@ class LogService:
         success_count = await OperationLog.filter(status=1).count()
         fail_count = await OperationLog.filter(status=0).count()
 
-        # 平均执行时间
-        logs = await OperationLog.filter(execution_time__gt=0).all()
-        avg_execution_time = calculate_avg_execution_time(logs)
+        # 平均执行时间，使用数据库聚合避免随日志量增长拉取全表
+        avg_execution_time = await self._get_avg_execution_time()
 
         # 活跃用户 TOP10
         top_users_data = await self._get_top_users(limit=10)
@@ -139,17 +137,50 @@ class LogService:
 
     async def _get_top_users(self, limit: int = 10) -> list[dict[str, Any]]:
         """获取活跃用户 TOP N"""
-        logs = await OperationLog.all().order_by("-created_at").limit(1000).all()
-
-        # 统计用户访问次数
-        return count_top_users(logs, limit)
+        rows = (
+            await OperationLog.exclude(username="")
+            .group_by("username", "name")
+            .annotate(visit_count=Count("id"))
+            .order_by("-visit_count", "username")
+            .limit(limit)
+            .values("username", "name", "visit_count")
+        )
+        return [
+            {
+                "username": row["username"],
+                "name": row["name"],
+                "count": row["visit_count"],
+            }
+            for row in rows
+        ]
 
     async def _get_top_paths(self, limit: int = 10) -> list[dict[str, Any]]:
         """获取热门路径 TOP N"""
-        logs = await OperationLog.all().order_by("-created_at").limit(1000).all()
+        rows = (
+            await OperationLog.exclude(path="")
+            .group_by("path", "method")
+            .annotate(visit_count=Count("id"))
+            .order_by("-visit_count", "path")
+            .limit(limit)
+            .values("path", "method", "visit_count")
+        )
+        return [
+            {
+                "path": row["path"],
+                "method": row["method"],
+                "count": row["visit_count"],
+            }
+            for row in rows
+        ]
 
-        # 统计路径访问次数
-        return count_top_paths(logs, limit)
+    async def _get_avg_execution_time(self) -> float:
+        """获取平均执行耗时，数据库端聚合后保留两位小数。"""
+        rows = await OperationLog.filter(execution_time__gt=0).annotate(
+            avg_time=Avg("execution_time")
+        ).values("avg_time")
+        if not rows or rows[0]["avg_time"] is None:
+            return 0.0
+        return round(float(rows[0]["avg_time"]), 2)
 
     async def delete_by_ids(self, ids: list[int]) -> int:
         """批量删除日志"""

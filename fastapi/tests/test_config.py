@@ -7,7 +7,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.core.config import settings
-from app.main import get_api_docs_config
+from app.main import get_api_docs_config, get_root_payload
 
 
 class TestConfig:
@@ -118,4 +118,32 @@ class TestConfig:
             "docs_url": None,
             "redoc_url": None,
             "openapi_url": None,
+        }
+
+    def test_root_payload_hides_docs_hint_in_production(self):
+        """生产环境根路径不提示已关闭的 API 文档入口。"""
+        payload = get_root_payload(
+            app_name="DV-Admin",
+            version="1.0.0",
+            is_production=True,
+        )
+
+        assert payload == {
+            "name": "DV-Admin",
+            "version": "1.0.0",
+            "docs": None,
+        }
+
+    def test_root_payload_keeps_docs_hint_outside_production(self):
+        """非生产环境根路径保留 API 文档入口提示。"""
+        payload = get_root_payload(
+            app_name="DV-Admin",
+            version="1.0.0",
+            is_production=False,
+        )
+
+        assert payload == {
+            "name": "DV-Admin",
+            "version": "1.0.0",
+            "docs": "/api/swagger/",
         }
