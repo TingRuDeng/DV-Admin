@@ -35,6 +35,7 @@ FASTAPI_MODEL_INDEX_CONTRACTS: tuple[FastapiModelIndexContract, ...] = (
             ("code",),
             ("status",),
             ("is_default",),
+            ("data_scope",),
         ),
     ),
     FastapiModelIndexContract(

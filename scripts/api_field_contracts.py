@@ -50,13 +50,43 @@ API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
     ),
     FieldContract(
         key="roles_out",
-        canonical=frozenset({"code", "createTime", "desc", "id", "isDefault", "name", "permissions", "sort", "status", "updateTime"}),
+        canonical=frozenset(
+            {
+                "code",
+                "createTime",
+                "dataScope",
+                "deptIds",
+                "desc",
+                "id",
+                "isDefault",
+                "name",
+                "permissions",
+                "sort",
+                "status",
+                "updateTime",
+            }
+        ),
         django_source="drf_admin.apps.system.serializers.roles.RolesSerializer",
         fastapi_source="app.schemas.system_role.RoleOut",
     ),
     FieldContract(
         key="roles_with_permissions",
-        canonical=frozenset({"code", "createTime", "desc", "id", "isDefault", "name", "permissions", "sort", "status", "updateTime"}),
+        canonical=frozenset(
+            {
+                "code",
+                "createTime",
+                "dataScope",
+                "deptIds",
+                "desc",
+                "id",
+                "isDefault",
+                "name",
+                "permissions",
+                "sort",
+                "status",
+                "updateTime",
+            }
+        ),
         django_source="drf_admin.apps.system.serializers.roles.RolesSerializer",
         fastapi_source="app.schemas.system_role.RoleWithPermissions",
     ),

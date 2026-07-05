@@ -5,7 +5,7 @@ from typing import Any
 
 from app.core.cache import CacheKeys, cache_service
 from app.core.exceptions import NotFound, ValidationError
-from app.db.models.system import Permissions, Roles
+from app.db.models.system import Departments, Permissions, Roles
 from app.schemas.base import PageResult
 from app.schemas.system import RoleCreate, RoleOut, RoleUpdate, RoleWithPermissions
 from app.services.system.role_serializers import (
@@ -53,9 +53,21 @@ class RoleService:
             query = query.filter(name__icontains=search)
 
         total = await query.count()
-        roles = await query.prefetch_related("permissions").offset((page - 1) * page_size).limit(page_size).all()
+        roles = (
+            await query.prefetch_related("permissions", "data_depts")
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+            .all()
+        )
 
-        role_list = [build_role_out(role, [perm.id for perm in role.permissions]) for role in roles]
+        role_list = [
+            build_role_out(
+                role,
+                [perm.id for perm in role.permissions],
+                [dept.id for dept in role.data_depts],
+            )
+            for role in roles
+        ]
 
         return PageResult.create(
             total=total, page=page, page_size=page_size, results=role_list
@@ -69,10 +81,11 @@ class RoleService:
         if not role:
             raise NotFound("角色不存在")
 
-        await role.fetch_related("permissions")
+        await role.fetch_related("permissions", "data_depts")
         permission_ids = [perm.id for perm in role.permissions]
+        dept_ids = [dept.id for dept in role.data_depts]
 
-        return build_role_with_permissions(role, permission_ids)
+        return build_role_with_permissions(role, permission_ids, dept_ids)
 
     async def create(self, role_data: RoleCreate) -> RoleOut:
         """
@@ -90,6 +103,7 @@ class RoleService:
             status=role_data.status,
             sort=role_data.sort,
             is_default=role_data.is_default,
+            data_scope=role_data.data_scope,
             desc=role_data.desc or "",
         )
 
@@ -97,12 +111,19 @@ class RoleService:
         if role_data.permission_ids:
             perms = await Permissions.filter(id__in=role_data.permission_ids).all()
             await role.permissions.add(*perms)
+        if role_data.dept_ids:
+            depts = await Departments.filter(id__in=role_data.dept_ids).all()
+            await role.data_depts.add(*depts)
 
         # 清除角色选项缓存
         await self._clear_role_cache()
 
-        await role.fetch_related("permissions")
-        return build_role_out(role, [perm.id for perm in role.permissions])
+        await role.fetch_related("permissions", "data_depts")
+        return build_role_out(
+            role,
+            [perm.id for perm in role.permissions],
+            [dept.id for dept in role.data_depts],
+        )
 
     async def update(self, role_id: int, role_data: RoleUpdate) -> RoleOut:
         """
@@ -125,12 +146,21 @@ class RoleService:
             if role_data.permission_ids:
                 perms = await Permissions.filter(id__in=role_data.permission_ids).all()
                 await role.permissions.add(*perms)
+        if role_data.dept_ids is not None:
+            await role.data_depts.clear()
+            if role_data.dept_ids:
+                depts = await Departments.filter(id__in=role_data.dept_ids).all()
+                await role.data_depts.add(*depts)
 
         # 清除缓存
         await self._clear_role_cache(role_id)
 
-        await role.fetch_related("permissions")
-        return build_role_out(role, [perm.id for perm in role.permissions])
+        await role.fetch_related("permissions", "data_depts")
+        return build_role_out(
+            role,
+            [perm.id for perm in role.permissions],
+            [dept.id for dept in role.data_depts],
+        )
 
     async def assign_menus(self, role_id: int, menu_ids: list[int]) -> list[int]:
         """

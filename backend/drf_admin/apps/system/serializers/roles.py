@@ -2,7 +2,7 @@
 
 from rest_framework import serializers
 
-from drf_admin.apps.system.models import Roles
+from drf_admin.apps.system.models import Departments, Roles
 from drf_admin.utils.views import OptionsSerializer
 
 
@@ -11,15 +11,48 @@ class RolesSerializer(serializers.ModelSerializer):
     角色管理序列化器
     """
     # create_time = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S', read_only=True)
+    data_scope = serializers.IntegerField(required=False, write_only=True)
+    dataScope = serializers.IntegerField(source="data_scope", read_only=True)
+    dept_ids = serializers.PrimaryKeyRelatedField(
+        source="data_depts",
+        many=True,
+        queryset=Departments.objects.all(),
+        required=False,
+        write_only=True,
+    )
+    deptIds = serializers.SerializerMethodField()
+    is_default = serializers.IntegerField(required=False, write_only=True)
+    isDefault = serializers.IntegerField(source="is_default", read_only=True)
+    createTime = serializers.DateTimeField(source="create_time", read_only=True)
+    updateTime = serializers.DateTimeField(source="update_time", read_only=True)
 
     class Meta:
         model = Roles
-        fields = ['id', 'name', 'code', 'permissions', 'status', 'sort', 'desc', 'is_default', 'create_time', 'update_time']
+        fields = [
+            'id',
+            'name',
+            'code',
+            'permissions',
+            'data_scope',
+            'dataScope',
+            'dept_ids',
+            'deptIds',
+            'status',
+            'sort',
+            'desc',
+            'is_default',
+            'isDefault',
+            'createTime',
+            'updateTime',
+        ]
         extra_kwargs = {
             'permissions': {
                 'read_only': True,
             },
         }
+
+    def get_deptIds(self, obj):
+        return list(obj.data_depts.values_list("id", flat=True))
 
 
 class RolesPartialSerializer(serializers.ModelSerializer):
