@@ -180,6 +180,57 @@ class OperationLogPageTestCase(TestCase):
         self.assertIn("可见操作", operations)
         self.assertNotIn("隐藏操作", operations)
 
+    def test_sensitive_log_fields_are_masked_without_plain_permission(self):
+        """无字段原文权限时，日志请求体、响应体和 IP 应脱敏。"""
+        OperationLog.objects.all().delete()
+        OperationLog.objects.create(
+            username="admin",
+            operation="敏感日志",
+            method="POST",
+            path="/api/sensitive",
+            request_body='{"password":"secret","mobile":"13800138000"}',
+            response_body='{"token":"secret-token","ok":true}',
+            ip="192.168.1.20",
+            status=1,
+        )
+
+        response = self.client.get("/api/v1/system/logs/page", {"operation": "敏感日志"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        item = response.data["data"]["list"][0]
+        self.assertEqual(item["request_body"], "[已脱敏]")
+        self.assertEqual(item["response_body"], "[已脱敏]")
+        self.assertEqual(item["ip"], "192.168.1.*")
+
+    def test_sensitive_log_fields_keep_plain_with_permission(self):
+        """拥有字段原文权限时，日志敏感字段返回原文。"""
+        role = self.user.roles.first()
+        permission, _ = Permissions.objects.get_or_create(
+            perm="system:logs:field:plain",
+            defaults={"name": "system:logs:field:plain", "type": "BUTTON"},
+        )
+        role.permissions.add(permission)
+        cache.delete(f"user_info_{self.user.id}_perms")
+        OperationLog.objects.all().delete()
+        OperationLog.objects.create(
+            username="admin",
+            operation="原文字段日志",
+            method="POST",
+            path="/api/plain",
+            request_body='{"password":"secret"}',
+            response_body='{"token":"secret-token"}',
+            ip="10.0.0.8",
+            status=1,
+        )
+
+        response = self.client.get("/api/v1/system/logs/page", {"operation": "原文字段日志"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        item = response.data["data"]["list"][0]
+        self.assertEqual(item["request_body"], '{"password":"secret"}')
+        self.assertEqual(item["response_body"], '{"token":"secret-token"}')
+        self.assertEqual(item["ip"], "10.0.0.8")
+
     def test_visit_stats_shape(self):
         """访问统计返回汇总字段。"""
         data = self.client.get("/api/v1/system/logs/visit-stats").json()["data"]

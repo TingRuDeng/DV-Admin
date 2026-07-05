@@ -156,3 +156,88 @@ class TestLogServiceGetPage:
         operations = {log.operation for log in result.list}
         assert "可见操作" in operations
         assert "隐藏操作" not in operations
+
+    @pytest.mark.asyncio
+    async def test_get_page_masks_sensitive_fields_without_plain_permission(self, db):
+        """无字段原文权限时，日志请求体、响应体和 IP 应脱敏。"""
+        permission = await Permissions.create(
+            name="system:logs:query",
+            type="BUTTON",
+            perm="system:logs:query",
+        )
+        role = await Roles.create(name="日志字段脱敏角色", code="masked_log_role", status=1)
+        await role.permissions.add(permission)
+        current_user = await Users.create(
+            username="masked_log_reader",
+            password="admin123",
+            name="日志脱敏读取者",
+            is_active=1,
+        )
+        await current_user.roles.add(role)
+        await OperationLog.create(
+            username="operator",
+            operation="敏感日志",
+            method="POST",
+            path="/api/sensitive",
+            request_body='{"password":"secret","mobile":"13800138000"}',
+            response_body='{"token":"secret-token","ok":true}',
+            ip="192.168.1.20",
+            status=1,
+        )
+
+        result = await log_service.get_page(
+            page=1,
+            page_size=20,
+            operation="敏感日志",
+            current_user=current_user,
+        )
+
+        item = result.list[0]
+        assert item.request_body == "[已脱敏]"
+        assert item.response_body == "[已脱敏]"
+        assert item.ip == "192.168.1.*"
+
+    @pytest.mark.asyncio
+    async def test_get_page_keeps_sensitive_fields_with_plain_permission(self, db):
+        """拥有字段原文权限时，日志敏感字段返回原文。"""
+        query_permission = await Permissions.create(
+            name="system:logs:query",
+            type="BUTTON",
+            perm="system:logs:query",
+        )
+        plain_permission = await Permissions.create(
+            name="system:logs:field:plain",
+            type="BUTTON",
+            perm="system:logs:field:plain",
+        )
+        role = await Roles.create(name="日志字段原文角色", code="plain_log_role", status=1)
+        await role.permissions.add(query_permission, plain_permission)
+        current_user = await Users.create(
+            username="plain_log_reader",
+            password="admin123",
+            name="日志原文读取者",
+            is_active=1,
+        )
+        await current_user.roles.add(role)
+        await OperationLog.create(
+            username="operator",
+            operation="原文字段日志",
+            method="POST",
+            path="/api/plain",
+            request_body='{"password":"secret"}',
+            response_body='{"token":"secret-token"}',
+            ip="10.0.0.8",
+            status=1,
+        )
+
+        result = await log_service.get_page(
+            page=1,
+            page_size=20,
+            operation="原文字段日志",
+            current_user=current_user,
+        )
+
+        item = result.list[0]
+        assert item.request_body == '{"password":"secret"}'
+        assert item.response_body == '{"token":"secret-token"}'
+        assert item.ip == "10.0.0.8"

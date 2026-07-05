@@ -348,6 +348,7 @@ GET  /api/v1/system/users/{id}/permissions/     # 用户权限ID列表
 ```
 
 > Django 该端点读取请求体中的 `password` 与 `confirm_password`，敏感字段不得放入 URL query。FastAPI 当前额外保留 `POST /api/v1/system/users/{id}/password/reset/` 兼容入口，并按 `DEFAULT_PASSWORD` 重置；共享前端契约以 `PUT` 方法为准。
+> 用户输出中的 `mobile/email` 默认保留字段但返回脱敏值；拥有 `system:users:field:plain` 或 `is_superuser` 时返回原文。
 
 ---
 
@@ -460,6 +461,7 @@ DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
 - 写操作（POST/PUT/PATCH/DELETE）由请求日志中间件落库；GET 读请求不落库，避免审计表被轮询淹没。
 - 请求体落库前会掩码 `password/token/secret/key/authorization` 等敏感字段。
 - Django 权限码 `system:logs:query` / `system:logs:delete` 与 FastAPI 一致；`/logs/page` 列表项字段集合由双后端字段契约 `logs_out` 锁定。
+- `/logs/page` 输出中的 `requestBody/responseBody/ip` 默认保留字段但返回脱敏值；拥有 `system:logs:field:plain` 或 `is_superuser` 时返回原文。
 - Django 对非法 `status/pageNum/pageSize/startTime/endTime/startDate/endDate/ids` 会返回 400，避免把外部输入解析错误暴露为 500；FastAPI 侧通过 Query/Path 类型约束处理同类入参。
 
 ---

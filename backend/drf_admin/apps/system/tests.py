@@ -99,6 +99,55 @@ class UsersListTestCase(TestCase):
         self.assertIn(visible_user.username, usernames)
         self.assertNotIn(hidden_user.username, usernames)
 
+    def test_sensitive_user_fields_are_masked_without_plain_permission(self):
+        """无字段原文权限时，用户手机号和邮箱应脱敏但字段仍保留。"""
+        Users.objects.create_user(
+            username="sensitive_user",
+            password="admin123",
+            name="敏感用户",
+            mobile="13800138000",
+            email="sensitive@example.com",
+            is_active=1,
+        )
+
+        response = self.client.get(
+            "/api/v1/system/users/",
+            {"pageNum": 1, "pageSize": 20, "search": "sensitive_user"},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        item = response.data["data"]["list"][0]
+        self.assertEqual(item["mobile"], "138****8000")
+        self.assertEqual(item["email"], "s********@example.com")
+
+    def test_sensitive_user_fields_keep_plain_with_permission(self):
+        """拥有字段原文权限时，用户手机号和邮箱返回原文。"""
+        role = self.user.roles.first()
+        permission, _ = Permissions.objects.get_or_create(
+            perm="system:users:field:plain",
+            defaults={"name": "system:users:field:plain", "type": "BUTTON"},
+        )
+        role.permissions.add(permission)
+        cache.delete(f"user_info_{self.user.id}_perms")
+        Users.objects.create_user(
+            username="plain_user",
+            password="admin123",
+            name="原文字段用户",
+            mobile="13800138001",
+            email="plain@example.com",
+            is_active=1,
+        )
+
+        response = self.client.get(
+            "/api/v1/system/users/",
+            {"pageNum": 1, "pageSize": 20, "search": "plain_user"},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        item = response.data["data"]["list"][0]
+        self.assertEqual(item["mobile"], "13800138001")
+        self.assertEqual(item["email"], "plain@example.com")
+
 
 class UsersCreateTestCase(TestCase):
     """用户创建接口测试"""
