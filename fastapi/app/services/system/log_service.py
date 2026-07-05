@@ -6,8 +6,10 @@ from typing import Any
 
 from tortoise.functions import Avg, Count
 
+from app.db.models.oauth import Users
 from app.db.models.system import OperationLog
 from app.schemas.system import OperationLogPageResult, VisitStatsOut, VisitTrendOut
+from app.services.system.data_scope import apply_log_data_scope
 from app.services.system.log_serializers import operation_log_to_out
 from app.services.system.log_stats_helpers import (
     build_visit_trend,
@@ -28,9 +30,10 @@ class LogService:
         status: int | None = None,
         start_time: datetime | None = None,
         end_time: datetime | None = None,
+        current_user: Users | None = None,
     ) -> OperationLogPageResult:
         """获取操作日志分页列表"""
-        query = OperationLog.all()
+        query = await apply_log_data_scope(OperationLog.all(), current_user)
 
         # 构建过滤条件
         if username:

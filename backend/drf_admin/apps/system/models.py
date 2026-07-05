@@ -73,10 +73,36 @@ class Roles(BaseModel):
     角色
     """
 
+    DATA_SCOPE_ALL = 1
+    DATA_SCOPE_SELF = 2
+    DATA_SCOPE_DEPT = 3
+    DATA_SCOPE_DEPT_AND_CHILDREN = 4
+    DATA_SCOPE_CUSTOM = 5
+
+    data_scope_choices = (
+        (DATA_SCOPE_ALL, "全部数据"),
+        (DATA_SCOPE_SELF, "仅本人数据"),
+        (DATA_SCOPE_DEPT, "本部门数据"),
+        (DATA_SCOPE_DEPT_AND_CHILDREN, "本部门及以下数据"),
+        (DATA_SCOPE_CUSTOM, "自定义部门数据"),
+    )
+
     name = models.CharField(max_length=32, unique=True, verbose_name="角色")
     code = models.CharField(max_length=32, blank=True, null=True, verbose_name="角色编码")
     permissions = models.ManyToManyField(
         Permissions, db_table="system_roles_to_system_permissions", blank=True, verbose_name="权限"
+    )
+    data_depts = models.ManyToManyField(
+        "Departments",
+        db_table="system_roles_to_system_departments",
+        blank=True,
+        related_name="data_scope_roles",
+        verbose_name="数据权限部门",
+    )
+    data_scope = models.IntegerField(
+        default=DATA_SCOPE_ALL,
+        choices=data_scope_choices,
+        verbose_name="数据权限范围",
     )
     status = models.IntegerField(default=1, verbose_name="状态")
     sort = models.IntegerField(default=0, verbose_name="排序")

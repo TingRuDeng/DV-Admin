@@ -58,5 +58,6 @@ async def get_log_page(
         status=status,
         start_time=start_time,
         end_time=end_time,
+        current_user=current_user,
     )
     return ResponseModel.success(data=data)

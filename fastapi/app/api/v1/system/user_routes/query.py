@@ -106,6 +106,7 @@ async def get_users(
         search=search,
         is_active=is_active,
         dept_id=dept,
+        current_user=current_user,
     )
     return ResponseModel.success(data=result)
 @router.get(

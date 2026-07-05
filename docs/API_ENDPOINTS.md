@@ -366,6 +366,8 @@ GET    /api/v1/system/roles/{id}/menu-ids/ # 角色菜单ID列表
 PUT    /api/v1/system/roles/{id}/menus/    # 分配角色菜单权限，请求体 menuIds
 ```
 
+角色创建/更新请求体支持 `dataScope` 与 `deptIds`。`dataScope` 枚举：1 全部数据、2 本人数据、3 本部门数据、4 本部门及以下数据、5 自定义部门数据；仅自定义部门范围需要提交 `deptIds`。
+
 ---
 
 ### 部门管理
