@@ -243,5 +243,5 @@ async def get_user(
     user_id: int,
     current_user: Users = require_permissions("system:users:query"),
 ) -> ResponseModel[UserFormOut]:
-    user = await user_service.get_form(user_id)
+    user = await user_service.get_form(user_id, current_user=current_user)
     return ResponseModel.success(data=user)
