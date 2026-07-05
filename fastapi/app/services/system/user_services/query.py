@@ -64,7 +64,7 @@ class UserQueryMixin(UserSerializerMixin):
         # 序列化结果
         user_list = []
         for user in users:
-            user_data = await self._serialize_user_optimized(user, depts)
+            user_data = await self._serialize_user_optimized(user, depts, current_user)
             user_list.append(user_data)
 
         return PageResult.create(
@@ -74,7 +74,7 @@ class UserQueryMixin(UserSerializerMixin):
             results=user_list,
         )
 
-    async def get(self, user_id: int) -> UserOut:
+    async def get(self, user_id: int, current_user: Users | None = None) -> UserOut:
         """
         获取用户详情
         """
@@ -82,10 +82,14 @@ class UserQueryMixin(UserSerializerMixin):
         if not user:
             raise NotFound("用户不存在")
 
-        return await self._serialize_user(user)
+        return await self._serialize_user(user, current_user)
 
 
-    async def get_form(self, user_id: int) -> UserFormOut:
+    async def get_form(
+        self,
+        user_id: int,
+        current_user: Users | None = None,
+    ) -> UserFormOut:
         """
         获取用户表单详情（用于编辑回填）
         """
@@ -93,7 +97,7 @@ class UserQueryMixin(UserSerializerMixin):
         if not user:
             raise NotFound("用户不存在")
 
-        return await self._serialize_user_form(user)
+        return await self._serialize_user_form(user, current_user)
 
 
     async def get_options(self) -> list[dict[str, Any]]:

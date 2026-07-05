@@ -105,7 +105,11 @@ class LogPageAPIView(LogPermissionAPIView):
         page_size = parse_positive_int(params.get("page_size"), "pageSize", 10)
         offset = (page_num - 1) * page_size
         total = queryset.count()
-        serializer = OperationLogSerializer(queryset[offset: offset + page_size], many=True)
+        serializer = OperationLogSerializer(
+            queryset[offset: offset + page_size],
+            many=True,
+            context={"request": request},
+        )
         return Response(data={"list": serializer.data, "total": total})
 
 

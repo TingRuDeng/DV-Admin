@@ -10,6 +10,7 @@ from app.db.models.oauth import Users
 from app.db.models.system import OperationLog
 from app.schemas.system import OperationLogPageResult, VisitStatsOut, VisitTrendOut
 from app.services.system.data_scope import apply_log_data_scope
+from app.services.system.field_permission import LOG_FIELD_PLAIN_PERMISSION, can_view_plain_fields
 from app.services.system.log_serializers import operation_log_to_out
 from app.services.system.log_stats_helpers import (
     build_visit_trend,
@@ -61,7 +62,11 @@ class LogService:
         )
 
         # 转换为输出模型
-        results = [operation_log_to_out(log) for log in logs]
+        can_view_plain = await can_view_plain_fields(
+            current_user,
+            LOG_FIELD_PLAIN_PERMISSION,
+        )
+        results = [operation_log_to_out(log, can_view_plain) for log in logs]
 
         return OperationLogPageResult(list=results, total=total)
 

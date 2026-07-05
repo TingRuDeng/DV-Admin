@@ -372,6 +372,12 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 - 超级管理员默认拥有全部数据。
 - 当前第一阶段已在 Django 与 FastAPI 的用户列表和操作日志列表强制应用数据范围过滤；前端表单只负责配置，不作为安全边界。
 
+**字段读取控制：**
+- 当前第二阶段已在 Django 与 FastAPI 的用户输出和操作日志分页输出接入字段读取脱敏。
+- 用户敏感字段 `mobile/email` 默认保留字段但脱敏；拥有 `system:users:field:plain` 或 `is_superuser` 时返回原文。
+- 操作日志敏感字段 `requestBody/responseBody/ip` 默认保留字段但脱敏；拥有 `system:logs:field:plain` 或 `is_superuser` 时返回原文。
+- 字段读取控制只影响响应输出，不改变查询范围、写入校验和字段契约集合。
+
 ---
 
 ## 数据流向
