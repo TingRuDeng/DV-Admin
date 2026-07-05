@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 
 from drf_admin.apps.system.models import OperationLog
 from drf_admin.apps.system.serializers.logs import OperationLogSerializer
+from drf_admin.apps.system.services.data_scope import apply_log_data_scope
 from drf_admin.utils.permissions import RBACPermission
 
 
@@ -73,7 +74,7 @@ class LogPageAPIView(LogPermissionAPIView):
     """操作日志分页列表，结构与 FastAPI `/logs/page` 对齐为 list/total。"""
 
     def get(self, request):
-        queryset = OperationLog.objects.all()
+        queryset = apply_log_data_scope(OperationLog.objects.all(), request.user)
         params = request.query_params  # 经 CamelCaseMiddleWare 下划线化
 
         operation = params.get("operation")
