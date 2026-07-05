@@ -7,7 +7,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from drf_admin.apps.system.models import OperationLog, Permissions, Roles
+from drf_admin.apps.system.models import Departments, OperationLog, Permissions, Roles, Users
 from drf_admin.apps.system.test_helpers import create_admin_user
 
 
@@ -24,6 +24,22 @@ def grant_log_permissions(user):
         role.permissions.add(permission)
     # RBAC 权限有进程级缓存，授权后需清除，避免跨用例脏读
     cache.delete(f"user_info_{user.id}_perms")
+
+
+def create_scoped_log_permission_role(data_scope):
+    """创建带操作日志查询权限的数据范围角色。"""
+    role = Roles.objects.create(
+        name=f"日志数据范围角色{data_scope}",
+        code=f"log_scope_role_{data_scope}",
+        status=1,
+        data_scope=data_scope,
+    )
+    permission, _ = Permissions.objects.get_or_create(
+        perm="system:logs:query",
+        defaults={"name": "system:logs:query", "type": "BUTTON"},
+    )
+    role.permissions.add(permission)
+    return role
 
 
 class OperationLogPersistenceTestCase(TestCase):
@@ -110,6 +126,59 @@ class OperationLogPageTestCase(TestCase):
         """无效分页参数应返回 400，避免把外部输入转换错误暴露为 500。"""
         response = self.client.get("/api/v1/system/logs/page", {"pageNum": "invalid"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_dept_data_scope_filters_logs_by_actor_dept(self):
+        """部门数据范围只返回本部门用户产生的操作日志。"""
+        OperationLog.objects.all().delete()
+        visible_dept = Departments.objects.create(name="日志可见部门", status=1, sort=1)
+        hidden_dept = Departments.objects.create(name="日志隐藏部门", status=1, sort=2)
+        role = create_scoped_log_permission_role(Roles.DATA_SCOPE_DEPT)
+        scoped_user = Users.objects.create_user(
+            username="log_scoped_admin",
+            password="admin123",
+            name="日志范围管理员",
+            dept=visible_dept,
+            is_active=1,
+        )
+        scoped_user.roles.add(role)
+        visible_user = Users.objects.create_user(
+            username="log_visible_user",
+            password="admin123",
+            name="日志可见用户",
+            dept=visible_dept,
+            is_active=1,
+        )
+        hidden_user = Users.objects.create_user(
+            username="log_hidden_user",
+            password="admin123",
+            name="日志隐藏用户",
+            dept=hidden_dept,
+            is_active=1,
+        )
+        OperationLog.objects.create(
+            user_id=visible_user.id,
+            username=visible_user.username,
+            operation="可见操作",
+            method="POST",
+            path="/api/visible",
+            status=1,
+        )
+        OperationLog.objects.create(
+            user_id=hidden_user.id,
+            username=hidden_user.username,
+            operation="隐藏操作",
+            method="POST",
+            path="/api/hidden",
+            status=1,
+        )
+        self.client.force_authenticate(user=scoped_user)
+
+        response = self.client.get("/api/v1/system/logs/page", {"pageNum": 1, "pageSize": 20})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        operations = {item["operation"] for item in response.data["data"]["list"]}
+        self.assertIn("可见操作", operations)
+        self.assertNotIn("隐藏操作", operations)
 
     def test_visit_stats_shape(self):
         """访问统计返回汇总字段。"""

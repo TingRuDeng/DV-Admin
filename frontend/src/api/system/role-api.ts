@@ -89,6 +89,10 @@ export interface RolePageVO {
   desc?: string;
   /** 权限ID集合 */
   permissions?: number[];
+  /** 数据权限 */
+  dataScope?: number;
+  /** 数据权限部门ID集合 */
+  deptIds?: number[];
 }
 export interface RoleForm {
   /** 角色ID */
@@ -96,7 +100,9 @@ export interface RoleForm {
   /** 角色编码 */
   // code?: string;
   /** 数据权限 */
-  // dataScope?: number;
+  dataScope?: number;
+  /** 数据权限部门ID集合 */
+  deptIds?: number[];
   /** 角色名称 */
   name?: string;
   /** 排序 */
