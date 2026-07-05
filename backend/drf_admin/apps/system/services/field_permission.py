@@ -8,6 +8,7 @@ from drf_admin.utils.permissions import RBACPermission
 USER_FIELD_PLAIN_PERMISSION = "system:users:field:plain"
 USER_FIELD_WRITE_PERMISSION = "system:users:field:write"
 LOG_FIELD_PLAIN_PERMISSION = "system:logs:field:plain"
+NOTICE_TARGET_WRITE_PERMISSION = "system:notices:target:write"
 MASKED_TEXT = "[已脱敏]"
 
 
@@ -29,9 +30,24 @@ def can_write_sensitive_user_fields(user) -> bool:
     return USER_FIELD_WRITE_PERMISSION in RBACPermission.get_user_permissions(user)
 
 
+def can_write_notice_target_fields(user) -> bool:
+    """判断当前用户是否可以写入通知指定用户目标字段。"""
+    if user is None or not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    return NOTICE_TARGET_WRITE_PERMISSION in RBACPermission.get_user_permissions(user)
+
+
 def has_sensitive_user_write(attrs: dict[str, Any]) -> bool:
     """判断请求是否显式写入了非空用户敏感字段。"""
     return any(attrs.get(field) not in (None, "") for field in ("mobile", "email"))
+
+
+def has_notice_target_write(attrs: dict[str, Any]) -> bool:
+    """判断请求是否显式写入了非空通知指定用户目标字段。"""
+    target_user_ids = attrs.get("target_user_ids")
+    return target_user_ids not in (None, "", [])
 
 
 def mask_mobile(value: str | None) -> str | None:
