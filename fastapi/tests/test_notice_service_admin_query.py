@@ -4,9 +4,68 @@
 import pytest
 
 from app.core.exceptions import NotFound
+from app.db.models.oauth import Users
+from app.db.models.system import Departments, Notices, Permissions, Roles
 from app.services.system.notice_service import notice_service
 
 pytest_plugins = ["notice_service_fixtures"]
+
+
+async def create_scoped_notice_user() -> Users:
+    """创建仅可管理本部门通知的测试用户。"""
+    visible_dept = await Departments.create(name="通知可见部门", status=1, sort=1)
+    hidden_dept = await Departments.create(name="通知隐藏部门", status=1, sort=2)
+    permission = await Permissions.create(
+        name="system:notices:query",
+        type="BUTTON",
+        perm="system:notices:query",
+    )
+    role = await Roles.create(
+        name="通知数据范围角色",
+        code="notice_scope_role",
+        status=1,
+        data_scope=Roles.DATA_SCOPE_DEPT,
+    )
+    await role.permissions.add(permission)
+    scoped_user = await Users.create(
+        username="notice_scoped_user",
+        password="admin123",
+        name="通知范围用户",
+        dept_id=visible_dept.id,
+        is_active=1,
+    )
+    await scoped_user.roles.add(role)
+    visible_publisher = await Users.create(
+        username="notice_visible_publisher",
+        password="admin123",
+        name="通知可见发布人",
+        dept_id=visible_dept.id,
+        is_active=1,
+    )
+    hidden_publisher = await Users.create(
+        username="notice_hidden_publisher",
+        password="admin123",
+        name="通知隐藏发布人",
+        dept_id=hidden_dept.id,
+        is_active=1,
+    )
+    await Notices.create(
+        title="可见部门通知",
+        content="内容",
+        target_type=1,
+        publisher_id=visible_publisher.id,
+        publisher_name=visible_publisher.username,
+        publish_status=0,
+    )
+    await Notices.create(
+        title="隐藏部门通知",
+        content="内容",
+        target_type=1,
+        publisher_id=hidden_publisher.id,
+        publisher_name=hidden_publisher.username,
+        publish_status=0,
+    )
+    return scoped_user
 
 
 class TestNoticeServiceGetPage:
@@ -61,6 +120,21 @@ class TestNoticeServiceGetPage:
         )
         assert result.total == 0
         assert len(result.list) == 0
+
+    @pytest.mark.asyncio
+    async def test_get_page_filters_notices_by_publisher_dept_scope(self, db):
+        """部门数据范围只返回本部门用户发布的后台通知。"""
+        scoped_user = await create_scoped_notice_user()
+
+        result = await notice_service.get_page(
+            page_num=1,
+            page_size=20,
+            current_user=scoped_user,
+        )
+
+        titles = {notice.title for notice in result.list}
+        assert "可见部门通知" in titles
+        assert "隐藏部门通知" not in titles
 
 
 class TestNoticeServiceGetForm:
