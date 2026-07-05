@@ -36,6 +36,7 @@ async def get_notice_page(
         page_size=page_size,
         title=title,
         publish_status=publish_status,
+        current_user=current_user,
     )
     return ResponseModel.success(data=data)
 
@@ -46,7 +47,7 @@ async def get_notice_form(
     notice_id: int,
     current_user: Users = require_permissions("system:notices:query"),
 ):
-    data = await notice_service.get_form(notice_id)
+    data = await notice_service.get_form(notice_id, current_user=current_user)
     return ResponseModel.success(data=data)
 
 
@@ -83,7 +84,7 @@ async def delete_notices(
     current_user: Users = require_permissions("system:notices:delete"),
 ):
     id_list = [int(x) for x in ids.split(",") if x.strip()]
-    await notice_service.delete_by_ids(id_list)
+    await notice_service.delete_by_ids(id_list, current_user=current_user)
     return ResponseModel.success(message="删除成功")
 
 
@@ -93,7 +94,7 @@ async def publish_notice(
     notice_id: int,
     current_user: Users = require_permissions("system:notices:publish"),
 ):
-    await notice_service.publish(notice_id)
+    await notice_service.publish(notice_id, current_user=current_user)
     return ResponseModel.success(message="发布成功")
 
 
@@ -103,7 +104,7 @@ async def revoke_notice(
     notice_id: int,
     current_user: Users = require_permissions("system:notices:revoke"),
 ):
-    await notice_service.revoke(notice_id)
+    await notice_service.revoke(notice_id, current_user=current_user)
     return ResponseModel.success(message="撤回成功")
 
 

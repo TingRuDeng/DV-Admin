@@ -16,6 +16,7 @@ from app.schemas.system import (
     NoticePageOut,
     NoticeUpdate,
 )
+from app.services.system.data_scope import apply_notice_admin_data_scope
 from app.services.system.field_permission import (
     can_write_notice_target_fields,
     has_notice_target_write,
@@ -42,8 +43,9 @@ class NoticeService:
         page_size: int,
         title: str | None = None,
         publish_status: int | None = None,
+        current_user: Users | None = None,
     ) -> NoticeAdminPageResult:
-        query = Notices.all()
+        query = await apply_notice_admin_data_scope(Notices.all(), current_user)
 
         if title:
             query = query.filter(title__icontains=title)
@@ -63,11 +65,12 @@ class NoticeService:
 
         return NoticeAdminPageResult(list=results, total=total)
 
-    async def get_form(self, notice_id: int) -> NoticeFormOut:
-        notice = await Notices.get_or_none(id=notice_id)
-        if not notice:
-            raise NotFound("通知不存在")
-
+    async def get_form(
+        self,
+        notice_id: int,
+        current_user: Users | None = None,
+    ) -> NoticeFormOut:
+        notice = await self._get_admin_notice(notice_id, current_user)
         return notice_to_form_out(notice)
 
     async def get_detail(self, notice_id: int, user_id: int | None = None) -> NoticeDetailOut:
@@ -150,18 +153,23 @@ class NoticeService:
             return
         raise ValidationError("缺少通知目标字段写入权限，不能写入指定用户范围")
 
-    async def delete_by_ids(self, ids: list[int]) -> None:
-        published = await Notices.filter(id__in=ids, publish_status=1).exists()
+    async def delete_by_ids(
+        self,
+        ids: list[int],
+        current_user: Users | None = None,
+    ) -> None:
+        query = await apply_notice_admin_data_scope(Notices.filter(id__in=ids), current_user)
+        if await query.count() != len(set(ids)):
+            raise NotFound("通知不存在")
+
+        published = await query.filter(publish_status=1).exists()
         if published:
             raise ValidationError("已发布通知不允许删除")
 
-        await Notices.filter(id__in=ids).delete()
+        await query.delete()
 
-    async def publish(self, notice_id: int) -> None:
-        notice = await Notices.get_or_none(id=notice_id)
-        if not notice:
-            raise NotFound("通知不存在")
-
+    async def publish(self, notice_id: int, current_user: Users | None = None) -> None:
+        notice = await self._get_admin_notice(notice_id, current_user)
         if notice.publish_status == 1:
             return
 
@@ -170,17 +178,26 @@ class NoticeService:
         notice.revoke_time = None
         await notice.save()
 
-    async def revoke(self, notice_id: int) -> None:
-        notice = await Notices.get_or_none(id=notice_id)
-        if not notice:
-            raise NotFound("通知不存在")
-
+    async def revoke(self, notice_id: int, current_user: Users | None = None) -> None:
+        notice = await self._get_admin_notice(notice_id, current_user)
         if notice.publish_status != 1:
             return
 
         notice.publish_status = -1
         notice.revoke_time = local_now()
         await notice.save()
+
+    async def _get_admin_notice(
+        self,
+        notice_id: int,
+        current_user: Users | None,
+    ) -> Notices:
+        """按后台管理数据范围获取通知对象。"""
+        query = await apply_notice_admin_data_scope(Notices.filter(id=notice_id), current_user)
+        notice = await query.first()
+        if not notice:
+            raise NotFound("通知不存在")
+        return notice
 
     async def read_all(self, user_id: int) -> None:
         published_ids = cast(

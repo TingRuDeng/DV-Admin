@@ -26,6 +26,14 @@ def apply_log_data_scope(queryset: QuerySet, user: Users) -> QuerySet:
     return queryset.filter(user_id__in=visible_user_ids)
 
 
+def apply_notice_admin_data_scope(queryset: QuerySet, user: Users) -> QuerySet:
+    """按发布人数据范围过滤后台通知管理查询集。"""
+    visible_user_ids = get_visible_user_ids(user)
+    if visible_user_ids is None:
+        return queryset
+    return queryset.filter(publisher_id__in=visible_user_ids)
+
+
 def get_visible_user_ids(user: Users) -> set[int] | None:
     """计算当前用户可见的用户 ID；返回 None 表示无需过滤。"""
     if user.is_superuser:
