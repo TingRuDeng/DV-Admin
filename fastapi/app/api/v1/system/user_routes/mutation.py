@@ -32,7 +32,7 @@ async def create_user(
     user_data: UserCreate,
     current_user: Users = require_permissions("system:users:add"),
 ) -> ResponseModel[UserOut]:
-    user = await user_service.create(user_data)
+    user = await user_service.create(user_data, current_user=current_user)
     return ResponseModel.success(data=user, message="创建成功")
 @router.put("/{user_id}/", response_model=ResponseModel[UserOut])
 async def update_user(
@@ -44,7 +44,7 @@ async def update_user(
     """
     更新用户
     """
-    user = await user_service.update(user_id, user_data)
+    user = await user_service.update(user_id, user_data, current_user=current_user)
     return ResponseModel.success(data=user, message="更新成功")
 @router.patch(
     "/{user_id}/",

@@ -3,6 +3,7 @@
 from app.db.models.oauth import Users
 
 USER_FIELD_PLAIN_PERMISSION = "system:users:field:plain"
+USER_FIELD_WRITE_PERMISSION = "system:users:field:write"
 LOG_FIELD_PLAIN_PERMISSION = "system:logs:field:plain"
 MASKED_TEXT = "[已脱敏]"
 
@@ -19,6 +20,24 @@ async def can_view_plain_fields(
         return True
     permissions = await user.get_permissions()
     return permission_code in permissions
+
+
+async def can_write_sensitive_user_fields(
+    user: Users | None,
+    default_when_anonymous: bool = True,
+) -> bool:
+    """判断当前用户是否可以写入用户敏感字段。"""
+    if user is None:
+        return default_when_anonymous
+    if user.is_superuser:
+        return True
+    permissions = await user.get_permissions()
+    return USER_FIELD_WRITE_PERMISSION in permissions
+
+
+def has_sensitive_user_write(email: str | None, mobile: str | None) -> bool:
+    """判断请求是否显式写入了非空用户敏感字段。"""
+    return any(value not in (None, "") for value in (email, mobile))
 
 
 def mask_mobile(value: str | None) -> str | None:

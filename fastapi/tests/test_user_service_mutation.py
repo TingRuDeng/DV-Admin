@@ -5,6 +5,8 @@ import uuid
 import pytest
 
 from app.core.exceptions import NotFound, ValidationError
+from app.db.models.oauth import Users
+from app.db.models.system import Permissions, Roles
 from app.schemas.system import UserCreate, UserPartialUpdate, UserUpdate
 from app.services.system.user_service import user_service
 
@@ -12,6 +14,25 @@ pytest_plugins = ["user_service_fixtures"]
 
 class TestUserServiceCreate:
     """测试创建用户"""
+
+    async def create_operator(self, permission_codes: tuple[str, ...] = ()) -> Users:
+        """创建字段权限测试操作人。"""
+        role = await Roles.create(
+            name=f"字段写入角色_{uuid.uuid4().hex[:8]}",
+            code=f"field_write_{uuid.uuid4().hex[:8]}",
+            status=1,
+        )
+        for code in permission_codes:
+            permission = await Permissions.create(name=code, type="BUTTON", perm=code)
+            await role.permissions.add(permission)
+        operator = await Users.create(
+            username=f"operator_{uuid.uuid4().hex[:8]}",
+            password="admin123",
+            name="字段操作人",
+            is_active=1,
+        )
+        await operator.roles.add(role)
+        return operator
 
     @pytest.mark.asyncio
     async def test_create_user_basic(self, db, test_dept_for_service):
@@ -91,9 +112,67 @@ class TestUserServiceCreate:
 
         assert "手机号已存在" in str(exc_info.value)
 
+    @pytest.mark.asyncio
+    async def test_create_rejects_sensitive_fields_without_write_permission(self, db):
+        """无字段写入权限时，创建用户不得写入手机号和邮箱。"""
+        operator = await self.create_operator()
+        user_data = UserCreate(
+            username=f"sensitive_create_{uuid.uuid4().hex[:8]}",
+            name="敏感创建",
+            email=f"sensitive_{uuid.uuid4().hex[:8]}@example.com",
+            mobile=f"139{uuid.uuid4().hex[:8]}",
+            password="test123",
+            is_active=1,
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            await user_service.create(user_data, current_user=operator)
+
+        assert "字段写入权限" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_create_allows_sensitive_fields_with_write_permission(self, db):
+        """拥有字段写入权限时，创建用户可以写入手机号和邮箱。"""
+        operator = await self.create_operator(("system:users:field:write",))
+        mobile = f"139{uuid.uuid4().hex[:8]}"
+        email = f"plain_{uuid.uuid4().hex[:8]}@example.com"
+        user_data = UserCreate(
+            username=f"plain_create_{uuid.uuid4().hex[:8]}",
+            name="允许创建",
+            email=email,
+            mobile=mobile,
+            password="test123",
+            is_active=1,
+        )
+
+        result = await user_service.create(user_data, current_user=operator)
+
+        created = await Users.get(id=result.id)
+        assert created.mobile == mobile
+        assert created.email == email
+
 
 class TestUserServiceUpdate:
     """测试更新用户"""
+
+    async def create_operator(self, permission_codes: tuple[str, ...] = ()) -> Users:
+        """创建字段权限测试操作人。"""
+        role = await Roles.create(
+            name=f"字段写入角色_{uuid.uuid4().hex[:8]}",
+            code=f"field_write_{uuid.uuid4().hex[:8]}",
+            status=1,
+        )
+        for code in permission_codes:
+            permission = await Permissions.create(name=code, type="BUTTON", perm=code)
+            await role.permissions.add(permission)
+        operator = await Users.create(
+            username=f"operator_{uuid.uuid4().hex[:8]}",
+            password="admin123",
+            name="字段操作人",
+            is_active=1,
+        )
+        await operator.roles.add(role)
+        return operator
 
     @pytest.mark.asyncio
     async def test_update_user_basic(self, db, test_user_for_service):
@@ -154,6 +233,50 @@ class TestUserServiceUpdate:
             await user_service.update(test_user_for_service.id, update_data)
 
         assert "手机号已存在" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_update_rejects_sensitive_fields_without_write_permission(
+        self,
+        db,
+        test_user_for_service,
+    ):
+        """无字段写入权限时，更新用户不得写入手机号和邮箱。"""
+        operator = await self.create_operator()
+        update_data = UserUpdate(
+            email=f"sensitive_{uuid.uuid4().hex[:8]}@example.com",
+            mobile=f"139{uuid.uuid4().hex[:8]}",
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            await user_service.update(
+                test_user_for_service.id,
+                update_data,
+                current_user=operator,
+            )
+
+        assert "字段写入权限" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_update_allows_sensitive_fields_with_write_permission(
+        self,
+        db,
+        test_user_for_service,
+    ):
+        """拥有字段写入权限时，更新用户可以写入手机号和邮箱。"""
+        operator = await self.create_operator(("system:users:field:write",))
+        mobile = f"139{uuid.uuid4().hex[:8]}"
+        email = f"plain_{uuid.uuid4().hex[:8]}@example.com"
+        update_data = UserUpdate(email=email, mobile=mobile)
+
+        await user_service.update(
+            test_user_for_service.id,
+            update_data,
+            current_user=operator,
+        )
+
+        await test_user_for_service.refresh_from_db()
+        assert test_user_for_service.mobile == mobile
+        assert test_user_for_service.email == email
 
 
 class TestUserServicePartialUpdate:
