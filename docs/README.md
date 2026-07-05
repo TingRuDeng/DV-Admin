@@ -480,7 +480,7 @@ cp .env.example .env
 
 | 文档 | 自动化方式 | 优先级 |
 |------|-----------|--------|
-| `API_ENDPOINTS.md` | 在现有契约校验基础上继续探索从 OpenAPI/Swagger 生成 | 高 |
+| `API_ENDPOINTS.md` | 关键端点报告已由 `scripts/generate_api_contract_report.py` 生成；继续探索完整 OpenAPI/Swagger 生成 | 高 |
 | `DATABASE_SCHEMA.md` | 从模型定义生成 | 中 |
 | `TECH_DEBT.md` | 从代码注释/issue 提取 | 低 |
 
