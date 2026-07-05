@@ -6,7 +6,8 @@ import uuid
 import pytest
 
 from app.core.exceptions import NotFound, ValidationError
-from app.db.models.system import Notices
+from app.db.models.oauth import Users
+from app.db.models.system import Notices, Permissions, Roles
 from app.schemas.system import NoticeCreate, NoticeUpdate
 from app.services.system.notice_service import notice_service
 
@@ -15,6 +16,25 @@ pytest_plugins = ["notice_service_fixtures"]
 
 class TestNoticeServiceCreate:
     """测试创建通知。"""
+
+    async def create_operator(self, permission_codes: tuple[str, ...] = ()) -> Users:
+        """创建通知字段权限测试操作人。"""
+        role = await Roles.create(
+            name=f"通知字段写入角色_{uuid.uuid4().hex[:8]}",
+            code=f"notice_target_write_{uuid.uuid4().hex[:8]}",
+            status=1,
+        )
+        for code in permission_codes:
+            permission = await Permissions.create(name=code, type="BUTTON", perm=code)
+            await role.permissions.add(permission)
+        operator = await Users.create(
+            username=f"notice_operator_{uuid.uuid4().hex[:8]}",
+            password="admin123",
+            name="通知字段操作人",
+            is_active=1,
+        )
+        await operator.roles.add(role)
+        return operator
 
     @pytest.mark.asyncio
     async def test_create_basic(self, db):
@@ -71,9 +91,73 @@ class TestNoticeServiceCreate:
                 publisher_name="管理员",
             )
 
+    @pytest.mark.asyncio
+    async def test_create_rejects_target_users_without_field_write_permission(self, db):
+        """无字段写入权限时，创建指定用户通知应被拒绝。"""
+        operator = await self.create_operator()
+        notice_in = NoticeCreate(
+            title=f"无权限定向通知_{uuid.uuid4().hex[:6]}",
+            content="指定用户通知内容",
+            type=0,
+            level="H",
+            target_type=2,
+            target_user_ids=[operator.id],
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            await notice_service.create(
+                notice_in,
+                publisher_id=operator.id,
+                publisher_name=operator.name,
+                current_user=operator,
+            )
+
+        assert "通知目标字段写入权限" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_create_allows_target_users_with_field_write_permission(self, db):
+        """拥有字段写入权限时，创建指定用户通知应通过。"""
+        operator = await self.create_operator(("system:notices:target:write",))
+        notice_in = NoticeCreate(
+            title=f"授权定向通知_{uuid.uuid4().hex[:6]}",
+            content="指定用户通知内容",
+            type=0,
+            level="H",
+            target_type=2,
+            target_user_ids=[operator.id],
+        )
+
+        result = await notice_service.create(
+            notice_in,
+            publisher_id=operator.id,
+            publisher_name=operator.name,
+            current_user=operator,
+        )
+
+        assert result.target_user_ids == [operator.id]
+
 
 class TestNoticeServiceUpdate:
     """测试更新通知。"""
+
+    async def create_operator(self, permission_codes: tuple[str, ...] = ()) -> Users:
+        """创建通知字段权限测试操作人。"""
+        role = await Roles.create(
+            name=f"通知字段写入角色_{uuid.uuid4().hex[:8]}",
+            code=f"notice_target_write_{uuid.uuid4().hex[:8]}",
+            status=1,
+        )
+        for code in permission_codes:
+            permission = await Permissions.create(name=code, type="BUTTON", perm=code)
+            await role.permissions.add(permission)
+        operator = await Users.create(
+            username=f"notice_operator_{uuid.uuid4().hex[:8]}",
+            password="admin123",
+            name="通知字段操作人",
+            is_active=1,
+        )
+        await operator.roles.add(role)
+        return operator
 
     @pytest.mark.asyncio
     async def test_update_basic(self, db, test_notices_for_service):
@@ -104,6 +188,33 @@ class TestNoticeServiceUpdate:
         notice_in = NoticeUpdate(target_type=1)
         result = await notice_service.update(notice.id, notice_in)
         assert result.target_type == 1
+
+    @pytest.mark.asyncio
+    async def test_update_rejects_target_users_without_field_write_permission(
+        self, db, test_notices_for_service
+    ):
+        """无字段写入权限时，更新指定用户通知应被拒绝。"""
+        operator = await self.create_operator()
+        notice = test_notices_for_service[0]
+        notice_in = NoticeUpdate(target_type=2, target_user_ids=[operator.id])
+
+        with pytest.raises(ValidationError) as exc_info:
+            await notice_service.update(notice.id, notice_in, current_user=operator)
+
+        assert "通知目标字段写入权限" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_update_allows_target_users_with_field_write_permission(
+        self, db, test_notices_for_service
+    ):
+        """拥有字段写入权限时，更新指定用户通知应通过。"""
+        operator = await self.create_operator(("system:notices:target:write",))
+        notice = test_notices_for_service[0]
+        notice_in = NoticeUpdate(target_type=2, target_user_ids=[operator.id])
+
+        result = await notice_service.update(notice.id, notice_in, current_user=operator)
+
+        assert result.target_user_ids == [operator.id]
 
 
 class TestNoticeServiceDelete:

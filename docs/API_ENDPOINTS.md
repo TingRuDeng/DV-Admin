@@ -437,6 +437,8 @@ PUT    /api/v1/system/notices/{id}/revoke    # 撤回通知
 GET    /api/v1/system/notices/my-page/       # 我的通知
 ```
 
+> 后台通知创建/更新请求中显式写入非空 `targetUserIds` 时，需要 `system:notices:target:write` 或 `is_superuser`。
+
 **我的通知接口（Django & FastAPI）：**
 ```
 GET    /api/v1/system/notices/my-page/       # 我的通知，支持 pageNum/pageSize/title/isRead
