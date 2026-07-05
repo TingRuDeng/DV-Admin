@@ -4,7 +4,8 @@
 
 ## 活跃任务
 
-- [ ] 待选择：下一轮长期可持续性治理目标。
+- [x] 2026-07-05：完成五批长期可持续性治理：FastAPI 根路径生产提示、日志统计数据库聚合、API 契约报告、根级 compose 模板、数据/字段权限 PRD。
+- [ ] 待选择：数据权限与字段权限 PRD 的下一阶段产品确认。
 
 ## 最近完成
 
@@ -15,6 +16,7 @@
 
 - `tasks/todo.md`：当前任务状态索引。
 - `tasks/audit-batch-import-export-prd.md`：审计日志、批量操作与导入导出状态 PRD，当前仍由 `docs/TECH_DEBT.md` 引用。
+- `tasks/data-field-permission-prd.md`：数据权限与字段权限 PRD，当前仍由 `docs/TECH_DEBT.md` 引用。
 
 ## Review 小结
 

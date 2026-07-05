@@ -3,6 +3,7 @@
 from collections import Counter
 from datetime import datetime, timedelta
 
+from django.db.models import Avg, Count
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -142,21 +143,22 @@ class VisitStatsAPIView(LogPermissionAPIView):
         month_start = today_start.replace(day=1)
 
         all_logs = OperationLog.objects.all()
-        recent = list(all_logs.order_by("-created_at")[:1000])
-
-        exec_times = [log.execution_time for log in all_logs.filter(execution_time__gt=0)]
-        avg_execution_time = int(sum(exec_times) / len(exec_times)) if exec_times else 0
-
-        top_users = [
-            {"username": username, "count": count}
-            for username, count in Counter(
-                log.username for log in recent if log.username
-            ).most_common(10)
-        ]
-        top_paths = [
-            {"path": path, "count": count}
-            for path, count in Counter(log.path for log in recent if log.path).most_common(10)
-        ]
+        avg_time = all_logs.filter(execution_time__gt=0).aggregate(
+            avg_execution_time=Avg("execution_time")
+        )["avg_execution_time"]
+        avg_execution_time = int(avg_time) if avg_time is not None else 0
+        top_users = list(
+            all_logs.exclude(username="")
+            .values("username")
+            .annotate(count=Count("id"))
+            .order_by("-count", "username")[:10]
+        )
+        top_paths = list(
+            all_logs.exclude(path="")
+            .values("path")
+            .annotate(count=Count("id"))
+            .order_by("-count", "path")[:10]
+        )
 
         data = {
             "total_count": all_logs.count(),
