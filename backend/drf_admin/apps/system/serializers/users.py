@@ -6,7 +6,11 @@ from django.conf import settings
 from rest_framework import serializers
 
 from drf_admin.apps.system.models import Users
-from drf_admin.apps.system.services.field_permission import apply_user_field_permissions
+from drf_admin.apps.system.services.field_permission import (
+    apply_user_field_permissions,
+    can_write_sensitive_user_fields,
+    has_sensitive_user_write,
+)
 from drf_admin.utils.views import OptionsSerializer
 
 
@@ -29,6 +33,9 @@ class UsersSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         # 数据验证
+        request = self.context.get("request")
+        if has_sensitive_user_write(attrs) and not can_write_sensitive_user_fields(request.user if request else None):
+            raise serializers.ValidationError("缺少字段写入权限，不能写入手机号或邮箱")
         if attrs.get('username'):
             if attrs.get('username').isdigit():
                 raise serializers.ValidationError('用户名不能为纯数字')

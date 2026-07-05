@@ -8,6 +8,10 @@ from app.core.security import get_password_hash
 from app.db.models.oauth import Users
 from app.db.models.system import Roles
 from app.schemas.system import UserCreate, UserOut, UserPartialUpdate, UserUpdate
+from app.services.system.field_permission import (
+    can_write_sensitive_user_fields,
+    has_sensitive_user_write,
+)
 from app.services.system.user_services.cache import UserCacheMixin
 from app.services.system.user_services.serializers import UserSerializerMixin
 
@@ -15,7 +19,11 @@ from app.services.system.user_services.serializers import UserSerializerMixin
 class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
     """承载用户创建、更新、删除和密码重置。"""
 
-    async def create(self, user_in: UserCreate) -> UserOut:
+    async def create(
+        self,
+        user_in: UserCreate,
+        current_user: Users | None = None,
+    ) -> UserOut:
         """
         创建用户
         """
@@ -23,6 +31,12 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         existing = await Users.get_or_none(username=user_in.username)
         if existing:
             raise ValidationError("用户名已存在")
+
+        await self._validate_sensitive_user_write(
+            email=user_in.email,
+            mobile=user_in.mobile,
+            current_user=current_user,
+        )
 
         # 检查手机号是否已存在
         if user_in.mobile:
@@ -52,13 +66,24 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         return await self._serialize_user(user)
 
 
-    async def update(self, user_id: int, user_in: UserUpdate) -> UserOut:
+    async def update(
+        self,
+        user_id: int,
+        user_in: UserUpdate,
+        current_user: Users | None = None,
+    ) -> UserOut:
         """
         更新用户
         """
         user = await Users.get_or_none(id=user_id)
         if not user:
             raise NotFound("用户不存在")
+
+        await self._validate_sensitive_user_write(
+            email=user_in.email,
+            mobile=user_in.mobile,
+            current_user=current_user,
+        )
 
         # 检查手机号是否已被其他用户使用
         if user_in.mobile:
@@ -100,6 +125,19 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         await self._clear_user_cache(user_id)
 
         return await self._serialize_user(user)
+
+    async def _validate_sensitive_user_write(
+        self,
+        email: str | None,
+        mobile: str | None,
+        current_user: Users | None,
+    ) -> None:
+        """校验当前操作者是否可写入用户手机号和邮箱。"""
+        if not has_sensitive_user_write(email=email, mobile=mobile):
+            return
+        if await can_write_sensitive_user_fields(current_user):
+            return
+        raise ValidationError("缺少字段写入权限，不能写入手机号或邮箱")
 
 
     async def partial_update(self, user_id: int, user_in: UserPartialUpdate) -> UserOut:
@@ -165,4 +203,3 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         default_password = settings.default_password
         user.password = get_password_hash(default_password)
         await user.save()
-

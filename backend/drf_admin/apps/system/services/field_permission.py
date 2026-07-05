@@ -6,6 +6,7 @@ from typing import Any
 from drf_admin.utils.permissions import RBACPermission
 
 USER_FIELD_PLAIN_PERMISSION = "system:users:field:plain"
+USER_FIELD_WRITE_PERMISSION = "system:users:field:write"
 LOG_FIELD_PLAIN_PERMISSION = "system:logs:field:plain"
 MASKED_TEXT = "[已脱敏]"
 
@@ -17,6 +18,20 @@ def can_view_plain_fields(user, permission_code: str) -> bool:
     if getattr(user, "is_superuser", False):
         return True
     return permission_code in RBACPermission.get_user_permissions(user)
+
+
+def can_write_sensitive_user_fields(user) -> bool:
+    """判断当前用户是否可以写入用户敏感字段。"""
+    if user is None or not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    return USER_FIELD_WRITE_PERMISSION in RBACPermission.get_user_permissions(user)
+
+
+def has_sensitive_user_write(attrs: dict[str, Any]) -> bool:
+    """判断请求是否显式写入了非空用户敏感字段。"""
+    return any(attrs.get(field) not in (None, "") for field in ("mobile", "email"))
 
 
 def mask_mobile(value: str | None) -> str | None:

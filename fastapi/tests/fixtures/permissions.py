@@ -18,6 +18,7 @@ BUTTON_SPECS = (
     ("user_reset_password", "重置密码", "user_menu", "system:users:password:reset"),
     ("user_import", "用户导入", "user_menu", "system:users:import"),
     ("user_export", "用户导出", "user_menu", "system:users:export"),
+    ("user_field_write", "用户敏感字段写入", "user_menu", "system:users:field:write"),
     ("role_add", "角色新增", "role_menu", "system:roles:add"),
     ("role_edit", "角色编辑", "role_menu", "system:roles:edit"),
     ("role_delete", "角色删除", "role_menu", "system:roles:delete"),
