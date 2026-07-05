@@ -39,6 +39,7 @@ BUTTON_SPECS = (
     ("notice_delete", "公告删除", "notice_menu", "system:notices:delete"),
     ("notice_publish", "公告发布", "notice_menu", "system:notices:publish"),
     ("notice_revoke", "公告撤销", "notice_menu", "system:notices:revoke"),
+    ("notice_target_write", "通知目标字段写入", "notice_menu", "system:notices:target:write"),
     ("log_delete", "日志删除", "log_menu", "system:logs:delete"),
 )
 

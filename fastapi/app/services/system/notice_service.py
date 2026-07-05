@@ -5,6 +5,7 @@
 from typing import cast
 
 from app.core.exceptions import NotFound, ValidationError
+from app.db.models.oauth import Users
 from app.db.models.system import NoticeReads, Notices
 from app.schemas.system import (
     NoticeAdminPageResult,
@@ -14,6 +15,10 @@ from app.schemas.system import (
     NoticeMyPageResult,
     NoticePageOut,
     NoticeUpdate,
+)
+from app.services.system.field_permission import (
+    can_write_notice_target_fields,
+    has_notice_target_write,
 )
 from app.services.system.notice_read_helpers import (
     apply_read_filter,
@@ -76,10 +81,16 @@ class NoticeService:
         return notice_to_detail_out(notice)
 
     async def create(
-        self, notice_in: NoticeCreate, publisher_id: int, publisher_name: str
+        self,
+        notice_in: NoticeCreate,
+        publisher_id: int,
+        publisher_name: str,
+        current_user: Users | None = None,
     ) -> NoticePageOut:
         if notice_in.target_type == 2 and not notice_in.target_user_ids:
             raise ValidationError("目标类型为指定时，必须选择目标用户")
+
+        await self._validate_notice_target_write(notice_in.target_user_ids, current_user)
 
         notice = await Notices.create(
             title=notice_in.title,
@@ -95,13 +106,20 @@ class NoticeService:
 
         return notice_to_page_out(notice)
 
-    async def update(self, notice_id: int, notice_in: NoticeUpdate) -> NoticePageOut:
+    async def update(
+        self,
+        notice_id: int,
+        notice_in: NoticeUpdate,
+        current_user: Users | None = None,
+    ) -> NoticePageOut:
         notice = await Notices.get_or_none(id=notice_id)
         if not notice:
             raise NotFound("通知不存在")
 
         if notice.publish_status == 1:
             raise ValidationError("已发布通知不允许编辑")
+
+        await self._validate_notice_target_write(notice_in.target_user_ids, current_user)
 
         update_fields = {}
         for field, value in notice_in.model_dump(exclude_unset=True).items():
@@ -119,6 +137,18 @@ class NoticeService:
             await notice.refresh_from_db()
 
         return notice_to_page_out(notice)
+
+    async def _validate_notice_target_write(
+        self,
+        target_user_ids: list[int] | None,
+        current_user: Users | None,
+    ) -> None:
+        """校验当前操作者是否可写入通知指定用户范围。"""
+        if not has_notice_target_write(target_user_ids):
+            return
+        if await can_write_notice_target_fields(current_user):
+            return
+        raise ValidationError("缺少通知目标字段写入权限，不能写入指定用户范围")
 
     async def delete_by_ids(self, ids: list[int]) -> None:
         published = await Notices.filter(id__in=ids, publish_status=1).exists()

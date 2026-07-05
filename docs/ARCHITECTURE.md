@@ -379,8 +379,9 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 - 字段读取控制只影响响应输出，不改变查询范围、写入校验和字段契约集合。
 
 **字段写入控制：**
-- 当前第三阶段已在 Django 与 FastAPI 的后台用户创建和更新路径接入字段写入拒绝。
+- 当前第三阶段已在 Django 与 FastAPI 的后台用户创建和更新路径接入字段写入拒绝；第四阶段已覆盖后台通知创建和更新路径的指定用户目标字段。
 - 后台用户管理请求中显式写入非空 `mobile/email` 时，需要 `system:users:field:write` 或 `is_superuser`。
+- 后台通知创建/更新请求中显式写入非空 `targetUserIds` 时，需要 `system:notices:target:write` 或 `is_superuser`。
 - 字段写入控制不影响个人中心资料维护路径，不改变数据库字段和响应字段集合。
 
 ---

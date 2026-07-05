@@ -2,17 +2,30 @@
 """
 系统管理 - 通知公告接口测试
 """
+from django.core.cache import cache
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from drf_admin.apps.system.models import Notices, Permissions
 from drf_admin.apps.system.test_helpers import create_admin_user
+
+
+def grant_notice_target_write(user):
+    """为测试用户授予通知目标字段写入权限。"""
+    permission, _ = Permissions.objects.get_or_create(
+        perm="system:notices:target:write",
+        defaults={"name": "通知目标字段写入", "type": "BUTTON"},
+    )
+    user.roles.first().permissions.add(permission)
+    cache.delete(f"user_info_{user.id}_perms")
 
 
 class NoticesListTestCase(TestCase):
     """通知公告列表接口测试"""
 
     def setUp(self):
+        cache.clear()
         self.client = APIClient()
         self.user = create_admin_user()
         self.client.force_authenticate(user=self.user)
@@ -28,13 +41,14 @@ class NoticesCreateTestCase(TestCase):
     """通知公告创建接口测试"""
 
     def setUp(self):
+        cache.clear()
         self.client = APIClient()
         self.user = create_admin_user()
         self.client.force_authenticate(user=self.user)
 
     def test_create_notice(self):
         """测试创建通知"""
-        response = self.client.post("/api/v1/system/notices/", {
+        response = self.client.post("/api/v1/system/notices", {
             "title": "测试通知",
             "content": "测试内容",
             "type": 1,
@@ -43,11 +57,42 @@ class NoticesCreateTestCase(TestCase):
         
         self.assertIn(response.status_code, [status.HTTP_201_CREATED, status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND])
 
+    def test_create_rejects_target_users_without_field_write_permission(self):
+        """无字段写入权限时，创建指定用户通知应被拒绝。"""
+        response = self.client.post("/api/v1/system/notices", {
+            "title": "定向通知",
+            "content": "定向内容",
+            "type": 1,
+            "level": "H",
+            "targetType": 2,
+            "targetUserIds": [self.user.id],
+        }, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("通知目标字段写入权限", str(response.data))
+
+    def test_create_allows_target_users_with_field_write_permission(self):
+        """拥有字段写入权限时，创建指定用户通知应通过。"""
+        grant_notice_target_write(self.user)
+
+        response = self.client.post("/api/v1/system/notices", {
+            "title": "授权定向通知",
+            "content": "定向内容",
+            "type": 1,
+            "level": "H",
+            "targetType": 2,
+            "targetUserIds": [self.user.id],
+        }, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["data"]["target_user_ids"], [self.user.id])
+
 
 class NoticesDetailTestCase(TestCase):
     """通知公告详情接口测试"""
 
     def setUp(self):
+        cache.clear()
         self.client = APIClient()
         self.user = create_admin_user()
         self.client.force_authenticate(user=self.user)
@@ -65,6 +110,39 @@ class NoticesDetailTestCase(TestCase):
         }, format="json")
         
         self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND, status.HTTP_403_FORBIDDEN])
+
+    def test_update_rejects_target_users_without_field_write_permission(self):
+        """无字段写入权限时，更新指定用户通知应被拒绝。"""
+        notice = Notices.objects.create(title="普通通知", content="内容", target_type=1)
+
+        response = self.client.put(f"/api/v1/system/notices/{notice.id}", {
+            "title": "定向通知",
+            "content": "定向内容",
+            "type": 1,
+            "level": "H",
+            "targetType": 2,
+            "targetUserIds": [self.user.id],
+        }, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("通知目标字段写入权限", str(response.data))
+
+    def test_update_allows_target_users_with_field_write_permission(self):
+        """拥有字段写入权限时，更新指定用户通知应通过。"""
+        grant_notice_target_write(self.user)
+        notice = Notices.objects.create(title="普通通知", content="内容", target_type=1)
+
+        response = self.client.put(f"/api/v1/system/notices/{notice.id}", {
+            "title": "授权定向通知",
+            "content": "定向内容",
+            "type": 1,
+            "level": "H",
+            "targetType": 2,
+            "targetUserIds": [self.user.id],
+        }, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["data"]["target_user_ids"], [self.user.id])
 
     def test_delete_notice(self):
         """测试删除通知"""

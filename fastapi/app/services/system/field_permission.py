@@ -5,6 +5,7 @@ from app.db.models.oauth import Users
 USER_FIELD_PLAIN_PERMISSION = "system:users:field:plain"
 USER_FIELD_WRITE_PERMISSION = "system:users:field:write"
 LOG_FIELD_PLAIN_PERMISSION = "system:logs:field:plain"
+NOTICE_TARGET_WRITE_PERMISSION = "system:notices:target:write"
 MASKED_TEXT = "[已脱敏]"
 
 
@@ -35,9 +36,27 @@ async def can_write_sensitive_user_fields(
     return USER_FIELD_WRITE_PERMISSION in permissions
 
 
+async def can_write_notice_target_fields(
+    user: Users | None,
+    default_when_anonymous: bool = True,
+) -> bool:
+    """判断当前用户是否可以写入通知指定用户目标字段。"""
+    if user is None:
+        return default_when_anonymous
+    if user.is_superuser:
+        return True
+    permissions = await user.get_permissions()
+    return NOTICE_TARGET_WRITE_PERMISSION in permissions
+
+
 def has_sensitive_user_write(email: str | None, mobile: str | None) -> bool:
     """判断请求是否显式写入了非空用户敏感字段。"""
     return any(value not in (None, "") for value in (email, mobile))
+
+
+def has_notice_target_write(target_user_ids: list[int] | None) -> bool:
+    """判断请求是否显式写入了非空通知指定用户目标字段。"""
+    return target_user_ids not in (None, [])
 
 
 def mask_mobile(value: str | None) -> str | None:

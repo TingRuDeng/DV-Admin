@@ -57,7 +57,10 @@ async def create_notice(
     current_user: Users = require_permissions("system:notices:add"),
 ):
     data = await notice_service.create(
-        notice_data, publisher_id=current_user.id, publisher_name=current_user.name or current_user.username
+        notice_data,
+        publisher_id=current_user.id,
+        publisher_name=current_user.name or current_user.username,
+        current_user=current_user,
     )
     return ResponseModel.success(data=data, message="创建成功")
 
@@ -69,7 +72,7 @@ async def update_notice(
     notice_data: NoticeUpdate,
     current_user: Users = require_permissions("system:notices:edit"),
 ):
-    data = await notice_service.update(notice_id, notice_data)
+    data = await notice_service.update(notice_id, notice_data, current_user=current_user)
     return ResponseModel.success(data=data, message="更新成功")
 
 
