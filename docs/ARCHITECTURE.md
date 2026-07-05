@@ -527,6 +527,25 @@ CHANNEL_LAYERS = {
                └────────┘ └────────┘
 ```
 
+### Compose 模板
+
+仓库根目录提供 `compose.yaml` 作为本地容器化联调和预部署模板：
+
+- `frontend` profile 启动 Vite 前端，默认连接宿主机 `8769` 后端端口。
+- `django` profile 启动 Django 后端，使用 `deploy/env/django.compose.env` 生成容器内 `.env.compose`。
+- `fastapi` profile 启动 FastAPI 后端，使用 `deploy/env/fastapi.compose.env` 生成容器内 `.env`。
+- `mysql` 与 `redis` 是共享基础设施服务。
+
+Django 与 FastAPI 仍是替代关系；同一次 compose 运行应只选择 `django` 或 `fastapi` 其中一个后端 profile，避免两个服务争用 `8769` 端口。
+
+常用命令：
+
+```bash
+docker compose --profile frontend --profile django up
+docker compose --profile frontend --profile fastapi up
+docker compose config
+```
+
 ---
 
 ## 关键设计决策
