@@ -26,8 +26,10 @@ ai_summary:
     - "frontend/src/utils/request.ts"
     - "scripts/api_contracts.py"
     - "scripts/api_endpoint_contracts.py"
+    - "scripts/generate_api_contract_report.py"
     - "scripts/api_route_coverage_validation.py"
     - "scripts/validate_api_contracts.py"
+    - "docs/api-contract-report.json"
   verify_with:
     - "python3 scripts/validate_docs.py . --profile generic"
     - "python3 scripts/validate_api_contracts.py ."
@@ -164,6 +166,7 @@ ai_summary:
 - `scripts/api_contracts.py` 定义成功响应、错误响应和分页载荷的跨后端断言。
 - `scripts/api_capability_contracts.py` 定义单后端 API 能力边界契约；操作日志已双实现后目录暂为空，机制保留用于登记未来可能出现的单后端独占能力。
 - `scripts/api_endpoint_contracts.py` 定义关键端点契约目录，锁定路径、方法、权限、分页和关键字段。
+- `scripts/generate_api_contract_report.py` 从关键端点契约目录生成 `docs/api-contract-report.json`；该 JSON 是机器可读的关键端点报告，不作为新的手工事实源。
 - `scripts/api_field_contracts.py` 定义首批响应字段契约目录，锁定已登记的 Django/FastAPI 字段漂移面。
 - `scripts/api_field_contract_validation.py` 校验字段来源类、读端点字段契约覆盖关系和 `converge` 收敛债务文档登记。
 - `scripts/api_frontend_field_contracts.py` 定义前端 API 类型字段契约目录，锁定前端已声明的高价值字段必须挂靠后端字段契约。
@@ -177,7 +180,7 @@ ai_summary:
 - `fastapi/tests/test_api_field_contracts.py` 覆盖 FastAPI schema 对外字段集合。
 - `frontend/src/utils/__tests__/api-contract.test.ts` 覆盖前端对 Django `msg/errors` 与 FastAPI `message` 的兼容读取。
 - `frontend/src/api/__tests__/api-frontend-field-contract-governance.spec.ts` 覆盖前端字段契约文件入口和首批 API 类型文件登记。
-- `scripts/validate_api_contracts.py` 校验契约定义、测试文件和本文档入口是否同步。
+- `scripts/validate_api_contracts.py` 校验契约定义、生成报告、测试文件和本文档入口是否同步。
 
 共享错误码契约目录只记录当前前端与双后端共同依赖的公共错误语义。登录失败、验证码失败等普通业务失败使用 `40000`；只有 Access Token 无效或过期才能使用 `40001`，避免前端误触发 token 刷新流程。
 

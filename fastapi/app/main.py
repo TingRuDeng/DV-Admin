@@ -44,6 +44,16 @@ def get_api_docs_config(is_production: bool) -> dict[str, str | None]:
     return API_DOCS_CONFIG.copy()
 
 
+def get_root_payload(app_name: str, version: str, is_production: bool) -> dict[str, str | None]:
+    """生成根路径响应，生产环境不提示已关闭的文档入口。"""
+    docs_url = None if is_production else API_DOCS_CONFIG["docs_url"]
+    return {
+        "name": app_name,
+        "version": version,
+        "docs": docs_url,
+    }
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -154,11 +164,11 @@ def create_app() -> FastAPI:
     @app.get("/", tags=["根路径"])
     async def root():
         """根路径"""
-        return {
-            "name": settings.app_name,
-            "version": settings.version,
-            "docs": "/api/swagger",
-        }
+        return get_root_payload(
+            app_name=settings.app_name,
+            version=settings.version,
+            is_production=settings.is_production,
+        )
 
     # 注册 Tortoise ORM
     register_tortoise(

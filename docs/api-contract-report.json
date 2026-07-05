@@ -1,0 +1,948 @@
+{
+  "authenticated_count": 39,
+  "endpoint_count": 40,
+  "endpoints": [
+    {
+      "auth_required": false,
+      "evidence_files": [
+        "backend/drf_admin/apps/oauth/urls.py",
+        "fastapi/app/api/v1/oauth/routes/login.py",
+        "frontend/src/api/auth-api.ts"
+      ],
+      "key": "auth_login",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/oauth/login/",
+      "permissions": [],
+      "query_params": [],
+      "request_fields": [
+        "username",
+        "password"
+      ],
+      "response_fields": [
+        "accessToken",
+        "refreshToken",
+        "tokenType",
+        "expiresIn"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/oauth/urls.py",
+        "fastapi/app/api/v1/oauth/routes/profile.py",
+        "frontend/src/api/auth-api.ts"
+      ],
+      "key": "auth_info",
+      "method": "GET",
+      "paginated": false,
+      "path": "/api/v1/oauth/info/",
+      "permissions": [],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "id",
+        "username",
+        "roles",
+        "perms"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/oauth/urls.py",
+        "fastapi/app/api/v1/oauth/routes/menus.py",
+        "frontend/src/api/auth-api.ts"
+      ],
+      "key": "auth_routes",
+      "method": "GET",
+      "paginated": false,
+      "path": "/api/v1/oauth/menus/routes/",
+      "permissions": [],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "children",
+        "component",
+        "meta",
+        "path"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "fastapi/app/api/pagination.py",
+        "fastapi/app/api/v1/system/user_routes/query.py",
+        "frontend/src/api/system/user-api.ts"
+      ],
+      "key": "users_page",
+      "method": "GET",
+      "paginated": true,
+      "path": "/api/v1/system/users/",
+      "permissions": [
+        "system:users:query"
+      ],
+      "query_params": [
+        "pageNum",
+        "pageSize",
+        "search",
+        "isActive",
+        "dept"
+      ],
+      "request_fields": [],
+      "response_fields": [
+        "list",
+        "total"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/user_routes/query.py",
+        "frontend/src/api/system/user-api.ts"
+      ],
+      "key": "users_form",
+      "method": "GET",
+      "paginated": false,
+      "path": "/api/v1/system/users/{id}/",
+      "permissions": [
+        "system:users:query"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "id",
+        "username",
+        "roles"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "fastapi/app/api/v1/system/user_routes/mutation.py",
+        "frontend/src/api/system/user-api.ts"
+      ],
+      "key": "users_create",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/system/users/",
+      "permissions": [
+        "system:users:add"
+      ],
+      "query_params": [],
+      "request_fields": [
+        "username",
+        "name",
+        "password"
+      ],
+      "response_fields": [
+        "id",
+        "username",
+        "name"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "fastapi/app/api/v1/system/user_routes/mutation.py",
+        "frontend/src/api/system/user-api.ts"
+      ],
+      "key": "users_update",
+      "method": "PUT",
+      "paginated": false,
+      "path": "/api/v1/system/users/{id}/",
+      "permissions": [
+        "system:users:edit"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "id",
+        "username",
+        "name"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "fastapi/app/api/v1/system/user_routes/mutation.py",
+        "frontend/src/api/system/user-api.ts"
+      ],
+      "key": "users_delete",
+      "method": "DELETE",
+      "paginated": false,
+      "path": "/api/v1/system/users/",
+      "permissions": [
+        "system:users:delete"
+      ],
+      "query_params": [],
+      "request_fields": [
+        "ids"
+      ],
+      "response_fields": []
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/pagination.py",
+        "fastapi/app/api/v1/system/roles.py",
+        "frontend/src/api/system/role-api.ts"
+      ],
+      "key": "roles_page",
+      "method": "GET",
+      "paginated": true,
+      "path": "/api/v1/system/roles/",
+      "permissions": [
+        "system:roles:query"
+      ],
+      "query_params": [
+        "pageNum",
+        "pageSize",
+        "search"
+      ],
+      "request_fields": [],
+      "response_fields": [
+        "list",
+        "total"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/roles.py",
+        "frontend/src/api/system/role-api.ts"
+      ],
+      "key": "roles_create",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/system/roles/",
+      "permissions": [
+        "system:roles:add"
+      ],
+      "query_params": [],
+      "request_fields": [
+        "name"
+      ],
+      "response_fields": [
+        "id",
+        "name",
+        "code"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/roles.py",
+        "frontend/src/api/system/role-api.ts"
+      ],
+      "key": "roles_update",
+      "method": "PUT",
+      "paginated": false,
+      "path": "/api/v1/system/roles/{id}/",
+      "permissions": [
+        "system:roles:edit"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "id",
+        "name",
+        "code"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/roles.py",
+        "frontend/src/api/system/role-api.ts"
+      ],
+      "key": "roles_form",
+      "method": "GET",
+      "paginated": false,
+      "path": "/api/v1/system/roles/{id}/",
+      "permissions": [
+        "system:roles:query"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "id",
+        "name",
+        "permissions"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/roles.py",
+        "frontend/src/api/system/role-api.ts"
+      ],
+      "key": "roles_delete",
+      "method": "DELETE",
+      "paginated": false,
+      "path": "/api/v1/system/roles/",
+      "permissions": [
+        "system:roles:delete"
+      ],
+      "query_params": [],
+      "request_fields": [
+        "ids"
+      ],
+      "response_fields": []
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/roles.py",
+        "frontend/src/api/system/role-api.ts"
+      ],
+      "key": "roles_menu_ids",
+      "method": "GET",
+      "paginated": false,
+      "path": "/api/v1/system/roles/{id}/menu-ids/",
+      "permissions": [
+        "system:roles:query"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": []
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/views/roles.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/roles.py",
+        "frontend/src/api/system/role-api.ts"
+      ],
+      "key": "roles_menu_assign",
+      "method": "PUT",
+      "paginated": false,
+      "path": "/api/v1/system/roles/{id}/menus/",
+      "permissions": [
+        "system:roles:edit"
+      ],
+      "query_params": [],
+      "request_fields": [
+        "menuIds"
+      ],
+      "response_fields": []
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "backend/drf_admin/apps/system/views/departments.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/depts.py",
+        "frontend/src/api/system/dept-api.ts"
+      ],
+      "key": "depts_tree",
+      "method": "GET",
+      "paginated": false,
+      "path": "/api/v1/system/departments/",
+      "permissions": [
+        "system:departments:query"
+      ],
+      "query_params": [
+        "search",
+        "status"
+      ],
+      "request_fields": [],
+      "response_fields": [
+        "id",
+        "name",
+        "status"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/depts.py",
+        "frontend/src/api/system/dept-api.ts"
+      ],
+      "key": "depts_create",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/system/departments/",
+      "permissions": [
+        "system:departments:add"
+      ],
+      "query_params": [],
+      "request_fields": [
+        "name"
+      ],
+      "response_fields": [
+        "id",
+        "name",
+        "status"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/depts.py",
+        "frontend/src/api/system/dept-api.ts"
+      ],
+      "key": "depts_update",
+      "method": "PUT",
+      "paginated": false,
+      "path": "/api/v1/system/departments/{id}/",
+      "permissions": [
+        "system:departments:edit"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "id",
+        "name",
+        "status"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/depts.py",
+        "frontend/src/api/system/dept-api.ts"
+      ],
+      "key": "depts_delete",
+      "method": "DELETE",
+      "paginated": false,
+      "path": "/api/v1/system/departments/",
+      "permissions": [
+        "system:departments:delete"
+      ],
+      "query_params": [],
+      "request_fields": [
+        "ids"
+      ],
+      "response_fields": []
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/menus.py",
+        "frontend/src/api/system/menu-api.ts"
+      ],
+      "key": "menus_tree",
+      "method": "GET",
+      "paginated": false,
+      "path": "/api/v1/system/menus/",
+      "permissions": [
+        "system:permissions:query"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "children",
+        "component",
+        "perm",
+        "routePath"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/menus.py",
+        "frontend/src/api/system/menu-api.ts"
+      ],
+      "key": "menus_create",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/system/menus/",
+      "permissions": [
+        "system:permissions:add"
+      ],
+      "query_params": [],
+      "request_fields": [
+        "name",
+        "type"
+      ],
+      "response_fields": [
+        "id",
+        "name",
+        "type"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/menus.py",
+        "frontend/src/api/system/menu-api.ts"
+      ],
+      "key": "menus_update",
+      "method": "PUT",
+      "paginated": false,
+      "path": "/api/v1/system/menus/{id}/",
+      "permissions": [
+        "system:permissions:edit"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "id",
+        "name",
+        "type"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/menus.py",
+        "frontend/src/api/system/menu-api.ts"
+      ],
+      "key": "menus_delete",
+      "method": "DELETE",
+      "paginated": false,
+      "path": "/api/v1/system/menus/{id}/",
+      "permissions": [
+        "system:permissions:delete"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": []
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "fastapi/app/api/pagination.py",
+        "fastapi/app/api/v1/system/dicts.py",
+        "frontend/src/api/system/dict-api.ts"
+      ],
+      "key": "dicts_page",
+      "method": "GET",
+      "paginated": true,
+      "path": "/api/v1/system/dicts/",
+      "permissions": [
+        "system:dicts:query"
+      ],
+      "query_params": [
+        "pageNum",
+        "pageSize",
+        "search"
+      ],
+      "request_fields": [],
+      "response_fields": [
+        "list",
+        "total"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/dicts.py",
+        "frontend/src/api/system/dict-api.ts"
+      ],
+      "key": "dicts_create",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/system/dicts/",
+      "permissions": [
+        "system:dicts:add"
+      ],
+      "query_params": [],
+      "request_fields": [
+        "name",
+        "dictCode"
+      ],
+      "response_fields": [
+        "id",
+        "name",
+        "dictCode",
+        "remark"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/dicts.py",
+        "frontend/src/api/system/dict-api.ts"
+      ],
+      "key": "dicts_update",
+      "method": "PUT",
+      "paginated": false,
+      "path": "/api/v1/system/dicts/{id}/",
+      "permissions": [
+        "system:dicts:edit"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "id",
+        "name",
+        "dictCode",
+        "remark"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/dicts.py",
+        "frontend/src/api/system/dict-api.ts"
+      ],
+      "key": "dicts_delete",
+      "method": "DELETE",
+      "paginated": false,
+      "path": "/api/v1/system/dicts/",
+      "permissions": [
+        "system:dicts:delete"
+      ],
+      "query_params": [],
+      "request_fields": [
+        "ids"
+      ],
+      "response_fields": []
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "fastapi/app/api/pagination.py",
+        "fastapi/app/api/v1/system/dict_items.py",
+        "frontend/src/api/system/dict-items-api.ts"
+      ],
+      "key": "dict_items_page",
+      "method": "GET",
+      "paginated": true,
+      "path": "/api/v1/system/dict-items/",
+      "permissions": [
+        "system:dictitems:query"
+      ],
+      "query_params": [
+        "pageNum",
+        "pageSize",
+        "dict",
+        "dictCode"
+      ],
+      "request_fields": [],
+      "response_fields": [
+        "list",
+        "total"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/dict_items.py",
+        "frontend/src/api/system/dict-items-api.ts"
+      ],
+      "key": "dict_items_create",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/system/dict-items/",
+      "permissions": [
+        "system:dictitems:add"
+      ],
+      "query_params": [],
+      "request_fields": [
+        "dict",
+        "label",
+        "value"
+      ],
+      "response_fields": [
+        "id",
+        "dict",
+        "label",
+        "value"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/dict_items.py",
+        "frontend/src/api/system/dict-items-api.ts"
+      ],
+      "key": "dict_items_update",
+      "method": "PUT",
+      "paginated": false,
+      "path": "/api/v1/system/dict-items/{id}/",
+      "permissions": [
+        "system:dictitems:edit"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "id",
+        "dict",
+        "label",
+        "value"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/dict_items.py",
+        "frontend/src/api/system/dict-items-api.ts"
+      ],
+      "key": "dict_items_delete",
+      "method": "DELETE",
+      "paginated": false,
+      "path": "/api/v1/system/dict-items/",
+      "permissions": [
+        "system:dictitems:delete"
+      ],
+      "query_params": [],
+      "request_fields": [
+        "ids"
+      ],
+      "response_fields": []
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/notices.py",
+        "frontend/src/api/system/notice-api.ts"
+      ],
+      "key": "notices_page",
+      "method": "GET",
+      "paginated": true,
+      "path": "/api/v1/system/notices/page",
+      "permissions": [
+        "system:notices:query"
+      ],
+      "query_params": [
+        "pageNum",
+        "pageSize",
+        "title",
+        "publishStatus"
+      ],
+      "request_fields": [],
+      "response_fields": [
+        "list",
+        "total"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/notices.py",
+        "frontend/src/api/system/notice-api.ts"
+      ],
+      "key": "notices_create",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/system/notices",
+      "permissions": [
+        "system:notices:add"
+      ],
+      "query_params": [],
+      "request_fields": [
+        "title",
+        "content",
+        "type",
+        "level",
+        "targetType"
+      ],
+      "response_fields": [
+        "id",
+        "title",
+        "content"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/notices.py",
+        "frontend/src/api/system/notice-api.ts"
+      ],
+      "key": "notices_update",
+      "method": "PUT",
+      "paginated": false,
+      "path": "/api/v1/system/notices/{id}",
+      "permissions": [
+        "system:notices:edit"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "id",
+        "title",
+        "content"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/notices.py",
+        "frontend/src/api/system/notice-api.ts"
+      ],
+      "key": "notices_delete",
+      "method": "DELETE",
+      "paginated": false,
+      "path": "/api/v1/system/notices/{ids}",
+      "permissions": [
+        "system:notices:delete"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": []
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/notices.py",
+        "frontend/src/api/system/notice-api.ts"
+      ],
+      "key": "notices_publish",
+      "method": "PUT",
+      "paginated": false,
+      "path": "/api/v1/system/notices/{id}/publish",
+      "permissions": [
+        "system:notices:publish"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": []
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/notices.py",
+        "frontend/src/api/system/notice-api.ts"
+      ],
+      "key": "notices_revoke",
+      "method": "PUT",
+      "paginated": false,
+      "path": "/api/v1/system/notices/{id}/revoke",
+      "permissions": [
+        "system:notices:revoke"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": []
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "backend/drf_admin/apps/system/views/logs.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/pagination.py",
+        "fastapi/app/api/v1/README.md",
+        "fastapi/app/api/v1/system/log_routes/query.py",
+        "frontend/src/api/system/log-api.ts"
+      ],
+      "key": "logs_page",
+      "method": "GET",
+      "paginated": true,
+      "path": "/api/v1/system/logs/page",
+      "permissions": [
+        "system:logs:query"
+      ],
+      "query_params": [
+        "pageNum",
+        "pageSize",
+        "operation",
+        "startTime",
+        "endTime"
+      ],
+      "request_fields": [],
+      "response_fields": [
+        "list",
+        "total"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/README.md",
+        "fastapi/app/api/v1/files/upload.py",
+        "frontend/src/api/file-api.ts"
+      ],
+      "key": "files_upload",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/files/",
+      "permissions": [],
+      "query_params": [],
+      "request_fields": [
+        "file"
+      ],
+      "response_fields": [
+        "name",
+        "url",
+        "path"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/README.md",
+        "fastapi/app/api/v1/files/upload.py",
+        "frontend/src/api/file-api.ts"
+      ],
+      "key": "files_delete",
+      "method": "DELETE",
+      "paginated": false,
+      "path": "/api/v1/files/",
+      "permissions": [],
+      "query_params": [
+        "filePath"
+      ],
+      "request_fields": [],
+      "response_fields": []
+    }
+  ],
+  "methods": [
+    "DELETE",
+    "GET",
+    "POST",
+    "PUT"
+  ],
+  "paginated_count": 6,
+  "schema_version": 1,
+  "source": "scripts/api_endpoint_contracts.py"
+}

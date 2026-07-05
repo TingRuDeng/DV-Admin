@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 from typing import Sequence
@@ -60,6 +61,7 @@ def validate(root: Path) -> list[str]:
                 issues.append(f"{rel}: 仍包含过期文件接口路径 {snippet}")
 
     issues.extend(validate_endpoint_contract_evidence(root))
+    issues.extend(validate_api_contract_report(root))
     issues.extend(validate_field_contracts(root))
     issues.extend(validate_frontend_field_contracts(root))
     issues.extend(validate_api_capability_contracts(root))
@@ -67,6 +69,23 @@ def validate(root: Path) -> list[str]:
     issues.extend(validate_route_coverage(root))
     issues.extend(validate_runtime_contract_test_size(root))
     return issues
+
+
+def validate_api_contract_report(root: Path) -> list[str]:
+    """校验生成的 API 契约报告与当前端点契约目录一致。"""
+    report_path = root / "docs/api-contract-report.json"
+    if not report_path.exists():
+        return ["docs/api-contract-report.json: 缺少生成的 API 契约报告"]
+    try:
+        from scripts.generate_api_contract_report import build_report
+    except ImportError as exc:
+        return [f"scripts/generate_api_contract_report.py: 无法加载 API 契约报告生成器：{exc}"]
+
+    actual = json.loads(read_text(report_path))
+    expected = build_report()
+    if actual != expected:
+        return ["docs/api-contract-report.json: 内容已过期，请运行 python3 scripts/generate_api_contract_report.py ."]
+    return []
 
 
 def validate_runtime_contract_test_size(root: Path) -> list[str]:

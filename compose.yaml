@@ -1,0 +1,98 @@
+name: dv-admin
+
+services:
+  frontend:
+    image: node:20-alpine
+    profiles: ["frontend"]
+    working_dir: /workspace/frontend
+    command: >
+      sh -lc "corepack enable &&
+      pnpm install &&
+      pnpm dev --host 0.0.0.0"
+    environment:
+      VITE_APP_PORT: "9527"
+      VITE_APP_BASE_API: /dev-api
+      VITE_APP_API_URL: http://127.0.0.1:8769
+      VITE_APP_STATIC_URL: http://127.0.0.1:8769/
+      VITE_MOCK_DEV_SERVER: "false"
+      VITE_ENABLE_CAPTCHA: "false"
+      VITE_APP_API_VERSION: v1
+    ports:
+      - "9527:9527"
+    volumes:
+      - ./frontend:/workspace/frontend
+      - frontend-node-modules:/workspace/frontend/node_modules
+
+  django:
+    image: ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+    profiles: ["django"]
+    working_dir: /workspace/backend
+    command: >
+      sh -lc "cp /workspace/deploy/env/django.compose.env .env.compose &&
+      uv sync --group dev &&
+      uv run python manage.py migrate --env compose &&
+      uv run python manage.py runserver 0.0.0.0:8769 --env compose"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8769:8769"
+    volumes:
+      - .:/workspace
+
+  fastapi:
+    build:
+      context: ./fastapi
+      dockerfile: docker/Dockerfile
+    profiles: ["fastapi"]
+    working_dir: /app
+    command: >
+      sh -lc "cp /workspace/deploy/env/fastapi.compose.env .env &&
+      uvicorn app.main:app --host 0.0.0.0 --port 8769"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8769:8769"
+    volumes:
+      - ./fastapi:/app
+      - ./deploy:/workspace/deploy:ro
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DV_ADMIN_MYSQL_ROOT_PASSWORD:-dv_admin_root_password}
+      MYSQL_DATABASE: ${DV_ADMIN_MYSQL_DATABASE:-dv_admin}
+      MYSQL_USER: ${DV_ADMIN_MYSQL_USER:-dv_admin}
+      MYSQL_PASSWORD: ${DV_ADMIN_MYSQL_PASSWORD:-dv_admin_password}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  frontend-node-modules:
+  mysql-data:
+  redis-data:
