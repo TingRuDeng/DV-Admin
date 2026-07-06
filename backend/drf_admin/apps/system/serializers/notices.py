@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from drf_admin.apps.system.models import Notices
 from drf_admin.apps.system.services.field_permission import (
-    apply_notice_target_field_permissions,
+    apply_notice_field_permissions,
     can_write_notice_target_fields,
     has_notice_target_write,
 )
@@ -42,4 +42,8 @@ class NoticesSerializer(serializers.ModelSerializer):
             return data
         if request.method != "GET":
             return data
-        return apply_notice_target_field_permissions(data, request.user)
+        return apply_notice_field_permissions(
+            data,
+            request.user,
+            mask_content=bool(self.context.get("mask_notice_content")),
+        )

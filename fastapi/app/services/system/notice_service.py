@@ -18,6 +18,7 @@ from app.schemas.system import (
 )
 from app.services.system.data_scope import apply_notice_admin_data_scope
 from app.services.system.field_permission import (
+    can_view_notice_content_fields,
     can_view_notice_target_fields,
     can_write_notice_target_fields,
     has_notice_target_write,
@@ -63,7 +64,11 @@ class NoticeService:
         )
 
         can_view_target_users = await can_view_notice_target_fields(current_user)
-        results = [notice_to_page_out(notice, can_view_target_users) for notice in notices]
+        can_view_content = await can_view_notice_content_fields(current_user)
+        results = [
+            notice_to_page_out(notice, can_view_target_users, can_view_content)
+            for notice in notices
+        ]
 
         return NoticeAdminPageResult(list=results, total=total)
 
@@ -74,7 +79,8 @@ class NoticeService:
     ) -> NoticeFormOut:
         notice = await self._get_admin_notice(notice_id, current_user)
         can_view_target_users = await can_view_notice_target_fields(current_user)
-        return notice_to_form_out(notice, can_view_target_users)
+        can_view_content = await can_view_notice_content_fields(current_user)
+        return notice_to_form_out(notice, can_view_target_users, can_view_content)
 
     async def get_detail(self, notice_id: int, user_id: int | None = None) -> NoticeDetailOut:
         notice = await Notices.get_or_none(id=notice_id)

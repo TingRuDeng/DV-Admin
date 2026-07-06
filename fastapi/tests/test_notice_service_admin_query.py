@@ -13,6 +13,7 @@ from app.services.system.notice_service import notice_service
 pytest_plugins = ["notice_service_fixtures"]
 
 NOTICE_TARGET_PLAIN_PERMISSION = "system:notices:target:plain"
+NOTICE_CONTENT_PLAIN_PERMISSION = "system:notices:content:plain"
 
 
 async def create_scoped_notice_user() -> Users:
@@ -191,6 +192,7 @@ class TestNoticeServiceGetPage:
 
         assert result.total == 1
         assert result.list[0].target_user_ids == []
+        assert result.list[0].content == "[已脱敏]"
 
     @pytest.mark.asyncio
     async def test_get_page_keeps_target_users_with_plain_permission(self, db):
@@ -208,6 +210,23 @@ class TestNoticeServiceGetPage:
 
         assert result.total == 1
         assert result.list[0].target_user_ids == [target_user.id]
+
+    @pytest.mark.asyncio
+    async def test_get_page_keeps_content_with_plain_permission(self, db):
+        """拥有正文原文权限时，后台分页返回通知正文。"""
+        operator, notice, _target_user = await create_notice_target_plain_operator(
+            (NOTICE_CONTENT_PLAIN_PERMISSION,)
+        )
+
+        result = await notice_service.get_page(
+            page_num=1,
+            page_size=20,
+            title=notice.title,
+            current_user=operator,
+        )
+
+        assert result.total == 1
+        assert result.list[0].content == "内容"
 
 
 class TestNoticeServiceGetForm:
@@ -235,6 +254,7 @@ class TestNoticeServiceGetForm:
         result = await notice_service.get_form(notice.id, current_user=operator)
 
         assert result.target_user_ids == []
+        assert result.content == "[已脱敏]"
 
     @pytest.mark.asyncio
     async def test_get_form_keeps_target_users_with_plain_permission(self, db):
@@ -246,3 +266,14 @@ class TestNoticeServiceGetForm:
         result = await notice_service.get_form(notice.id, current_user=operator)
 
         assert result.target_user_ids == [target_user.id]
+
+    @pytest.mark.asyncio
+    async def test_get_form_keeps_content_with_plain_permission(self, db):
+        """拥有正文原文权限时，表单查询返回通知正文。"""
+        operator, notice, _target_user = await create_notice_target_plain_operator(
+            (NOTICE_CONTENT_PLAIN_PERMISSION,)
+        )
+
+        result = await notice_service.get_form(notice.id, current_user=operator)
+
+        assert result.content == "内容"

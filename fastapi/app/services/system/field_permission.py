@@ -7,6 +7,7 @@ USER_FIELD_WRITE_PERMISSION = "system:users:field:write"
 LOG_FIELD_PLAIN_PERMISSION = "system:logs:field:plain"
 NOTICE_TARGET_WRITE_PERMISSION = "system:notices:target:write"
 NOTICE_TARGET_PLAIN_PERMISSION = "system:notices:target:plain"
+NOTICE_CONTENT_PLAIN_PERMISSION = "system:notices:content:plain"
 MASKED_TEXT = "[已脱敏]"
 
 
@@ -58,6 +59,18 @@ async def can_view_notice_target_fields(
     return await can_view_plain_fields(
         user,
         NOTICE_TARGET_PLAIN_PERMISSION,
+        default_when_anonymous=default_when_anonymous,
+    )
+
+
+async def can_view_notice_content_fields(
+    user: Users | None,
+    default_when_anonymous: bool = True,
+) -> bool:
+    """判断当前用户是否可以查看后台通知正文字段原文。"""
+    return await can_view_plain_fields(
+        user,
+        NOTICE_CONTENT_PLAIN_PERMISSION,
         default_when_anonymous=default_when_anonymous,
     )
 
@@ -114,3 +127,10 @@ def filter_notice_target_user_ids(
     if can_view_plain:
         return list(target_user_ids or [])
     return []
+
+
+def filter_notice_content(content: str, can_view_plain: bool) -> str:
+    """按后台通知正文字段读取权限返回正文。"""
+    if can_view_plain:
+        return content
+    return MASKED_TEXT if content else content
