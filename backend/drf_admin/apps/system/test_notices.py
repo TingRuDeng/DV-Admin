@@ -31,6 +31,16 @@ def grant_notice_target_plain(user):
     cache.delete(f"user_info_{user.id}_perms")
 
 
+def grant_notice_content_plain(user):
+    """为测试用户授予通知正文字段原文读取权限。"""
+    permission, _ = Permissions.objects.get_or_create(
+        perm="system:notices:content:plain",
+        defaults={"name": "通知正文字段原文读取", "type": "BUTTON"},
+    )
+    user.roles.first().permissions.add(permission)
+    cache.delete(f"user_info_{user.id}_perms")
+
+
 def create_scoped_notice_permission_role(data_scope):
     """创建带通知管理权限的数据范围角色。"""
     role = Roles.objects.create(
@@ -141,6 +151,7 @@ class NoticesListTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         notice = next(item for item in response.data["data"]["list"] if item["title"] == "定向后台通知")
         self.assertEqual(notice["target_user_ids"], [])
+        self.assertEqual(notice["content"], "[已脱敏]")
 
     def test_admin_list_keeps_target_users_with_plain_permission(self):
         """拥有字段原文权限时，后台列表返回通知指定用户 ID。"""
@@ -167,6 +178,23 @@ class NoticesListTestCase(TestCase):
             item for item in response.data["data"]["list"] if item["title"] == "授权定向后台通知"
         )
         self.assertEqual(notice["target_user_ids"], [target_user.id])
+
+    def test_admin_list_keeps_content_with_plain_permission(self):
+        """拥有正文原文权限时，后台列表返回通知正文。"""
+        grant_notice_content_plain(self.user)
+        Notices.objects.create(
+            title="授权正文后台通知",
+            content="后台正文原文",
+            target_type=1,
+            publisher_id=self.user.id,
+            publisher_name=self.user.username,
+        )
+
+        response = self.client.get("/api/v1/system/notices/page", {"pageNum": 1, "pageSize": 20})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        notice = next(item for item in response.data["data"]["list"] if item["title"] == "授权正文后台通知")
+        self.assertEqual(notice["content"], "后台正文原文")
 
 
 class NoticesCreateTestCase(TestCase):
@@ -433,6 +461,7 @@ class NoticesMyPageTestCase(TestCase):
         data = response.json()["data"]
         targeted = next(item for item in data["list"] if item["title"] == "定向通知")
         self.assertEqual(targeted["targetUserIds"], [])
+        self.assertEqual(targeted["content"], "定向内容")
 
     def test_my_page_keeps_target_users_with_plain_permission(self):
         """拥有字段原文权限时，我的通知返回指定用户 ID。"""
