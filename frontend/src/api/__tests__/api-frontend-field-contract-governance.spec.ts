@@ -12,6 +12,7 @@ const REQUIRED_FRONTEND_API_FILES = [
   "frontend/src/api/system/dict-api.ts",
   "frontend/src/api/system/dict-items-api.ts",
   "frontend/src/api/system/notice-api.ts",
+  "frontend/src/api/system/log-api.ts",
 ];
 
 describe("api frontend field contract governance", () => {

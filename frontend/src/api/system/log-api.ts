@@ -26,16 +26,30 @@ export interface LogPageQuery extends PageQuery {
 export interface LogPageVO {
   /** 主键 */
   id: number;
+  /** 用户 ID */
+  userId: number | null;
   /** 操作时间 */
   createdAt: string;
+  /** 更新时间 */
+  updatedAt: string;
   /** 操作人 */
   username: string;
+  /** 用户姓名 */
+  name: string;
   /** 日志内容 */
   operation: string;
   /** 请求路径 */
   path: string;
+  /** 查询参数 */
+  queryParams: string;
   /** 请求方法 */
   method: string;
+  /** 请求体 */
+  requestBody: string;
+  /** 响应状态码 */
+  responseStatus: number;
+  /** 响应体 */
+  responseBody: string;
   /** IP 地址 */
   ip: string;
   /** 浏览器 */
@@ -44,4 +58,8 @@ export interface LogPageVO {
   os: string;
   /** 执行时间(毫秒) */
   executionTime: number;
+  /** 状态(1:成功;0:失败) */
+  status: number;
+  /** 错误信息 */
+  errorMsg: string;
 }
