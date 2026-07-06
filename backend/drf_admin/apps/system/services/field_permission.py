@@ -9,6 +9,7 @@ USER_FIELD_PLAIN_PERMISSION = "system:users:field:plain"
 USER_FIELD_WRITE_PERMISSION = "system:users:field:write"
 LOG_FIELD_PLAIN_PERMISSION = "system:logs:field:plain"
 NOTICE_TARGET_WRITE_PERMISSION = "system:notices:target:write"
+NOTICE_TARGET_PLAIN_PERMISSION = "system:notices:target:plain"
 MASKED_TEXT = "[已脱敏]"
 
 
@@ -100,4 +101,12 @@ def apply_log_field_permissions(data: dict[str, Any], user) -> dict[str, Any]:
     data["request_body"] = mask_payload(data.get("request_body"))
     data["response_body"] = mask_payload(data.get("response_body"))
     data["ip"] = mask_ip(data.get("ip"))
+    return data
+
+
+def apply_notice_target_field_permissions(data: dict[str, Any], user) -> dict[str, Any]:
+    """按通知目标字段读取权限处理通知输出数据。"""
+    if can_view_plain_fields(user, NOTICE_TARGET_PLAIN_PERMISSION):
+        return data
+    data["target_user_ids"] = []
     return data

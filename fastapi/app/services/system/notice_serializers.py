@@ -9,9 +9,10 @@ from app.schemas.system import (
     NoticeMyPageOut,
     NoticePageOut,
 )
+from app.services.system.field_permission import filter_notice_target_user_ids
 
 
-def notice_to_page_out(notice: Notices) -> NoticePageOut:
+def notice_to_page_out(notice: Notices, can_view_target_users: bool = True) -> NoticePageOut:
     """将通知 ORM 对象转换为后台分页输出。"""
     return NoticePageOut(
         id=notice.id,
@@ -20,7 +21,10 @@ def notice_to_page_out(notice: Notices) -> NoticePageOut:
         type=notice.type,
         level=notice.level,
         target_type=notice.target_type,
-        target_user_ids=list(notice.target_user_ids or []),
+        target_user_ids=filter_notice_target_user_ids(
+            notice.target_user_ids,
+            can_view_target_users,
+        ),
         publisher_id=notice.publisher_id,
         publisher_name=notice.publisher_name,
         publish_status=notice.publish_status,
@@ -31,7 +35,7 @@ def notice_to_page_out(notice: Notices) -> NoticePageOut:
     )
 
 
-def notice_to_form_out(notice: Notices) -> NoticeFormOut:
+def notice_to_form_out(notice: Notices, can_view_target_users: bool = True) -> NoticeFormOut:
     """将通知 ORM 对象转换为表单输出。"""
     return NoticeFormOut(
         id=notice.id,
@@ -40,7 +44,10 @@ def notice_to_form_out(notice: Notices) -> NoticeFormOut:
         type=notice.type,
         level=notice.level,
         target_type=notice.target_type,
-        target_user_ids=list(notice.target_user_ids or []),
+        target_user_ids=filter_notice_target_user_ids(
+            notice.target_user_ids,
+            can_view_target_users,
+        ),
     )
 
 
@@ -58,7 +65,11 @@ def notice_to_detail_out(notice: Notices) -> NoticeDetailOut:
     )
 
 
-def notice_to_my_page_out(notice: Notices, read_ids: set[int]) -> NoticeMyPageOut:
+def notice_to_my_page_out(
+    notice: Notices,
+    read_ids: set[int],
+    can_view_target_users: bool = True,
+) -> NoticeMyPageOut:
     """将通知 ORM 对象转换为我的通知分页输出。"""
-    page_out = notice_to_page_out(notice)
+    page_out = notice_to_page_out(notice, can_view_target_users)
     return NoticeMyPageOut(**page_out.model_dump(), is_read=1 if notice.id in read_ids else 0)

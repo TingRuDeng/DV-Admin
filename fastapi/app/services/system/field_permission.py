@@ -6,6 +6,7 @@ USER_FIELD_PLAIN_PERMISSION = "system:users:field:plain"
 USER_FIELD_WRITE_PERMISSION = "system:users:field:write"
 LOG_FIELD_PLAIN_PERMISSION = "system:logs:field:plain"
 NOTICE_TARGET_WRITE_PERMISSION = "system:notices:target:write"
+NOTICE_TARGET_PLAIN_PERMISSION = "system:notices:target:plain"
 MASKED_TEXT = "[已脱敏]"
 
 
@@ -47,6 +48,18 @@ async def can_write_notice_target_fields(
         return True
     permissions = await user.get_permissions()
     return NOTICE_TARGET_WRITE_PERMISSION in permissions
+
+
+async def can_view_notice_target_fields(
+    user: Users | None,
+    default_when_anonymous: bool = True,
+) -> bool:
+    """判断当前用户是否可以查看通知指定用户目标字段原文。"""
+    return await can_view_plain_fields(
+        user,
+        NOTICE_TARGET_PLAIN_PERMISSION,
+        default_when_anonymous=default_when_anonymous,
+    )
 
 
 def has_sensitive_user_write(email: str | None, mobile: str | None) -> bool:
@@ -91,3 +104,13 @@ def mask_ip(value: str | None) -> str | None:
 def mask_payload(value: str | None) -> str | None:
     """日志请求体和响应体统一隐藏，避免泄露 token、密码等内容。"""
     return MASKED_TEXT if value else value
+
+
+def filter_notice_target_user_ids(
+    target_user_ids: list[int] | None,
+    can_view_plain: bool,
+) -> list[int]:
+    """按通知目标字段读取权限返回目标用户 ID。"""
+    if can_view_plain:
+        return list(target_user_ids or [])
+    return []

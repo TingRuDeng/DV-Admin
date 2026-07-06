@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from drf_admin.apps.system.models import Notices
 from drf_admin.apps.system.services.field_permission import (
+    apply_notice_target_field_permissions,
     can_write_notice_target_fields,
     has_notice_target_write,
 )
@@ -32,3 +33,13 @@ class NoticesSerializer(serializers.ModelSerializer):
         if has_notice_target_write(attrs) and not can_write_notice_target_fields(user):
             raise serializers.ValidationError("缺少通知目标字段写入权限，不能写入指定用户范围")
         return attrs
+
+    def to_representation(self, instance):
+        """按通知目标字段读取权限处理输出。"""
+        data = super().to_representation(instance)
+        request = self.context.get("request")
+        if request is None:
+            return data
+        if request.method != "GET":
+            return data
+        return apply_notice_target_field_permissions(data, request.user)

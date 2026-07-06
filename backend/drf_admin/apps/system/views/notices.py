@@ -157,7 +157,7 @@ class NoticesAPIView(AutoPermissionAPIView):
         total = len(visible)
         offset = (page_num - 1) * page_size
         page_items = visible[offset: offset + page_size]
-        serializer = NoticesSerializer(page_items, many=True)
+        serializer = NoticesSerializer(page_items, many=True, context={"request": request})
         data = [{**dict(item), "is_read": 0} for item in serializer.data]
         return Response(data={"list": data, "total": total})
 
