@@ -1,6 +1,8 @@
 """
 通知服务后台查询测试。
 """
+import uuid
+
 import pytest
 
 from app.core.exceptions import NotFound
@@ -9,6 +11,8 @@ from app.db.models.system import Departments, Notices, Permissions, Roles
 from app.services.system.notice_service import notice_service
 
 pytest_plugins = ["notice_service_fixtures"]
+
+NOTICE_TARGET_PLAIN_PERMISSION = "system:notices:target:plain"
 
 
 async def create_scoped_notice_user() -> Users:
@@ -66,6 +70,43 @@ async def create_scoped_notice_user() -> Users:
         publish_status=0,
     )
     return scoped_user
+
+
+async def create_notice_target_plain_operator(
+    permission_codes: tuple[str, ...] = (),
+) -> tuple[Users, Notices, Users]:
+    """创建通知目标字段读取权限测试上下文。"""
+    role = await Roles.create(
+        name=f"通知目标字段读取角色_{uuid.uuid4().hex[:6]}",
+        code=f"notice_target_plain_{uuid.uuid4().hex[:8]}",
+        status=1,
+    )
+    for code in ("system:notices:query", *permission_codes):
+        permission = await Permissions.create(name=code, type="BUTTON", perm=code)
+        await role.permissions.add(permission)
+    operator = await Users.create(
+        username=f"notice_target_operator_{uuid.uuid4().hex[:8]}",
+        password="admin123",
+        name="通知目标字段读取操作人",
+        is_active=1,
+    )
+    await operator.roles.add(role)
+    target_user = await Users.create(
+        username=f"notice_target_user_{uuid.uuid4().hex[:8]}",
+        password="admin123",
+        name="通知目标用户",
+        is_active=1,
+    )
+    notice = await Notices.create(
+        title=f"定向通知_{uuid.uuid4().hex[:6]}",
+        content="内容",
+        target_type=2,
+        target_user_ids=[target_user.id],
+        publisher_id=operator.id,
+        publisher_name=operator.username,
+        publish_status=0,
+    )
+    return operator, notice, target_user
 
 
 class TestNoticeServiceGetPage:
@@ -136,6 +177,38 @@ class TestNoticeServiceGetPage:
         assert "可见部门通知" in titles
         assert "隐藏部门通知" not in titles
 
+    @pytest.mark.asyncio
+    async def test_get_page_masks_target_users_without_plain_permission(self, db):
+        """无字段原文权限时，后台分页不暴露通知指定用户 ID。"""
+        operator, notice, _target_user = await create_notice_target_plain_operator()
+
+        result = await notice_service.get_page(
+            page_num=1,
+            page_size=20,
+            title=notice.title,
+            current_user=operator,
+        )
+
+        assert result.total == 1
+        assert result.list[0].target_user_ids == []
+
+    @pytest.mark.asyncio
+    async def test_get_page_keeps_target_users_with_plain_permission(self, db):
+        """拥有字段原文权限时，后台分页返回通知指定用户 ID。"""
+        operator, notice, target_user = await create_notice_target_plain_operator(
+            (NOTICE_TARGET_PLAIN_PERMISSION,)
+        )
+
+        result = await notice_service.get_page(
+            page_num=1,
+            page_size=20,
+            title=notice.title,
+            current_user=operator,
+        )
+
+        assert result.total == 1
+        assert result.list[0].target_user_ids == [target_user.id]
+
 
 class TestNoticeServiceGetForm:
     """测试获取通知表单。"""
@@ -153,3 +226,23 @@ class TestNoticeServiceGetForm:
         """测试获取不存在的通知表单。"""
         with pytest.raises(NotFound):
             await notice_service.get_form(99999)
+
+    @pytest.mark.asyncio
+    async def test_get_form_masks_target_users_without_plain_permission(self, db):
+        """无字段原文权限时，表单查询不暴露通知指定用户 ID。"""
+        operator, notice, _target_user = await create_notice_target_plain_operator()
+
+        result = await notice_service.get_form(notice.id, current_user=operator)
+
+        assert result.target_user_ids == []
+
+    @pytest.mark.asyncio
+    async def test_get_form_keeps_target_users_with_plain_permission(self, db):
+        """拥有字段原文权限时，表单查询返回通知指定用户 ID。"""
+        operator, notice, target_user = await create_notice_target_plain_operator(
+            (NOTICE_TARGET_PLAIN_PERMISSION,)
+        )
+
+        result = await notice_service.get_form(notice.id, current_user=operator)
+
+        assert result.target_user_ids == [target_user.id]

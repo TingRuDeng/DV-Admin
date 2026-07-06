@@ -142,5 +142,6 @@ async def get_my_notice_page(
         page_size=page_size,
         title=title,
         is_read=is_read,
+        current_user=current_user,
     )
     return ResponseModel.success(data=data)

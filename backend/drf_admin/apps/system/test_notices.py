@@ -21,6 +21,16 @@ def grant_notice_target_write(user):
     cache.delete(f"user_info_{user.id}_perms")
 
 
+def grant_notice_target_plain(user):
+    """为测试用户授予通知目标字段原文读取权限。"""
+    permission, _ = Permissions.objects.get_or_create(
+        perm="system:notices:target:plain",
+        defaults={"name": "通知目标字段原文读取", "type": "BUTTON"},
+    )
+    user.roles.first().permissions.add(permission)
+    cache.delete(f"user_info_{user.id}_perms")
+
+
 def create_scoped_notice_permission_role(data_scope):
     """创建带通知管理权限的数据范围角色。"""
     role = Roles.objects.create(
@@ -108,6 +118,55 @@ class NoticesListTestCase(TestCase):
         titles = {item["title"] for item in response.data["data"]["list"]}
         self.assertIn("可见部门通知", titles)
         self.assertNotIn("隐藏部门通知", titles)
+
+    def test_admin_list_masks_target_users_without_plain_permission(self):
+        """无字段原文权限时，后台列表不暴露通知指定用户 ID。"""
+        target_user = Users.objects.create_user(
+            username="notice_target_user",
+            password="admin123",
+            name="通知目标用户",
+            is_active=1,
+        )
+        Notices.objects.create(
+            title="定向后台通知",
+            content="内容",
+            target_type=2,
+            target_user_ids=[target_user.id],
+            publisher_id=self.user.id,
+            publisher_name=self.user.username,
+        )
+
+        response = self.client.get("/api/v1/system/notices/page", {"pageNum": 1, "pageSize": 20})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        notice = next(item for item in response.data["data"]["list"] if item["title"] == "定向后台通知")
+        self.assertEqual(notice["target_user_ids"], [])
+
+    def test_admin_list_keeps_target_users_with_plain_permission(self):
+        """拥有字段原文权限时，后台列表返回通知指定用户 ID。"""
+        grant_notice_target_plain(self.user)
+        target_user = Users.objects.create_user(
+            username="notice_target_plain_user",
+            password="admin123",
+            name="通知目标原文用户",
+            is_active=1,
+        )
+        Notices.objects.create(
+            title="授权定向后台通知",
+            content="内容",
+            target_type=2,
+            target_user_ids=[target_user.id],
+            publisher_id=self.user.id,
+            publisher_name=self.user.username,
+        )
+
+        response = self.client.get("/api/v1/system/notices/page", {"pageNum": 1, "pageSize": 20})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        notice = next(
+            item for item in response.data["data"]["list"] if item["title"] == "授权定向后台通知"
+        )
+        self.assertEqual(notice["target_user_ids"], [target_user.id])
 
 
 class NoticesCreateTestCase(TestCase):
@@ -309,6 +368,7 @@ class NoticesMyPageTestCase(TestCase):
     """我的通知接口测试（Django 实现）"""
 
     def setUp(self):
+        cache.clear()
         self.client = APIClient()
         self.user = create_admin_user()
         self.client.force_authenticate(user=self.user)
@@ -365,6 +425,24 @@ class NoticesMyPageTestCase(TestCase):
         data = response.json()["data"]
         self.assertEqual(data["total"], 0)
         self.assertEqual(data["list"], [])
+
+    def test_my_page_masks_target_users_without_plain_permission(self):
+        """无字段原文权限时，我的通知不暴露指定用户 ID。"""
+        response = self.client.get("/api/v1/system/notices/my-page/", {"pageNum": 1, "pageSize": 10})
+
+        data = response.json()["data"]
+        targeted = next(item for item in data["list"] if item["title"] == "定向通知")
+        self.assertEqual(targeted["targetUserIds"], [])
+
+    def test_my_page_keeps_target_users_with_plain_permission(self):
+        """拥有字段原文权限时，我的通知返回指定用户 ID。"""
+        grant_notice_target_plain(self.user)
+
+        response = self.client.get("/api/v1/system/notices/my-page/", {"pageNum": 1, "pageSize": 10})
+
+        data = response.json()["data"]
+        targeted = next(item for item in data["list"] if item["title"] == "定向通知")
+        self.assertEqual(targeted["targetUserIds"], [self.user.id])
 
 
 class NoticesAdminListPagingTestCase(TestCase):

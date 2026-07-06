@@ -18,6 +18,7 @@ from app.schemas.system import (
 )
 from app.services.system.data_scope import apply_notice_admin_data_scope
 from app.services.system.field_permission import (
+    can_view_notice_target_fields,
     can_write_notice_target_fields,
     has_notice_target_write,
 )
@@ -61,7 +62,8 @@ class NoticeService:
             .all()
         )
 
-        results = [notice_to_page_out(notice) for notice in notices]
+        can_view_target_users = await can_view_notice_target_fields(current_user)
+        results = [notice_to_page_out(notice, can_view_target_users) for notice in notices]
 
         return NoticeAdminPageResult(list=results, total=total)
 
@@ -71,7 +73,8 @@ class NoticeService:
         current_user: Users | None = None,
     ) -> NoticeFormOut:
         notice = await self._get_admin_notice(notice_id, current_user)
-        return notice_to_form_out(notice)
+        can_view_target_users = await can_view_notice_target_fields(current_user)
+        return notice_to_form_out(notice, can_view_target_users)
 
     async def get_detail(self, notice_id: int, user_id: int | None = None) -> NoticeDetailOut:
         notice = await Notices.get_or_none(id=notice_id)
@@ -229,6 +232,7 @@ class NoticeService:
         page_size: int,
         title: str | None = None,
         is_read: int | None = None,
+        current_user: Users | None = None,
     ) -> NoticeMyPageResult:
         query = Notices.filter(publish_status=1)
 
@@ -261,7 +265,8 @@ class NoticeService:
             )
         )
 
-        items = [notice_to_my_page_out(notice, read_ids) for notice in notices]
+        can_view_target_users = await can_view_notice_target_fields(current_user)
+        items = [notice_to_my_page_out(notice, read_ids, can_view_target_users) for notice in notices]
 
         return NoticeMyPageResult(list=items, total=total)
 
