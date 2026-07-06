@@ -176,6 +176,34 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
         ),
         tracked_backend_contract="notices_page",
     ),
+    FrontendFieldContract(
+        key="logs_page_type",
+        frontend_source="frontend/src/api/system/log-api.ts",
+        required_fields=frozenset(
+            {
+                "browser",
+                "createdAt",
+                "errorMsg",
+                "executionTime",
+                "id",
+                "ip",
+                "method",
+                "name",
+                "operation",
+                "os",
+                "path",
+                "queryParams",
+                "requestBody",
+                "responseBody",
+                "responseStatus",
+                "status",
+                "updatedAt",
+                "userId",
+                "username",
+            }
+        ),
+        tracked_backend_contract="logs_out",
+    ),
 )
 
 
