@@ -7,7 +7,7 @@ import pytest
 
 from app.core.exceptions import NotFound, ValidationError
 from app.db.models.oauth import Users
-from app.db.models.system import Notices, Permissions, Roles
+from app.db.models.system import Departments, Notices, Permissions, Roles
 from app.schemas.system import NoticeCreate, NoticeUpdate
 from app.services.system.notice_service import notice_service
 
@@ -220,6 +220,55 @@ class TestNoticeServiceUpdate:
 class TestNoticeServiceDelete:
     """测试删除通知。"""
 
+    async def create_scoped_delete_context(self) -> tuple[Users, Notices]:
+        """创建通知删除数据范围测试上下文。"""
+        visible_dept = await Departments.create(
+            name=f"通知删除可见部门_{uuid.uuid4().hex[:6]}",
+            status=1,
+            sort=1,
+        )
+        hidden_dept = await Departments.create(
+            name=f"通知删除隐藏部门_{uuid.uuid4().hex[:6]}",
+            status=1,
+            sort=2,
+        )
+        permission = await Permissions.create(
+            name="system:notices:delete",
+            type="BUTTON",
+            perm="system:notices:delete",
+        )
+        role = await Roles.create(
+            name=f"通知删除数据范围角色_{uuid.uuid4().hex[:6]}",
+            code=f"notice_delete_scope_{uuid.uuid4().hex[:8]}",
+            status=1,
+            data_scope=Roles.DATA_SCOPE_DEPT,
+        )
+        await role.permissions.add(permission)
+        scoped_user = await Users.create(
+            username=f"notice_delete_scoped_{uuid.uuid4().hex[:8]}",
+            password="admin123",
+            name="通知删除范围用户",
+            dept_id=visible_dept.id,
+            is_active=1,
+        )
+        await scoped_user.roles.add(role)
+        hidden_publisher = await Users.create(
+            username=f"notice_delete_hidden_{uuid.uuid4().hex[:8]}",
+            password="admin123",
+            name="通知删除隐藏发布人",
+            dept_id=hidden_dept.id,
+            is_active=1,
+        )
+        hidden_notice = await Notices.create(
+            title=f"隐藏部门待删除通知_{uuid.uuid4().hex[:6]}",
+            content="内容",
+            target_type=1,
+            publisher_id=hidden_publisher.id,
+            publisher_name=hidden_publisher.username,
+            publish_status=0,
+        )
+        return scoped_user, hidden_notice
+
     @pytest.mark.asyncio
     async def test_delete_by_ids(self, db, test_notices_for_service):
         """测试批量删除。"""
@@ -235,3 +284,13 @@ class TestNoticeServiceDelete:
         """测试删除已发布通知。"""
         with pytest.raises(ValidationError):
             await notice_service.delete_by_ids([test_published_notice.id])
+
+    @pytest.mark.asyncio
+    async def test_delete_rejects_notice_outside_publisher_dept_scope(self, db):
+        """删除接口不能绕过通知发布人部门数据范围。"""
+        scoped_user, hidden_notice = await self.create_scoped_delete_context()
+
+        with pytest.raises(NotFound):
+            await notice_service.delete_by_ids([hidden_notice.id], current_user=scoped_user)
+
+        assert await Notices.filter(id=hidden_notice.id).exists()
