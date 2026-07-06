@@ -21,6 +21,13 @@ class NoticesViewSet(AdminViewSet):
     filter_backends = (SearchFilter, OrderingFilter)
     search_fields = ("title", "content")
 
+    def get_serializer_context(self):
+        """后台通知管理读路径启用正文原文权限控制。"""
+        context = super().get_serializer_context()
+        if getattr(self, "action", None) in {"list", "retrieve"}:
+            context["mask_notice_content"] = True
+        return context
+
     def get_queryset(self):
         """按发布人数据范围限制后台通知管理对象。"""
         return apply_notice_admin_data_scope(super().get_queryset(), self.request.user)

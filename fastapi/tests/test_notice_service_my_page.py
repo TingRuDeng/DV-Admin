@@ -111,6 +111,7 @@ class TestNoticeServiceGetMyPage:
 
         assert result.total == 1
         assert result.list[0].target_user_ids == []
+        assert result.list[0].content == "内容"
 
     @pytest.mark.asyncio
     async def test_get_my_page_keeps_target_users_with_plain_permission(self, db):

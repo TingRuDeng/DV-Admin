@@ -374,10 +374,11 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 - 后台通知管理按通知 `publisher_id` 映射可见用户集合；列表和按 ID 后台管理动作均必须经过该范围过滤，FastAPI 表单查询也使用同一规则。“我的通知”仍按接收人可见性判断，不复用后台管理数据范围。
 
 **字段读取控制：**
-- 当前第二阶段已在 Django 与 FastAPI 的用户输出和操作日志分页输出接入字段读取脱敏；第六阶段已覆盖通知 `targetUserIds` 输出。
+- 当前第二阶段已在 Django 与 FastAPI 的用户输出和操作日志分页输出接入字段读取脱敏；第六阶段已覆盖通知 `targetUserIds` 输出；第七阶段已覆盖后台通知管理 `content` 输出。
 - 用户敏感字段 `mobile/email` 默认保留字段但脱敏；拥有 `system:users:field:plain` 或 `is_superuser` 时返回原文。
 - 操作日志敏感字段 `requestBody/responseBody/ip` 默认保留字段但脱敏；拥有 `system:logs:field:plain` 或 `is_superuser` 时返回原文。
 - 通知目标用户字段 `targetUserIds` 默认保留字段但返回空数组；拥有 `system:notices:target:plain` 或 `is_superuser` 时返回原始目标用户 ID。
+- 后台通知管理正文 `content` 默认保留字段但返回 `[已脱敏]`；拥有 `system:notices:content:plain` 或 `is_superuser` 时返回原文。“我的通知”正文始终返回原文，确保收件人可阅读通知内容。
 - 字段读取控制只影响响应输出，不改变查询范围、写入校验和字段契约集合。
 
 **字段写入控制：**
