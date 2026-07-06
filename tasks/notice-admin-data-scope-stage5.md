@@ -63,4 +63,4 @@
 
 - review-gate 通过：实现范围符合第五阶段计划，后台通知管理按 `publisher_id` 接入数据范围，“我的通知”、通知已读状态和数据库结构未被修改。
 - 文档已修正为区分 Django/FastAPI 现有路由事实：Django 覆盖列表和按 ID 管理动作，FastAPI 额外覆盖表单查询。
-- 剩余风险：FastAPI 删除越权路径通过 `delete_by_ids` 服务层 scoped existence 检查覆盖，但本轮未单独新增删除服务测试；后续如扩展通知管理动作，应继续复用 `apply_notice_admin_data_scope`。
+- 2026-07-06 追补：FastAPI 删除越权路径已新增独立服务测试，确认不在 `publisher_id` 数据范围内的通知会返回 `NotFound` 且不会被删除；后续如扩展通知管理动作，应继续复用 `apply_notice_admin_data_scope`。
