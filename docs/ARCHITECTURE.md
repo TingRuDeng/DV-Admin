@@ -380,6 +380,7 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 - 通知目标用户字段 `targetUserIds` 默认保留字段但返回空数组；拥有 `system:notices:target:plain` 或 `is_superuser` 时返回原始目标用户 ID。
 - 后台通知管理正文 `content` 默认保留字段但返回 `[已脱敏]`；拥有 `system:notices:content:plain` 或 `is_superuser` 时返回原文。“我的通知”正文始终返回原文，确保收件人可阅读通知内容。
 - 字段读取控制只影响响应输出，不改变查询范围、写入校验和字段契约集合。
+- 字段级权限码已纳入权限目录治理：运行时代码、Django 初始权限树和 FastAPI 测试权限 fixture 必须通过 `scripts/field_permission_contracts.py` 保持一致。
 
 **字段写入控制：**
 - 当前第三阶段已在 Django 与 FastAPI 的后台用户创建和更新路径接入字段写入拒绝；第四阶段已覆盖后台通知创建和更新路径的指定用户目标字段。
