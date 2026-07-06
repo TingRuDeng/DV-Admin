@@ -18,6 +18,7 @@ BUTTON_SPECS = (
     ("user_reset_password", "重置密码", "user_menu", "system:users:password:reset"),
     ("user_import", "用户导入", "user_menu", "system:users:import"),
     ("user_export", "用户导出", "user_menu", "system:users:export"),
+    ("user_field_plain", "用户敏感字段原文读取", "user_menu", "system:users:field:plain"),
     ("user_field_write", "用户敏感字段写入", "user_menu", "system:users:field:write"),
     ("role_add", "角色新增", "role_menu", "system:roles:add"),
     ("role_edit", "角色编辑", "role_menu", "system:roles:edit"),
@@ -40,7 +41,10 @@ BUTTON_SPECS = (
     ("notice_publish", "公告发布", "notice_menu", "system:notices:publish"),
     ("notice_revoke", "公告撤销", "notice_menu", "system:notices:revoke"),
     ("notice_target_write", "通知目标字段写入", "notice_menu", "system:notices:target:write"),
+    ("notice_target_plain", "通知目标字段原文读取", "notice_menu", "system:notices:target:plain"),
+    ("notice_content_plain", "通知正文字段原文读取", "notice_menu", "system:notices:content:plain"),
     ("log_delete", "日志删除", "log_menu", "system:logs:delete"),
+    ("log_field_plain", "日志敏感字段原文读取", "log_menu", "system:logs:field:plain"),
 )
 
 ROLE_PERMISSION_KEYS = tuple(key for key, *_ in MENU_SPECS) + tuple(key for key, *_ in BUTTON_SPECS)
