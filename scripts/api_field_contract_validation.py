@@ -67,11 +67,39 @@ def validate_frontend_field_contracts(root: Path) -> list[str]:
         for field in contract.required_fields:
             if not has_typescript_field_declaration(source_text, field):
                 issues.append(f"{contract.key}: {contract.frontend_source} 缺少字段声明 {field}")
+
+    endpoint_contracts = load_critical_endpoint_contracts(root)
+    endpoint_field_contracts = dict(load_endpoint_field_contracts(root))
+    tracked_backend_contracts = {contract.tracked_backend_contract for contract in contracts}
+    frontend_exempt_endpoints = load_frontend_field_contract_exempt_endpoints(root)
+    for endpoint_key in iter_frontend_field_contract_required_endpoint_keys(endpoint_contracts):
+        if endpoint_key in frontend_exempt_endpoints:
+            continue
+        field_contract_key = endpoint_field_contracts.get(endpoint_key)
+        if not field_contract_key:
+            issues.append(f"scripts/api_frontend_field_contracts.py: 端点 {endpoint_key} 缺少前端字段契约或显式豁免")
+            continue
+        if field_contract_key not in tracked_backend_contracts:
+            issues.append(
+                "scripts/api_frontend_field_contracts.py: "
+                f"端点 {endpoint_key} 绑定的字段契约 {field_contract_key} 缺少前端类型覆盖"
+            )
     return issues
 
 
 def iter_field_contract_required_endpoint_keys(endpoint_contracts) -> tuple[str, ...]:
     """返回必须绑定字段契约的前端对象响应端点。"""
+    return tuple(
+        contract.key
+        for contract in endpoint_contracts
+        if contract.method in {"GET", "POST", "PUT", "PATCH"}
+        and contract.response_fields
+        and any(evidence.file.startswith("frontend/src/api/") for evidence in contract.evidence)
+    )
+
+
+def iter_frontend_field_contract_required_endpoint_keys(endpoint_contracts) -> tuple[str, ...]:
+    """返回必须纳入前端字段契约或豁免的端点。"""
     return tuple(
         contract.key
         for contract in endpoint_contracts
@@ -128,6 +156,16 @@ def load_field_contract_exempt_endpoints(root: Path) -> frozenset[str]:
     return iter_field_contract_exempt_endpoints()
 
 
+def load_critical_endpoint_contracts(root: Path):
+    """加载关键端点契约目录。"""
+    root_text = str(root)
+    if root_text not in sys.path:
+        sys.path.insert(0, root_text)
+    from scripts.api_endpoint_contracts import iter_critical_endpoint_contracts
+
+    return iter_critical_endpoint_contracts()
+
+
 def load_frontend_field_contracts(root: Path):
     """从仓库根目录加载前端 API 字段契约目录。"""
     root_text = str(root)
@@ -140,6 +178,16 @@ def load_frontend_field_contracts(root: Path):
 
     assert_api_frontend_field_contract_catalog()
     return iter_api_frontend_field_contracts()
+
+
+def load_frontend_field_contract_exempt_endpoints(root: Path) -> frozenset[str]:
+    """加载不适用普通前端对象字段契约的端点。"""
+    root_text = str(root)
+    if root_text not in sys.path:
+        sys.path.insert(0, root_text)
+    from scripts.api_frontend_field_contracts import iter_frontend_field_contract_exempt_endpoints
+
+    return iter_frontend_field_contract_exempt_endpoints()
 
 
 def has_typescript_field_declaration(source_text: str, field: str) -> bool:

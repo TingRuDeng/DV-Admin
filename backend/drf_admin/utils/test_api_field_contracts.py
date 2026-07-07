@@ -9,6 +9,7 @@ from scripts.api_field_contracts import (
     iter_field_contract_exempt_endpoints,
 )
 from scripts.api_field_source_introspection import extract_dict_output_keys
+from scripts.api_frontend_field_contracts import iter_frontend_field_contract_exempt_endpoints
 
 
 def django_output_keys(dotted_path: str) -> set[str]:
@@ -44,6 +45,7 @@ def test_api_field_contracts_track_endpoint_coverage_and_converge_debt():
     coverage = dict(iter_endpoint_field_contracts())
     converge_items = iter_api_field_converge_items()
     exempt_endpoints = iter_field_contract_exempt_endpoints()
+    frontend_exempt_endpoints = iter_frontend_field_contract_exempt_endpoints()
 
     assert coverage["auth_info"] == "auth_info"
     assert coverage["auth_routes"] == "auth_routes"
@@ -56,3 +58,6 @@ def test_api_field_contracts_track_endpoint_coverage_and_converge_debt():
     assert coverage["logs_page"] == "logs_out"
     assert "logs_page" not in exempt_endpoints
     assert "auth_login" in exempt_endpoints
+    assert "auth_login" in frontend_exempt_endpoints
+    assert "files_upload" in frontend_exempt_endpoints
+    assert "logs_page" not in frontend_exempt_endpoints
