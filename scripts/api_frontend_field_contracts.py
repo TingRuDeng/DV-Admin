@@ -70,7 +70,7 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
         required_fields=frozenset(
             {"dataScope", "deptIds", "desc", "id", "isDefault", "name", "sort", "status"}
         ),
-        tracked_backend_contract="roles_out",
+        tracked_backend_contract="roles_with_permissions",
     ),
     FrontendFieldContract(
         key="menus_list_type",
@@ -125,6 +125,12 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
             {"children", "createTime", "id", "name", "parentId", "sort", "status", "updateTime"}
         ),
         tracked_backend_contract="depts_tree",
+    ),
+    FrontendFieldContract(
+        key="depts_form_type",
+        frontend_source="frontend/src/api/system/dept-api.ts",
+        required_fields=frozenset({"id", "name", "parentId", "sort", "status"}),
+        tracked_backend_contract="depts_out",
     ),
     FrontendFieldContract(
         key="dicts_page_type",
@@ -206,15 +212,23 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
     ),
 )
 
+FRONTEND_FIELD_CONTRACT_EXEMPT_ENDPOINTS = frozenset({"auth_login", "files_upload"})
+
 
 def iter_api_frontend_field_contracts() -> tuple[FrontendFieldContract, ...]:
     """返回不可变前端 API 字段契约目录。"""
     return API_FRONTEND_FIELD_CONTRACTS
 
 
+def iter_frontend_field_contract_exempt_endpoints() -> frozenset[str]:
+    """返回不适用普通前端对象字段契约的端点。"""
+    return FRONTEND_FIELD_CONTRACT_EXEMPT_ENDPOINTS
+
+
 def assert_api_frontend_field_contract_catalog() -> None:
     """校验前端字段契约目录自身一致性。"""
     backend_keys = _backend_field_contract_keys()
+    endpoint_keys = _critical_endpoint_keys()
     keys = {contract.key for contract in API_FRONTEND_FIELD_CONTRACTS}
     assert len(keys) == len(API_FRONTEND_FIELD_CONTRACTS)
     for contract in API_FRONTEND_FIELD_CONTRACTS:
@@ -223,6 +237,8 @@ def assert_api_frontend_field_contract_catalog() -> None:
         assert contract.frontend_source.endswith(".ts")
         assert contract.required_fields
         assert contract.tracked_backend_contract in backend_keys
+    assert FRONTEND_FIELD_CONTRACT_EXEMPT_ENDPOINTS <= endpoint_keys
+    assert FRONTEND_FIELD_CONTRACT_EXEMPT_ENDPOINTS.isdisjoint(keys)
 
 
 def _backend_field_contract_keys() -> set[str]:
@@ -230,3 +246,10 @@ def _backend_field_contract_keys() -> set[str]:
     from scripts.api_field_contracts import iter_api_field_contracts
 
     return {contract.key for contract in iter_api_field_contracts()}
+
+
+def _critical_endpoint_keys() -> set[str]:
+    """返回关键端点 key，用于约束前端字段契约豁免必须可追溯。"""
+    from scripts.api_endpoint_contracts import iter_critical_endpoint_contracts
+
+    return {contract.key for contract in iter_critical_endpoint_contracts()}
