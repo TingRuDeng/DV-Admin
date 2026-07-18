@@ -1,6 +1,6 @@
 {
-  "authenticated_count": 39,
-  "endpoint_count": 40,
+  "authenticated_count": 40,
+  "endpoint_count": 41,
   "endpoints": [
     {
       "auth_required": false,
@@ -884,6 +884,9 @@
         "pageNum",
         "pageSize",
         "operation",
+        "username",
+        "method",
+        "status",
         "startTime",
         "endTime"
       ],
@@ -891,6 +894,34 @@
       "response_fields": [
         "list",
         "total"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "backend/drf_admin/apps/system/views/logs.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/README.md",
+        "fastapi/app/api/v1/system/log_routes/query.py",
+        "frontend/src/api/system/log-api.ts"
+      ],
+      "key": "logs_detail",
+      "method": "GET",
+      "paginated": false,
+      "path": "/api/v1/system/logs/{id}",
+      "permissions": [
+        "system:logs:query"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "id",
+        "method",
+        "path",
+        "responseStatus",
+        "status",
+        "errorMsg"
       ]
     },
     {

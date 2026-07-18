@@ -93,6 +93,40 @@ class TestLogList:
         data = response.json()
         assert data["code"] == 20000
 
+    def test_get_log_detail_unauthorized(self, client: TestClient, test_logs_for_api):
+        """未登录用户不能读取日志详情。"""
+        response = client.get(f"/api/v1/system/logs/{test_logs_for_api[0].id}")
+
+        assert response.status_code == 401
+
+    def test_get_log_detail_authorized(
+        self, client: TestClient, auth_headers: dict, test_logs_for_api
+    ):
+        """授权用户可读取指定日志详情。"""
+        log = test_logs_for_api[0]
+
+        response = client.get(
+            f"/api/v1/system/logs/{log.id}",
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 200
+        data = response.json()["data"]
+        assert data["id"] == log.id
+        assert data["operation"] == log.operation
+        assert "responseStatus" in data
+
+    def test_get_log_detail_not_found(
+        self, client: TestClient, auth_headers: dict, test_logs_for_api
+    ):
+        """不存在或不可见的日志统一返回 404。"""
+        response = client.get(
+            "/api/v1/system/logs/999999",
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 404
+
 
 class TestVisitTrend:
     """测试访问趋势接口"""
