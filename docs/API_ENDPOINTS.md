@@ -455,7 +455,8 @@ GET    /api/v1/system/notices/my-page/       # 我的通知，支持 pageNum/pag
 
 **Django & FastAPI 与前端管理页：**
 ```
-GET    /api/v1/system/logs/page                    # 日志分页，支持 pageNum/pageSize/operation/startTime/endTime
+GET    /api/v1/system/logs/page                    # 日志分页，支持 pageNum/pageSize/operation/username/method/status/startTime/endTime
+GET    /api/v1/system/logs/{id}                    # 日志详情
 GET    /api/v1/system/logs/visit-trend             # 访问趋势
 GET    /api/v1/system/logs/visit-stats             # 访问统计
 DELETE /api/v1/system/logs/{ids}                   # 删除日志
@@ -466,8 +467,10 @@ DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
 - 两套后端均提供 `OperationLog` 模型、写操作落库中间件与上述查询/删除路由，前端日志管理页在两端均可用。
 - 写操作（POST/PUT/PATCH/DELETE）由请求日志中间件落库；GET 读请求不落库，避免审计表被轮询淹没。
 - 请求体落库前会掩码 `password/token/secret/key/authorization` 等敏感字段。
-- Django 权限码 `system:logs:query` / `system:logs:delete` 与 FastAPI 一致；`/logs/page` 列表项字段集合由双后端字段契约 `logs_out` 锁定。
-- `/logs/page` 输出中的 `requestBody/responseBody/ip` 默认保留字段但返回脱敏值；拥有 `system:logs:field:plain` 或 `is_superuser` 时返回原文。
+- Django 权限码 `system:logs:query` / `system:logs:delete` 与 FastAPI 一致；`/logs/page` 和 `/logs/{id}` 字段集合由双后端字段契约 `logs_out` 锁定。
+- `/logs/page` 与 `/logs/{id}` 输出中的 `requestBody/responseBody/ip` 默认保留字段但返回脱敏值；拥有 `system:logs:field:plain` 或 `is_superuser` 时返回原文。
+- `/logs/{id}` 复用日志数据范围，不在当前用户可见范围内的 ID 按不存在处理。
+- 当前 `requestId` 仅存在于响应头和结构化运行日志，尚未持久化到 `OperationLog`，因此详情接口暂不返回该字段。
 - Django 对非法 `status/pageNum/pageSize/startTime/endTime/startDate/endDate/ids` 会返回 400，避免把外部输入解析错误暴露为 500；FastAPI 侧通过 Query/Path 类型约束处理同类入参。
 
 ---

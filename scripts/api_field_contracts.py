@@ -250,6 +250,7 @@ ENDPOINT_FIELD_CONTRACTS: dict[str, str] = {
     "notices_create": "notices_page",
     "notices_update": "notices_page",
     "logs_page": "logs_out",
+    "logs_detail": "logs_out",
 }
 
 FIELD_CONTRACT_EXEMPT_ENDPOINTS = frozenset({"auth_login", "files_upload"})
