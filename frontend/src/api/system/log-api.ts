@@ -11,6 +11,14 @@ const LogAPI = {
       params: queryParams,
     });
   },
+
+  /** 获取日志详情 */
+  getDetail(id: number) {
+    return request<unknown, LogPageVO>({
+      url: `${LOG_BASE_URL}/${id}`,
+      method: "get",
+    });
+  },
 };
 
 export default LogAPI;
@@ -18,6 +26,12 @@ export default LogAPI;
 export interface LogPageQuery extends PageQuery {
   /** 操作描述 */
   operation?: string;
+  /** 操作人 */
+  username?: string;
+  /** 请求方法 */
+  method?: string;
+  /** 状态(1:成功;0:失败) */
+  status?: number;
   /** 开始时间 */
   startTime?: string;
   /** 结束时间 */
