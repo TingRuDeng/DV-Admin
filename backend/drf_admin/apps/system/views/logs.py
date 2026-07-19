@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 from django.db.models import Avg, Count
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -179,11 +179,22 @@ class VisitStatsAPIView(LogPermissionAPIView):
         return Response(data=data)
 
 
-class LogDeleteAPIView(LogPermissionAPIView):
-    """按逗号分隔的 ID 批量删除操作日志。"""
+class LogResourceAPIView(LogPermissionAPIView):
+    """读取单条日志详情，并兼容按逗号分隔 ID 批量删除。"""
 
-    def delete(self, request, ids: str):
-        id_list = parse_id_list(ids)
+    def get(self, request, id: int | None = None, ids: str | None = None):
+        if id is None:
+            raise ValidationError({"id": "必须是正整数"})
+        queryset = apply_log_data_scope(OperationLog.objects.all(), request.user)
+        operation_log = queryset.filter(id=id).first()
+        if operation_log is None:
+            raise NotFound("操作日志不存在")
+        serializer = OperationLogSerializer(operation_log, context={"request": request})
+        return Response(data=serializer.data)
+
+    def delete(self, request, id: int | None = None, ids: str | None = None):
+        raw_ids = str(id) if id is not None else (ids or "")
+        id_list = parse_id_list(raw_ids)
         OperationLog.objects.filter(id__in=id_list).delete()
         return Response(data={})
 

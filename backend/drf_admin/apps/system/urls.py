@@ -36,7 +36,8 @@ urlpatterns = [
     path('logs/visit-trend', logs.VisitTrendAPIView.as_view()),  # 访问趋势
     path('logs/visit-stats', logs.VisitStatsAPIView.as_view()),  # 访问统计
     path('logs/clear/<int:days>', logs.LogClearAPIView.as_view()),  # 清理历史日志
-    path('logs/<str:ids>', logs.LogDeleteAPIView.as_view()),  # 批量删除日志
+    path('logs/<int:id>', logs.LogResourceAPIView.as_view()),  # 日志详情或单条删除
+    path('logs/<str:ids>', logs.LogResourceAPIView.as_view()),  # 批量删除日志
 
     path('', include(router.urls)),
 ]

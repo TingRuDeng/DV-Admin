@@ -1,15 +1,25 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 
 interface LogRow {
-  id: string;
+  id: number;
+  userId: number;
   createdAt: string;
+  updatedAt: string;
   username: string;
+  name: string;
   operation: string;
+  queryParams: string;
+  method: string;
+  requestBody: string;
   path: string;
+  responseStatus: number;
+  responseBody: string;
   ip: string;
   browser: string;
   os: string;
   executionTime: number;
+  status: number;
+  errorMsg: string;
 }
 
 interface MockState {
@@ -41,15 +51,25 @@ function createMockState(): MockState {
   return {
     logs: [
       {
-        id: "901",
+        id: 901,
+        userId: 1,
         createdAt: "2026-06-09 10:00:00",
+        updatedAt: "2026-06-09 10:00:01",
         username: "admin",
-        operation: "查询操作日志",
-        path: "/api/v1/system/logs/page",
+        name: "管理员",
+        operation: "删除用户失败",
+        queryParams: "",
+        method: "DELETE",
+        requestBody: '{"ids":[99]}',
+        path: "/api/v1/system/users/99",
+        responseStatus: 500,
+        responseBody: '{"message":"用户删除失败"}',
         ip: "127.0.0.1",
         browser: "Chromium",
         os: "macOS",
         executionTime: 12,
+        status: 0,
+        errorMsg: "用户删除失败",
       },
     ],
     seenPaths: [],
@@ -137,12 +157,25 @@ async function handleMyNoticeRequest(context: MockRouteContext) {
 }
 
 async function handleLogRequest(context: MockRouteContext) {
-  if (context.method !== "GET" || context.path !== LOGS_PAGE_PATH) return false;
+  if (context.method !== "GET") return false;
 
-  await fulfillJson(
-    context.route,
-    success({ list: context.state.logs, total: context.state.logs.length })
-  );
+  if (context.path === LOGS_PAGE_PATH) {
+    await fulfillJson(
+      context.route,
+      success({ list: context.state.logs, total: context.state.logs.length })
+    );
+    return true;
+  }
+
+  const detailMatch = context.path.match(/^\/api\/v1\/system\/logs\/(\d+)$/);
+  if (!detailMatch) return false;
+  const log = context.state.logs.find((item) => item.id === Number(detailMatch[1]));
+  if (!log) {
+    await fulfillJson(context.route, { code: 40400, message: "操作日志不存在", data: null }, 404);
+    return true;
+  }
+
+  await fulfillJson(context.route, success(log));
   return true;
 }
 
@@ -177,6 +210,14 @@ test.describe("日志管理链路 smoke", () => {
 
     await expect(page).toHaveURL(/\/system\/logs/);
     await expect.poll(() => state.seenPaths.join("|")).toContain(LOGS_PAGE_PATH);
-    await expect(page.locator("tbody").getByText("查询操作日志")).toBeVisible();
+    await expect(page.locator("tbody").getByText("删除用户失败")).toBeVisible();
+    await expect(page.locator("tbody").getByText("失败", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "查看" }).click();
+
+    await expect(page.getByText("操作日志详情")).toBeVisible();
+    await expect(page.locator(".el-alert__description")).toHaveText("用户删除失败");
+    await expect(page.getByText("DELETE /api/v1/system/users/99")).toBeVisible();
+    await expect.poll(() => state.seenPaths.join("|")).toContain("/api/v1/system/logs/901");
   });
 });
