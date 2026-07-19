@@ -11,6 +11,9 @@ describe("system log style migration", () => {
     expect(source).toContain("<ProTable");
     expect(source).toContain(':request="requestTableData"');
     expect(source).toContain('ref="tableRef"');
+    expect(source).toContain("LogDetailDialog");
+    expect(source).toContain('prop="status"');
+    expect(source).toContain("openDetailDialog");
     expect(source).not.toContain("<FilterPanel");
     expect(source).not.toContain("<DataPanel");
     expect(source).not.toContain("minimal-");

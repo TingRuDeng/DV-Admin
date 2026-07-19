@@ -48,6 +48,7 @@ REQUIRED_ENDPOINT_KEYS = {
     "notices_publish",
     "notices_revoke",
     "logs_page",
+    "logs_detail",
     "files_upload",
     "files_delete",
 }
@@ -174,7 +175,16 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         method="GET",
         path="/api/v1/system/logs/page",
         auth_required=True,
-        query_params=("pageNum", "pageSize", "operation", "startTime", "endTime"),
+        query_params=(
+            "pageNum",
+            "pageSize",
+            "operation",
+            "username",
+            "method",
+            "status",
+            "startTime",
+            "endTime",
+        ),
         response_fields=("list", "total"),
         permissions=("system:logs:query",),
         paginated=True,
@@ -195,6 +205,31 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
             ContractEvidence("frontend/src/api/system/log-api.ts", ("getPage", "/api/system/logs")),
             ContractEvidence("docs/API_ENDPOINTS.md", ("GET    /api/v1/system/logs/page",)),
             ContractEvidence("fastapi/app/api/v1/README.md", ("GET /api/v1/system/logs/page",)),
+        ),
+    ),
+    EndpointContract(
+        key="logs_detail",
+        method="GET",
+        path="/api/v1/system/logs/{id}",
+        auth_required=True,
+        response_fields=("id", "method", "path", "responseStatus", "status", "errorMsg"),
+        permissions=("system:logs:query",),
+        evidence=(
+            ContractEvidence(
+                "fastapi/app/api/v1/system/log_routes/query.py",
+                ("/{log_id}", "get_log_detail", "system:logs:query"),
+            ),
+            ContractEvidence(
+                "backend/drf_admin/apps/system/urls.py",
+                ("logs/<int:id>", "LogResourceAPIView"),
+            ),
+            ContractEvidence(
+                "backend/drf_admin/apps/system/views/logs.py",
+                ("class LogResourceAPIView", "apply_log_data_scope", "操作日志不存在"),
+            ),
+            ContractEvidence("frontend/src/api/system/log-api.ts", ("getDetail", "${LOG_BASE_URL}/${id}")),
+            ContractEvidence("docs/API_ENDPOINTS.md", ("GET    /api/v1/system/logs/{id}",)),
+            ContractEvidence("fastapi/app/api/v1/README.md", ("GET /api/v1/system/logs/{id}",)),
         ),
     ),
     EndpointContract(

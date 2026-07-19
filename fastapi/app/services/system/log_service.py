@@ -6,9 +6,10 @@ from typing import Any
 
 from tortoise.functions import Avg, Count
 
+from app.core.exceptions import NotFound
 from app.db.models.oauth import Users
 from app.db.models.system import OperationLog
-from app.schemas.system import OperationLogPageResult, VisitStatsOut, VisitTrendOut
+from app.schemas.system import OperationLogOut, OperationLogPageResult, VisitStatsOut, VisitTrendOut
 from app.services.system.data_scope import apply_log_data_scope
 from app.services.system.field_permission import LOG_FIELD_PLAIN_PERMISSION, can_view_plain_fields
 from app.services.system.log_serializers import operation_log_to_out
@@ -69,6 +70,22 @@ class LogService:
         results = [operation_log_to_out(log, can_view_plain) for log in logs]
 
         return OperationLogPageResult(list=results, total=total)
+
+    async def get_detail(
+        self,
+        log_id: int,
+        current_user: Users | None = None,
+    ) -> OperationLogOut:
+        """按数据范围读取单条操作日志，并复用字段脱敏规则。"""
+        query = await apply_log_data_scope(OperationLog.all(), current_user)
+        operation_log = await query.filter(id=log_id).first()
+        if operation_log is None:
+            raise NotFound("操作日志不存在")
+        can_view_plain = await can_view_plain_fields(
+            current_user,
+            LOG_FIELD_PLAIN_PERMISSION,
+        )
+        return operation_log_to_out(operation_log, can_view_plain)
 
     async def get_visit_trend(
         self,
