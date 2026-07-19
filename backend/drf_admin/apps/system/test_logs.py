@@ -106,6 +106,24 @@ class OperationLogPageTestCase(TestCase):
         self.assertEqual(data["total"], 1)
         self.assertEqual(data["list"][0]["operation"], "删除角色")
 
+    def test_detail_returns_single_log(self):
+        """详情接口返回指定日志，并保持 camelCase 字段契约。"""
+        log = OperationLog.objects.get(operation="删除角色")
+
+        response = self.client.get(f"/api/v1/system/logs/{log.id}")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()["data"]
+        self.assertEqual(data["id"], log.id)
+        self.assertEqual(data["operation"], "删除角色")
+        self.assertIn("responseStatus", data)
+
+    def test_detail_returns_404_for_missing_log(self):
+        """不存在或不可见的日志统一返回 404。"""
+        response = self.client.get("/api/v1/system/logs/999999")
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_page_pagination_navigates_second_page(self):
         """pageNum 驱动真实翻页。"""
         first = self.client.get("/api/v1/system/logs/page", {"pageNum": 1, "pageSize": 2}).json()["data"]
@@ -155,7 +173,7 @@ class OperationLogPageTestCase(TestCase):
             dept=hidden_dept,
             is_active=1,
         )
-        OperationLog.objects.create(
+        visible_log = OperationLog.objects.create(
             user_id=visible_user.id,
             username=visible_user.username,
             operation="可见操作",
@@ -163,7 +181,7 @@ class OperationLogPageTestCase(TestCase):
             path="/api/visible",
             status=1,
         )
-        OperationLog.objects.create(
+        hidden_log = OperationLog.objects.create(
             user_id=hidden_user.id,
             username=hidden_user.username,
             operation="隐藏操作",
@@ -179,11 +197,19 @@ class OperationLogPageTestCase(TestCase):
         operations = {item["operation"] for item in response.data["data"]["list"]}
         self.assertIn("可见操作", operations)
         self.assertNotIn("隐藏操作", operations)
+        self.assertEqual(
+            self.client.get(f"/api/v1/system/logs/{visible_log.id}").status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            self.client.get(f"/api/v1/system/logs/{hidden_log.id}").status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
 
     def test_sensitive_log_fields_are_masked_without_plain_permission(self):
         """无字段原文权限时，日志请求体、响应体和 IP 应脱敏。"""
         OperationLog.objects.all().delete()
-        OperationLog.objects.create(
+        log = OperationLog.objects.create(
             username="admin",
             operation="敏感日志",
             method="POST",
@@ -201,6 +227,10 @@ class OperationLogPageTestCase(TestCase):
         self.assertEqual(item["request_body"], "[已脱敏]")
         self.assertEqual(item["response_body"], "[已脱敏]")
         self.assertEqual(item["ip"], "192.168.1.*")
+        detail = self.client.get(f"/api/v1/system/logs/{log.id}").data["data"]
+        self.assertEqual(detail["request_body"], "[已脱敏]")
+        self.assertEqual(detail["response_body"], "[已脱敏]")
+        self.assertEqual(detail["ip"], "192.168.1.*")
 
     def test_sensitive_log_fields_keep_plain_with_permission(self):
         """拥有字段原文权限时，日志敏感字段返回原文。"""
@@ -311,4 +341,12 @@ class OperationLogPermissionTestCase(TestCase):
     def test_page_requires_logs_query_permission(self):
         """缺少 system:logs:query 时拒绝访问。"""
         response = self.client.get("/api/v1/system/logs/page")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_detail_requires_logs_query_permission(self):
+        """缺少 system:logs:query 时拒绝访问日志详情。"""
+        log = OperationLog.objects.create(operation="受限日志", method="POST", path="/api/restricted")
+
+        response = self.client.get(f"/api/v1/system/logs/{log.id}")
+
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

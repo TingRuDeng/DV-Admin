@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
+from app.core.exceptions import NotFound
 from app.db.models.oauth import Users
 from app.db.models.system import Departments, OperationLog, Permissions, Roles
 from app.services.system.log_service import log_service
@@ -134,7 +135,7 @@ class TestLogServiceGetPage:
             dept_id=hidden_dept.id,
             is_active=1,
         )
-        await OperationLog.create(
+        visible_log = await OperationLog.create(
             user_id=visible_user.id,
             username=visible_user.username,
             operation="可见操作",
@@ -142,7 +143,7 @@ class TestLogServiceGetPage:
             path="/api/visible",
             status=1,
         )
-        await OperationLog.create(
+        hidden_log = await OperationLog.create(
             user_id=hidden_user.id,
             username=hidden_user.username,
             operation="隐藏操作",
@@ -156,6 +157,10 @@ class TestLogServiceGetPage:
         operations = {log.operation for log in result.list}
         assert "可见操作" in operations
         assert "隐藏操作" not in operations
+        detail = await log_service.get_detail(visible_log.id, current_user=scoped_user)
+        assert detail.operation == "可见操作"
+        with pytest.raises(NotFound):
+            await log_service.get_detail(hidden_log.id, current_user=scoped_user)
 
     @pytest.mark.asyncio
     async def test_get_page_masks_sensitive_fields_without_plain_permission(self, db):
@@ -174,7 +179,7 @@ class TestLogServiceGetPage:
             is_active=1,
         )
         await current_user.roles.add(role)
-        await OperationLog.create(
+        log = await OperationLog.create(
             username="operator",
             operation="敏感日志",
             method="POST",
@@ -196,6 +201,10 @@ class TestLogServiceGetPage:
         assert item.request_body == "[已脱敏]"
         assert item.response_body == "[已脱敏]"
         assert item.ip == "192.168.1.*"
+        detail = await log_service.get_detail(log.id, current_user=current_user)
+        assert detail.request_body == "[已脱敏]"
+        assert detail.response_body == "[已脱敏]"
+        assert detail.ip == "192.168.1.*"
 
     @pytest.mark.asyncio
     async def test_get_page_keeps_sensitive_fields_with_plain_permission(self, db):

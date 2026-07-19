@@ -3,13 +3,13 @@
 """
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Path, Query, Request
 
 from app.api.deps import require_permissions
 from app.api.pagination import PaginationParams, page_params
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
-from app.schemas.system import OperationLogPageResult
+from app.schemas.system import OperationLogOut, OperationLogPageResult
 from app.services.system.log_service import log_service
 
 router = APIRouter()
@@ -60,4 +60,19 @@ async def get_log_page(
         end_time=end_time,
         current_user=current_user,
     )
+    return ResponseModel.success(data=data)
+
+
+@router.get(
+    "/{log_id}",
+    response_model=ResponseModel[OperationLogOut],
+    summary="获取操作日志详情",
+)
+async def get_log_detail(
+    request: Request,
+    log_id: int = Path(..., ge=1, description="日志 ID"),
+    current_user: Users = require_permissions("system:logs:query"),
+):
+    """按当前用户数据范围返回日志详情，敏感字段继续执行原文权限校验。"""
+    data = await log_service.get_detail(log_id, current_user=current_user)
     return ResponseModel.success(data=data)
