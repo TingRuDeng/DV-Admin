@@ -3,6 +3,7 @@
 """
 
 from tortoise import fields
+from tortoise.indexes import Index
 
 from app.db.models.base import BaseModel
 
@@ -32,19 +33,19 @@ class OperationLog(BaseModel):
     os = fields.CharField(max_length=100, default="", description="操作系统")
     execution_time = fields.IntField(default=0, description="执行时间(毫秒)")
 
-    status = fields.IntField(default=1, description="状态(1:成功;0:失败)")
+    status = fields.IntField(default=1, description="状态(1:成功；0:失败)")
     error_msg = fields.TextField(default="", description="错误信息")
 
     class Meta:
         table = "system_operation_log"
         ordering = ["-created_at"]
         indexes = (
-            ("user_id",),
-            ("username",),
-            ("status",),
-            ("method",),
-            ("user_id", "created_at"),
-            ("status", "created_at"),
+            Index(fields=("user_id",)),
+            Index(fields=("username",)),
+            Index(fields=("status",)),
+            Index(fields=("method",)),
+            Index(fields=("user_id", "created_at")),
+            Index(fields=("status", "created_at")),
         )
 
     def __str__(self) -> str:

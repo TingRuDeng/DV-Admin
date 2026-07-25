@@ -3,7 +3,10 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from model_contract_ast import FASTAPI_MODEL_FILES, read_text
+if __package__:
+    from .model_contract_ast import FASTAPI_MODEL_FILES, read_text
+else:
+    from model_contract_ast import FASTAPI_MODEL_FILES, read_text
 
 
 def load_fastapi_model_indexes(root: Path) -> dict[str, tuple[tuple[str, ...], ...]]:
@@ -63,7 +66,7 @@ def extract_meta_unique_together(model_node: ast.ClassDef) -> tuple[str, ...]:
 
 
 def extract_indexes_assignment(meta_node: ast.ClassDef) -> tuple[tuple[str, ...], ...]:
-    """读取 Meta.indexes = ((...), ...) 形式的索引声明。"""
+    """读取 Meta.indexes 中的元组或 Index(fields=(...)) 声明。"""
     for statement in meta_node.body:
         if isinstance(statement, ast.Assign) and is_indexes_target(statement.targets):
             return extract_indexes_tuple(statement.value)
@@ -89,8 +92,8 @@ def is_unique_together_target(targets: list[ast.expr]) -> bool:
 
 
 def extract_indexes_tuple(value: ast.expr) -> tuple[tuple[str, ...], ...]:
-    """提取索引字段组，只接受字符串字面量元组。"""
-    if not isinstance(value, ast.Tuple):
+    """提取索引字段组。"""
+    if not isinstance(value, (ast.List, ast.Tuple)):
         return ()
     return tuple(
         index_fields
@@ -101,7 +104,13 @@ def extract_indexes_tuple(value: ast.expr) -> tuple[tuple[str, ...], ...]:
 
 def extract_index_fields(value: ast.expr) -> tuple[str, ...]:
     """提取单个索引字段组。"""
-    if not isinstance(value, ast.Tuple):
+    if isinstance(value, ast.Call) and isinstance(value.func, ast.Name) and value.func.id == "Index":
+        fields_keyword = next(
+            (keyword.value for keyword in value.keywords if keyword.arg == "fields"),
+            None,
+        )
+        return extract_index_fields(fields_keyword) if fields_keyword is not None else ()
+    if not isinstance(value, (ast.List, ast.Tuple)):
         return ()
     fields: list[str] = []
     for item in value.elts:
