@@ -7,6 +7,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from tortoise import fields
+from tortoise.indexes import Index
 
 from app.db.models.base import BaseModel
 
@@ -64,10 +65,10 @@ class Permissions(BaseModel):
         table = "system_permissions"
         ordering = ["sort"]
         indexes = (
-            ("type",),
-            ("route_name",),
-            ("visible",),
-            ("parent_id", "sort"),
+            Index(fields=("type",)),
+            Index(fields=("route_name",)),
+            Index(fields=("visible",)),
+            Index(fields=("parent_id", "sort")),
         )
 
     def __str__(self) -> str:
@@ -119,10 +120,10 @@ class Roles(BaseModel):
         table = "system_roles"
         ordering = ["sort"]
         indexes = (
-            ("code",),
-            ("status",),
-            ("is_default",),
-            ("data_scope",),
+            Index(fields=("code",)),
+            Index(fields=("status",)),
+            Index(fields=("is_default",)),
+            Index(fields=("data_scope",)),
         )
 
     def __str__(self) -> str:
