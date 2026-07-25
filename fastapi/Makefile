@@ -1,11 +1,12 @@
-.PHONY: lint typecheck test quality format clean help
+.PHONY: lint typecheck test migration-check quality format clean help
 
 help:
 	@echo "FastAPI 质量检查命令:"
 	@echo "  make lint       - 运行 ruff 代码检查"
 	@echo "  make typecheck  - 运行 mypy 类型检查"
 	@echo "  make test       - 运行测试并生成覆盖率报告"
-	@echo "  make quality    - 运行所有质量检查 (lint + typecheck + test)"
+	@echo "  make migration-check - 验证迁移基线、既有库接管和模型漂移"
+	@echo "  make quality    - 运行所有质量检查 (lint + typecheck + migration-check + test)"
 	@echo "  make format     - 格式化代码 (black + isort)"
 	@echo "  make clean      - 清理缓存和临时文件"
 
@@ -19,9 +20,13 @@ typecheck:
 test:
 	uv run pytest --cov=app --cov-report=term-missing --cov-fail-under=80
 
+migration-check:
+	uv run python scripts/validate_migrations.py all-sqlite
+
 quality:
 	$(MAKE) lint
 	$(MAKE) typecheck
+	$(MAKE) migration-check
 	$(MAKE) test
 
 format:

@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from tortoise import fields
+from tortoise.indexes import Index
 
 from app.db.models.base import BaseModel
 
@@ -26,8 +27,8 @@ class DictData(BaseModel):
         table = "system_dicts"
         ordering = ["-created_at"]
         indexes = (
-            ("dict_code",),
-            ("status",),
+            Index(fields=("dict_code",)),
+            Index(fields=("status",)),
         )
 
     def __str__(self) -> str:
@@ -58,9 +59,9 @@ class DictItems(BaseModel):
         table = "system_dict_items"
         ordering = ["dict_data_id", "value"]
         indexes = (
-            ("status",),
-            ("dict_data_id", "value"),
-            ("dict_data_id", "status"),
+            Index(fields=("status",)),
+            Index(fields=("dict_data_id", "value")),
+            Index(fields=("dict_data_id", "status")),
         )
 
     def __str__(self) -> str:

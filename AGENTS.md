@@ -157,8 +157,11 @@ cp .env.example .env
 2. **数据库模型变更**
    - 修改模型后必须创建并执行迁移
    - Django：`uv run python manage.py makemigrations --env dev`
-   - FastAPI：修改 `app/db/models/` 后重启服务自动同步（开发环境）
-   - 生产环境必须手动管理迁移
+   - FastAPI：`uv run python -m tortoise -c app.db.migration_config.TORTOISE_ORM makemigrations models`
+   - FastAPI 模型变更必须提交 `app/db/migrations/` 中的版本化迁移，并运行 `make migration-check`
+   - 开发环境的 `generate_schemas()` 只用于新建缺失表，不替代生产迁移
+   - 生产部署必须先运行 `uv run python -m tortoise -c app.db.migration_config.TORTOISE_ORM migrate`
+   - 首次接管迁移基线的既有 FastAPI 数据库，必须先备份并核对 schema，再仅执行一次 `migrate --fake`
    - 如通过 MCP 访问本地 SQLite 数据库进行排查，默认仅用于查询与验证；执行写操作前要明确当前连接的是哪套后端实现对应的本地库
 
 3. **权限相关变更**
@@ -204,7 +207,7 @@ FastAPI 已提供可执行的质量门禁入口 `make quality`；当前类型检
 ```bash
 cd fastapi
 uv sync --group dev
-make quality           # 聚合质量检查 (ruff + mypy + pytest + coverage)
+make quality           # 聚合质量检查 (ruff + mypy + migration-check + pytest + coverage)
 ```
 
 ### 提交规则

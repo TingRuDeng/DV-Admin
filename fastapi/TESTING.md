@@ -89,6 +89,16 @@ cd fastapi
 uv run pytest tests/ -v
 ```
 
+### 验证数据库迁移
+
+```bash
+# SQLite 空库、既有库 fake 接管与模型漂移
+make migration-check
+
+# 完整质量门禁已包含 migration-check
+make quality
+```
+
 ### 运行单个测试文件
 
 ```bash

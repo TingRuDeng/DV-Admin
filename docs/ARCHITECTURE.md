@@ -13,6 +13,8 @@ ai_summary:
     - "backend/drf_admin/utils/request_id.py"
     - "backend/drf_admin/apps/system/views/health.py"
     - "fastapi/app/main.py"
+    - "fastapi/app/db/migration_config.py"
+    - "fastapi/app/db/migrations/0001_initial.py"
     - "fastapi/app/schemas/base.py"
     - "scripts/api_contracts.py"
     - "scripts/api_route_coverage_validation.py"
@@ -42,6 +44,8 @@ ai_summary:
 - `backend/drf_admin/settings.py`
 - `backend/drf_admin/utils/middleware.py`
 - `fastapi/app/main.py`
+- `fastapi/app/db/migration_config.py`
+- `fastapi/app/db/migrations/0001_initial.py`
 - `fastapi/app/schemas/base.py`
 
 ## Key facts
@@ -51,6 +55,7 @@ ai_summary:
 - 共享 API 或数据契约变化时，需要同时考虑两套后端兼容性。
 - Django 与 FastAPI 都提供健康检查能力；Django 请求链路会通过 `X-Request-ID` 串联响应和操作日志。
 - 关键 API 端点不仅校验契约目录，还会静态校验 Django/FastAPI 路由中是否存在对应 `method + path`。
+- FastAPI 数据库结构使用 Tortoise ORM 版本化迁移；开发期 schema 自动创建不承担生产演进职责。
 
 ## How to verify
 
@@ -245,7 +250,9 @@ fastapi/app/
 │   ├── cache.py      # 缓存服务
 │   └── exceptions.py # 异常定义
 ├── db/
-│   └── models/       # 数据模型
+│   ├── models/       # 数据模型
+│   ├── migrations/   # Tortoise ORM 版本化迁移
+│   └── migration_config.py
 ├── schemas/          # Pydantic 模型
 ├── services/         # 业务服务层
 ├── middleware/       # 中间件
