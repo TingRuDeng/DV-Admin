@@ -1,9 +1,11 @@
-from scripts.model_contracts import iter_django_fastapi_model_contracts
+import ast
 
 from app.db.import_django_data import MODEL_MAPPING, map_field_name
 from app.db.models.base import BaseModel
 from app.db.models.system import NoticeReads
 from scripts import model_contracts
+from scripts.model_contracts import iter_django_fastapi_model_contracts
+from scripts.model_index_ast import extract_module_indexes
 
 FIELD_MODEL_MAPPING = {
     model.__name__: model for model in MODEL_MAPPING.values()
@@ -132,8 +134,23 @@ def test_fastapi_model_indexes_match_shared_contracts():
     assert hasattr(model_contracts, "iter_fastapi_model_index_contracts")
     for contract in model_contracts.iter_fastapi_model_index_contracts():
         model = FIELD_MODEL_MAPPING[contract.fastapi_model]
-        actual_indexes = tuple(tuple(index) for index in model.Meta.indexes)
+        actual_indexes = tuple(tuple(index.fields) for index in model.Meta.indexes)
         assert actual_indexes == contract.indexes
+
+
+def test_static_model_index_parser_supports_tortoise_index_objects():
+    """根契约解析器必须识别迁移写入器要求的 Index 对象。"""
+    module = ast.parse(
+        """
+class Example:
+    class Meta:
+        indexes = (Index(fields=("status",)), Index(fields=("parent_id", "sort")))
+"""
+    )
+
+    assert extract_module_indexes(module) == {
+        "Example": (("status",), ("parent_id", "sort"))
+    }
 
 
 def test_fastapi_model_unique_together_matches_shared_contracts():

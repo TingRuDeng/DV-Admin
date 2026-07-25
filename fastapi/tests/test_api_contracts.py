@@ -1,3 +1,4 @@
+from app.schemas.base import PageResult, ResponseModel
 from scripts.api_contracts import (
     CRITICAL_ENDPOINT_CONTRACTS,
     assert_endpoint_contract_catalog,
@@ -13,8 +14,6 @@ from scripts.api_error_codes import (
     SUCCESS_CODE,
     assert_api_error_code_catalog,
 )
-
-from app.schemas.base import PageResult, ResponseModel
 
 
 def test_fastapi_success_response_matches_shared_contract():
