@@ -8,6 +8,8 @@ ai_summary:
     - "backend/drf_admin/apps/system/models.py"
     - "fastapi/app/db/models/system.py"
     - "fastapi/app/db/models/oauth.py"
+    - "fastapi/app/db/migrations/0001_initial.py"
+    - "fastapi/scripts/validate_migrations.py"
     - "backend/dev.sh"
     - "fastapi/scripts/dev.sh"
   verify_with:
@@ -31,6 +33,8 @@ ai_summary:
 - `backend/drf_admin/apps/system/models.py`
 - `fastapi/app/db/models/system.py`
 - `fastapi/app/db/models/oauth.py`
+- `fastapi/app/db/migrations/0001_initial.py`
+- `fastapi/scripts/validate_migrations.py`
 - `backend/dev.sh`
 - `fastapi/scripts/dev.sh`
 
@@ -38,11 +42,12 @@ ai_summary:
 
 - 开发环境默认可使用 SQLite，生产推荐 MySQL，二者行为不能直接等同。
 - Django 与 FastAPI 模型存在字典表等局部命名差异。
-- 模型事实以 ORM 源码和迁移历史为准。
+- 模型事实以 ORM 源码和迁移历史为准；FastAPI 使用 Tortoise ORM 1.1.7 内置迁移能力。
 
 ## How to verify
 
 - quick: `python3 scripts/validate_docs.py . --profile generic`
+- quick: `make -C fastapi migration-check`
 - full: `make -C fastapi quality`
 
 ## Stale when
@@ -462,17 +467,30 @@ python3 scripts/validate_django_migrations.py .
 ### FastAPI
 
 ```bash
-# 开发环境：自动创建表（generate_schemas=True）
-uv run uvicorn app.main:app --reload
+# 生成模型变更迁移
+uv run python -m tortoise \
+  -c app.db.migration_config.TORTOISE_ORM \
+  makemigrations models
 
-# 生产环境：使用 Aerich 管理迁移
-aerich init -t app.core.config.TORTOISE_ORM
-aerich init-db
-aerich migrate
-aerich upgrade
+# 执行待应用迁移
+uv run python -m tortoise \
+  -c app.db.migration_config.TORTOISE_ORM \
+  migrate
+
+# 查看迁移历史
+uv run python -m tortoise \
+  -c app.db.migration_config.TORTOISE_ORM \
+  history models
+
+# 校验 SQLite 空库、既有库接管和模型漂移
+make migration-check
 ```
+
+`app/db/migrations/0001_initial.py` 是 FastAPI 当前 schema 的版本化基线。全新数据库直接执行 `migrate`；既有 FastAPI 数据库首次接管基线前必须完成备份和 schema 核对，确认与基线一致后仅执行一次 `migrate --fake`。不得在未核对旧表、旧字段或约束差异时伪造迁移历史。
+
+开发启动流程仍可使用 `generate_schemas()` 创建缺失表，但它不会处理列重命名、删除、约束或索引演进，不能作为生产部署迁移方案。CI 同时验证 SQLite 基线/接管路径与 MySQL 8 空库迁移。
 
 ---
 
-**最后更新：** 2026-03-23
+**最后更新：** 2026-07-25
 **维护者：** DV-Admin Team

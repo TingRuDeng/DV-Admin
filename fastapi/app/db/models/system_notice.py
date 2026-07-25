@@ -7,6 +7,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from tortoise import fields
+from tortoise.indexes import Index
 
 from app.db.models.base import BaseModel
 
@@ -18,7 +19,7 @@ class Notices(BaseModel):
     content = fields.TextField(description="内容")
     type = fields.IntField(default=0, description="类型")
     level = fields.CharField(max_length=10, default="L", description="级别")
-    target_type = fields.IntField(default=1, description="目标类型(1:全体;2:指定)")
+    target_type = fields.IntField(default=1, description="目标类型(1:全体；2:指定)")
     target_user_ids: fields.Field[list[int]] = fields.JSONField(
         default=list,
         description="目标用户ID列表",
@@ -29,7 +30,7 @@ class Notices(BaseModel):
 
     publish_status = fields.IntField(
         default=0,
-        description="发布状态(0:未发布;1:已发布;-1:已撤回)",
+        description="发布状态(0:未发布；1:已发布；-1:已撤回)",
     )
     publish_time: datetime | None = fields.DatetimeField(
         null=True,
@@ -44,9 +45,9 @@ class Notices(BaseModel):
         table = "system_notices"
         ordering = ["-created_at"]
         indexes = (
-            ("publish_status",),
-            ("publisher_id",),
-            ("publish_status", "publish_time"),
+            Index(fields=("publish_status",)),
+            Index(fields=("publisher_id",)),
+            Index(fields=("publish_status", "publish_time")),
         )
 
 
@@ -66,4 +67,4 @@ class NoticeReads(BaseModel):
     class Meta:
         table = "system_notice_reads"
         unique_together = ("notice", "user_id")
-        indexes = (("user_id",),)
+        indexes = (Index(fields=("user_id",)),)

@@ -32,7 +32,7 @@ fastapi/
 │   │   ├── cache.py      # 缓存服务
 │   │   ├── redis.py      # Redis 连接管理
 │   │   └── exceptions.py # 异常定义
-│   ├── db/               # 数据库模型
+│   ├── db/               # 数据库模型、迁移配置与版本化迁移
 │   ├── schemas/          # Pydantic 模型
 │   ├── services/         # 业务服务层
 │   │   ├── captcha_service.py      # 验证码服务
@@ -230,8 +230,11 @@ await cache.delete(CacheKeys.dict_code("status"))
 ## 测试
 
 ```bash
-# 运行聚合质量检查 (ruff + mypy + pytest + coverage)
+# 运行聚合质量检查 (ruff + mypy + migration-check + pytest + coverage)
 make quality
+
+# 单独校验迁移基线、既有库接管和模型漂移
+make migration-check
 
 # 运行特定测试
 uv run pytest tests/test_oauth.py -v
@@ -241,6 +244,22 @@ uv run pytest --cov=app --cov-report=html
 ```
 
 测试覆盖率: **80%+**
+
+## 数据库迁移
+
+```bash
+# 生成模型变更迁移
+uv run python -m tortoise \
+  -c app.db.migration_config.TORTOISE_ORM \
+  makemigrations models
+
+# 执行迁移
+uv run python -m tortoise \
+  -c app.db.migration_config.TORTOISE_ORM \
+  migrate
+```
+
+全新数据库直接执行 `migrate`。既有 FastAPI 数据库首次接管 `0001_initial` 基线前，必须先备份并核对 schema；确认一致后仅执行一次 `migrate --fake`。开发启动中的自动建表只用于本地开发，不能替代生产迁移。
 
 ## 部署
 
@@ -258,7 +277,8 @@ docker-compose up -d
 3. 使用强密码的 `SECRET_KEY`（必须设置）
 4. 显式配置安全的 `DEFAULT_PASSWORD`
 5. 配置正确的数据库和 Redis 连接
-6. 配置日志文件路径
+6. 执行待应用的 Tortoise ORM 迁移
+7. 配置日志文件路径
 
 ### 健康检查
 

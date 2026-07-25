@@ -24,7 +24,7 @@ dependencies = [
     "uvicorn[standard]>=0.34.0",
     "python-multipart>=0.0.20",
     # 数据库 - 同时支持 SQLite 和 MySQL
-    "tortoise-orm[asyncpg]>=0.24.0",
+    "tortoise-orm[asyncpg]==1.1.7",
     "asyncmy>=0.2.0",
     "aiomysql>=0.2.0",
     "aiosqlite>=0.20.0", # SQLite 异步支持

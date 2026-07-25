@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from tortoise import fields
+from tortoise.indexes import Index
 
 from app.db.models.base import BaseModel
 
@@ -33,8 +34,8 @@ class Departments(BaseModel):
         table = "system_departments"
         ordering = ["sort"]
         indexes = (
-            ("status",),
-            ("parent_id", "sort"),
+            Index(fields=("status",)),
+            Index(fields=("parent_id", "sort")),
         )
 
     def __str__(self) -> str:
