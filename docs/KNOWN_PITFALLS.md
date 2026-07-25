@@ -145,6 +145,25 @@ uv run python manage.py migrate --env dev
 
 ---
 
+### 陷阱 4.1：FastAPI 迁移基线被自动建表掩盖
+
+**问题描述：**
+开发环境通过 `generate_schemas()` 能正常启动，但模型变更没有对应版本化迁移，部署到既有数据库后出现字段、索引或约束漂移。
+
+**已验证事实：**
+- FastAPI 使用 Tortoise ORM 1.1.7 内置迁移能力，迁移配置位于 `app.db.migration_config.TORTOISE_ORM`
+- `app/db/migrations/0001_initial.py` 是当前 schema 基线
+- Tortoise 迁移写入器要求 `Meta.indexes` 使用 `Index` 对象；元组写法不能可靠生成迁移
+- SQLite 原子迁移按 ASCII 分号拆分 SQL；字段 description 中不能包含 ASCII `;`，中文说明应使用全角 `；`
+
+**解决方案：**
+1. 模型变更同时生成并提交迁移，运行 `make -C fastapi migration-check`
+2. 全新数据库直接执行 `migrate`
+3. 既有库接管前先备份并核对 schema，确认一致后仅执行一次 `migrate --fake`
+4. CI 同时保留 SQLite 全路径校验和 MySQL 8 空库迁移 smoke
+
+---
+
 ## 认证授权陷阱
 
 ### 陷阱 5：Token 过期处理
@@ -521,7 +540,7 @@ server {
 
 ---
 
-**最后更新：** 2026-05-23
+**最后更新：** 2026-07-25
 **维护者：** DV-Admin Team
 
 **贡献指南：** 发现新陷阱时，请及时更新此文档。

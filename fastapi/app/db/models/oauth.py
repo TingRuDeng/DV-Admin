@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 from tortoise import fields
+from tortoise.indexes import Index
 
 from app.db.models.base import BaseModel
 from app.db.models.system import Departments, Roles
@@ -93,12 +94,12 @@ class Users(BaseModel):
         # 数据库索引优化
         indexes = (
             # 单字段索引 - 常用查询字段
-            ("username",),
-            ("mobile",),
-            ("email",),
-            ("is_active",),
+            Index(fields=("username",)),
+            Index(fields=("mobile",)),
+            Index(fields=("email",)),
+            Index(fields=("is_active",)),
             # 联合索引 - 部门+状态查询
-            ("dept_id", "is_active"),
+            Index(fields=("dept_id", "is_active")),
         )
 
     def __str__(self) -> str:

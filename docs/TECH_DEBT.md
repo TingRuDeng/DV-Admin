@@ -88,6 +88,7 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 
 **当前治理进展：**
 - FastAPI Django fixture 导入脚本已改为 fail-fast
+- FastAPI 已建立 Tortoise ORM 1.1.7 版本化迁移基线，SQLite 空库/既有库接管/模型漂移及 MySQL 8 空库迁移已接入质量门禁
 - 已覆盖缺少 fixture、单条导入失败和 M2M 目标缺失三类失败测试
 - 已新增 `scripts/model_contracts.py` 作为 Django → FastAPI 共享模型契约目录，并用 `scripts/validate_model_contracts.py` 校验导入脚本、测试和文档同步
 - 权限菜单 `keepAlive/alwaysShow` 已显式映射到 FastAPI 的 `keep_alive/always_show`
@@ -295,6 +296,7 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 - 已形成第一版 PRD，明确审计日志详情、批量任务状态、导入导出任务化的目标、非目标、数据契约草案、分期计划和验收标准
 - Django/FastAPI 已新增受数据范围和敏感字段权限约束的日志详情接口，前端已补详情弹窗、状态/响应码展示及操作人/方法/状态筛选
 - 日志详情已纳入 API、后端字段和前端字段契约；双后端运行时测试与前端 E2E 已覆盖失败详情链路
+- FastAPI 版本化迁移基线已建立，后续 `requestId` 与错误摘要字段可通过增量迁移实施；字段采集与对外契约仍留在下一轮
 
 **预计工作量：** 5-8 天
 

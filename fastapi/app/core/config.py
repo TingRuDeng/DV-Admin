@@ -10,6 +10,7 @@ from functools import lru_cache
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from tortoise.backends.base.config_generator import expand_db_url
 
 from app.core.security_validator import SecurityValidator
 
@@ -182,20 +183,18 @@ class Settings(BaseSettings):
             }
 
         # MySQL 配置
-        if db_url.startswith("mysql://"):
-            db_url = "mysql+aiomysql://" + db_url[8:]
+        if db_url.startswith("mysql+aiomysql://"):
+            db_url = "mysql://" + db_url[len("mysql+aiomysql://") :]
+        connection_config = expand_db_url(db_url)
+        connection_config["credentials"].update(
+            {
+                "minsize": self.database_min_connections,
+                "maxsize": self.database_max_connections,
+            }
+        )
 
         return {
-            "connections": {
-                "default": {
-                    "engine": "tortoise.backends.mysql",
-                    "credentials": {
-                        "uri": db_url,
-                        "minsize": self.database_min_connections,
-                        "maxsize": self.database_max_connections,
-                    },
-                }
-            },
+            "connections": {"default": connection_config},
             "apps": {
                 "models": {
                     "models": [

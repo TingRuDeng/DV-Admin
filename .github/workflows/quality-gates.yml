@@ -105,6 +105,19 @@ jobs:
     name: FastAPI Backend Quality
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: migration-test-password
+          MYSQL_DATABASE: dv_admin_migration_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pmigration-test-password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
     steps:
       - name: Checkout repository
         env:
@@ -134,8 +147,10 @@ jobs:
           echo "APP_ENV=test" >> .env
       - name: Run quality gate
         working-directory: fastapi
-        run: |
-          .venv/bin/ruff check . --ignore I
-          .venv/bin/isort . --check-only
-          .venv/bin/mypy app
-          .venv/bin/pytest --cov=app --cov-report=term-missing --cov-fail-under=80
+        run: make quality
+      - name: Run MySQL migration smoke
+        working-directory: fastapi
+        run: >-
+          .venv/bin/python scripts/validate_migrations.py fresh
+          --database-url
+          mysql://root:migration-test-password@127.0.0.1:3306/dv_admin_migration_test
