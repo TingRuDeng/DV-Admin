@@ -226,6 +226,15 @@ class TestUserServiceGet:
 
         assert "用户不存在" in str(exc_info.value)
 
+    @pytest.mark.asyncio
+    async def test_get_hidden_user_returns_not_found(self, db, scoped_user_context):
+        """范围外用户详情按不存在处理。"""
+        with pytest.raises(NotFound):
+            await user_service.get(
+                scoped_user_context["hidden_user"].id,
+                current_user=scoped_user_context["operator"],
+            )
+
 
 class TestUserServiceGetForm:
     """测试获取用户表单详情"""
@@ -256,3 +265,12 @@ class TestUserServiceGetForm:
             await user_service.get_form(99999)
 
         assert "用户不存在" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_get_form_hidden_user_returns_not_found(self, db, scoped_user_context):
+        """范围外用户表单按不存在处理。"""
+        with pytest.raises(NotFound):
+            await user_service.get_form(
+                scoped_user_context["hidden_user"].id,
+                current_user=scoped_user_context["operator"],
+            )

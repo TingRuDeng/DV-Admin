@@ -60,5 +60,5 @@ async def reset_user_password(
     user_id: int,
     current_user: Users = require_permissions("system:users:password:reset"),
 ) -> ResponseModel[None]:
-    await user_service.reset_password(user_id)
+    await user_service.reset_password(user_id, current_user=current_user)
     return ResponseModel.success(message="密码重置成功")

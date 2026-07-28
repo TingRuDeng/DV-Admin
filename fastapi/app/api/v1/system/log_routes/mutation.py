@@ -4,6 +4,7 @@
 from fastapi import APIRouter, Path, Request
 
 from app.api.deps import require_permissions
+from app.core.exceptions import ValidationError
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
 from app.services.system.log_service import log_service
@@ -18,8 +19,16 @@ async def delete_logs(
     current_user: Users = require_permissions("system:logs:delete"),
 ):
     """批量删除操作日志。"""
-    id_list = [int(x) for x in ids.split(",") if x.strip()]
-    deleted_count = await log_service.delete_by_ids(id_list)
+    try:
+        id_list = [int(value) for item in ids.split(",") if (value := item.strip())]
+    except ValueError as exc:
+        raise ValidationError("日志 ID 必须是正整数列表") from exc
+    if not id_list or any(log_id < 1 for log_id in id_list):
+        raise ValidationError("日志 ID 必须是正整数列表")
+    deleted_count = await log_service.delete_by_ids(
+        id_list,
+        current_user=current_user,
+    )
     return ResponseModel.success(message=f"成功删除 {deleted_count} 条日志")
 
 
@@ -41,5 +50,8 @@ async def clear_old_logs(
     days: int = Path(..., ge=1, description="保留天数"),
     current_user: Users = require_permissions("system:logs:delete"),
 ):
-    deleted_count = await log_service.clear_old_logs(days=days)
+    deleted_count = await log_service.clear_old_logs(
+        days=days,
+        current_user=current_user,
+    )
     return ResponseModel.success(message=f"成功清理 {deleted_count} 条历史日志")

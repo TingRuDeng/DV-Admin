@@ -46,3 +46,19 @@ class TestLogServiceGetVisitTrend:
         assert len(result) == 3
         for item in result:
             assert item.count == 0
+
+    @pytest.mark.asyncio
+    async def test_get_visit_trend_filters_by_data_scope(self, db, scoped_log_context):
+        """趋势计数不得包含范围外日志。"""
+        await OperationLog.exclude(
+            id__in=[
+                scoped_log_context["visible_log"].id,
+                scoped_log_context["hidden_log"].id,
+            ]
+        ).delete()
+
+        result = await log_service.get_visit_trend(
+            current_user=scoped_log_context["operator"],
+        )
+
+        assert sum(item.count for item in result) == 1

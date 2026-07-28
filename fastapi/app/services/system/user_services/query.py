@@ -78,7 +78,8 @@ class UserQueryMixin(UserSerializerMixin):
         """
         获取用户详情
         """
-        user = await Users.get_or_none(id=user_id)
+        query = await apply_user_data_scope(Users.all(), current_user)
+        user = await query.filter(id=user_id).first()
         if not user:
             raise NotFound("用户不存在")
 
@@ -93,18 +94,26 @@ class UserQueryMixin(UserSerializerMixin):
         """
         获取用户表单详情（用于编辑回填）
         """
-        user = await Users.get_or_none(id=user_id)
+        query = await apply_user_data_scope(Users.all(), current_user)
+        user = await query.filter(id=user_id).first()
         if not user:
             raise NotFound("用户不存在")
 
         return await self._serialize_user_form(user, current_user)
 
 
-    async def get_options(self) -> list[dict[str, Any]]:
+    async def get_options(
+        self,
+        current_user: Users | None = None,
+    ) -> list[dict[str, Any]]:
         """
         获取用户下拉选项
         """
-        users = await Users.filter(is_active=1).all()
+        query = await apply_user_data_scope(
+            Users.filter(is_active=1),
+            current_user,
+        )
+        users = await query.all()
 
         return [
             {
