@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from tortoise.functions import Avg, Count
+from tortoise.queryset import QuerySet
+from tortoise.transactions import in_transaction
 
 from app.core.exceptions import NotFound
 from app.db.models.oauth import Users
@@ -91,6 +93,7 @@ class LogService:
         self,
         start_date: datetime | None = None,
         end_date: datetime | None = None,
+        current_user: Users | None = None,
     ) -> list[VisitTrendOut]:
         """获取访问趋势统计"""
         if not start_date:
@@ -103,50 +106,56 @@ class LogService:
             end_date = normalize_local_time(end_date)
 
         # 按日期分组统计
-        logs = await OperationLog.filter(
+        query = await apply_log_data_scope(OperationLog.all(), current_user)
+        logs = await query.filter(
             created_at__gte=start_date,
             created_at__lte=end_date,
         ).all()
 
         return build_visit_trend(logs, start_date, end_date)
 
-    async def get_visit_stats(self) -> VisitStatsOut:
+    async def get_visit_stats(
+        self,
+        current_user: Users | None = None,
+    ) -> VisitStatsOut:
         """获取访问统计"""
         now = local_now()
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         week_start = today_start - timedelta(days=now.weekday())
         month_start = today_start.replace(day=1)
 
+        query = await apply_log_data_scope(OperationLog.all(), current_user)
+
         # 总访问次数
-        total_count = await OperationLog.all().count()
+        total_count = await query.count()
 
         # 今日访问次数
-        today_count = await OperationLog.filter(
+        today_count = await query.filter(
             created_at__gte=today_start
         ).count()
 
         # 本周访问次数
-        week_count = await OperationLog.filter(
+        week_count = await query.filter(
             created_at__gte=week_start
         ).count()
 
         # 本月访问次数
-        month_count = await OperationLog.filter(
+        month_count = await query.filter(
             created_at__gte=month_start
         ).count()
 
         # 成功/失败次数
-        success_count = await OperationLog.filter(status=1).count()
-        fail_count = await OperationLog.filter(status=0).count()
+        success_count = await query.filter(status=1).count()
+        fail_count = await query.filter(status=0).count()
 
         # 平均执行时间，使用数据库聚合避免随日志量增长拉取全表
-        avg_execution_time = await self._get_avg_execution_time()
+        avg_execution_time = await self._get_avg_execution_time(query)
 
         # 活跃用户 TOP10
-        top_users_data = await self._get_top_users(limit=10)
+        top_users_data = await self._get_top_users(query, limit=10)
 
         # 热门路径 TOP10
-        top_paths_data = await self._get_top_paths(limit=10)
+        top_paths_data = await self._get_top_paths(query, limit=10)
 
         return VisitStatsOut(
             total_count=total_count,
@@ -160,10 +169,14 @@ class LogService:
             top_paths=top_paths_data,
         )
 
-    async def _get_top_users(self, limit: int = 10) -> list[dict[str, Any]]:
+    async def _get_top_users(
+        self,
+        query: QuerySet[OperationLog],
+        limit: int = 10,
+    ) -> list[dict[str, Any]]:
         """获取活跃用户 TOP N"""
         rows = (
-            await OperationLog.exclude(username="")
+            await query.exclude(username="")
             .group_by("username", "name")
             .annotate(visit_count=Count("id"))
             .order_by("-visit_count", "username")
@@ -179,10 +192,14 @@ class LogService:
             for row in rows
         ]
 
-    async def _get_top_paths(self, limit: int = 10) -> list[dict[str, Any]]:
+    async def _get_top_paths(
+        self,
+        query: QuerySet[OperationLog],
+        limit: int = 10,
+    ) -> list[dict[str, Any]]:
         """获取热门路径 TOP N"""
         rows = (
-            await OperationLog.exclude(path="")
+            await query.exclude(path="")
             .group_by("path", "method")
             .annotate(visit_count=Count("id"))
             .order_by("-visit_count", "path")
@@ -198,24 +215,46 @@ class LogService:
             for row in rows
         ]
 
-    async def _get_avg_execution_time(self) -> float:
+    async def _get_avg_execution_time(
+        self,
+        query: QuerySet[OperationLog],
+    ) -> float:
         """获取平均执行耗时，数据库端聚合后保留两位小数。"""
-        rows = await OperationLog.filter(execution_time__gt=0).annotate(
+        rows = await query.filter(execution_time__gt=0).annotate(
             avg_time=Avg("execution_time")
         ).values("avg_time")
         if not rows or rows[0]["avg_time"] is None:
             return 0.0
         return round(float(rows[0]["avg_time"]), 2)
 
-    async def delete_by_ids(self, ids: list[int]) -> int:
+    async def delete_by_ids(
+        self,
+        ids: list[int],
+        current_user: Users | None = None,
+    ) -> int:
         """批量删除日志"""
-        deleted_count = await OperationLog.filter(id__in=ids).delete()
-        return deleted_count
+        unique_ids = list(dict.fromkeys(ids))
+        async with in_transaction() as connection:
+            query = await apply_log_data_scope(
+                OperationLog.all().using_db(connection),
+                current_user,
+            )
+            scoped_logs = query.filter(id__in=unique_ids).select_for_update()
+            locked_ids = await scoped_logs.values_list("id", flat=True)
+            if len(locked_ids) != len(unique_ids):
+                raise NotFound("操作日志不存在")
+            await query.filter(id__in=locked_ids).delete()
+        return len(unique_ids)
 
-    async def clear_old_logs(self, days: int = 30) -> int:
+    async def clear_old_logs(
+        self,
+        days: int = 30,
+        current_user: Users | None = None,
+    ) -> int:
         """清理指定天数之前的日志"""
         threshold = local_now() - timedelta(days=days)
-        deleted_count = await OperationLog.filter(created_at__lt=threshold).delete()
+        query = await apply_log_data_scope(OperationLog.all(), current_user)
+        deleted_count = await query.filter(created_at__lt=threshold).delete()
         return deleted_count
 
     async def create_log(

@@ -2,8 +2,11 @@
 """
 系统管理 - 操作日志接口与落库中间件测试
 """
+from datetime import timedelta
+
 from django.core.cache import cache
 from django.test import TestCase
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -26,7 +29,7 @@ def grant_log_permissions(user):
     cache.delete(f"user_info_{user.id}_perms")
 
 
-def create_scoped_log_permission_role(data_scope):
+def create_scoped_log_permission_role(data_scope, permission_codes=()):
     """创建带操作日志查询权限的数据范围角色。"""
     role = Roles.objects.create(
         name=f"日志数据范围角色{data_scope}",
@@ -39,7 +42,68 @@ def create_scoped_log_permission_role(data_scope):
         defaults={"name": "system:logs:query", "type": "BUTTON"},
     )
     role.permissions.add(permission)
+    for code in permission_codes:
+        permission, _ = Permissions.objects.get_or_create(
+            perm=code,
+            defaults={"name": code, "type": "BUTTON"},
+        )
+        role.permissions.add(permission)
     return role
+
+
+def create_scoped_log_context(permission_codes=()):
+    """创建部门范围操作人与范围内外日志。"""
+    visible_dept = Departments.objects.create(name="日志范围内部门", status=1, sort=1)
+    hidden_dept = Departments.objects.create(name="日志范围外部门", status=1, sort=2)
+    role = create_scoped_log_permission_role(
+        Roles.DATA_SCOPE_DEPT,
+        permission_codes=permission_codes,
+    )
+    operator = Users.objects.create_user(
+        username="log_scope_operator",
+        password="admin123",
+        name="日志范围操作人",
+        dept=visible_dept,
+        is_active=1,
+    )
+    operator.roles.add(role)
+    visible_user = Users.objects.create_user(
+        username="log_scope_visible_user",
+        password="admin123",
+        name="日志范围内用户",
+        dept=visible_dept,
+        is_active=1,
+    )
+    hidden_user = Users.objects.create_user(
+        username="log_scope_hidden_user",
+        password="admin123",
+        name="日志范围外用户",
+        dept=hidden_dept,
+        is_active=1,
+    )
+    visible_log = OperationLog.objects.create(
+        user_id=visible_user.id,
+        username=visible_user.username,
+        operation="范围内操作",
+        method="POST",
+        path="/api/visible",
+        status=1,
+        execution_time=100,
+    )
+    hidden_log = OperationLog.objects.create(
+        user_id=hidden_user.id,
+        username=hidden_user.username,
+        operation="范围外操作",
+        method="POST",
+        path="/api/hidden",
+        status=0,
+        execution_time=300,
+    )
+    return {
+        "operator": operator,
+        "visible_log": visible_log,
+        "hidden_log": hidden_log,
+    }
 
 
 class OperationLogPersistenceTestCase(TestCase):
@@ -295,6 +359,22 @@ class OperationLogPageTestCase(TestCase):
         self.assertEqual(data["failCount"], 1)
         self.assertIn("topUsers", data)
 
+    def test_visit_stats_and_trend_follow_data_scope(self):
+        """统计与趋势只能聚合当前用户可见日志。"""
+        OperationLog.objects.all().delete()
+        context = create_scoped_log_context()
+        self.client.force_authenticate(user=context["operator"])
+
+        stats = self.client.get("/api/v1/system/logs/visit-stats").json()["data"]
+        trend = self.client.get("/api/v1/system/logs/visit-trend").json()["data"]
+
+        self.assertEqual(stats["totalCount"], 1)
+        self.assertEqual(stats["successCount"], 1)
+        self.assertEqual(stats["failCount"], 0)
+        self.assertEqual(stats["avgExecutionTime"], 100)
+        self.assertEqual(stats["topUsers"][0]["username"], context["visible_log"].username)
+        self.assertEqual(sum(item["count"] for item in trend), 1)
+
     def test_visit_stats_top_users_and_paths_cover_all_logs(self):
         """Top 统计应覆盖全量日志，不能只统计最近 1000 条。"""
         OperationLog.objects.all().delete()
@@ -353,6 +433,36 @@ class OperationLogPageTestCase(TestCase):
         """批量删除 ID 非法时应返回 400，不能抛出未处理 ValueError。"""
         response = self.client.delete("/api/v1/system/logs/1,invalid")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_delete_logs_is_atomic_across_data_scope(self):
+        """批量目标混入范围外日志时全部拒绝。"""
+        OperationLog.objects.all().delete()
+        context = create_scoped_log_context(("system:logs:delete",))
+        self.client.force_authenticate(user=context["operator"])
+
+        response = self.client.delete(
+            f"/api/v1/system/logs/{context['visible_log'].id},{context['hidden_log'].id}"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue(OperationLog.objects.filter(id=context["visible_log"].id).exists())
+        self.assertTrue(OperationLog.objects.filter(id=context["hidden_log"].id).exists())
+
+    def test_clear_old_logs_only_deletes_visible_logs(self):
+        """历史日志清理也必须遵守当前用户的数据范围。"""
+        OperationLog.objects.all().delete()
+        context = create_scoped_log_context(("system:logs:delete",))
+        old_time = timezone.now() - timedelta(days=31)
+        OperationLog.objects.filter(
+            id__in=[context["visible_log"].id, context["hidden_log"].id]
+        ).update(created_at=old_time)
+        self.client.force_authenticate(user=context["operator"])
+
+        response = self.client.delete("/api/v1/system/logs/clear/30")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(OperationLog.objects.filter(id=context["visible_log"].id).exists())
+        self.assertTrue(OperationLog.objects.filter(id=context["hidden_log"].id).exists())
 
 
 class OperationLogPermissionTestCase(TestCase):

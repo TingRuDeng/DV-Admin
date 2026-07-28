@@ -151,6 +151,52 @@ class TestUserServiceCreate:
         assert created.mobile == mobile
         assert created.email == email
 
+    @pytest.mark.asyncio
+    async def test_create_rejects_department_outside_data_scope(
+        self,
+        db,
+        scoped_user_context,
+    ):
+        """受限操作人不得把新用户放入范围外部门。"""
+        username = f"hidden_dept_create_{uuid.uuid4().hex[:8]}"
+        user_data = UserCreate(
+            username=username,
+            name="范围外创建",
+            password="test123",
+            dept_id=scoped_user_context["hidden_dept"].id,
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            await user_service.create(
+                user_data,
+                current_user=scoped_user_context["operator"],
+            )
+
+        assert "目标部门超出" in str(exc_info.value)
+        assert not await Users.filter(username=username).exists()
+
+    @pytest.mark.asyncio
+    async def test_create_rejects_nonexistent_role_without_creating_user(
+        self,
+        db,
+        test_dept_for_service,
+    ):
+        """角色 ID 必须完整解析，不能静默忽略不存在项。"""
+        username = f"invalid_role_create_{uuid.uuid4().hex[:8]}"
+        user_data = UserCreate(
+            username=username,
+            name="无效角色创建",
+            password="test123",
+            dept_id=test_dept_for_service.id,
+            role_ids=[999999],
+        )
+
+        with pytest.raises(ValidationError) as exc_info:
+            await user_service.create(user_data)
+
+        assert "角色不存在" in str(exc_info.value)
+        assert not await Users.filter(username=username).exists()
+
 
 class TestUserServiceUpdate:
     """测试更新用户"""
@@ -278,6 +324,47 @@ class TestUserServiceUpdate:
         assert test_user_for_service.mobile == mobile
         assert test_user_for_service.email == email
 
+    @pytest.mark.asyncio
+    async def test_update_rejects_department_outside_data_scope(
+        self,
+        db,
+        scoped_user_context,
+    ):
+        """受限操作人不得把范围内用户移动到范围外部门。"""
+        visible_user = scoped_user_context["visible_user"]
+        original_dept_id = visible_user.dept_id
+
+        with pytest.raises(ValidationError) as exc_info:
+            await user_service.update(
+                visible_user.id,
+                UserUpdate(dept_id=scoped_user_context["hidden_dept"].id),
+                current_user=scoped_user_context["operator"],
+            )
+
+        assert "目标部门超出" in str(exc_info.value)
+        await visible_user.refresh_from_db()
+        assert visible_user.dept_id == original_dept_id
+
+    @pytest.mark.asyncio
+    async def test_update_rejects_nonexistent_role_without_clearing_roles(
+        self,
+        db,
+        test_user_for_service,
+        test_role_for_service,
+    ):
+        """无效角色更新失败时保留原有角色关联。"""
+        await test_user_for_service.roles.add(test_role_for_service)
+
+        with pytest.raises(ValidationError) as exc_info:
+            await user_service.update(
+                test_user_for_service.id,
+                UserUpdate(role_ids=[999999]),
+            )
+
+        assert "角色不存在" in str(exc_info.value)
+        role_ids = await test_user_for_service.roles.all().values_list("id", flat=True)
+        assert role_ids == [test_role_for_service.id]
+
 
 class TestUserServicePartialUpdate:
     """测试局部更新用户"""
@@ -300,3 +387,22 @@ class TestUserServicePartialUpdate:
             await user_service.partial_update(99999, update_data)
 
         assert "用户不存在" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_partial_update_hidden_user_returns_not_found(
+        self,
+        db,
+        scoped_user_context,
+    ):
+        """范围外用户状态不得被修改。"""
+        hidden_user = scoped_user_context["hidden_user"]
+
+        with pytest.raises(NotFound):
+            await user_service.partial_update(
+                hidden_user.id,
+                UserPartialUpdate(is_active=0),
+                current_user=scoped_user_context["operator"],
+            )
+
+        await hidden_user.refresh_from_db()
+        assert hidden_user.is_active == 1

@@ -347,9 +347,19 @@ PUT  /api/v1/system/users/{id}/password/reset/  # 重置密码
 GET  /api/v1/system/users/{id}/permissions/     # 用户权限ID列表
 ```
 
+**FastAPI 扩展端点：**
+```
+GET  /api/v1/system/users/template              # 用户导入模板
+POST /api/v1/system/users/import                # 导入用户
+POST /api/v1/system/users/export/               # 导出用户
+```
+
 > Django 该端点读取请求体中的 `password` 与 `confirm_password`，敏感字段不得放入 URL query。FastAPI 当前额外保留 `POST /api/v1/system/users/{id}/password/reset/` 兼容入口，并按 `DEFAULT_PASSWORD` 重置；共享前端契约以 `PUT` 方法为准。
 > 用户输出中的 `mobile/email` 默认保留字段但返回脱敏值；拥有 `system:users:field:plain` 或 `is_superuser` 时返回原文。
 > 后台用户创建/更新请求中显式写入非空 `mobile/email` 时，需要 `system:users:field:write` 或 `is_superuser`。
+> 用户列表、详情、下拉选项、权限查询、状态更新、密码重置和删除均受角色数据范围约束；范围外 ID 按不存在处理。批量删除采用全有或全无语义，任一 ID 不存在或不可见时不删除任何目标。
+> 创建用户或显式变更用户部门时，目标部门必须处于操作者的数据范围；仅本人（`SELF`）范围不能创建用户。提交角色 ID 时必须全部有效，不存在的角色不会被静默忽略。
+> FastAPI 用户导出仅包含当前操作者范围内的用户，并复用 `mobile/email` 脱敏规则；用户导入逐行校验目标部门、敏感字段写入权限和全部角色 ID，失败行不会创建用户。
 
 ---
 
@@ -470,7 +480,8 @@ DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
 - 两端均将响应头对应的 `requestId` 持久化，客户端传入值会去除首尾空白并限制为 64 字符；失败写请求额外保存脱敏、截断后的 `responseBody`，并从脱敏后的统一错误响应提取 `errorMsg`。成功写请求不保存响应体和错误摘要。
 - Django 权限码 `system:logs:query` / `system:logs:delete` 与 FastAPI 一致；`/logs/page` 和 `/logs/{id}` 字段集合由双后端字段契约 `logs_out` 锁定。
 - `/logs/page` 与 `/logs/{id}` 输出中的 `requestBody/responseBody/ip` 默认保留字段但返回脱敏值；拥有 `system:logs:field:plain` 或 `is_superuser` 时返回原文。
-- `/logs/{id}` 复用日志数据范围，不在当前用户可见范围内的 ID 按不存在处理。
+- `/logs/page`、`/logs/{id}`、`/logs/visit-trend`、`/logs/visit-stats`、删除和历史清理统一复用日志数据范围；不在当前用户可见范围内的 ID 按不存在处理。
+- 批量删除日志采用全有或全无语义，任一 ID 不存在或不可见时不删除任何目标；历史清理只清理当前用户范围内的日志。
 - `/logs/page` 与 `/logs/{id}` 返回 `requestId`，详情页可据此关联响应头和结构化运行日志；当前尚未提供按请求 ID 的服务端筛选。
 - Django 对非法 `status/pageNum/pageSize/startTime/endTime/startDate/endDate/ids` 会返回 400，避免把外部输入解析错误暴露为 500；FastAPI 侧通过 Query/Path 类型约束处理同类入参。
 

@@ -59,7 +59,11 @@ async def partial_update_user(
     user_data: UserPartialUpdate,
     current_user: Users = require_permissions("system:users:edit"),
 ) -> ResponseModel[UserOut]:
-    user = await user_service.partial_update(user_id, user_data)
+    user = await user_service.partial_update(
+        user_id,
+        user_data,
+        current_user=current_user,
+    )
     return ResponseModel.success(data=user, message="更新成功")
 @router.delete(
     "/{user_id}/",
@@ -73,7 +77,7 @@ async def delete_user(
     user_id: int,
     current_user: Users = require_permissions("system:users:delete"),
 ) -> ResponseModel[None]:
-    await user_service.delete(user_id, current_user.id)
+    await user_service.delete(user_id, current_user=current_user)
     return ResponseModel.success(message="删除成功")
 @router.delete(
     "/",
@@ -87,5 +91,5 @@ async def batch_delete_users(
     delete_req: BulkDelete,
     current_user: Users = require_permissions("system:users:delete"),
 ) -> ResponseModel[None]:
-    await user_service.batch_delete(delete_req.ids, current_user.id)
+    await user_service.batch_delete(delete_req.ids, current_user=current_user)
     return ResponseModel.success(message="批量删除成功")
