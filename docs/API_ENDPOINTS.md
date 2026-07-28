@@ -441,12 +441,15 @@ DELETE /api/v1/system/dict-items/     # 批量删除字典项，请求体 ids
 **Django / FastAPI 与前端管理页：**
 ```
 GET    /api/v1/system/notices/page           # 通知列表
+GET    /api/v1/system/notices/{id}/form      # 后台通知表单
 POST   /api/v1/system/notices                # 创建通知
 PUT    /api/v1/system/notices/{id}           # 更新通知
 DELETE /api/v1/system/notices/{ids}          # 删除通知
 PUT    /api/v1/system/notices/{id}/publish   # 发布通知
 PUT    /api/v1/system/notices/{id}/revoke    # 撤回通知
 GET    /api/v1/system/notices/my-page/       # 我的通知
+GET    /api/v1/system/notices/{id}/detail    # 查看可见通知并标记已读
+PUT    /api/v1/system/notices/read-all       # 当前用户可见通知全部已读
 ```
 
 > 后台通知创建/更新请求中显式写入非空 `targetUserIds` 时，需要 `system:notices:target:write` 或 `is_superuser`。
@@ -459,7 +462,7 @@ GET    /api/v1/system/notices/my-page/       # 我的通知
 GET    /api/v1/system/notices/my-page/       # 我的通知，支持 pageNum/pageSize/title/isRead
 ```
 
-> Django 返回当前用户可见的已发布通知（全体通知 + 指定到该用户的通知），分页结构与 FastAPI 对齐为 `list/total`。差异：Django 当前无 `NoticeReads` 模型，不跟踪每用户已读状态，`isRead` 统一返回 0；按 `isRead=1` 过滤时返回空列表。FastAPI 通过 `NoticeReads` 返回真实已读状态。
+> 两套后端都只返回当前用户可见的已发布通知（全体通知 + 指定到该用户的通知），分页结构统一为 `list/total`。查看详情会写入 `NoticeReads`，`read-all` 只标记当前用户可见的已发布通知；`isRead` 返回和过滤真实持久化状态。
 
 ---
 
@@ -491,14 +494,16 @@ DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
 
 ## 个人中心模块 (Information)
 
-**⚠️ 路径差异：**
+**Django / FastAPI 共享端点：**
 
-| 功能 | Django 端点 | FastAPI 端点 |
-|------|------------|--------------|
-| 获取个人信息 | `GET /api/v1/information/profile/` | `GET /api/v1/information/profile/` |
-| 更新个人信息 | `PUT /api/v1/information/change-information/` | `PUT /api/v1/information/profile/` |
-| 修改密码 | `PUT /api/v1/information/change-password/` | `PUT /api/v1/information/password/` |
-| 上传头像 | `POST /api/v1/information/change-avatar/` | `POST /api/v1/information/change-avatar/` |
+```text
+GET  /api/v1/information/profile/       # 获取个人信息
+PUT  /api/v1/information/profile/       # 更新 name/email/mobile/gender
+PUT  /api/v1/information/password       # 修改密码
+POST /api/v1/information/change-avatar/ # 上传头像，multipart 字段为 file
+```
+
+修改密码请求字段统一为 `oldPassword/newPassword/confirmPassword`，头像响应统一包含 `avatar/url`。Django 暂时保留 `change-information/`、`change-password/` 以及旧密码字段作为兼容入口，但共享前端不再依赖这些旧接口。
 
 ---
 

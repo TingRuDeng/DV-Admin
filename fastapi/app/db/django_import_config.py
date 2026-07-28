@@ -4,6 +4,7 @@ from app.db.models.system import (
     Departments,
     DictData,
     DictItems,
+    NoticeReads,
     Notices,
     Permissions,
     Roles,
@@ -18,6 +19,7 @@ MODEL_MAPPING: dict[str, type[BaseModel]] = {
     "system.dicts": DictData,
     "system.dictitems": DictItems,
     "system.notices": Notices,
+    "system.noticereads": NoticeReads,
 }
 
 # 字段名映射只登记真实跨实现差异，业务同名字段不做额外别名。
@@ -35,6 +37,7 @@ IMPORT_ORDER = (
     "system.dicts",
     "system.dictitems",
     "system.notices",
+    "system.noticereads",
     "system.roles",
     "system.users",
 )

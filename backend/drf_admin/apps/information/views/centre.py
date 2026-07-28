@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from drf_admin.apps.information.serializers.centre import (
+    AvatarInfoSerializer,
     ChangeAvatarSerializer,
     ChangeInformationSerializer,
     ChangePasswordSerializer,
@@ -34,6 +35,17 @@ class CentreAPIView(GenericAPIView):
         user = request.user
         serializer = InformationSerializer(user)
         return Response(serializer.data)
+
+    def put(self, request, *args, **kwargs):
+        serializer = ChangeInformationSerializer(
+            instance=request.user,
+            data=request.data,
+            partial=True,
+            context=self.get_serializer_context(),
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(InformationSerializer(request.user).data)
 
 
 class ChangePasswordAPIView(mixins.UpdateModelMixin, GenericAPIView):
@@ -89,15 +101,15 @@ class ChangeAvatarAPIView(GenericAPIView):
         user = request.user
 
         # 检查请求中是否包含图片文件
-        if "image" not in request.data:
+        upload = request.data.get("file") or request.data.get("image")
+        if upload is None:
             return Response(
                 {"detail": "请求中未包含图片文件", "error_code": "NO_IMAGE_PROVIDED"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # 检查image字段是否为文件对象
-        image_data = request.data.get("image")
-        if isinstance(image_data, str):
+        if isinstance(upload, str):
             # 如果是字符串，可能是前端传递了base64或者有其他问题
             return Response(
                 {
@@ -109,23 +121,16 @@ class ChangeAvatarAPIView(GenericAPIView):
 
         try:
             # 验证并保存图片
-            serializer = self.get_serializer(instance=user, data=request.data)
+            serializer = self.get_serializer(instance=user, data={"image": upload})
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
-            # 构建完整的头像URL
-            http_host = request.get_host()
-            http_port = request.get_port()
-            if http_port in http_host:
-                host_url = f"{request.scheme}://{http_host}"
-            else:
-                host_url = f"{request.scheme}://{http_host}:{http_port}"
-            avatar_url = f"{host_url}{serializer.data['image']}"
+            avatar_url = request.build_absolute_uri(user.image.url)
 
-            return Response(
-                {"detail": "头像更新成功", "url": avatar_url, "image": serializer.data["image"]},
-                status=status.HTTP_200_OK,
+            response_serializer = AvatarInfoSerializer(
+                {"avatar": user.image.name, "url": avatar_url}
             )
+            return Response(response_serializer.data, status=status.HTTP_200_OK)
         except ValidationError:
             # DRF 的校验错误需要让上层正常处理
             raise

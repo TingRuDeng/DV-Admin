@@ -289,11 +289,24 @@ export const handlers = [
     );
   }),
 
-  rest.put("/api/v1/information/change-password/", (_req, res, ctx) => {
+  rest.put("/api/v1/information/password", (_req, res, ctx) => {
     return res(
       ctx.json({
         code: 20000,
         msg: "success",
+      })
+    );
+  }),
+
+  rest.post("/api/v1/information/change-avatar/", (_req, res, ctx) => {
+    return res(
+      ctx.json({
+        code: 20000,
+        msg: "success",
+        data: {
+          avatar: "avatar/mock.png",
+          url: "/media/avatar/mock.png",
+        },
       })
     );
   }),

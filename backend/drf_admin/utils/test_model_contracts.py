@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 from drf_admin.apps.system import models as system_models
-from drf_admin.apps.system.models_notice import Notices
+from drf_admin.apps.system.models_notice import NoticeReads, Notices
 
 ROOT = Path(__file__).resolve().parents[3]
 DJANGO_MODEL_MAPPING = {
@@ -14,6 +14,7 @@ DJANGO_MODEL_MAPPING = {
     "system.dicts": system_models.Dicts,
     "system.dictitems": system_models.DictItems,
     "system.notices": Notices,
+    "system.noticereads": NoticeReads,
 }
 
 

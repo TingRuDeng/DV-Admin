@@ -20,6 +20,9 @@ urlpatterns = [
     path('users/<int:pk>/password/reset/', users.ResetPasswordAPIView.as_view()),  # 重置密码
     path('users/<int:pk>/permissions/', users.PermissionsAPIView.as_view()),  # 用户权限ID列表
     path('notices/my-page/', notices.NoticesAPIView.as_view()),  # 通知列表
+    path('notices/read-all', notices.NoticeReadAllAPIView.as_view()),  # 全部已读
+    path('notices/<int:pk>/detail', notices.NoticeDetailAPIView.as_view()),  # 通知详情
+    path('notices/<int:pk>/form', notices.NoticesViewSet.as_view({'get': 'retrieve'})),  # 通知表单
     path('notices/page', notices.NoticesViewSet.as_view({'get': 'list'})),  # 通知公告分页
     path('notices', notices.NoticesViewSet.as_view({'post': 'create'})),  # 创建通知公告
     path('notices/<int:pk>/publish', notices.NoticesViewSet.as_view({'put': 'publish'})),  # 发布通知公告

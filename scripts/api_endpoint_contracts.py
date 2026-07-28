@@ -3,6 +3,7 @@ from __future__ import annotations
 from scripts.api_endpoint_contract_types import ContractEvidence, EndpointContract
 from scripts.api_endpoint_dept_contracts import DEPT_ENDPOINT_CONTRACTS
 from scripts.api_endpoint_dict_contracts import DICT_ENDPOINT_CONTRACTS
+from scripts.api_endpoint_information_contracts import INFORMATION_ENDPOINT_CONTRACTS
 from scripts.api_endpoint_menu_contracts import MENU_ENDPOINT_CONTRACTS
 from scripts.api_endpoint_notice_contracts import NOTICE_ENDPOINT_CONTRACTS
 from scripts.api_endpoint_role_contracts import ROLE_ENDPOINT_CONTRACTS
@@ -13,6 +14,10 @@ REQUIRED_ENDPOINT_KEYS = {
     "auth_login",
     "auth_info",
     "auth_routes",
+    "information_profile",
+    "information_profile_update",
+    "information_password",
+    "information_avatar",
     "users_page",
     "users_form",
     "users_create",
@@ -47,6 +52,10 @@ REQUIRED_ENDPOINT_KEYS = {
     "notices_delete",
     "notices_publish",
     "notices_revoke",
+    "notices_form",
+    "notices_detail",
+    "notices_read_all",
+    "notices_my_page",
     "logs_page",
     "logs_detail",
     "files_upload",
@@ -92,6 +101,7 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
             ContractEvidence("frontend/src/api/auth-api.ts", ("getRoutes", "/menus/routes/")),
         ),
     ),
+    *INFORMATION_ENDPOINT_CONTRACTS,
     EndpointContract(
         key="users_page",
         method="GET",
