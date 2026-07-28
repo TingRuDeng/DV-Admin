@@ -484,15 +484,17 @@ uv run python -m tortoise \
   -c app.db.migration_config.TORTOISE_ORM \
   history models
 
-# 校验 SQLite 空库、既有库接管和模型漂移
+# 校验 SQLite 空库、0001→最新版本增量升级、既有库接管和模型漂移
 make migration-check
 ```
 
 `app/db/migrations/0001_initial.py` 是 FastAPI 当前 schema 的版本化基线。全新数据库直接执行 `migrate`；既有 FastAPI 数据库首次接管基线前必须完成备份和 schema 核对，确认与基线一致后仅执行一次 `migrate --fake`。不得在未核对旧表、旧字段或约束差异时伪造迁移历史。
 
-开发启动流程仍可使用 `generate_schemas()` 创建缺失表，但它不会处理列重命名、删除、约束或索引演进，不能作为生产部署迁移方案。CI 同时验证 SQLite 基线/接管路径与 MySQL 8 空库迁移。
+开发启动流程仍可使用 `generate_schemas()` 创建缺失表，但它不会处理列重命名、删除、约束或索引演进，不能作为生产部署迁移方案。CI 同时验证 SQLite 空库、带既有数据的增量升级与基线接管路径，并在隔离的 MySQL 8 数据库验证空库和增量迁移。
+
+Compose 部署通过一次性迁移服务执行 `migrate`，成功后才启动 FastAPI。独立镜像或其他生产编排必须在 API rollout 前运行单例迁移 Job；禁止在多 Worker/多副本应用入口中并发执行迁移。迁移失败时保留旧应用版本，生产 schema 的恢复依赖发布前备份和显式迁移策略。
 
 ---
 
-**最后更新：** 2026-07-25
+**最后更新：** 2026-07-28
 **维护者：** DV-Admin Team

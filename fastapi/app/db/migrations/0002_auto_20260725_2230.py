@@ -12,7 +12,12 @@ class Migration(migrations.Migration):
         ops.AddField(
             model_name='OperationLog',
             name='request_id',
-            field=fields.CharField(default='', description='请求ID', max_length=64),
+            field=fields.CharField(
+                default='',
+                db_default='',
+                description='请求ID',
+                max_length=64,
+            ),
         ),
         ops.AddIndex(
             model_name='OperationLog',
