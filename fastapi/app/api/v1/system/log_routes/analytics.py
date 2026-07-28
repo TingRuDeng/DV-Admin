@@ -29,13 +29,23 @@ router = APIRouter()
 )
 async def get_visit_trend(
     request: Request,
-    start_date: datetime | None = Query(None, description="开始日期"),
-    end_date: datetime | None = Query(None, description="结束日期"),
+    start_date: datetime | None = Query(None, alias="startDate", description="开始日期"),
+    end_date: datetime | None = Query(None, alias="endDate", description="结束日期"),
+    legacy_start_date: datetime | None = Query(
+        None,
+        alias="start_date",
+        include_in_schema=False,
+    ),
+    legacy_end_date: datetime | None = Query(
+        None,
+        alias="end_date",
+        include_in_schema=False,
+    ),
     current_user: Users = require_permissions("system:logs:query"),
 ):
     data = await log_service.get_visit_trend(
-        start_date=start_date,
-        end_date=end_date,
+        start_date=start_date if start_date is not None else legacy_start_date,
+        end_date=end_date if end_date is not None else legacy_end_date,
         current_user=current_user,
     )
     return ResponseModel.success(data=data)

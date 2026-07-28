@@ -5,7 +5,6 @@
 """
 
 import json
-from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, File, Request, UploadFile
@@ -17,7 +16,7 @@ from app.core.security import get_password_hash, verify_password
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
 from app.schemas.oauth import AvatarInfo, ChangePassword, UpdateProfile, UserInfo, UserProfile
-from app.utils.file import allowed_file, secure_filename
+from app.utils.file import MAX_AVATAR_UPLOAD_SIZE, allowed_file, save_upload_file
 
 router = APIRouter()
 
@@ -158,30 +157,27 @@ async def upload_avatar(
     if not allowed_file(file.filename):
         raise ValidationError("不支持的图片格式")
 
-    file_content = await file.read()
-
-    if len(file_content) > 2 * 1024 * 1024:
-        raise ValidationError("头像文件大小不能超过2MB")
-
-    filename = secure_filename(file.filename)
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    name, ext = filename.rsplit('.', 1)
-    unique_filename = f"avatar_{current_user.id}_{timestamp}.{ext}"
-
+    relative_path = await save_upload_file(
+        file,
+        subdir="avatar",
+        max_size=MAX_AVATAR_UPLOAD_SIZE,
+        filename_prefix=f"avatar_{current_user.id}",
+    )
+    unique_filename = Path(relative_path).name
     upload_path = Path(settings.upload_dir) / "avatar"
-    upload_path.mkdir(parents=True, exist_ok=True)
+    new_avatar_path = upload_path / unique_filename
+    old_avatar = current_user.avatar
 
-    file_path = upload_path / unique_filename
-    with open(file_path, "wb") as f:
-        f.write(file_content)
+    try:
+        current_user.avatar = unique_filename
+        await current_user.save()
+    except Exception:
+        new_avatar_path.unlink(missing_ok=True)
+        raise
 
-    if current_user.avatar and current_user.avatar.startswith("avatar_"):
-        old_avatar_path = upload_path / current_user.avatar
-        if old_avatar_path.exists():
-            old_avatar_path.unlink()
-
-    current_user.avatar = unique_filename
-    await current_user.save()
+    if old_avatar and old_avatar.startswith("avatar_") and old_avatar != unique_filename:
+        old_avatar_path = upload_path / Path(old_avatar).name
+        old_avatar_path.unlink(missing_ok=True)
 
     avatar_url = f"/media/avatar/{unique_filename}"
 

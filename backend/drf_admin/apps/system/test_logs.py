@@ -5,7 +5,9 @@
 from datetime import timedelta
 
 from django.core.cache import cache
+from django.db import connection
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -418,10 +420,59 @@ class OperationLogPageTestCase(TestCase):
         self.assertIsInstance(data, list)
         self.assertTrue(all("date" in row and "count" in row for row in data))
 
+    def test_visit_trend_uses_database_daily_aggregation(self):
+        """趋势查询只拉取每日聚合行，不把范围内日志逐条载入 Python。"""
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.get("/api/v1/system/logs/visit-trend")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            any(
+                "GROUP BY" in query["sql"].upper()
+                and "created_at" in query["sql"]
+                for query in queries.captured_queries
+            )
+        )
+
     def test_visit_trend_rejects_invalid_date(self):
         """访问趋势日期参数非法时应返回 400。"""
         response = self.client.get("/api/v1/system/logs/visit-trend", {"startDate": "not-a-date"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_visit_trend_rejects_reversed_range(self):
+        """开始时间晚于结束时间时拒绝查询。"""
+        response = self.client.get(
+            "/api/v1/system/logs/visit-trend",
+            {
+                "startDate": "2026-01-02T00:00:00",
+                "endDate": "2026-01-01T00:00:00",
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_visit_trend_rejects_range_over_366_days(self):
+        """访问趋势最多允许 366 个自然日。"""
+        response = self.client.get(
+            "/api/v1/system/logs/visit-trend",
+            {
+                "startDate": "2025-01-01T00:00:00",
+                "endDate": "2026-01-02T00:00:00",
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_visit_trend_accepts_exactly_366_days(self):
+        """自然日数量恰好为 366 时仍允许查询。"""
+        response = self.client.get(
+            "/api/v1/system/logs/visit-trend",
+            {
+                "startDate": "2025-01-01T00:00:00",
+                "endDate": "2026-01-01T00:00:00",
+            },
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()["data"]), 366)
 
     def test_delete_logs_by_ids(self):
         """按 ID 批量删除日志（删除操作本身也会被审计，故按目标 ID 校验）。"""

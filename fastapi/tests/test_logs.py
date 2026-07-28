@@ -2,6 +2,8 @@
 日志管理 API 测试
 测试日志管理相关的 API 端点
 """
+from datetime import datetime, timedelta
+
 import pytest_asyncio
 from fastapi.testclient import TestClient
 
@@ -148,6 +150,78 @@ class TestVisitTrend:
         data = response.json()
         assert data["code"] == 20000
         assert isinstance(data["data"], list)
+
+    def test_get_visit_trend_accepts_camel_case_dates(
+        self,
+        client: TestClient,
+        auth_headers: dict,
+        test_logs_for_api,
+    ):
+        """共享外部契约使用 startDate/endDate。"""
+        end = datetime.now()
+        start = end - timedelta(days=1)
+        response = client.get(
+            "/api/v1/system/logs/visit-trend",
+            params={
+                "startDate": start.isoformat(),
+                "endDate": end.isoformat(),
+            },
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 200
+        assert len(response.json()["data"]) == 2
+
+    def test_get_visit_trend_keeps_snake_case_compatibility(
+        self,
+        client: TestClient,
+        auth_headers: dict,
+        test_logs_for_api,
+    ):
+        """旧调用方的 snake_case 查询参数在过渡期仍可使用。"""
+        end = datetime.now()
+        start = end - timedelta(days=1)
+        response = client.get(
+            "/api/v1/system/logs/visit-trend",
+            params={
+                "start_date": start.isoformat(),
+                "end_date": end.isoformat(),
+            },
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 200
+        assert len(response.json()["data"]) == 2
+
+    def test_get_visit_trend_rejects_reversed_range(
+        self,
+        client: TestClient,
+        auth_headers: dict,
+    ):
+        response = client.get(
+            "/api/v1/system/logs/visit-trend",
+            params={
+                "startDate": "2026-01-02T00:00:00",
+                "endDate": "2026-01-01T00:00:00",
+            },
+            headers=auth_headers,
+        )
+        assert response.status_code == 400
+
+    def test_get_visit_trend_rejects_range_over_366_days(
+        self,
+        client: TestClient,
+        auth_headers: dict,
+    ):
+        response = client.get(
+            "/api/v1/system/logs/visit-trend",
+            params={
+                "startDate": "2025-01-01T00:00:00",
+                "endDate": "2026-01-02T00:00:00",
+            },
+            headers=auth_headers,
+        )
+        assert response.status_code == 400
 
 
 class TestVisitStats:
