@@ -566,10 +566,12 @@ CHANNEL_LAYERS = {
 
 - `frontend` profile 启动 Vite 前端，默认连接宿主机 `8769` 后端端口。
 - `django` profile 启动 Django 后端，使用 `deploy/env/django.compose.env` 生成容器内 `.env.compose`。
-- `fastapi` profile 启动 FastAPI 后端，使用 `deploy/env/fastapi.compose.env` 生成容器内 `.env`。
+- `fastapi` profile 先运行一次性 `fastapi-migrate` 服务，再启动 FastAPI 后端；两者使用 `deploy/env/fastapi.compose.env` 生成容器内 `.env`。
 - `mysql` 与 `redis` 是共享基础设施服务。
 
 Django 与 FastAPI 仍是替代关系；同一次 compose 运行应只选择 `django` 或 `fastapi` 其中一个后端 profile，避免两个服务争用 `8769` 端口。
+
+FastAPI 应用通过 `service_completed_successfully` 等待迁移容器成功退出。迁移不得放入 Uvicorn Worker 启动入口；独立镜像、Kubernetes 或其他生产编排应使用单例迁移 Job，成功后再滚动发布 API。迁移失败时阻断发布并保留旧应用版本，数据库回滚必须依赖发布前备份和迁移自身的兼容策略，不能仅靠回滚镜像。
 
 常用命令：
 

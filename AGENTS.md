@@ -160,7 +160,7 @@ cp .env.example .env
    - FastAPI：`uv run python -m tortoise -c app.db.migration_config.TORTOISE_ORM makemigrations models`
    - FastAPI 模型变更必须提交 `app/db/migrations/` 中的版本化迁移，并运行 `make migration-check`
    - 开发环境的 `generate_schemas()` 只用于新建缺失表，不替代生产迁移
-   - 生产部署必须先运行 `uv run python -m tortoise -c app.db.migration_config.TORTOISE_ORM migrate`
+   - 生产部署必须通过一次性迁移容器或单例 Job 先运行 `uv run python -m tortoise -c app.db.migration_config.TORTOISE_ORM migrate`，成功后再启动 API；不得在每个 Uvicorn Worker 中并发迁移
    - 首次接管迁移基线的既有 FastAPI 数据库，必须先备份并核对 schema，再仅执行一次 `migrate --fake`
    - 如通过 MCP 访问本地 SQLite 数据库进行排查，默认仅用于查询与验证；执行写操作前要明确当前连接的是哪套后端实现对应的本地库
 

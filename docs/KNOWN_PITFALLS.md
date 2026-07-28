@@ -153,14 +153,17 @@ uv run python manage.py migrate --env dev
 **已验证事实：**
 - FastAPI 使用 Tortoise ORM 1.1.7 内置迁移能力，迁移配置位于 `app.db.migration_config.TORTOISE_ORM`
 - `app/db/migrations/0001_initial.py` 是当前 schema 基线
+- 新增非空列时，仅设置 ORM `default` 不一定会生成数据库默认值；已有数据的 SQLite 升级会报 `Cannot add a NOT NULL column with default value NULL`
 - Tortoise 迁移写入器要求 `Meta.indexes` 使用 `Index` 对象；元组写法不能可靠生成迁移
 - SQLite 原子迁移按 ASCII 分号拆分 SQL；字段 description 中不能包含 ASCII `;`，中文说明应使用全角 `；`
 
 **解决方案：**
 1. 模型变更同时生成并提交迁移，运行 `make -C fastapi migration-check`
-2. 全新数据库直接执行 `migrate`
-3. 既有库接管前先备份并核对 schema，确认一致后仅执行一次 `migrate --fake`
-4. CI 同时保留 SQLite 全路径校验和 MySQL 8 空库迁移 smoke
+2. 新增非空列必须用带既有数据的增量测试验证；需要数据库默认值时显式设置 `db_default`
+3. 全新数据库直接执行 `migrate`
+4. 既有库接管前先备份并核对 schema，确认一致后仅执行一次 `migrate --fake`
+5. CI 同时保留 SQLite 全路径校验，以及 MySQL 8 空库与增量迁移 smoke
+6. 部署使用一次性迁移容器或单例 Job，成功后再启动 API；禁止每个 Uvicorn Worker 自行迁移
 
 ---
 

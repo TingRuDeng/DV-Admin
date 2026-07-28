@@ -233,7 +233,7 @@ await cache.delete(CacheKeys.dict_code("status"))
 # 运行聚合质量检查 (ruff + mypy + migration-check + pytest + coverage)
 make quality
 
-# 单独校验迁移基线、既有库接管和模型漂移
+# 单独校验 SQLite 空库、0001→最新版本增量升级、既有库接管和模型漂移
 make migration-check
 
 # 运行特定测试
@@ -261,6 +261,10 @@ uv run python -m tortoise \
 
 全新数据库直接执行 `migrate`。既有 FastAPI 数据库首次接管 `0001_initial` 基线前，必须先备份并核对 schema；确认一致后仅执行一次 `migrate --fake`。开发启动中的自动建表只用于本地开发，不能替代生产迁移。
 
+合并前的迁移门禁会在 SQLite 上验证空库安装和带既有操作日志数据的
+`0001_initial → 0002_auto_20260725_2230` 增量升级；CI 还会在两个隔离的
+MySQL 8 数据库上分别执行空库与增量升级验证。
+
 ## 部署
 
 ### Docker 部署
@@ -270,6 +274,20 @@ cd docker
 docker-compose up -d
 ```
 
+Compose 会先运行一次性 `migrate` 服务；只有迁移成功后 API 才启动。不要把
+迁移命令放进 Uvicorn Worker 的启动入口，否则多副本会并发修改 schema。
+
+独立镜像或其他编排平台必须在发布 API 前运行单例迁移 Job，例如：
+
+```bash
+python -m tortoise \
+  -c app.db.migration_config.TORTOISE_ORM \
+  migrate
+```
+
+迁移失败时必须阻断 API rollout，并继续保留旧版本 API；镜像回滚不会自动恢复
+数据库 schema。
+
 ### 生产环境配置
 
 1. 修改 `.env` 文件中的配置
@@ -277,7 +295,7 @@ docker-compose up -d
 3. 使用强密码的 `SECRET_KEY`（必须设置）
 4. 显式配置安全的 `DEFAULT_PASSWORD`
 5. 配置正确的数据库和 Redis 连接
-6. 执行待应用的 Tortoise ORM 迁移
+6. 通过单例迁移 Job 执行待应用的 Tortoise ORM 迁移，成功后再发布 API
 7. 配置日志文件路径
 
 ### 健康检查

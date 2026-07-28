@@ -47,7 +47,7 @@ ai_summary:
 - `scripts/validate_api_contracts.py`：共享 API 契约入口、测试和文档同步校验脚本。
 - `scripts/api_route_coverage_validation.py`：关键端点 `method + path` 到 Django/FastAPI 路由的静态覆盖校验脚本。
 - `scripts/validate_django_migrations.py`：Django 迁移链跟踪校验脚本。
-- `fastapi/scripts/validate_migrations.py`：FastAPI 迁移基线、既有库接管、模型漂移和数据库 smoke 校验脚本。
+- `fastapi/scripts/validate_migrations.py`：FastAPI 空库、带既有数据的增量升级、迁移基线接管、模型漂移和数据库 smoke 校验脚本。
 
 ## Documentation Map
 
@@ -74,7 +74,7 @@ ai_summary:
 - 共享响应或关键端点契约变化必须同步 `scripts/api_contracts.py`、`scripts/api_endpoint_contracts.py`、`scripts/validate_api_contracts.py` 和三端契约测试。
 - 新增 FastAPI 路由文件或移动路由装饰器时，必须同步 `scripts/api_route_coverage_validation.py` 的路由文件清单，避免关键端点逃逸 `method + path` 覆盖校验。
 - Django 模型变化必须提交完整 migration 链，并运行 `scripts/validate_django_migrations.py`。
-- FastAPI 模型变化必须提交 `app/db/migrations/` 版本化迁移，并运行 `make -C fastapi migration-check`；生产环境不得用 `generate_schemas()` 替代迁移。
+- FastAPI 模型变化必须提交 `app/db/migrations/` 版本化迁移，并运行 `make -C fastapi migration-check`；生产环境不得用 `generate_schemas()` 替代迁移，必须通过一次性迁移容器或单例 Job 成功迁移后再启动 API。
 - 前端 Vite 端口来自 `frontend/.env.development`，Playwright 或脚本端口不能凭默认值推断。
 - 页面层 ProTable、RouteMeta、KeepAlive 缓存键已有治理约束，改动前先读架构文档。
 
