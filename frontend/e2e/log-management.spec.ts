@@ -8,6 +8,7 @@ interface LogRow {
   username: string;
   name: string;
   operation: string;
+  requestId: string;
   queryParams: string;
   method: string;
   requestBody: string;
@@ -58,6 +59,7 @@ function createMockState(): MockState {
         username: "admin",
         name: "管理员",
         operation: "删除用户失败",
+        requestId: "audit-request-901",
         queryParams: "",
         method: "DELETE",
         requestBody: '{"ids":[99]}',
@@ -218,6 +220,7 @@ test.describe("日志管理链路 smoke", () => {
     await expect(page.getByText("操作日志详情")).toBeVisible();
     await expect(page.locator(".el-alert__description")).toHaveText("用户删除失败");
     await expect(page.getByText("DELETE /api/v1/system/users/99")).toBeVisible();
+    await expect(page.getByText("audit-request-901")).toBeVisible();
     await expect.poll(() => state.seenPaths.join("|")).toContain("/api/v1/system/logs/901");
   });
 });

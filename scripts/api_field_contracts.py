@@ -210,6 +210,7 @@ API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
                 "path",
                 "queryParams",
                 "requestBody",
+                "requestId",
                 "responseBody",
                 "responseStatus",
                 "status",

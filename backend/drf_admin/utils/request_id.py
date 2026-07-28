@@ -7,6 +7,7 @@ from django.http import HttpRequest, HttpResponse
 
 REQUEST_ID_HEADER = "X-Request-ID"
 REQUEST_ID_META_KEY = "HTTP_X_REQUEST_ID"
+MAX_REQUEST_ID_LENGTH = 64
 
 _request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
 
@@ -29,7 +30,10 @@ def clear_request_id() -> None:
 def _resolve_request_id(request: HttpRequest) -> str:
     """优先复用客户端传入的 request id，缺失时生成新的链路标识。"""
     request_id = request.META.get(REQUEST_ID_META_KEY)
-    return str(request_id).strip() if request_id else uuid4().hex
+    normalized_request_id = (
+        str(request_id).strip()[:MAX_REQUEST_ID_LENGTH] if request_id else ""
+    )
+    return normalized_request_id or uuid4().hex
 
 
 class RequestIdMiddleware:

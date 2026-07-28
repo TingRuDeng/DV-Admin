@@ -114,7 +114,7 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 **解决方案：**
 1. 两端均补齐写操作落库：Django `OperationLogMiddleware` 与 FastAPI `RequestLoggingMiddleware` 对 POST/PUT/PATCH/DELETE 请求落库到 `system_operation_log`，GET 不落库，落库失败不影响主请求，敏感字段掩码。
 2. Django 新增 `OperationLog` 模型（`models_log.py`，使用 `created_at/updated_at` 对齐 FastAPI 与前端）、`OperationLogSerializer` 与 `/logs/page`、`/logs/visit-trend`、`/logs/visit-stats`、`DELETE /logs/{ids}`、`DELETE /logs/clear/{days}` 路由，权限码 `system:logs:query` / `system:logs:delete` 与 FastAPI 一致。
-3. `/logs/page` 列表项字段集合由双后端字段契约 `logs_out` 锁定（两端输出 19 个 key 完全一致）；`scripts/api_capability_contracts.py` 不再将操作日志登记为 FastAPI 独占能力。
+3. `/logs/page` 列表项字段集合由双后端字段契约 `logs_out` 锁定（两端输出 20 个 key 完全一致）；`scripts/api_capability_contracts.py` 不再将操作日志登记为 FastAPI 独占能力。
 4. 两端均补落库与查询行为测试（含写操作落库、GET 不落库、敏感字段掩码、第二页翻页、权限校验）。
 5. 种子 `init_data.json` 补齐日志管理菜单与 `system:logs:query/delete` 权限并分配给 admin，使日志页在全新部署下可达。
 6. 前端清理已失效的 404/405 降级提示与死方法 `getVisitTrend/getVisitStats`，错误回归统一处理。
@@ -283,12 +283,12 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 成熟产品能力中，后台操作审计、批量任务和导入导出状态反馈仍偏基础，需要业务 PRD 后再系统推进。
 
 **具体问题：**
-- 审计日志已提供详情和基础失败展示，但 `requestId` 未持久化，`errorMsg/responseBody` 的中间件采集仍不完整
+- 审计日志已持久化 `requestId` 并采集失败响应摘要，但尚不支持按请求 ID 筛选，也未记录对象类型和对象 ID
 - 批量操作缺少统一任务状态和失败明细反馈
 - 导入导出缺少统一的异步任务进度、历史记录和重试入口
 
 **计划解决方案：**
-1. 单独确认 `requestId` 与错误摘要持久化方案及双后端迁移边界
+1. 后续按真实排障需求补充 request id 筛选和业务对象关联
 2. 抽象统一任务状态模型
 3. 补充导入导出任务列表、失败明细和重试机制
 
@@ -296,7 +296,7 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 - 已形成第一版 PRD，明确审计日志详情、批量任务状态、导入导出任务化的目标、非目标、数据契约草案、分期计划和验收标准
 - Django/FastAPI 已新增受数据范围和敏感字段权限约束的日志详情接口，前端已补详情弹窗、状态/响应码展示及操作人/方法/状态筛选
 - 日志详情已纳入 API、后端字段和前端字段契约；双后端运行时测试与前端 E2E 已覆盖失败详情链路
-- FastAPI 版本化迁移基线已建立，后续 `requestId` 与错误摘要字段可通过增量迁移实施；字段采集与对外契约仍留在下一轮
+- 两端已通过增量迁移增加 `request_id` 字段和索引；写操作中间件持久化 request id，失败响应保存脱敏摘要，前端详情和三端字段契约已同步
 
 **预计工作量：** 5-8 天
 
