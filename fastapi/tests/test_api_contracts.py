@@ -68,6 +68,13 @@ def test_fastapi_critical_endpoint_contract_catalog_matches_route_contracts():
     contracts = {contract.key: contract for contract in CRITICAL_ENDPOINT_CONTRACTS}
 
     assert contracts["auth_login"].path == "/api/v1/oauth/login/"
+    assert contracts["information_profile"].path == "/api/v1/information/profile/"
+    assert contracts["information_password"].request_fields == (
+        "oldPassword",
+        "newPassword",
+        "confirmPassword",
+    )
+    assert contracts["information_avatar"].response_fields == ("avatar", "url")
     assert contracts["users_page"].paginated is True
     assert contracts["users_page"].permissions == ("system:users:query",)
     assert contracts["roles_page"].path == "/api/v1/system/roles/"
@@ -97,6 +104,10 @@ def test_fastapi_critical_endpoint_contract_catalog_matches_route_contracts():
     assert contracts["notices_delete"].path == "/api/v1/system/notices/{ids}"
     assert contracts["notices_publish"].permissions == ("system:notices:publish",)
     assert contracts["notices_revoke"].permissions == ("system:notices:revoke",)
+    assert contracts["notices_form"].permissions == ("system:notices:query",)
+    assert contracts["notices_detail"].path == "/api/v1/system/notices/{id}/detail"
+    assert contracts["notices_read_all"].permissions == ("system:notices:query",)
+    assert contracts["notices_my_page"].paginated is True
     assert contracts["logs_page"].path == "/api/v1/system/logs/page"
     assert contracts["logs_page"].permissions == ("system:logs:query",)
     assert contracts["files_upload"].response_fields == ("name", "url", "path")

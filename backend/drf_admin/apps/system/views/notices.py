@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
+from django.db.models import Exists, OuterRef
 from django.utils import timezone
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
-from drf_admin.apps.system.models import Notices
-from drf_admin.apps.system.serializers.notices import NoticesSerializer
+from drf_admin.apps.system.models import NoticeReads, Notices
+from drf_admin.apps.system.serializers.notices import NoticeMyPageSerializer, NoticesSerializer
 from drf_admin.apps.system.services.data_scope import apply_notice_admin_data_scope
 from drf_admin.utils.views import AdminViewSet, AutoPermissionAPIView
 
@@ -49,8 +50,17 @@ class NoticesViewSet(AdminViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = self.filter_by_query_params(queryset, request)
         # 查询参数经 CamelCaseMiddleWare 下划线化，视图层读取 snake_case 键。
-        page_num = max(int(request.query_params.get("page_num", 1)), 1)
-        page_size = max(int(request.query_params.get("page_size", 10)), 1)
+        page_num = parse_positive_query_int(
+            request.query_params.get("page_num"),
+            name="pageNum",
+            default=1,
+        )
+        page_size = parse_positive_query_int(
+            request.query_params.get("page_size"),
+            name="pageSize",
+            default=10,
+            maximum=100,
+        )
         offset = (page_num - 1) * page_size
         serializer = self.get_serializer(queryset[offset: offset + page_size], many=True)
         return Response(data={"list": serializer.data, "total": queryset.count()})
@@ -137,9 +147,10 @@ class NoticesAPIView(AutoPermissionAPIView):
 
     返回当前登录用户可见的已发布通知，分页结构与 FastAPI 的 `my-page` 对齐。
 
-    说明：Django 后端当前没有 `NoticeReads` 模型，不跟踪每用户已读状态，
-    因此 `isRead` 统一返回 0（视为未读）。如果前端按 `isRead=1` 过滤，将返回空列表。
+    读取状态持久化到 `NoticeReads`，与 FastAPI 的详情和全部已读语义一致。
     """
+
+    model = Notices
 
     def get(self, request):
         """返回当前用户可见的已发布通知分页列表。"""
@@ -147,26 +158,50 @@ class NoticesAPIView(AutoPermissionAPIView):
         user = request.user
         title = request.query_params.get("title")
         is_read_param = request.query_params.get("is_read")
-        page_num = max(int(request.query_params.get("page_num", 1)), 1)
-        page_size = max(int(request.query_params.get("page_size", 10)), 1)
+        page_num = parse_positive_query_int(
+            request.query_params.get("page_num"),
+            name="pageNum",
+            default=1,
+        )
+        page_size = parse_positive_query_int(
+            request.query_params.get("page_size"),
+            name="pageSize",
+            default=10,
+            maximum=100,
+        )
 
         queryset = Notices.objects.filter(publish_status=1)
         if title:
             queryset = queryset.filter(title__icontains=title)
-        queryset = queryset.order_by("-publish_time", "-create_time")
+        queryset = queryset.order_by("-publish_time", "-create_time", "-id")
 
-        visible = [notice for notice in queryset if self._is_visible_to(notice, user)]
+        read_exists = NoticeReads.objects.filter(
+            user_id=user.id,
+            notice_id=OuterRef("pk"),
+        )
+        queryset = queryset.annotate(_is_read=Exists(read_exists))
+        is_read = None
+        if is_read_param not in (None, ""):
+            try:
+                is_read = int(is_read_param)
+            except (TypeError, ValueError) as exc:
+                raise ValidationError("isRead 只能为 0 或 1") from exc
+            if is_read not in (0, 1):
+                raise ValidationError("isRead 只能为 0 或 1")
 
-        # Django 不跟踪每用户已读状态，全部视为未读；按已读过滤时返回空列表。
-        if is_read_param not in (None, "") and int(is_read_param) == 1:
-            visible = []
-
-        total = len(visible)
         offset = (page_num - 1) * page_size
-        page_items = visible[offset: offset + page_size]
-        serializer = NoticesSerializer(page_items, many=True, context={"request": request})
-        data = [{**dict(item), "is_read": 0} for item in serializer.data]
-        return Response(data={"list": data, "total": total})
+        total = 0
+        page_items = []
+        for notice in queryset.iterator(chunk_size=200):
+            if not self._is_visible_to(notice, user):
+                continue
+            if is_read is not None and bool(notice._is_read) != bool(is_read):
+                continue
+            if offset <= total < offset + page_size:
+                page_items.append(notice)
+            total += 1
+        serializer = NoticeMyPageSerializer(page_items, many=True, context={"request": request})
+        return Response(data={"list": serializer.data, "total": total})
 
     @staticmethod
     def _is_visible_to(notice, user) -> bool:
@@ -174,3 +209,60 @@ class NoticesAPIView(AutoPermissionAPIView):
         if notice.target_type == 1:
             return True
         return user.id in (notice.target_user_ids or [])
+
+
+class NoticeDetailAPIView(AutoPermissionAPIView):
+    """返回当前用户可见的已发布通知，并持久化已读状态。"""
+
+    model = Notices
+
+    def get(self, request, pk: int):
+        notice = Notices.objects.filter(id=pk, publish_status=1).first()
+        if notice is None or not NoticesAPIView._is_visible_to(notice, request.user):
+            raise NotFound("通知不存在")
+        NoticeReads.objects.get_or_create(notice=notice, user_id=request.user.id)
+        serializer = NoticesSerializer(notice, context={"request": request})
+        return Response(serializer.data)
+
+
+class NoticeReadAllAPIView(AutoPermissionAPIView):
+    """把当前用户可见的全部已发布通知标记为已读。"""
+
+    model = Notices
+
+    @staticmethod
+    def get_method_permission_mapping():
+        return {"put": "query"}
+
+    def put(self, request):
+        pending = []
+        queryset = Notices.objects.filter(publish_status=1).only(
+            "id",
+            "target_type",
+            "target_user_ids",
+        )
+        for notice in queryset.iterator(chunk_size=200):
+            if not NoticesAPIView._is_visible_to(notice, request.user):
+                continue
+            pending.append(NoticeReads(notice_id=notice.id, user_id=request.user.id))
+            if len(pending) == 200:
+                NoticeReads.objects.bulk_create(pending, ignore_conflicts=True)
+                pending.clear()
+        if pending:
+            NoticeReads.objects.bulk_create(pending, ignore_conflicts=True)
+        return Response(data={})
+
+
+def parse_positive_query_int(raw_value, *, name: str, default: int, maximum: int | None = None) -> int:
+    """解析正整数查询参数，并与 FastAPI 的分页约束保持一致。"""
+    if raw_value in (None, ""):
+        return default
+    try:
+        value = int(raw_value)
+    except (TypeError, ValueError) as exc:
+        raise ValidationError(f"{name} 必须为正整数") from exc
+    if value < 1:
+        raise ValidationError(f"{name} 必须为正整数")
+    if maximum is not None and value > maximum:
+        raise ValidationError(f"{name} 不能大于 {maximum}")
+    return value

@@ -120,15 +120,31 @@ class TestNoticeServiceReadAll:
     async def test_read_all(self, db, test_published_notice):
         """测试标记全部已读。"""
         await notice_service.read_all(user_id=1)
+        await notice_service.read_all(user_id=1)
 
         read = await NoticeReads.filter(
             notice_id=test_published_notice.id,
             user_id=1,
-        ).exists()
-        assert read
+        ).count()
+        assert read == 1
 
     @pytest.mark.asyncio
     async def test_read_all_empty(self, db):
         """测试无已发布通知时标记全部已读。"""
         await Notices.all().delete()
         await notice_service.read_all(user_id=1)
+
+    @pytest.mark.asyncio
+    async def test_read_all_excludes_notices_targeted_to_other_users(self, db):
+        """全部已读不能写入其他用户的定向通知。"""
+        hidden = await Notices.create(
+            title="其他用户定向通知",
+            content="隐藏内容",
+            target_type=2,
+            target_user_ids=[999],
+            publish_status=1,
+        )
+
+        await notice_service.read_all(user_id=1)
+
+        assert not await NoticeReads.filter(notice_id=hidden.id, user_id=1).exists()

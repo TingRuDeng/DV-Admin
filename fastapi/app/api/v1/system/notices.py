@@ -66,6 +66,15 @@ async def create_notice(
     return ResponseModel.success(data=data, message="创建成功")
 
 
+@router.put("/read-all", response_model=ResponseModel[None])
+async def read_all_notices(
+    request: Request,
+    current_user: Users = require_permissions("system:notices:query"),
+):
+    await notice_service.read_all(user_id=current_user.id)
+    return ResponseModel.success(message="操作成功")
+
+
 @router.put("/{notice_id}", response_model=ResponseModel[NoticePageOut])
 async def update_notice(
     request: Request,
@@ -118,22 +127,19 @@ async def get_notice_detail(
     return ResponseModel.success(data=data)
 
 
-@router.put("/read-all", response_model=ResponseModel[None])
-async def read_all_notices(
-    request: Request,
-    current_user: Users = require_permissions("system:notices:query"),
-):
-    await notice_service.read_all(user_id=current_user.id)
-    return ResponseModel.success(message="操作成功")
-
-
 @router.get("/my-page/", response_model=ResponseModel[NoticeMyPageResult])
 async def get_my_notice_page(
     request: Request,
     page_num: int = Query(1, alias="pageNum", ge=1, description="页码"),
     page_size: int = Query(10, alias="pageSize", ge=1, le=100, description="每页数量"),
     title: str | None = Query(None, description="标题"),
-    is_read: int | None = Query(None, alias="isRead", description="是否已读(1:是;0:否)"),
+    is_read: int | None = Query(
+        None,
+        alias="isRead",
+        ge=0,
+        le=1,
+        description="是否已读(1:是;0:否)",
+    ),
     current_user: Users = require_permissions("system:notices:query"),
 ):
     data = await notice_service.get_my_page(

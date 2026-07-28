@@ -47,3 +47,13 @@ class NoticesSerializer(serializers.ModelSerializer):
             request.user,
             mask_content=bool(self.context.get("mask_notice_content")),
         )
+
+
+class NoticeMyPageSerializer(NoticesSerializer):
+    """我的通知分页序列化器，显式声明运行时阅读状态字段。"""
+
+    is_read = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_is_read(instance):
+        return int(getattr(instance, "_is_read", False))
