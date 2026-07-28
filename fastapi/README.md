@@ -105,7 +105,11 @@ uv run python app/main.py
 
 ```bash
 cd docker
-docker-compose up -d
+export DATABASE_URL='mysql://root:<strong-password>@db:3306/dv_admin'
+export MYSQL_ROOT_PASSWORD='<strong-password>'
+export SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')"
+export DEFAULT_PASSWORD='<strong-initial-password>'
+docker compose up -d
 ```
 
 ## API 文档
@@ -273,11 +277,17 @@ MySQL 8 数据库上分别执行空库与增量升级验证。
 
 ```bash
 cd docker
-docker-compose up -d
+export DATABASE_URL='mysql://root:<strong-password>@db:3306/dv_admin'
+export MYSQL_ROOT_PASSWORD='<strong-password>'
+export SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')"
+export DEFAULT_PASSWORD='<strong-initial-password>'
+docker compose up -d
 ```
 
 Compose 会先运行一次性 `migrate` 服务；只有迁移成功后 API 才启动。不要把
-迁移命令放进 Uvicorn Worker 的启动入口，否则多副本会并发修改 schema。
+迁移命令放进 Uvicorn Worker 的启动入口，否则多副本会并发修改 schema。生产
+Compose 不提供弱凭据默认值，也不挂载宿主源码或启用 `--reload`；缺少上述必填
+环境变量时会在解析 Compose 阶段失败。
 
 独立镜像或其他编排平台必须在发布 API 前运行单例迁移 Job，例如：
 
@@ -299,6 +309,9 @@ python -m tortoise \
 5. 配置正确的数据库和 Redis 连接
 6. 通过单例迁移 Job 执行待应用的 Tortoise ORM 迁移，成功后再发布 API
 7. 配置日志文件路径
+
+FastAPI 当前以 `use_tz=false` 保存本地时间；非 Docker 部署必须保证进程系统时区
+为 `Asia/Shanghai`，否则跨午夜的通知和访问趋势日期会与 Django 口径偏移。
 
 ### 健康检查
 

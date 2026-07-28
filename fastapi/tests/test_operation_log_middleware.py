@@ -7,6 +7,7 @@ import uuid
 from app.middleware.request_logging.middleware import (
     MAX_REQUEST_ID_LENGTH,
     mask_sensitive_body,
+    normalize_request_id,
     summarize_error_response,
 )
 
@@ -35,6 +36,15 @@ def test_error_summary_uses_masked_response():
 
     assert "must-not-leak" not in summary
     assert "******" in summary
+
+
+def test_request_id_normalization_rejects_log_and_header_injection():
+    assert normalize_request_id("trace-123") == "trace-123"
+    assert normalize_request_id("x" * (MAX_REQUEST_ID_LENGTH + 16)) == (
+        "x" * MAX_REQUEST_ID_LENGTH
+    )
+    assert normalize_request_id("trace\nforged") == ""
+    assert normalize_request_id("trace id") == ""
 
 
 def test_mutating_request_persists_request_id(auth_client, test_user):

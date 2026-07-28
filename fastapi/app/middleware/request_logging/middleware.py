@@ -5,6 +5,7 @@
 """
 
 import json
+import re
 import time
 import uuid
 from collections.abc import Callable
@@ -28,6 +29,15 @@ from app.utils.logger import clear_request_id, set_request_id
 PERSISTED_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 SENSITIVE_KEYWORDS = ("password", "token", "secret", "key", "authorization")
 MAX_REQUEST_ID_LENGTH = 64
+REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
+
+
+def normalize_request_id(value: str | None) -> str:
+    """只接受可安全写入响应头和单行日志的有界 request id。"""
+    candidate = value.strip()[:MAX_REQUEST_ID_LENGTH] if value else ""
+    if candidate and REQUEST_ID_PATTERN.fullmatch(candidate):
+        return candidate
+    return ""
 
 
 def mask_sensitive_body(body: str) -> str:
@@ -136,9 +146,8 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """处理请求并记录请求、响应或异常日志。"""
-        request_id = (
-            request.headers.get("X-Request-ID", "").strip()[:MAX_REQUEST_ID_LENGTH]
-            or str(uuid.uuid4())
+        request_id = normalize_request_id(request.headers.get("X-Request-ID")) or str(
+            uuid.uuid4()
         )
         set_request_id(request_id)
 
