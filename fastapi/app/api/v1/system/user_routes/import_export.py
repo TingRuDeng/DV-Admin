@@ -1,14 +1,21 @@
 """用户导入导出 API 路由。"""
 
+from pathlib import Path
+from tempfile import SpooledTemporaryFile
+from typing import BinaryIO, cast
+
 from fastapi import APIRouter, File, Query, Request, UploadFile
 
 from app.api.deps import require_permissions
+from app.core.config import settings
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
 from app.schemas.system import UserImportResult
 from app.services.system.user_service import user_service
+from app.utils.file import copy_upload_file
 
 router = APIRouter()
+IMPORT_SPOOL_MEMORY_SIZE = 1024 * 1024
 
 @router.get("/template", response_model=ResponseModel[dict])
 async def get_import_template(
@@ -112,21 +119,27 @@ Excel 文件必须包含以下列：
 )
 async def import_users(
     request: Request,
-    dept_id: int | None = Query(None, description="部门ID"),
+    dept_id: int | None = Query(None, alias="deptId", description="部门ID"),
+    legacy_dept_id: int | None = Query(
+        None,
+        alias="dept_id",
+        include_in_schema=False,
+    ),
     file: UploadFile = File(..., description="Excel文件"),
     current_user: Users = require_permissions("system:users:import"),
 ) -> ResponseModel[UserImportResult]:
     # 验证文件类型
-    if not file.filename or not (
-        file.filename.endswith(".xlsx") or file.filename.endswith(".xls")
-    ):
+    if not file.filename or Path(file.filename).suffix.lower() not in {".xlsx", ".xls"}:
         return ResponseModel.error(message="文件格式错误，仅支持 .xlsx 或 .xls 格式")
 
-    # 导入用户
-    result = await user_service.import_users(
-        file.file,
-        dept_id,
-        current_user=current_user,
-    )
+    # 分块复制到有界临时文件；大于内存阈值后自动落盘，避免整份工作簿驻留内存。
+    with SpooledTemporaryFile(max_size=IMPORT_SPOOL_MEMORY_SIZE, mode="w+b") as raw_buffer:
+        buffer = cast(BinaryIO, raw_buffer)
+        await copy_upload_file(file, buffer, max_size=settings.max_upload_size)
+        result = await user_service.import_users(
+            buffer,
+            dept_id if dept_id is not None else legacy_dept_id,
+            current_user=current_user,
+        )
 
     return ResponseModel.success(data=result, message="导入完成")

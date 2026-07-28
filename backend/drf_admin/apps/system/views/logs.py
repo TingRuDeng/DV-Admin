@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from collections import Counter
 from datetime import datetime, timedelta
 
 from django.db import transaction
 from django.db.models import Avg, Count
+from django.db.models.functions import TruncDate
 from django.utils import timezone
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
@@ -14,6 +14,8 @@ from drf_admin.apps.system.models import OperationLog
 from drf_admin.apps.system.serializers.logs import OperationLogSerializer
 from drf_admin.apps.system.services.data_scope import apply_log_data_scope
 from drf_admin.utils.permissions import RBACPermission
+
+MAX_VISIT_TREND_DAYS = 366
 
 
 def parse_optional_int(value: str | None, field_name: str) -> int | None:
@@ -59,6 +61,17 @@ def parse_id_list(ids: str) -> list[int]:
     if not parsed_ids:
         raise ValidationError({"ids": "不能为空"})
     return list(dict.fromkeys(parsed_ids))
+
+
+def validate_visit_trend_range(start: datetime, end: datetime) -> None:
+    """限制趋势查询范围，避免反向或超长区间消耗数据库与响应内存。"""
+    if start > end:
+        raise ValidationError({"startDate": "不能晚于 endDate"})
+    range_days = (end.date() - start.date()).days + 1
+    if range_days > MAX_VISIT_TREND_DAYS:
+        raise ValidationError(
+            {"startDate": f"访问趋势查询范围不能超过 {MAX_VISIT_TREND_DAYS} 天"}
+        )
 
 
 class LogPermissionAPIView(APIView):
@@ -123,21 +136,31 @@ class VisitTrendAPIView(LogPermissionAPIView):
         start_date = params.get("start_date")
         end = parse_optional_datetime(end_date, "endDate") or timezone.localtime()
         start = parse_optional_datetime(start_date, "startDate") or (end - timedelta(days=7))
+        validate_visit_trend_range(start, end)
 
         logs = apply_log_data_scope(OperationLog.objects.all(), request.user).filter(
             created_at__gte=start,
             created_at__lte=end,
         )
-        counter: Counter = Counter()
-        for created in logs.values_list("created_at", flat=True):
-            counter[timezone.localtime(created).strftime("%Y-%m-%d")] += 1
+        daily_counts = {
+            row["date"].strftime("%Y-%m-%d"): row["count"]
+            for row in logs.annotate(
+                date=TruncDate(
+                    "created_at",
+                    tzinfo=timezone.get_current_timezone(),
+                )
+            )
+            .values("date")
+            .annotate(count=Count("id"))
+            .order_by("date")
+        }
 
         results = []
         cursor = start.date()
         end_day = end.date()
         while cursor <= end_day:
             key = cursor.strftime("%Y-%m-%d")
-            results.append({"date": key, "count": counter.get(key, 0)})
+            results.append({"date": key, "count": daily_counts.get(key, 0)})
             cursor += timedelta(days=1)
         return Response(data=results)
 
