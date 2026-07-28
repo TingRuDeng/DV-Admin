@@ -239,10 +239,13 @@ class ResponseMiddleware(MiddlewareMixin):
                 # 将 ErrorDetail 转换为字符串进行比较
                 error_code_str = str(error_code) if error_code else None
                 
-                # 检查是否是 token 无效错误，使用 40001 错误码
+                # Access/Refresh Token 使用不同错误码，避免前端进入错误的恢复分支。
                 if error_code_str == "token_not_valid":
                     code = 40001
                     # 直接使用 detail_data 作为 errors，避免多一层嵌套
+                    detail = detail_data if isinstance(detail_data, dict) else response.data
+                elif error_code_str == "refresh_token_not_valid":
+                    code = 40002
                     detail = detail_data if isinstance(detail_data, dict) else response.data
                 else:
                     code = 40000

@@ -65,6 +65,22 @@ def test_django_error_response_matches_shared_contract(api_request):
     assert response.data["errors"] == "参数错误"
 
 
+def test_django_refresh_token_error_uses_shared_error_code(api_request):
+    response = process_response(
+        build_json_response(
+            {
+                "detail": "无效的刷新令牌",
+                "code": "refresh_token_not_valid",
+            },
+            status.HTTP_401_UNAUTHORIZED,
+        ),
+        api_request,
+    )
+
+    assert_error_envelope(response.data, backend="django")
+    assert response.data["code"] == REFRESH_TOKEN_INVALID_CODE
+
+
 def test_django_wrapped_response_is_idempotent(api_request):
     wrapped = {"msg": "成功", "errors": None, "code": 20000, "data": {"id": 1}}
     response = process_response(build_json_response(wrapped), api_request)

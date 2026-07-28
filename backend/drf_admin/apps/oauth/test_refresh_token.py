@@ -21,14 +21,13 @@ class OAuthRefreshTokenAPITestCase(TestCase):
             {"username": "testuser", "password": "testpass123"},
             format="json",
         )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.access_token = response.data["data"].get("accessToken")
         self.refresh_token = response.data["data"].get("refreshToken")
+        self.assertTrue(self.refresh_token)
 
     def test_refresh_token_with_query_param(self):
         """测试使用 query parameter 刷新 Token"""
-        if not self.refresh_token:
-            self.skipTest("No refresh token available")
-
         response = self.client.post(
             f"/api/v1/oauth/refresh-token/?refreshToken={self.refresh_token}"
         )
@@ -42,9 +41,6 @@ class OAuthRefreshTokenAPITestCase(TestCase):
 
     def test_refresh_token_with_body(self):
         """测试使用 body 刷新 Token"""
-        if not self.refresh_token:
-            self.skipTest("No refresh token available")
-
         response = self.client.post(
             "/api/v1/oauth/refresh-token/",
             {"refreshToken": self.refresh_token},
@@ -57,9 +53,6 @@ class OAuthRefreshTokenAPITestCase(TestCase):
 
     def test_refresh_token_with_refresh_key(self):
         """测试使用 refresh key 刷新 Token"""
-        if not self.refresh_token:
-            self.skipTest("No refresh token available")
-
         response = self.client.post(
             "/api/v1/oauth/refresh-token/",
             {"refresh": self.refresh_token},
@@ -83,4 +76,31 @@ class OAuthRefreshTokenAPITestCase(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data["code"], 40001)
+        self.assertEqual(response.data["code"], 40002)
+
+    def test_refresh_token_is_rotated_and_cannot_be_replayed(self):
+        """刷新成功后旧 refresh token 必须立即失效。"""
+        response = self.client.post(
+            "/api/v1/oauth/refresh-token/",
+            {"refreshToken": self.refresh_token},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        rotated_refresh_token = response.data["data"]["refreshToken"]
+        self.assertNotEqual(rotated_refresh_token, self.refresh_token)
+
+        replay_response = self.client.post(
+            "/api/v1/oauth/refresh-token/",
+            {"refreshToken": self.refresh_token},
+            format="json",
+        )
+        self.assertEqual(replay_response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(replay_response.data["code"], 40002)
+
+        rotated_response = self.client.post(
+            "/api/v1/oauth/refresh-token/",
+            {"refreshToken": rotated_refresh_token},
+            format="json",
+        )
+        self.assertEqual(rotated_response.status_code, status.HTTP_200_OK)

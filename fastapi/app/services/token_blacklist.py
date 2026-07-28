@@ -123,6 +123,62 @@ class TokenBlacklistService(TokenBlacklistCompatibilityMixin):
             logger.error(f"添加 Token 到黑名单时发生错误: {e}")
             return False
 
+    async def consume_refresh_token(
+        self,
+        token: str,
+        user_id: int,
+    ) -> bool:
+        """原子消费刷新令牌，确保同一令牌最多成功使用一次。"""
+        try:
+            payload = decode_token(token)
+            if not payload:
+                logger.warning("无法解码 Refresh Token，拒绝消费")
+                return False
+            if payload.get("type") != "refresh" or str(payload.get("sub")) != str(user_id):
+                logger.warning("Refresh Token 类型或用户不匹配，拒绝消费")
+                return False
+
+            expiration = get_token_expiration(payload)
+            if not expiration:
+                logger.warning("Refresh Token 缺少过期时间，拒绝消费")
+                return False
+
+            record = build_token_blacklist_record(
+                token=token,
+                user_id=user_id,
+                reason="refresh_rotation",
+                expires_at=expiration,
+                revoked_at=datetime.now(timezone.utc),
+            )
+            if record is None:
+                return False
+
+            redis = self._get_redis_or_none()
+            if redis is None:
+                if settings.is_production:
+                    logger.error(
+                        "生产环境 Redis 不可用，拒绝刷新令牌以避免跨进程重放"
+                    )
+                    return False
+                return self._memory_store.consume_token_once(record.key, record.expires_at)
+
+            consumed = await redis.set(
+                record.key,
+                str(record.value),
+                ex=record.ttl,
+                nx=True,
+            )
+            if not consumed:
+                logger.warning("检测到 Refresh Token 重放")
+            return bool(consumed)
+        except RedisError as e:
+            # 轮换是认证边界，存储异常时必须失败关闭，不能继续签发新令牌。
+            logger.error(f"原子消费 Refresh Token 失败: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"消费 Refresh Token 时发生错误: {e}")
+            return False
+
     async def is_token_blacklisted(self, token: str) -> bool:
         """
         检查 Token 是否在黑名单中
