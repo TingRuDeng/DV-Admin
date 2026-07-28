@@ -482,7 +482,7 @@ DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
 - 两套后端均提供 `OperationLog` 模型、写操作落库中间件与上述查询/删除路由，前端日志管理页在两端均可用。
 - 写操作（POST/PUT/PATCH/DELETE）由请求日志中间件落库；GET 读请求不落库，避免审计表被轮询淹没。
 - 请求体落库前会掩码 `password/token/secret/key/authorization` 等敏感字段。
-- 两端均将响应头对应的 `requestId` 持久化，客户端传入值会去除首尾空白并限制为 64 字符；失败写请求额外保存脱敏、截断后的 `responseBody`，并从脱敏后的统一错误响应提取 `errorMsg`。成功写请求不保存响应体和错误摘要。
+- 两端均将响应头对应的 `requestId` 持久化；客户端传入值会去除首尾空白、限制为 64 字符，并只接受字母、数字、点、下划线、冒号和连字符，非法值由服务端重新生成。失败写请求额外保存脱敏、截断后的 `responseBody`，并从脱敏后的统一错误响应提取 `errorMsg`。成功写请求不保存响应体和错误摘要。
 - Django 权限码 `system:logs:query` / `system:logs:delete` 与 FastAPI 一致；`/logs/page` 和 `/logs/{id}` 字段集合由双后端字段契约 `logs_out` 锁定。
 - `/logs/page` 与 `/logs/{id}` 输出中的 `requestBody/responseBody/ip` 默认保留字段但返回脱敏值；拥有 `system:logs:field:plain` 或 `is_superuser` 时返回原文。
 - `/logs/page`、`/logs/{id}`、`/logs/visit-trend`、`/logs/visit-stats`、删除和历史清理统一复用日志数据范围；不在当前用户可见范围内的 ID 按不存在处理。
@@ -532,7 +532,7 @@ GET /health/live   # 存活检查
 
 **实现说明：**
 - Django：`backend/drf_admin/apps/system/views/health.py`，响应头会携带 `X-Request-ID`。
-- FastAPI：`fastapi/app/api/health.py`，响应中包含结构化依赖检查。
+- FastAPI：`fastapi/app/api/health.py`，响应中包含结构化依赖检查，响应头同样携带 `X-Request-ID`。
 
 ---
 
