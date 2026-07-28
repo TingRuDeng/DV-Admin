@@ -154,3 +154,26 @@ jobs:
           .venv/bin/python scripts/validate_migrations.py fresh
           --database-url
           mysql://root:migration-test-password@127.0.0.1:3306/dv_admin_migration_test
+      - name: Create isolated MySQL incremental migration database
+        working-directory: fastapi
+        run: >-
+          .venv/bin/python -c
+          "import pymysql;
+          connection = pymysql.connect(
+              host='127.0.0.1',
+              port=3306,
+              user='root',
+              password='migration-test-password',
+              autocommit=True,
+          );
+          connection.cursor().execute(
+              'CREATE DATABASE dv_admin_migration_incremental '
+              'CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'
+          );
+          connection.close()"
+      - name: Run MySQL incremental migration smoke
+        working-directory: fastapi
+        run: >-
+          .venv/bin/python scripts/validate_migrations.py incremental
+          --database-url
+          mysql://root:migration-test-password@127.0.0.1:3306/dv_admin_migration_incremental

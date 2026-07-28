@@ -22,7 +22,12 @@ class OperationLog(BaseModel):
     operation = fields.CharField(max_length=100, default="", description="操作描述")
     method = fields.CharField(max_length=10, default="", description="请求方法")
     path = fields.CharField(max_length=500, default="", description="请求路径")
-    request_id = fields.CharField(max_length=64, default="", description="请求ID")
+    request_id = fields.CharField(
+        max_length=64,
+        default="",
+        db_default="",
+        description="请求ID",
+    )
     query_params = fields.TextField(default="", description="查询参数")
 
     request_body = fields.TextField(default="", description="请求体")
