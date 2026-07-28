@@ -1,6 +1,7 @@
 """
 单 Token 黑名单测试。
 """
+import asyncio
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, patch
 
@@ -115,6 +116,98 @@ class TestTokenBlacklistTokens:
             result = await service.add_token_to_blacklist("test_token")
 
             assert result is False
+
+    @pytest.mark.asyncio
+    async def test_consume_refresh_token_uses_atomic_redis_write(self):
+        """Redis 通过 SET NX 保证同一刷新令牌只消费一次。"""
+        service = TokenBlacklistService()
+        mock_redis = AsyncMock()
+        mock_redis.set = AsyncMock(side_effect=[True, None])
+        service._redis = mock_redis
+        expiration = datetime.now(timezone.utc) + timedelta(hours=1)
+
+        with patch(
+            "app.services.token_blacklist.decode_token",
+            return_value={"sub": "1", "type": "refresh"},
+        ), \
+             patch(
+                 "app.services.token_blacklist.get_token_expiration",
+                 return_value=expiration,
+             ):
+            first = await service.consume_refresh_token("refresh_token", user_id=1)
+            replay = await service.consume_refresh_token("refresh_token", user_id=1)
+
+        assert first is True
+        assert replay is False
+        assert mock_redis.set.call_count == 2
+        assert mock_redis.set.call_args.kwargs["nx"] is True
+
+    @pytest.mark.asyncio
+    async def test_consume_refresh_token_fails_closed_on_redis_error(self):
+        """刷新轮换存储异常时不得继续签发令牌。"""
+        service = TokenBlacklistService()
+        mock_redis = AsyncMock()
+        mock_redis.set = AsyncMock(side_effect=RedisError("Connection lost"))
+        service._redis = mock_redis
+        expiration = datetime.now(timezone.utc) + timedelta(hours=1)
+
+        with patch(
+            "app.services.token_blacklist.decode_token",
+            return_value={"sub": "1", "type": "refresh"},
+        ), \
+             patch(
+                 "app.services.token_blacklist.get_token_expiration",
+                 return_value=expiration,
+             ):
+            result = await service.consume_refresh_token("refresh_token", user_id=1)
+
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_consume_refresh_token_is_atomic_in_memory_fallback(self):
+        """开发环境内存降级在并发任务中也只能成功一次。"""
+        service = TokenBlacklistService()
+        expiration = datetime.now(timezone.utc) + timedelta(hours=1)
+
+        with patch.object(service, "_get_redis_or_none", return_value=None), \
+             patch("app.services.token_blacklist.settings") as mock_settings, \
+             patch(
+                 "app.services.token_blacklist.decode_token",
+                 return_value={"sub": "1", "type": "refresh"},
+             ), \
+             patch(
+                 "app.services.token_blacklist.get_token_expiration",
+                 return_value=expiration,
+             ):
+            mock_settings.is_production = False
+            results = await asyncio.gather(
+                service.consume_refresh_token("refresh_token", user_id=1),
+                service.consume_refresh_token("refresh_token", user_id=1),
+            )
+
+        assert sorted(results) == [False, True]
+
+    @pytest.mark.asyncio
+    async def test_consume_refresh_token_requires_redis_in_production(self):
+        """生产环境不能用进程内存冒充跨实例单次消费。"""
+        service = TokenBlacklistService()
+        expiration = datetime.now(timezone.utc) + timedelta(hours=1)
+
+        with patch.object(service, "_get_redis_or_none", return_value=None), \
+             patch("app.services.token_blacklist.settings") as mock_settings, \
+             patch(
+                 "app.services.token_blacklist.decode_token",
+                 return_value={"sub": "1", "type": "refresh"},
+             ), \
+             patch(
+                 "app.services.token_blacklist.get_token_expiration",
+                 return_value=expiration,
+             ):
+            mock_settings.is_production = True
+            result = await service.consume_refresh_token("refresh_token", user_id=1)
+
+        assert result is False
+        assert service._memory_store.blacklist == {}
 
     @pytest.mark.asyncio
     async def test_is_token_blacklisted_true(self):

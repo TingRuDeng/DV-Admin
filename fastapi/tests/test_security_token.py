@@ -6,6 +6,7 @@ from datetime import timedelta
 
 from app.core.security import (
     create_access_token,
+    create_refresh_token,
     decode_token,
     get_token_expiration,
 )
@@ -48,3 +49,16 @@ class TestSecurityToken:
 
         # 缺少过期时间应该返回 None
         assert expiration is None
+
+    def test_refresh_tokens_have_unique_ids(self):
+        """同一用户连续签发的刷新令牌也必须保持唯一。"""
+        first = create_refresh_token("1")
+        second = create_refresh_token("1")
+
+        first_payload = decode_token(first)
+        second_payload = decode_token(second)
+
+        assert first != second
+        assert first_payload is not None
+        assert second_payload is not None
+        assert first_payload["jti"] != second_payload["jti"]
