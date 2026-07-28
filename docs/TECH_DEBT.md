@@ -363,6 +363,29 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 
 ---
 
+### 12. 前端生产依赖临时安全豁免
+
+**级别：** 🟡 中
+
+**描述：**
+前端直接生产依赖及可兼容升级的传递依赖已更新到当前修复版本。`exceljs@4.4.0`
+仍通过 Node 归档链路依赖旧主版本 `brace-expansion`，上游暂无兼容升级。
+
+**当前边界：**
+- 公告：`GHSA-mh99-v99m-4gvg`
+- 依赖路径仅限 `exceljs > archiver > ... > minimatch > brace-expansion`
+- 公告修复版 `brace-expansion@5.0.8` 改为具名 `expand` 导出，而 ExcelJS 链路中的 `minimatch@3/5` 仍把 CommonJS 导入值作为函数调用，不能安全强制跨主版本 override
+- Vite 浏览器构建使用 ExcelJS 浏览器入口，不调用该 Node 归档 glob；业务也不接收用户 glob 表达式
+- 另有 `exceljs > uuid@8.3.2` 的 moderate 公告；ExcelJS 只调用不受影响的 `v4()`，当前 high/critical 门禁不豁免也不阻断，随 ExcelJS 宿主升级一并退出
+- 豁免到期日为 `2026-08-31`，配置见 `frontend/dependency-audit-exemptions.json`
+
+**退出条件：**
+1. ExcelJS 或归档依赖发布兼容修复后移除 override 与豁免
+2. 到期前重新执行 `pnpm run audit:prod` 并验证 Excel 导出回归
+3. 不允许扩大现有豁免路径；出现新的依赖路径时门禁必须失败
+
+---
+
 ## 已解决的技术债务
 
 ### ✅ 数据权限与字段权限 v1 收口
