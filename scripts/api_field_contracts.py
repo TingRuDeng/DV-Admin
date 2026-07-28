@@ -33,6 +33,71 @@ API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
         fastapi_source="app.db.models.oauth_user_access.build_menu_item",
     ),
     FieldContract(
+        key="information_profile",
+        canonical=frozenset(
+            {
+                "avatar",
+                "deptName",
+                "email",
+                "gender",
+                "id",
+                "mobile",
+                "name",
+                "roleNames",
+                "username",
+            }
+        ),
+        django_only=frozenset({"createTime"}),
+        fastapi_only=frozenset(
+            {
+                "createdAt",
+                "deptId",
+                "isActive",
+                "permissions",
+                "perms",
+                "roles",
+                "updatedAt",
+            }
+        ),
+        django_source="drf_admin.apps.information.serializers.centre.InformationSerializer",
+        fastapi_source="app.schemas.oauth.UserProfile",
+    ),
+    FieldContract(
+        key="information_profile_update",
+        canonical=frozenset(
+            {
+                "avatar",
+                "deptName",
+                "email",
+                "gender",
+                "id",
+                "mobile",
+                "name",
+                "roleNames",
+                "username",
+            }
+        ),
+        django_only=frozenset({"createTime"}),
+        fastapi_only=frozenset(
+            {
+                "createdAt",
+                "deptId",
+                "isActive",
+                "perms",
+                "roles",
+                "updatedAt",
+            }
+        ),
+        django_source="drf_admin.apps.information.serializers.centre.InformationSerializer",
+        fastapi_source="app.schemas.oauth.UserInfo",
+    ),
+    FieldContract(
+        key="information_avatar",
+        canonical=frozenset({"avatar", "url"}),
+        django_source="drf_admin.apps.information.serializers.centre.AvatarInfoSerializer",
+        fastapi_source="app.schemas.oauth.AvatarInfo",
+    ),
+    FieldContract(
         key="users_out",
         canonical=frozenset({"avatar", "deptId", "deptName", "email", "gender", "id", "isActive", "mobile", "name", "roleNames", "roles", "username"}),
         django_only=frozenset({"dateJoined", "isSuperuser", "rolesList"}),
@@ -194,6 +259,76 @@ API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
         fastapi_source="app.schemas.system_notice.NoticePageOut",
     ),
     FieldContract(
+        key="notices_form",
+        canonical=frozenset(
+            {"content", "id", "level", "targetType", "targetUserIds", "title", "type"}
+        ),
+        django_only=frozenset(
+            {
+                "createTime",
+                "publishStatus",
+                "publishTime",
+                "publisherId",
+                "publisherName",
+                "revokeTime",
+                "updateTime",
+            }
+        ),
+        django_source="drf_admin.apps.system.serializers.notices.NoticesSerializer",
+        fastapi_source="app.schemas.system_notice.NoticeFormOut",
+    ),
+    FieldContract(
+        key="notices_detail",
+        canonical=frozenset(
+            {
+                "content",
+                "id",
+                "level",
+                "publishStatus",
+                "publishTime",
+                "publisherName",
+                "title",
+                "type",
+            }
+        ),
+        django_only=frozenset(
+            {
+                "createTime",
+                "publisherId",
+                "revokeTime",
+                "targetType",
+                "targetUserIds",
+                "updateTime",
+            }
+        ),
+        django_source="drf_admin.apps.system.serializers.notices.NoticesSerializer",
+        fastapi_source="app.schemas.system_notice.NoticeDetailOut",
+    ),
+    FieldContract(
+        key="notices_my_page",
+        canonical=frozenset(
+            {
+                "content",
+                "createTime",
+                "id",
+                "isRead",
+                "level",
+                "publishStatus",
+                "publishTime",
+                "publisherId",
+                "publisherName",
+                "revokeTime",
+                "targetType",
+                "targetUserIds",
+                "title",
+                "type",
+                "updateTime",
+            }
+        ),
+        django_source="drf_admin.apps.system.serializers.notices.NoticeMyPageSerializer",
+        fastapi_source="app.schemas.system_notice.NoticeMyPageOut",
+    ),
+    FieldContract(
         key="logs_out",
         canonical=frozenset(
             {
@@ -227,6 +362,9 @@ API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
 ENDPOINT_FIELD_CONTRACTS: dict[str, str] = {
     "auth_info": "auth_info",
     "auth_routes": "auth_routes",
+    "information_profile": "information_profile",
+    "information_profile_update": "information_profile_update",
+    "information_avatar": "information_avatar",
     "users_page": "users_out",
     "users_form": "users_form_out",
     "users_create": "users_out",
@@ -250,6 +388,9 @@ ENDPOINT_FIELD_CONTRACTS: dict[str, str] = {
     "notices_page": "notices_page",
     "notices_create": "notices_page",
     "notices_update": "notices_page",
+    "notices_form": "notices_form",
+    "notices_detail": "notices_detail",
+    "notices_my_page": "notices_my_page",
     "logs_page": "logs_out",
     "logs_detail": "logs_out",
 }

@@ -41,6 +41,36 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
         tracked_backend_contract="auth_routes",
     ),
     FrontendFieldContract(
+        key="information_profile_type",
+        frontend_source="frontend/src/api/information-api.ts",
+        required_fields=frozenset(
+            {
+                "avatar",
+                "deptName",
+                "email",
+                "gender",
+                "id",
+                "mobile",
+                "name",
+                "roleNames",
+                "username",
+            }
+        ),
+        tracked_backend_contract="information_profile",
+    ),
+    FrontendFieldContract(
+        key="information_profile_update_type",
+        frontend_source="frontend/src/api/information-api.ts",
+        required_fields=frozenset({"email", "gender", "id", "mobile", "name"}),
+        tracked_backend_contract="information_profile_update",
+    ),
+    FrontendFieldContract(
+        key="information_avatar_type",
+        frontend_source="frontend/src/api/information-api.ts",
+        required_fields=frozenset({"avatar", "url"}),
+        tracked_backend_contract="information_avatar",
+    ),
+    FrontendFieldContract(
         key="users_page_type",
         frontend_source="frontend/src/api/system/user-api.ts",
         required_fields=frozenset(
@@ -181,6 +211,53 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
             }
         ),
         tracked_backend_contract="notices_page",
+    ),
+    FrontendFieldContract(
+        key="notices_form_type",
+        frontend_source="frontend/src/api/system/notice-api.ts",
+        required_fields=frozenset(
+            {"content", "id", "level", "targetType", "targetUserIds", "title", "type"}
+        ),
+        tracked_backend_contract="notices_form",
+    ),
+    FrontendFieldContract(
+        key="notices_detail_type",
+        frontend_source="frontend/src/api/system/notice-api.ts",
+        required_fields=frozenset(
+            {
+                "content",
+                "id",
+                "level",
+                "publishStatus",
+                "publishTime",
+                "publisherName",
+                "title",
+                "type",
+            }
+        ),
+        tracked_backend_contract="notices_detail",
+    ),
+    FrontendFieldContract(
+        key="notices_my_page_type",
+        frontend_source="frontend/src/api/system/notice-api.ts",
+        required_fields=frozenset(
+            {
+                "content",
+                "id",
+                "isRead",
+                "level",
+                "publishStatus",
+                "publishTime",
+                "publisherId",
+                "publisherName",
+                "targetType",
+                "targetUserIds",
+                "title",
+                "type",
+                "updateTime",
+            }
+        ),
+        tracked_backend_contract="notices_my_page",
     ),
     FrontendFieldContract(
         key="logs_page_type",

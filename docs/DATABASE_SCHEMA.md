@@ -290,6 +290,7 @@ ai_summary:
 | user_id | int | 用户ID | Not Null |
 | read_time | datetime | 已读时间 | Auto |
 | create_time / created_at | datetime | 创建时间 | Django / FastAPI |
+| update_time / updated_at | datetime | 更新时间 | Django / FastAPI |
 
 **约束：**
 - `UNIQUE(notice_id, user_id)`

@@ -9,7 +9,7 @@ from django.utils import timezone
 from drf_admin.utils.models import BaseModel
 
 from .models_log import OperationLog  # noqa: F401  注册操作日志模型
-from .models_notice import Notices  # noqa: F401  注册通知公告模型
+from .models_notice import NoticeReads, Notices  # noqa: F401  注册通知公告模型
 
 
 # 自定义头像上传路径函数，生成随机文件名

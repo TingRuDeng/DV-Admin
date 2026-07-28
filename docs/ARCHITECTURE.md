@@ -279,6 +279,9 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 - `scripts/api_endpoint_contracts.py`：关键端点契约目录，锁定路径、方法、权限、分页和关键字段。
 - `backend/drf_admin/utils/test_response_contract.py`：Django 响应包裹契约测试。
 - `fastapi/tests/test_api_contracts.py`：FastAPI 响应与分页契约测试。
+- `backend/drf_admin/utils/runtime_api_contracts/`：通过 Django `APIClient` 执行共享端点目录中的真实路由。
+- `fastapi/tests/runtime_api_contracts/`：通过 FastAPI `TestClient` 执行同一端点目录中的真实路由。
+- `backend/drf_admin/utils/runtime_api_contracts/test_live_http_contract.py` 与 `fastapi/tests/test_live_http_contract.py`：分别启动真实 WSGI/Uvicorn 监听端口，执行登录、资料、头像、密码和通知闭环。
 - `frontend/src/utils/__tests__/api-contract.test.ts`：前端兼容读取契约测试。
 - `scripts/validate_api_contracts.py`：文档、脚本和测试入口一致性检查。
 

@@ -29,7 +29,6 @@
 </template>
 
 <script lang="ts" setup>
-import FileAPI from "@/api/file-api";
 import InformationAPI, { UserProfile, ProfileForm, PasswordForm } from "@/api/information-api";
 import { useUserStoreHook } from "@/store";
 import { createLogger } from "@/utils/logger";
@@ -66,7 +65,6 @@ const handleOpenDialog = (type: ProfileDialogType) => {
   switch (type) {
     case ProfileDialogType.ACCOUNT:
       dialog.title = "账号资料";
-      userProfileForm.id = userProfile.value.id;
       userProfileForm.name = userProfile.value.name;
       userProfileForm.gender = userProfile.value.gender;
       break;
@@ -120,15 +118,11 @@ const handleFileChange = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   const file = target.files ? target.files[0] : null;
   if (file) {
-    // 调用文件上传API
     try {
-      const data = await FileAPI.uploadFile(file);
-      // 更新用户信息
-      await InformationAPI.updateProfile({
-        avatar: data.url,
-      });
-      // 更新用户头像
-      userStore.userInfo.avatar = data.url;
+      const data = await InformationAPI.updateAvatar(file);
+      const avatarUrl = data.url ?? data.avatar;
+      userStore.userInfo.avatar = avatarUrl;
+      userProfile.value.avatar = avatarUrl;
     } catch (error) {
       profileLogger.error("头像上传失败:", error);
       ElMessage.error("头像上传失败");

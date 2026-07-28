@@ -60,7 +60,6 @@ def test_build_white_list_uses_base_api_prefix_for_public_endpoints():
         "/api/v1/oauth/menus/routes/",
         "/api/v1/oauth/refresh-token/",
         "/api/v1/system/users/profile/",
-        "/api/v1/system/notices/my-page/",
         "/api/v1/system/dict-items/",
     ]
 
