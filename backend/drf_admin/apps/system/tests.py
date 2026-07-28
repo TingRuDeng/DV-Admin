@@ -12,7 +12,7 @@ from drf_admin.apps.system.models import Departments, Permissions, Roles, Users
 from drf_admin.apps.system.test_helpers import create_admin_user
 
 
-def create_scoped_user_permission_role(data_scope, dept=None):
+def create_scoped_user_permission_role(data_scope, dept=None, permission_codes=()):
     """创建带用户查询权限的数据范围角色。"""
     role = Roles.objects.create(
         name=f"数据范围角色{data_scope}",
@@ -25,9 +25,54 @@ def create_scoped_user_permission_role(data_scope, dept=None):
         defaults={"name": "system:users:query", "type": "BUTTON"},
     )
     role.permissions.add(permission)
+    for code in permission_codes:
+        permission, _ = Permissions.objects.get_or_create(
+            perm=code,
+            defaults={"name": code, "type": "BUTTON"},
+        )
+        role.permissions.add(permission)
     if dept is not None:
         role.data_depts.add(dept)
     return role
+
+
+def create_dept_scoped_user_context(permission_codes=()):
+    """创建部门范围操作人与范围内外用户。"""
+    visible_dept = Departments.objects.create(name="范围内部门", status=1, sort=1)
+    hidden_dept = Departments.objects.create(name="范围外部门", status=1, sort=2)
+    role = create_scoped_user_permission_role(
+        Roles.DATA_SCOPE_DEPT,
+        permission_codes=permission_codes,
+    )
+    operator = Users.objects.create_user(
+        username="scope_operator",
+        password="admin123",
+        name="范围操作人",
+        dept=visible_dept,
+        is_active=1,
+    )
+    operator.roles.add(role)
+    visible_user = Users.objects.create_user(
+        username="scope_visible_user",
+        password="admin123",
+        name="范围内用户",
+        dept=visible_dept,
+        is_active=1,
+    )
+    hidden_user = Users.objects.create_user(
+        username="scope_hidden_user",
+        password="admin123",
+        name="范围外用户",
+        dept=hidden_dept,
+        is_active=1,
+    )
+    return {
+        "operator": operator,
+        "visible_dept": visible_dept,
+        "hidden_dept": hidden_dept,
+        "visible_user": visible_user,
+        "hidden_user": hidden_user,
+    }
 
 
 class UsersListTestCase(TestCase):
@@ -98,6 +143,18 @@ class UsersListTestCase(TestCase):
         usernames = {item["username"] for item in response.data["data"]["list"]}
         self.assertIn(visible_user.username, usernames)
         self.assertNotIn(hidden_user.username, usernames)
+
+    def test_user_options_follow_data_scope(self):
+        """用户下拉选项不得泄露范围外用户。"""
+        context = create_dept_scoped_user_context()
+        self.client.force_authenticate(user=context["operator"])
+
+        response = self.client.get("/api/v1/system/users/options/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        option_ids = {item["id"] for item in response.data["data"]}
+        self.assertIn(context["visible_user"].id, option_ids)
+        self.assertNotIn(context["hidden_user"].id, option_ids)
 
     def test_sensitive_user_fields_are_masked_without_plain_permission(self):
         """无字段原文权限时，用户手机号和邮箱应脱敏但字段仍保留。"""
@@ -214,6 +271,26 @@ class UsersCreateTestCase(TestCase):
         self.assertEqual(created.mobile, "13800138011")
         self.assertEqual(created.email, "plain-create@example.com")
 
+    def test_create_user_rejects_department_outside_data_scope(self):
+        """受限操作人不得把新用户放入范围外部门。"""
+        context = create_dept_scoped_user_context(("system:users:add",))
+        self.client.force_authenticate(user=context["operator"])
+
+        response = self.client.post(
+            "/api/v1/system/users/",
+            {
+                "username": "hidden_dept_create",
+                "name": "范围外创建",
+                "deptId": context["hidden_dept"].id,
+                "isActive": 1,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("目标部门超出", str(response.data))
+        self.assertFalse(Users.objects.filter(username="hidden_dept_create").exists())
+
 
 class UsersDetailTestCase(TestCase):
     """用户详情接口测试"""
@@ -298,6 +375,71 @@ class UsersDetailTestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
+    def test_hidden_user_detail_update_and_delete_return_not_found(self):
+        """范围外用户的详情和写操作统一按不存在处理。"""
+        context = create_dept_scoped_user_context(
+            ("system:users:edit", "system:users:delete"),
+        )
+        self.client.force_authenticate(user=context["operator"])
+        hidden_user = context["hidden_user"]
+
+        self.assertEqual(
+            self.client.get(f"/api/v1/system/users/{hidden_user.id}/").status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+        update_response = self.client.put(
+            f"/api/v1/system/users/{hidden_user.id}/",
+            {"username": hidden_user.username, "name": "越权更新"},
+            format="json",
+        )
+        delete_response = self.client.delete(f"/api/v1/system/users/{hidden_user.id}/")
+
+        self.assertEqual(update_response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(delete_response.status_code, status.HTTP_404_NOT_FOUND)
+        hidden_user.refresh_from_db()
+        self.assertEqual(hidden_user.name, "范围外用户")
+
+    def test_update_user_rejects_department_outside_data_scope(self):
+        """受限操作人不得把范围内用户移动到范围外部门。"""
+        context = create_dept_scoped_user_context(("system:users:edit",))
+        self.client.force_authenticate(user=context["operator"])
+        visible_user = context["visible_user"]
+
+        response = self.client.put(
+            f"/api/v1/system/users/{visible_user.id}/",
+            {
+                "username": visible_user.username,
+                "name": visible_user.name,
+                "deptId": context["hidden_dept"].id,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("目标部门超出", str(response.data))
+        visible_user.refresh_from_db()
+        self.assertEqual(visible_user.dept_id, context["visible_dept"].id)
+
+    def test_batch_delete_is_atomic_across_data_scope(self):
+        """批量目标混入范围外用户时全部拒绝。"""
+        context = create_dept_scoped_user_context(("system:users:delete",))
+        self.client.force_authenticate(user=context["operator"])
+
+        response = self.client.delete(
+            "/api/v1/system/users/",
+            {
+                "ids": [
+                    context["visible_user"].id,
+                    context["hidden_user"].id,
+                ]
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue(Users.objects.filter(id=context["visible_user"].id).exists())
+        self.assertTrue(Users.objects.filter(id=context["hidden_user"].id).exists())
+
 
 class UsersPasswordTestCase(TestCase):
     """用户密码接口测试"""
@@ -315,6 +457,19 @@ class UsersPasswordTestCase(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_reset_password_hidden_user_returns_not_found(self):
+        """不得重置范围外用户密码。"""
+        context = create_dept_scoped_user_context(("system:users:edit",))
+        self.client.force_authenticate(user=context["operator"])
+
+        response = self.client.put(
+            f"/api/v1/system/users/{context['hidden_user'].id}/password/reset/",
+            {"password": "Newpass123", "confirm_password": "Newpass123"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class UsersPermissionsTestCase(TestCase):
@@ -339,3 +494,14 @@ class UsersPermissionsTestCase(TestCase):
         self.assertIn("results", response.data["data"])
         self.assertNotIn("list", response.data["data"])
         self.assertNotIn("total", response.data["data"])
+
+    def test_hidden_user_permissions_return_not_found(self):
+        """不得通过权限详情探测范围外用户。"""
+        context = create_dept_scoped_user_context()
+        self.client.force_authenticate(user=context["operator"])
+
+        response = self.client.get(
+            f"/api/v1/system/users/{context['hidden_user'].id}/permissions/"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

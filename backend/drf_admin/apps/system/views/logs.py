@@ -3,6 +3,7 @@
 from collections import Counter
 from datetime import datetime, timedelta
 
+from django.db import transaction
 from django.db.models import Avg, Count
 from django.utils import timezone
 from rest_framework.exceptions import NotFound, ValidationError
@@ -57,7 +58,7 @@ def parse_id_list(ids: str) -> list[int]:
         parsed_ids.append(parsed_id)
     if not parsed_ids:
         raise ValidationError({"ids": "不能为空"})
-    return parsed_ids
+    return list(dict.fromkeys(parsed_ids))
 
 
 class LogPermissionAPIView(APIView):
@@ -123,7 +124,10 @@ class VisitTrendAPIView(LogPermissionAPIView):
         end = parse_optional_datetime(end_date, "endDate") or timezone.localtime()
         start = parse_optional_datetime(start_date, "startDate") or (end - timedelta(days=7))
 
-        logs = OperationLog.objects.filter(created_at__gte=start, created_at__lte=end)
+        logs = apply_log_data_scope(OperationLog.objects.all(), request.user).filter(
+            created_at__gte=start,
+            created_at__lte=end,
+        )
         counter: Counter = Counter()
         for created in logs.values_list("created_at", flat=True):
             counter[timezone.localtime(created).strftime("%Y-%m-%d")] += 1
@@ -147,7 +151,7 @@ class VisitStatsAPIView(LogPermissionAPIView):
         week_start = today_start - timedelta(days=now.weekday())
         month_start = today_start.replace(day=1)
 
-        all_logs = OperationLog.objects.all()
+        all_logs = apply_log_data_scope(OperationLog.objects.all(), request.user)
         avg_time = all_logs.filter(execution_time__gt=0).aggregate(
             avg_execution_time=Avg("execution_time")
         )["avg_execution_time"]
@@ -192,10 +196,19 @@ class LogResourceAPIView(LogPermissionAPIView):
         serializer = OperationLogSerializer(operation_log, context={"request": request})
         return Response(data=serializer.data)
 
+    @transaction.atomic
     def delete(self, request, id: int | None = None, ids: str | None = None):
         raw_ids = str(id) if id is not None else (ids or "")
         id_list = parse_id_list(raw_ids)
-        OperationLog.objects.filter(id__in=id_list).delete()
+        queryset = apply_log_data_scope(OperationLog.objects.all(), request.user).filter(
+            id__in=id_list
+        )
+        locked_ids = list(
+            queryset.select_for_update().values_list("id", flat=True)
+        )
+        if len(locked_ids) != len(id_list):
+            raise NotFound("操作日志不存在")
+        queryset.filter(id__in=locked_ids).delete()
         return Response(data={})
 
 
@@ -204,5 +217,7 @@ class LogClearAPIView(LogPermissionAPIView):
 
     def delete(self, request, days: int):
         threshold = timezone.now() - timedelta(days=int(days))
-        OperationLog.objects.filter(created_at__lt=threshold).delete()
+        apply_log_data_scope(OperationLog.objects.all(), request.user).filter(
+            created_at__lt=threshold
+        ).delete()
         return Response(data={})

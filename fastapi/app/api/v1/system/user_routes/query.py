@@ -157,7 +157,7 @@ async def get_user_options(
     request: Request,
     current_user: Users = require_permissions("system:users:query"),
 ) -> ResponseModel[list[dict]]:
-    options = await user_service.get_options()
+    options = await user_service.get_options(current_user=current_user)
     return ResponseModel.success(data=options)
 @router.get(
     "/{user_id}/",

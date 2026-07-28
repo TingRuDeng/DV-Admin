@@ -36,6 +36,7 @@ async def get_visit_trend(
     data = await log_service.get_visit_trend(
         start_date=start_date,
         end_date=end_date,
+        current_user=current_user,
     )
     return ResponseModel.success(data=data)
 
@@ -57,5 +58,5 @@ async def get_visit_stats(
     request: Request,
     current_user: Users = require_permissions("system:logs:query"),
 ):
-    data = await log_service.get_visit_stats()
+    data = await log_service.get_visit_stats(current_user=current_user)
     return ResponseModel.success(data=data)

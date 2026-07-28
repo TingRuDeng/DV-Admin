@@ -27,7 +27,9 @@ async def export_users(
     """
     导出用户
     """
-    return ResponseModel.success(data=await user_service.export_users())
+    return ResponseModel.success(
+        data=await user_service.export_users(current_user=current_user)
+    )
 @router.post(
     "/import",
     response_model=ResponseModel[UserImportResult],
@@ -121,6 +123,10 @@ async def import_users(
         return ResponseModel.error(message="文件格式错误，仅支持 .xlsx 或 .xls 格式")
 
     # 导入用户
-    result = await user_service.import_users(file.file, dept_id)
+    result = await user_service.import_users(
+        file.file,
+        dept_id,
+        current_user=current_user,
+    )
 
     return ResponseModel.success(data=result, message="导入完成")
