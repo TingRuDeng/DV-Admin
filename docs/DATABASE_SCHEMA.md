@@ -314,6 +314,7 @@ ai_summary:
 | operation | varchar(100) | 操作描述 | |
 | method | varchar(10) | 请求方法 | |
 | path | varchar(500) | 请求路径 | |
+| request_id | varchar(64) | 请求链路标识 | |
 | query_params | text | 查询参数 | |
 | request_body | text | 请求体 | |
 | response_status | int | 响应状态码 | |
@@ -332,6 +333,7 @@ ai_summary:
 - `username`
 - `status`
 - `method`
+- `request_id`
 - `(user_id, created_at)`
 - `(status, created_at)`
 

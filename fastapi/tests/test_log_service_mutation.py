@@ -88,10 +88,12 @@ class TestLogServiceCreate:
             execution_time=150,
             status=1,
             error_msg="",
+            request_id="create-log-request-id",
         )
         assert log.id is not None
         assert log.username == "create_user"
         assert log.operation == "创建操作"
+        assert log.request_id == "create-log-request-id"
 
     @pytest.mark.asyncio
     async def test_create_log_minimal(self, db):

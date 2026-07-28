@@ -200,6 +200,7 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
                 "path",
                 "queryParams",
                 "requestBody",
+                "requestId",
                 "responseBody",
                 "responseStatus",
                 "status",
