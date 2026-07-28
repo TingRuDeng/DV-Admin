@@ -54,6 +54,8 @@ export interface LogPageVO {
   operation: string;
   /** 请求路径 */
   path: string;
+  /** 请求 ID */
+  requestId: string;
   /** 查询参数 */
   queryParams: string;
   /** 请求方法 */

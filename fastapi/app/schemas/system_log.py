@@ -32,6 +32,7 @@ class OperationLogOut(TimestampSchema):
     operation: str = Field(default="", description="操作描述")
     method: str = Field(default="", description="请求方法")
     path: str = Field(default="", description="请求路径")
+    request_id: str = Field(default="", description="请求ID")
     query_params: str = Field(default="", description="查询参数")
     request_body: str = Field(default="", description="请求体")
     response_status: int = Field(default=0, description="响应状态码")

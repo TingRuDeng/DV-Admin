@@ -43,6 +43,18 @@ def mask_sensitive_data(data: Any, depth: int = 0) -> Any:
         return data
 
 
+def summarize_error_response(data: Any, status_code: int) -> str:
+    """从统一错误响应中提取适合审计检索的简短摘要。"""
+    if isinstance(data, dict):
+        for key in ("message", "msg", "errors", "detail", "error"):
+            value = data.get(key)
+            if value not in (None, "", [], {}):
+                return str(value)[:1000]
+    if data not in (None, "", [], {}):
+        return str(data)[:1000]
+    return f"HTTP {status_code}"
+
+
 class OperationLogMiddleware:
     """
     操作日志记录中间件
@@ -94,7 +106,15 @@ class OperationLogMiddleware:
         else:
             logger.info(log_info)
 
-        self._persist_operation_log(request, response, request_body, request_ip, execution_time)
+        self._persist_operation_log(
+            request,
+            response,
+            request_body,
+            response_body,
+            request_ip,
+            request_id,
+            execution_time,
+        )
 
         return response
 
@@ -103,7 +123,9 @@ class OperationLogMiddleware:
         request: HttpRequest,
         response: HttpResponse,
         request_body: Any,
+        response_body: Any,
         request_ip: str,
+        request_id: str,
         execution_time: int,
     ) -> None:
         """将写操作落库到 OperationLog；任何失败都不得影响主请求。"""
@@ -126,14 +148,23 @@ class OperationLogMiddleware:
                 name=getattr(user, "name", "") if authenticated else "",
                 method=request.method,
                 path=request.path[:500],
+                request_id=request_id[:64],
                 query_params=self._truncate_log(dict(request.GET)),
                 request_body=self._truncate_log(request_body),
                 response_status=response.status_code,
+                response_body=(
+                    self._truncate_log(response_body) if response.status_code >= 400 else ""
+                ),
                 ip=(request_ip or "")[:50],
                 browser=browser[:100],
                 os=os_family[:100],
                 execution_time=execution_time,
                 status=1 if response.status_code < 400 else 0,
+                error_msg=(
+                    summarize_error_response(response_body, response.status_code)
+                    if response.status_code >= 400
+                    else ""
+                ),
             )
         except Exception as exc:  # noqa: BLE001  审计落库失败不能影响业务请求
             logging.error(f"操作日志落库失败: {exc}, 请求URL：{request.path}")

@@ -22,6 +22,7 @@ class OperationLog(BaseModel):
     operation = fields.CharField(max_length=100, default="", description="操作描述")
     method = fields.CharField(max_length=10, default="", description="请求方法")
     path = fields.CharField(max_length=500, default="", description="请求路径")
+    request_id = fields.CharField(max_length=64, default="", description="请求ID")
     query_params = fields.TextField(default="", description="查询参数")
 
     request_body = fields.TextField(default="", description="请求体")
@@ -44,6 +45,7 @@ class OperationLog(BaseModel):
             Index(fields=("username",)),
             Index(fields=("status",)),
             Index(fields=("method",)),
+            Index(fields=("request_id",)),
             Index(fields=("user_id", "created_at")),
             Index(fields=("status", "created_at")),
         )

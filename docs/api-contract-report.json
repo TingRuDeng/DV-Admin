@@ -919,6 +919,7 @@
         "id",
         "method",
         "path",
+        "requestId",
         "responseStatus",
         "status",
         "errorMsg"

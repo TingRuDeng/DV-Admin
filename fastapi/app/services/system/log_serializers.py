@@ -20,6 +20,7 @@ def operation_log_to_out(log: OperationLog, can_view_plain: bool = True) -> Oper
         operation=log.operation,
         method=log.method,
         path=log.path,
+        request_id=log.request_id,
         query_params=log.query_params,
         request_body=request_body,
         response_status=log.response_status,

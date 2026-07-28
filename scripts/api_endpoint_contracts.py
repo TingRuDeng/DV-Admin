@@ -212,7 +212,15 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         method="GET",
         path="/api/v1/system/logs/{id}",
         auth_required=True,
-        response_fields=("id", "method", "path", "responseStatus", "status", "errorMsg"),
+        response_fields=(
+            "id",
+            "method",
+            "path",
+            "requestId",
+            "responseStatus",
+            "status",
+            "errorMsg",
+        ),
         permissions=("system:logs:query",),
         evidence=(
             ContractEvidence(

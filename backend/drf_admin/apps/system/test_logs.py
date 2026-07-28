@@ -51,19 +51,43 @@ class OperationLogPersistenceTestCase(TestCase):
         self.user = create_admin_user()
         self.client.force_authenticate(user=self.user)
 
-    def test_post_request_is_persisted(self):
-        """POST 写操作必须落库一条操作日志，并记录用户与方法。"""
+    def test_post_request_is_persisted_with_request_id(self):
+        """POST 写操作必须落库，并持久化响应头对应的 request id。"""
         before = OperationLog.objects.count()
-        self.client.post(
+        response = self.client.post(
             "/api/v1/system/dicts/",
             {"name": "测试字典", "dictCode": "test_log_dict", "status": 1},
             format="json",
+            HTTP_X_REQUEST_ID="django-audit-request-id",
         )
         logs = OperationLog.objects.filter(method="POST", path__contains="/system/dicts")
         self.assertTrue(logs.exists())
         self.assertGreater(OperationLog.objects.count(), before)
         log = logs.first()
         self.assertEqual(log.username, self.user.username)
+        self.assertEqual(response["X-Request-ID"], "django-audit-request-id")
+        self.assertEqual(log.request_id, "django-audit-request-id")
+        self.assertEqual(log.error_msg, "")
+        self.assertEqual(log.response_body, "")
+
+    def test_failed_post_persists_error_summary_and_response_body(self):
+        """失败写操作必须记录可定位且已脱敏的错误摘要。"""
+        response = self.client.post(
+            "/api/v1/system/dicts/",
+            {"name": "", "dictCode": "", "password": "must-not-leak"},
+            format="json",
+            HTTP_X_REQUEST_ID="django-audit-failure-id",
+        )
+
+        self.assertGreaterEqual(response.status_code, 400)
+        log = OperationLog.objects.filter(method="POST", path__contains="/system/dicts").latest(
+            "created_at"
+        )
+        self.assertEqual(log.request_id, "django-audit-failure-id")
+        self.assertEqual(log.status, 0)
+        self.assertTrue(log.error_msg)
+        self.assertTrue(log.response_body)
+        self.assertNotIn("must-not-leak", log.response_body)
 
     def test_get_request_is_not_persisted(self):
         """GET 读请求不落库，避免审计表被轮询淹没。"""
@@ -98,6 +122,7 @@ class OperationLogPageTestCase(TestCase):
         self.assertEqual(data["total"], 4)
         self.assertIn("createdAt", data["list"][0])
         self.assertIn("executionTime", data["list"][0])
+        self.assertIn("requestId", data["list"][0])
 
     def test_page_filters_by_operation_keyword(self):
         """按 operation 关键字过滤。"""
@@ -117,6 +142,7 @@ class OperationLogPageTestCase(TestCase):
         self.assertEqual(data["id"], log.id)
         self.assertEqual(data["operation"], "删除角色")
         self.assertIn("responseStatus", data)
+        self.assertIn("requestId", data)
 
     def test_detail_returns_404_for_missing_log(self):
         """不存在或不可见的日志统一返回 404。"""
