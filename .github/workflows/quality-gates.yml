@@ -40,9 +40,13 @@ jobs:
           python3 scripts/validate_model_contracts.py .
           python3 scripts/validate_route_components.py .
           python3 scripts/validate_django_migrations.py .
+          python3 -m unittest discover -s tests -p "test_dependency_audit.py"
       - name: Install dependencies
         working-directory: frontend
         run: pnpm install --frozen-lockfile
+      - name: Audit production dependencies
+        working-directory: frontend
+        run: pnpm run audit:prod
       - name: Run quality checks
         working-directory: frontend
         run: pnpm run quality
@@ -80,7 +84,7 @@ jobs:
         run: python -m pip install --upgrade pip uv
       - name: Install dependencies
         working-directory: backend
-        run: uv sync --group dev
+        run: uv sync --frozen --group dev
       - name: Create .env.test
         working-directory: backend
         run: |
@@ -138,7 +142,7 @@ jobs:
         run: python -m pip install --upgrade pip uv
       - name: Install dependencies
         working-directory: fastapi
-        run: uv sync --group dev
+        run: uv sync --frozen --group dev
       - name: Create .env
         working-directory: fastapi
         run: |
