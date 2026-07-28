@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import re
 from contextvars import ContextVar
 from uuid import uuid4
 
@@ -8,6 +9,7 @@ from django.http import HttpRequest, HttpResponse
 REQUEST_ID_HEADER = "X-Request-ID"
 REQUEST_ID_META_KEY = "HTTP_X_REQUEST_ID"
 MAX_REQUEST_ID_LENGTH = 64
+REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
 
 _request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
 
@@ -27,11 +29,18 @@ def clear_request_id() -> None:
     _request_id_var.set(None)
 
 
+def normalize_request_id(value: object) -> str:
+    """只接受可安全写入响应头和单行日志的有界 request id。"""
+    candidate = str(value).strip()[:MAX_REQUEST_ID_LENGTH] if value else ""
+    if candidate and REQUEST_ID_PATTERN.fullmatch(candidate):
+        return candidate
+    return ""
+
+
 def _resolve_request_id(request: HttpRequest) -> str:
     """优先复用客户端传入的 request id，缺失时生成新的链路标识。"""
-    request_id = request.META.get(REQUEST_ID_META_KEY)
-    normalized_request_id = (
-        str(request_id).strip()[:MAX_REQUEST_ID_LENGTH] if request_id else ""
+    normalized_request_id = normalize_request_id(
+        request.META.get(REQUEST_ID_META_KEY)
     )
     return normalized_request_id or uuid4().hex
 

@@ -87,6 +87,20 @@ def test_compose_waits_for_single_migration_service_before_fastapi_start():
     assert "condition: service_completed_successfully" in docker_compose
 
 
+def test_production_compose_requires_secrets_and_uses_immutable_image():
+    docker_compose = (
+        REPOSITORY_ROOT / "fastapi" / "docker" / "docker-compose.yml"
+    ).read_text()
+
+    assert "${DATABASE_URL:?" in docker_compose
+    assert "${SECRET_KEY:?" in docker_compose
+    assert "${DEFAULT_PASSWORD:?" in docker_compose
+    assert "${MYSQL_ROOT_PASSWORD:?" in docker_compose
+    assert "your-secret-key-here" not in docker_compose
+    assert "--reload" not in docker_compose
+    assert "../app:/app/app" not in docker_compose
+
+
 def test_model_indexes_are_serializable_by_migration_writer():
     for model in MODELS:
         assert all(isinstance(index, Index) for index in model.Meta.indexes)
