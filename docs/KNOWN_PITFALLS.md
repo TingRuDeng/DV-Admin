@@ -178,8 +178,11 @@ uv run python manage.py migrate --env dev
 1. 收到 401 错误
 2. 检查是否有 Refresh Token
 3. 使用 Refresh Token 获取新的 Access Token
-4. 重试原请求
-5. 如果刷新失败，跳转登录页
+4. 保存后端轮换返回的新 Refresh Token；旧令牌不能再次使用
+5. 原请求只重试一次
+6. 如果刷新失败或重试后仍返回 `40001`，跳转登录页
+
+FastAPI 多实例部署必须保持 Redis 可用，才能跨进程原子消费 Refresh Token；Redis 未初始化时的内存降级只用于非生产单进程。生产环境 Redis 未初始化或命令执行失败时，刷新流程都失败关闭，不签发新令牌。
 
 **相关代码：**
 - 前端：`frontend/src/composables/auth/useTokenRefresh.ts`

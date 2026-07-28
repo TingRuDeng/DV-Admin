@@ -257,6 +257,8 @@ POST /api/v1/oauth/refresh-token/
 
 **注意：** Django 后端已统一使用 `/refresh-token/` 接口，与 FastAPI 保持一致。
 
+两套后端都执行 Refresh Token 轮换：刷新成功后返回新的 `refreshToken`，旧令牌立即失效且再次使用返回 `40002`。前端只允许原请求在刷新成功后重试一次；若重试仍返回 `40001`，立即结束刷新链并跳转登录页。
+
 ---
 
 ### 获取用户信息

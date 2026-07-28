@@ -14,7 +14,10 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from drf_admin.apps.oauth.serializers.token_serializers import CustomTokenObtainPairSerializer
+from drf_admin.apps.oauth.serializers.token_serializers import (
+    CustomTokenObtainPairSerializer,
+    SingleUseTokenRefreshSerializer,
+)
 from drf_admin.apps.system.models import Users
 
 logger = logging.getLogger("info")
@@ -194,16 +197,14 @@ class RefreshTokenAPIView(APIView):
             )
 
         try:
-            # 验证并解码刷新令牌
-            token = RefreshToken(refresh_token)
+            serializer = SingleUseTokenRefreshSerializer(data={"refresh": refresh_token})
+            serializer.is_valid(raise_exception=True)
+            token_data = serializer.validated_data
 
-            # 生成新的访问令牌
-            access_token = token.access_token
-
-            # 返回新的令牌（兼容 FastAPI 格式）
+            # 复用 SimpleJWT 的轮换与拉黑策略，并映射为双后端共享字段。
             data = {
-                "accessToken": str(access_token),
-                "refreshToken": str(token),
+                "accessToken": token_data["access"],
+                "refreshToken": token_data["refresh"],
                 "tokenType": "bearer",
                 "expiresIn": settings.SIMPLE_JWT.get("ACCESS_TOKEN_LIFETIME", 300).total_seconds(),
             }
@@ -212,6 +213,6 @@ class RefreshTokenAPIView(APIView):
         except Exception as e:
             logger.warning(f"Token refresh failed: {str(e)}")
             return Response(
-                {"detail": "无效的刷新令牌", "code": "token_not_valid"},
+                {"detail": "无效的刷新令牌", "code": "refresh_token_not_valid"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
