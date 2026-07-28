@@ -4,6 +4,7 @@
 from datetime import datetime, timedelta
 from typing import Any
 
+from tortoise.expressions import RawSQL
 from tortoise.functions import Avg, Count
 from tortoise.queryset import QuerySet
 from tortoise.transactions import in_transaction
@@ -16,7 +17,8 @@ from app.services.system.data_scope import apply_log_data_scope
 from app.services.system.field_permission import LOG_FIELD_PLAIN_PERMISSION, can_view_plain_fields
 from app.services.system.log_serializers import operation_log_to_out
 from app.services.system.log_stats_helpers import (
-    build_visit_trend,
+    build_visit_trend_from_counts,
+    validate_visit_trend_range,
 )
 from app.services.system.log_time import local_now, normalize_local_time
 
@@ -104,15 +106,25 @@ class LogService:
             end_date = local_now()
         else:
             end_date = normalize_local_time(end_date)
+        validate_visit_trend_range(start_date, end_date)
 
-        # 按日期分组统计
+        # 数据库端按日期聚合，返回规模最多为受限日期范围内的每日一行。
         query = await apply_log_data_scope(OperationLog.all(), current_user)
-        logs = await query.filter(
-            created_at__gte=start_date,
-            created_at__lte=end_date,
-        ).all()
+        rows = (
+            await query.filter(
+                created_at__gte=start_date,
+                created_at__lte=end_date,
+            )
+            .annotate(
+                visit_date=RawSQL("DATE(created_at)"),
+                visit_count=Count("id"),
+            )
+            .group_by("visit_date")
+            .order_by("visit_date")
+            .values("visit_date", "visit_count")
+        )
 
-        return build_visit_trend(logs, start_date, end_date)
+        return build_visit_trend_from_counts(rows, start_date, end_date)
 
     async def get_visit_stats(
         self,

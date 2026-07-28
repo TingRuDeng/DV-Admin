@@ -472,7 +472,7 @@ GET    /api/v1/system/notices/my-page/       # 我的通知，支持 pageNum/pag
 ```
 GET    /api/v1/system/logs/page                    # 日志分页，支持 pageNum/pageSize/operation/username/method/status/startTime/endTime
 GET    /api/v1/system/logs/{id}                    # 日志详情
-GET    /api/v1/system/logs/visit-trend             # 访问趋势
+GET    /api/v1/system/logs/visit-trend             # 访问趋势，支持 startDate/endDate，最多 366 个自然日
 GET    /api/v1/system/logs/visit-stats             # 访问统计
 DELETE /api/v1/system/logs/{ids}                   # 删除日志
 DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
@@ -486,6 +486,7 @@ DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
 - Django 权限码 `system:logs:query` / `system:logs:delete` 与 FastAPI 一致；`/logs/page` 和 `/logs/{id}` 字段集合由双后端字段契约 `logs_out` 锁定。
 - `/logs/page` 与 `/logs/{id}` 输出中的 `requestBody/responseBody/ip` 默认保留字段但返回脱敏值；拥有 `system:logs:field:plain` 或 `is_superuser` 时返回原文。
 - `/logs/page`、`/logs/{id}`、`/logs/visit-trend`、`/logs/visit-stats`、删除和历史清理统一复用日志数据范围；不在当前用户可见范围内的 ID 按不存在处理。
+- `/logs/visit-trend` 两端均在数据库按日聚合并为缺失日期补 0；反向区间或超过 366 个自然日的查询返回 400。FastAPI 以 `startDate/endDate` 为公开参数，并在过渡期兼容 `start_date/end_date`。
 - 批量删除日志采用全有或全无语义，任一 ID 不存在或不可见时不删除任何目标；历史清理只清理当前用户范围内的日志。
 - `/logs/page` 与 `/logs/{id}` 返回 `requestId`，详情页可据此关联响应头和结构化运行日志；当前尚未提供按请求 ID 的服务端筛选。
 - Django 对非法 `status/pageNum/pageSize/startTime/endTime/startDate/endDate/ids` 会返回 400，避免把外部输入解析错误暴露为 500；FastAPI 侧通过 Query/Path 类型约束处理同类入参。
@@ -503,7 +504,7 @@ PUT  /api/v1/information/password       # 修改密码
 POST /api/v1/information/change-avatar/ # 上传头像，multipart 字段为 file
 ```
 
-修改密码请求字段统一为 `oldPassword/newPassword/confirmPassword`，头像响应统一包含 `avatar/url`。Django 暂时保留 `change-information/`、`change-password/` 以及旧密码字段作为兼容入口，但共享前端不再依赖这些旧接口。
+修改密码请求字段统一为 `oldPassword/newPassword/confirmPassword`，头像响应统一包含 `avatar/url`，头像文件上限为 2 MiB。Django 暂时保留 `change-information/`、`change-password/` 以及旧密码字段作为兼容入口，但共享前端不再依赖这些旧接口。
 
 ---
 
@@ -515,7 +516,9 @@ POST   /api/v1/files/   # 上传文件，返回 name/url/path
 DELETE /api/v1/files/?filePath=files/{user_id}/{filename}   # 删除当前用户文件
 ```
 
-> 删除接口的 `filePath` 必须使用上传响应 `data.path`，不能传完整 `data.url`。
+> FastAPI 通用上传和用户 Excel 导入使用 `MAX_UPLOAD_SIZE`（默认 10 MiB）作为硬上限，并分块写入有界临时文件；超限时不会留下部分目标文件。删除接口的 `filePath` 必须使用上传响应 `data.path`，不能传完整 `data.url`。
+
+用户 Excel 导入的公开部门查询参数为 `deptId`；FastAPI 在过渡期兼容 `dept_id`。`MAX_UPLOAD_SIZE` 必须为正整数，非法配置会在应用启动时拒绝加载。
 
 ---
 

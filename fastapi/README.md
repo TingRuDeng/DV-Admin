@@ -180,6 +180,7 @@ FastAPI 后端保持与原有 Django 前端 API 接口完全兼容：
 | `LOG_FORMAT` | 日志格式（json/text） | `json` |
 | `SLOW_QUERY_THRESHOLD_MS` | 慢查询阈值（毫秒） | `1000` |
 | `CACHE_TTL` | 缓存过期时间（秒） | `300` |
+| `MAX_UPLOAD_SIZE` | 通用上传和用户 Excel 导入的文件上限（字节） | `10485760` |
 
 ### 安全配置
 
@@ -191,7 +192,8 @@ python -c "import secrets; print(secrets.token_urlsafe(64))"
 
 # .env 配置
 APP_ENV=production
-SECRET_KEY=your-generated-secret-key-here
+# 必须粘贴上面命令生成的随机值，不要使用示例占位文本
+SECRET_KEY=<paste-generated-random-value-here>
 DEBUG=false
 DEFAULT_PASSWORD=YourStrongPassword@123
 ```

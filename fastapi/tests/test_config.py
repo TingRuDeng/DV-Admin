@@ -48,6 +48,17 @@ class TestConfig:
         assert hasattr(settings, "access_token_expire_minutes")
         assert settings.access_token_expire_minutes > 0
 
+    def test_max_upload_size_must_be_positive(self):
+        """上传上限配置不能为零或负数，否则所有非空文件都会被拒绝。"""
+        from app.core.config import Settings
+
+        with pytest.raises(ValidationError, match="MAX_UPLOAD_SIZE"):
+            Settings(
+                _env_file=None,
+                DEFAULT_PASSWORD="ChangeMe!2026",
+                MAX_UPLOAD_SIZE=0,
+            )
+
     def test_allowed_origins(self):
         """测试允许的源"""
         assert hasattr(settings, "allowed_origins")
