@@ -32,6 +32,7 @@ class LogService:
         page_size: int,
         username: str | None = None,
         operation: str | None = None,
+        request_id: str | None = None,
         method: str | None = None,
         status: int | None = None,
         start_time: datetime | None = None,
@@ -46,6 +47,8 @@ class LogService:
             query = query.filter(username__icontains=username)
         if operation:
             query = query.filter(operation__icontains=operation)
+        if request_id:
+            query = query.filter(request_id=request_id)
         if method:
             query = query.filter(method=method.upper())
         if status is not None:

@@ -40,6 +40,18 @@ class TestLogServiceGetPage:
         assert result.total >= 1
 
     @pytest.mark.asyncio
+    async def test_get_page_with_exact_request_id(self, db, test_logs):
+        """请求 ID 使用精确匹配。"""
+        result = await log_service.get_page(
+            page=1,
+            page_size=10,
+            request_id="service-request-1",
+        )
+
+        assert result.total == 1
+        assert result.list[0].request_id == "service-request-1"
+
+    @pytest.mark.asyncio
     async def test_get_page_with_method(self, db, test_logs):
         """测试按请求方法过滤。"""
         result = await log_service.get_page(page=1, page_size=10, method="GET")

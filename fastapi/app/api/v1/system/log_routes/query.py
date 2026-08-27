@@ -29,6 +29,7 @@ router = APIRouter()
 - `pageSize` (可选): 每页数量，默认 10，范围 1-100
 - `username` (可选): 用户名，模糊匹配
 - `operation` (可选): 操作描述，模糊匹配
+- `requestId` (可选): 请求 ID，精确匹配
 - `method` (可选): 请求方法（GET/POST/PUT/DELETE/PATCH）
 - `status` (可选): 状态（1: 成功, 0: 失败）
 - `startTime` (可选): 开始时间，ISO 8601 格式
@@ -43,6 +44,12 @@ async def get_log_page(
     pagination: PaginationParams = Depends(page_params),
     username: str | None = Query(None, description="用户名"),
     operation: str | None = Query(None, description="操作描述"),
+    request_id: str | None = Query(
+        None,
+        alias="requestId",
+        max_length=64,
+        description="请求 ID（精确匹配）",
+    ),
     method: str | None = Query(None, description="请求方法"),
     status: int | None = Query(None, description="状态"),
     start_time: datetime | None = Query(None, alias="startTime", description="开始时间"),
@@ -54,6 +61,7 @@ async def get_log_page(
         page_size=pagination.page_size,
         username=username,
         operation=operation,
+        request_id=request_id,
         method=method,
         status=status,
         start_time=start_time,
