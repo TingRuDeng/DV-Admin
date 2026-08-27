@@ -82,9 +82,9 @@ class DependencyAuditTests(unittest.TestCase):
             encoding="utf-8"
         )
 
-        self.assertEqual(package_json["packageManager"], "pnpm@11.21.0")
+        self.assertEqual(package_json["packageManager"], "pnpm@10.34.5")
         self.assertNotIn("pnpm", package_json)
-        self.assertIn("version: 11.21.0", workflow)
+        self.assertIn("version: 10.34.5", workflow)
         self.assertEqual(workspace_overrides, lock_overrides)
         for dependency in ('"@parcel/watcher"', "es5-ext", "esbuild", "msw", "vue-demi"):
             self.assertIn(f"  {dependency}: true", workspace)
