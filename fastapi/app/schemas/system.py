@@ -2,7 +2,7 @@
 系统管理 Schema 兼容导出入口
 """
 
-from app.schemas.system_common import BulkDelete, UserImportResult
+from app.schemas.system_common import BulkDelete, EncodedFile, UserImportResult
 from app.schemas.system_dept import DeptCreate, DeptOut, DeptTree, DeptUpdate
 from app.schemas.system_dict import (
     DictDataCreate,
@@ -54,6 +54,7 @@ __all__ = [
     "DictItemOut",
     "DictItemUpdate",
     "DictWithItems",
+    "EncodedFile",
     "MenuCreate",
     "MenuOut",
     "MenuTree",

@@ -1,18 +1,4 @@
 {
   "version": 1,
-  "exemptions": [
-    {
-      "id": "GHSA-mh99-v99m-4gvg",
-      "package": "brace-expansion",
-      "paths": [
-        ".>exceljs>archiver>archiver-utils>glob>minimatch>brace-expansion",
-        ".>exceljs>archiver>readdir-glob>minimatch>brace-expansion"
-      ],
-      "introducedAt": "2026-07-28",
-      "expiresAt": "2026-08-31",
-      "owner": "DV-Admin Team",
-      "reason": "ExcelJS 4.4.0 暂无兼容升级；受影响链路属于浏览器未使用的 Node 归档 glob，且业务不接收用户 glob 表达式。",
-      "tracking": "docs/TECH_DEBT.md#12-前端生产依赖临时安全豁免"
-    }
-  ]
+  "exemptions": []
 }

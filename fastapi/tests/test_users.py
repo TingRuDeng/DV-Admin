@@ -29,10 +29,8 @@ def test_reset_password_accepts_put_method(auth_client: TestClient, test_user):
     assert data.get("code") == 20000
 
 
-def test_import_template_returns_csv(client: TestClient):
-    """
-    测试导入模板接口返回CSV格式
-    """
+def test_import_template_returns_xlsx(client: TestClient):
+    """测试导入模板接口返回 xlsx 契约。"""
     response = client.get(
         "/api/v1/system/users/template",
         headers={"Authorization": "Bearer test-token"}
@@ -50,7 +48,10 @@ def test_import_template_returns_csv(client: TestClient):
     result = data.get("data", {})
     assert "filename" in result, "Response should contain filename"
     assert "content" in result, "Response should contain content"
-    assert result["filename"].endswith(".csv"), "Filename should end with .csv"
+    assert result["filename"].endswith(".xlsx"), "Filename should end with .xlsx"
+    assert result["contentType"] == (
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
 
 def test_export_returns_csv(client: TestClient):
@@ -75,3 +76,4 @@ def test_export_returns_csv(client: TestClient):
     assert "filename" in result, "Response should contain filename"
     assert "content" in result, "Response should contain content"
     assert result["filename"].endswith(".csv"), "Filename should end with .csv"
+    assert result["contentType"] == "text/csv;charset=utf-8"

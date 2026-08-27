@@ -87,6 +87,18 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
         tracked_backend_contract="users_form_out",
     ),
     FrontendFieldContract(
+        key="users_encoded_file_type",
+        frontend_source="frontend/src/api/system/user-api.ts",
+        required_fields=frozenset({"filename", "content", "contentType"}),
+        tracked_backend_contract="encoded_file",
+    ),
+    FrontendFieldContract(
+        key="users_import_result_type",
+        frontend_source="frontend/src/api/system/user-api.ts",
+        required_fields=frozenset({"validCount", "invalidCount", "messageList"}),
+        tracked_backend_contract="user_import_result",
+    ),
+    FrontendFieldContract(
         key="roles_page_type",
         frontend_source="frontend/src/api/system/role-api.ts",
         required_fields=frozenset(

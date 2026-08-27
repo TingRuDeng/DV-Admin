@@ -23,6 +23,9 @@ REQUIRED_ENDPOINT_KEYS = {
     "users_create",
     "users_update",
     "users_delete",
+    "users_template",
+    "users_import",
+    "users_export",
     "roles_page",
     "roles_create",
     "roles_update",
@@ -173,6 +176,86 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("users", "UsersViewSet")),
             ContractEvidence("fastapi/app/api/v1/system/user_routes/mutation.py", ("@router.delete", "system:users:delete")),
             ContractEvidence("frontend/src/api/system/user-api.ts", ("deleteByIds", 'method: "delete"')),
+        ),
+    ),
+    EndpointContract(
+        key="users_template",
+        method="GET",
+        path="/api/v1/system/users/template",
+        auth_required=True,
+        response_fields=("filename", "content", "contentType"),
+        permissions=("system:users:import",),
+        evidence=(
+            ContractEvidence(
+                "backend/drf_admin/apps/system/urls.py",
+                ("users/template", "UserImportTemplateAPIView"),
+            ),
+            ContractEvidence(
+                "backend/drf_admin/apps/system/views/users.py",
+                ("UserImportTemplateAPIView", '"get": "import"'),
+            ),
+            ContractEvidence(
+                "fastapi/app/api/v1/system/user_routes/import_export.py",
+                ('@router.get("/template"', "system:users:import"),
+            ),
+            ContractEvidence(
+                "frontend/src/api/system/user-api.ts",
+                ("downloadTemplate", 'method: "get"'),
+            ),
+        ),
+    ),
+    EndpointContract(
+        key="users_import",
+        method="POST",
+        path="/api/v1/system/users/import",
+        auth_required=True,
+        query_params=("deptId",),
+        request_fields=("file",),
+        response_fields=("validCount", "invalidCount", "messageList"),
+        permissions=("system:users:import",),
+        evidence=(
+            ContractEvidence(
+                "backend/drf_admin/apps/system/urls.py",
+                ("users/import", "UserImportAPIView"),
+            ),
+            ContractEvidence(
+                "backend/drf_admin/apps/system/views/users.py",
+                ("UserImportAPIView", '"post": "import"', 'get("deptId"'),
+            ),
+            ContractEvidence(
+                "fastapi/app/api/v1/system/user_routes/import_export.py",
+                ('@router.post(', 'alias="deptId"', "system:users:import"),
+            ),
+            ContractEvidence(
+                "frontend/src/api/system/user-api.ts",
+                ('formData.append("file"', "deptId", 'method: "post"'),
+            ),
+        ),
+    ),
+    EndpointContract(
+        key="users_export",
+        method="POST",
+        path="/api/v1/system/users/export/",
+        auth_required=True,
+        response_fields=("filename", "content", "contentType"),
+        permissions=("system:users:export",),
+        evidence=(
+            ContractEvidence(
+                "backend/drf_admin/apps/system/urls.py",
+                ("users/export/", "UserExportAPIView"),
+            ),
+            ContractEvidence(
+                "backend/drf_admin/apps/system/views/users.py",
+                ("UserExportAPIView", '"post": "export"'),
+            ),
+            ContractEvidence(
+                "fastapi/app/api/v1/system/user_routes/import_export.py",
+                ('@router.post("/export/"', "system:users:export"),
+            ),
+            ContractEvidence(
+                "frontend/src/api/system/user-api.ts",
+                ('url: `${USER_BASE_URL}/export/`', 'method: "post"'),
+            ),
         ),
     ),
     *ROLE_ENDPOINT_CONTRACTS,

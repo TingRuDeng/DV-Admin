@@ -29,36 +29,42 @@ class UserImportExportMixin(UserImportParserMixin):
     ) -> UserImportResult:
         """导入 Excel 用户数据，并返回成功和失败明细。"""
         worksheet = self._load_import_worksheet(file)
-        columns = self._parse_import_columns(worksheet)
-        context = await self._build_import_context()
-        visible_dept_ids = await get_visible_department_ids(current_user)
-        can_write_sensitive = await can_write_sensitive_user_fields(current_user)
-        users_to_create: list[ImportRowResult] = []
-        messages: list[str] = []
-        invalid_count = 0
+        try:
+            columns = self._parse_import_columns(worksheet)
+            context = await self._build_import_context()
+            visible_dept_ids = await get_visible_department_ids(current_user)
+            can_write_sensitive = await can_write_sensitive_user_fields(current_user)
+            users_to_create: list[ImportRowResult] = []
+            messages: list[str] = []
+            invalid_count = 0
 
-        for row_idx, row in enumerate(worksheet.iter_rows(min_row=2, values_only=True), start=2):
-            row_result = self._parse_import_row(
-                row_idx,
-                row,
-                columns,
-                dept_id,
-                context,
-                messages,
-                visible_dept_ids=visible_dept_ids,
-                can_write_sensitive=can_write_sensitive,
+            for row_idx, row in enumerate(
+                worksheet.iter_rows(min_row=2, values_only=True),
+                start=2,
+            ):
+                row_result = self._parse_import_row(
+                    row_idx,
+                    row,
+                    columns,
+                    dept_id,
+                    context,
+                    messages,
+                    visible_dept_ids=visible_dept_ids,
+                    can_write_sensitive=can_write_sensitive,
+                )
+                if row_result:
+                    users_to_create.append(row_result)
+                else:
+                    invalid_count += 1
+
+            await self._save_import_users(users_to_create, context.all_roles)
+            return UserImportResult(
+                valid_count=len(users_to_create),
+                invalid_count=invalid_count,
+                message_list=messages,
             )
-            if row_result:
-                users_to_create.append(row_result)
-            else:
-                invalid_count += 1
-
-        await self._save_import_users(users_to_create, context.all_roles)
-        return UserImportResult(
-            valid_count=len(users_to_create),
-            invalid_count=invalid_count,
-            message_list=messages,
-        )
+        finally:
+            worksheet.parent.close()
 
     async def get_import_template(self) -> dict[str, Any]:
         """获取用户导入模板。"""
@@ -84,6 +90,7 @@ class UserImportExportMixin(UserImportParserMixin):
         return {
             "filename": "用户导入模板.xlsx",
             "content": b64_content,
+            "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         }
 
     async def export_users(
@@ -108,10 +115,13 @@ class UserImportExportMixin(UserImportParserMixin):
         for user in users:
             writer.writerow(self._build_export_row(user, can_view_plain))
 
-        b64_content = base64.b64encode(buffer.getvalue().encode("utf-8")).decode("utf-8")
+        b64_content = base64.b64encode(("\ufeff" + buffer.getvalue()).encode("utf-8")).decode(
+            "utf-8"
+        )
         return {
             "filename": "用户导出.csv",
             "content": b64_content,
+            "content_type": "text/csv;charset=utf-8",
         }
 
     def _template_column_widths(self) -> dict[str, int]:

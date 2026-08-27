@@ -349,7 +349,7 @@ PUT  /api/v1/system/users/{id}/password/reset/  # 重置密码
 GET  /api/v1/system/users/{id}/permissions/     # 用户权限ID列表
 ```
 
-**FastAPI 扩展端点：**
+**Django & FastAPI：**
 ```
 GET  /api/v1/system/users/template              # 用户导入模板
 POST /api/v1/system/users/import                # 导入用户
@@ -361,7 +361,8 @@ POST /api/v1/system/users/export/               # 导出用户
 > 后台用户创建/更新请求中显式写入非空 `mobile/email` 时，需要 `system:users:field:write` 或 `is_superuser`。
 > 用户列表、详情、下拉选项、权限查询、状态更新、密码重置和删除均受角色数据范围约束；范围外 ID 按不存在处理。批量删除采用全有或全无语义，任一 ID 不存在或不可见时不删除任何目标。
 > 创建用户或显式变更用户部门时，目标部门必须处于操作者的数据范围；仅本人（`SELF`）范围不能创建用户。提交角色 ID 时必须全部有效，不存在的角色不会被静默忽略。
-> FastAPI 用户导出仅包含当前操作者范围内的用户，并复用 `mobile/email` 脱敏规则；用户导入逐行校验目标部门、敏感字段写入权限和全部角色 ID，失败行不会创建用户。
+> 模板和导出响应统一返回 `{ filename, content, contentType }`，其中 `content` 是 Base64 编码；模板为 `.xlsx`，导出文件为带 UTF-8 BOM 的 CSV。前端不得把该 JSON 响应当作 Blob。
+> 用户导出仅包含当前操作者范围内的用户，并复用 `mobile/email` 脱敏规则；用户导入仅接受 `.xlsx`，逐行校验目标部门、敏感字段写入权限和全部角色 ID，失败行不会创建用户。
 
 ---
 
@@ -516,9 +517,9 @@ POST   /api/v1/files/   # 上传文件，返回 name/url/path
 DELETE /api/v1/files/?filePath=files/{user_id}/{filename}   # 删除当前用户文件
 ```
 
-> FastAPI 通用上传和用户 Excel 导入使用 `MAX_UPLOAD_SIZE`（默认 10 MiB）作为硬上限，并分块写入有界临时文件；超限时不会留下部分目标文件。删除接口的 `filePath` 必须使用上传响应 `data.path`，不能传完整 `data.url`。
+> FastAPI 通用上传和两套后端的用户 Excel 导入使用 `MAX_UPLOAD_SIZE`（默认 10 MiB）作为硬上限；FastAPI 分块写入有界临时文件，Django 在解析前校验上传文件大小。超限时不会进入工作簿解析。删除接口的 `filePath` 必须使用上传响应 `data.path`，不能传完整 `data.url`。
 
-用户 Excel 导入的公开部门查询参数为 `deptId`；FastAPI 在过渡期兼容 `dept_id`。`MAX_UPLOAD_SIZE` 必须为正整数，非法配置会在应用启动时拒绝加载。
+用户 Excel 导入的公开部门查询参数为 `deptId`；两套后端在过渡期兼容 `dept_id`。`MAX_UPLOAD_SIZE` 必须为正整数，非法配置会在应用启动时拒绝加载。
 
 ---
 
