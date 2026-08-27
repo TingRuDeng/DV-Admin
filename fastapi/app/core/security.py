@@ -6,6 +6,7 @@
 
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from uuid import uuid4
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -110,6 +111,8 @@ def create_refresh_token(
         "sub": str(subject),
         "type": "refresh",
         "iat": datetime.now(timezone.utc),
+        # 防止同一用户在同一秒内签发出完全相同的刷新令牌。
+        "jti": uuid4().hex,
     }
 
     encoded_jwt = jwt.encode(

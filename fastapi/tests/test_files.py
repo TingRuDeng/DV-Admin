@@ -51,14 +51,21 @@ class TestFileUpload:
         assert response.status_code == 400
         assert response.json()["code"] != 20000
 
-    def test_upload_rejects_file_over_size_limit(self, auth_client: TestClient, monkeypatch):
+    def test_upload_rejects_file_over_size_limit(
+        self,
+        auth_client: TestClient,
+        tmp_path,
+        monkeypatch,
+    ):
         from app.core.config import settings
 
+        monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
         monkeypatch.setattr(settings, "max_upload_size", 4)
         files = {"file": ("large.txt", BytesIO(b"large content"), "text/plain")}
         response = auth_client.post("/api/v1/files/", files=files)
         assert response.status_code == 400
         assert response.json()["code"] != 20000
+        assert not any(path.is_file() for path in tmp_path.rglob("*"))
 
 
 class TestFileDelete:

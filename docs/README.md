@@ -13,6 +13,7 @@ ai_summary:
     - "scripts/validate_docs.py"
     - "scripts/validate_api_contracts.py"
     - "scripts/api_route_coverage_validation.py"
+    - "scripts/validate_dependency_audit.py"
   verify_with:
     - "python3 scripts/validate_docs.py . --profile generic"
     - "python3 scripts/validate_api_contracts.py ."
@@ -52,6 +53,7 @@ ai_summary:
 - quick: `python3 scripts/validate_docs.py . --profile generic`
 - quick: `python3 scripts/validate_api_contracts.py .`
 - quick: `python3 -m py_compile scripts/validate_docs.py`
+- network: `pnpm --dir frontend run audit:prod`
 
 ## Stale when
 
@@ -86,6 +88,7 @@ DV-Admin/
 │   ├── validate_docs.py        # [校验] 文档结构与链接校验
 │   ├── validate_api_contracts.py # [校验] API 契约入口
 │   ├── api_route_coverage_validation.py # [校验] 关键端点 method/path 路由覆盖
+│   ├── validate_dependency_audit.py # [校验] 前端生产依赖公告与临时豁免到期
 │   ├── validate_model_contracts.py # [校验] 共享模型契约
 │   └── validate_django_migrations.py # [校验] Django 迁移链跟踪
 └── frontend/

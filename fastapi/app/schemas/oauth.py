@@ -125,4 +125,10 @@ class UpdateProfile(BaseSchema):
     email: str | None = Field(default=None, description="邮箱")
     mobile: str | None = Field(default=None, description="手机号")
     gender: int | None = Field(default=None, description="性别")
-    avatar: str | None = Field(default=None, description="头像URL")
+
+
+class AvatarInfo(BaseSchema):
+    """头像上传的双后端共享响应字段。"""
+
+    avatar: str = Field(description="头像存储标识")
+    url: str = Field(description="可直接展示的头像URL")

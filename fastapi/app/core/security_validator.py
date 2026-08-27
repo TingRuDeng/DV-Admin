@@ -95,6 +95,8 @@ class SecurityValidator:
         # 检查密钥是否为常见弱密钥
         weak_key_patterns = [
             r"^your-secret-key$",
+            r"^your-secret-key.*change-in-production$",
+            r"^your-generated-secret-key-here$",
             r"^secret$",
             r"^key$",
             r"^changeme$",

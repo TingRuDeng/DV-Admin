@@ -257,6 +257,8 @@ POST /api/v1/oauth/refresh-token/
 
 **注意：** Django 后端已统一使用 `/refresh-token/` 接口，与 FastAPI 保持一致。
 
+两套后端都执行 Refresh Token 轮换：刷新成功后返回新的 `refreshToken`，旧令牌立即失效且再次使用返回 `40002`。前端只允许原请求在刷新成功后重试一次；若重试仍返回 `40001`，立即结束刷新链并跳转登录页。
+
 ---
 
 ### 获取用户信息
@@ -347,9 +349,20 @@ PUT  /api/v1/system/users/{id}/password/reset/  # 重置密码
 GET  /api/v1/system/users/{id}/permissions/     # 用户权限ID列表
 ```
 
+**Django & FastAPI：**
+```
+GET  /api/v1/system/users/template              # 用户导入模板
+POST /api/v1/system/users/import                # 导入用户
+POST /api/v1/system/users/export/               # 导出用户
+```
+
 > Django 该端点读取请求体中的 `password` 与 `confirm_password`，敏感字段不得放入 URL query。FastAPI 当前额外保留 `POST /api/v1/system/users/{id}/password/reset/` 兼容入口，并按 `DEFAULT_PASSWORD` 重置；共享前端契约以 `PUT` 方法为准。
 > 用户输出中的 `mobile/email` 默认保留字段但返回脱敏值；拥有 `system:users:field:plain` 或 `is_superuser` 时返回原文。
 > 后台用户创建/更新请求中显式写入非空 `mobile/email` 时，需要 `system:users:field:write` 或 `is_superuser`。
+> 用户列表、详情、下拉选项、权限查询、状态更新、密码重置和删除均受角色数据范围约束；范围外 ID 按不存在处理。批量删除采用全有或全无语义，任一 ID 不存在或不可见时不删除任何目标。
+> 创建用户或显式变更用户部门时，目标部门必须处于操作者的数据范围；仅本人（`SELF`）范围不能创建用户。提交角色 ID 时必须全部有效，不存在的角色不会被静默忽略。
+> 模板和导出响应统一返回 `{ filename, content, contentType }`，其中 `content` 是 Base64 编码；模板为 `.xlsx`，导出文件为带 UTF-8 BOM 的 CSV。前端不得把该 JSON 响应当作 Blob。
+> 用户导出仅包含当前操作者范围内的用户，并复用 `mobile/email` 脱敏规则；用户导入仅接受 `.xlsx`，逐行校验目标部门、敏感字段写入权限和全部角色 ID，失败行不会创建用户。
 
 ---
 
@@ -429,12 +442,15 @@ DELETE /api/v1/system/dict-items/     # 批量删除字典项，请求体 ids
 **Django / FastAPI 与前端管理页：**
 ```
 GET    /api/v1/system/notices/page           # 通知列表
+GET    /api/v1/system/notices/{id}/form      # 后台通知表单
 POST   /api/v1/system/notices                # 创建通知
 PUT    /api/v1/system/notices/{id}           # 更新通知
 DELETE /api/v1/system/notices/{ids}          # 删除通知
 PUT    /api/v1/system/notices/{id}/publish   # 发布通知
 PUT    /api/v1/system/notices/{id}/revoke    # 撤回通知
 GET    /api/v1/system/notices/my-page/       # 我的通知
+GET    /api/v1/system/notices/{id}/detail    # 查看可见通知并标记已读
+PUT    /api/v1/system/notices/read-all       # 当前用户可见通知全部已读
 ```
 
 > 后台通知创建/更新请求中显式写入非空 `targetUserIds` 时，需要 `system:notices:target:write` 或 `is_superuser`。
@@ -447,7 +463,7 @@ GET    /api/v1/system/notices/my-page/       # 我的通知
 GET    /api/v1/system/notices/my-page/       # 我的通知，支持 pageNum/pageSize/title/isRead
 ```
 
-> Django 返回当前用户可见的已发布通知（全体通知 + 指定到该用户的通知），分页结构与 FastAPI 对齐为 `list/total`。差异：Django 当前无 `NoticeReads` 模型，不跟踪每用户已读状态，`isRead` 统一返回 0；按 `isRead=1` 过滤时返回空列表。FastAPI 通过 `NoticeReads` 返回真实已读状态。
+> 两套后端都只返回当前用户可见的已发布通知（全体通知 + 指定到该用户的通知），分页结构统一为 `list/total`。查看详情会写入 `NoticeReads`，`read-all` 只标记当前用户可见的已发布通知；`isRead` 返回和过滤真实持久化状态。
 
 ---
 
@@ -457,7 +473,7 @@ GET    /api/v1/system/notices/my-page/       # 我的通知，支持 pageNum/pag
 ```
 GET    /api/v1/system/logs/page                    # 日志分页，支持 pageNum/pageSize/operation/username/method/status/startTime/endTime
 GET    /api/v1/system/logs/{id}                    # 日志详情
-GET    /api/v1/system/logs/visit-trend             # 访问趋势
+GET    /api/v1/system/logs/visit-trend             # 访问趋势，支持 startDate/endDate，最多 366 个自然日
 GET    /api/v1/system/logs/visit-stats             # 访问统计
 DELETE /api/v1/system/logs/{ids}                   # 删除日志
 DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
@@ -467,24 +483,29 @@ DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
 - 两套后端均提供 `OperationLog` 模型、写操作落库中间件与上述查询/删除路由，前端日志管理页在两端均可用。
 - 写操作（POST/PUT/PATCH/DELETE）由请求日志中间件落库；GET 读请求不落库，避免审计表被轮询淹没。
 - 请求体落库前会掩码 `password/token/secret/key/authorization` 等敏感字段。
+- 两端均将响应头对应的 `requestId` 持久化；客户端传入值会去除首尾空白、限制为 64 字符，并只接受字母、数字、点、下划线、冒号和连字符，非法值由服务端重新生成。失败写请求额外保存脱敏、截断后的 `responseBody`，并从脱敏后的统一错误响应提取 `errorMsg`。成功写请求不保存响应体和错误摘要。
 - Django 权限码 `system:logs:query` / `system:logs:delete` 与 FastAPI 一致；`/logs/page` 和 `/logs/{id}` 字段集合由双后端字段契约 `logs_out` 锁定。
 - `/logs/page` 与 `/logs/{id}` 输出中的 `requestBody/responseBody/ip` 默认保留字段但返回脱敏值；拥有 `system:logs:field:plain` 或 `is_superuser` 时返回原文。
-- `/logs/{id}` 复用日志数据范围，不在当前用户可见范围内的 ID 按不存在处理。
-- 当前 `requestId` 仅存在于响应头和结构化运行日志，尚未持久化到 `OperationLog`，因此详情接口暂不返回该字段。
+- `/logs/page`、`/logs/{id}`、`/logs/visit-trend`、`/logs/visit-stats`、删除和历史清理统一复用日志数据范围；不在当前用户可见范围内的 ID 按不存在处理。
+- `/logs/visit-trend` 两端均在数据库按日聚合并为缺失日期补 0；反向区间或超过 366 个自然日的查询返回 400。FastAPI 以 `startDate/endDate` 为公开参数，并在过渡期兼容 `start_date/end_date`。
+- 批量删除日志采用全有或全无语义，任一 ID 不存在或不可见时不删除任何目标；历史清理只清理当前用户范围内的日志。
+- `/logs/page` 与 `/logs/{id}` 返回 `requestId`，详情页可据此关联响应头和结构化运行日志；当前尚未提供按请求 ID 的服务端筛选。
 - Django 对非法 `status/pageNum/pageSize/startTime/endTime/startDate/endDate/ids` 会返回 400，避免把外部输入解析错误暴露为 500；FastAPI 侧通过 Query/Path 类型约束处理同类入参。
 
 ---
 
 ## 个人中心模块 (Information)
 
-**⚠️ 路径差异：**
+**Django / FastAPI 共享端点：**
 
-| 功能 | Django 端点 | FastAPI 端点 |
-|------|------------|--------------|
-| 获取个人信息 | `GET /api/v1/information/profile/` | `GET /api/v1/information/profile/` |
-| 更新个人信息 | `PUT /api/v1/information/change-information/` | `PUT /api/v1/information/profile/` |
-| 修改密码 | `PUT /api/v1/information/change-password/` | `PUT /api/v1/information/password/` |
-| 上传头像 | `POST /api/v1/information/change-avatar/` | `POST /api/v1/information/change-avatar/` |
+```text
+GET  /api/v1/information/profile/       # 获取个人信息
+PUT  /api/v1/information/profile/       # 更新 name/email/mobile/gender
+PUT  /api/v1/information/password       # 修改密码
+POST /api/v1/information/change-avatar/ # 上传头像，multipart 字段为 file
+```
+
+修改密码请求字段统一为 `oldPassword/newPassword/confirmPassword`，头像响应统一包含 `avatar/url`，头像文件上限为 2 MiB。Django 暂时保留 `change-information/`、`change-password/` 以及旧密码字段作为兼容入口，但共享前端不再依赖这些旧接口。
 
 ---
 
@@ -496,7 +517,9 @@ POST   /api/v1/files/   # 上传文件，返回 name/url/path
 DELETE /api/v1/files/?filePath=files/{user_id}/{filename}   # 删除当前用户文件
 ```
 
-> 删除接口的 `filePath` 必须使用上传响应 `data.path`，不能传完整 `data.url`。
+> FastAPI 通用上传和两套后端的用户 Excel 导入使用 `MAX_UPLOAD_SIZE`（默认 10 MiB）作为硬上限；FastAPI 分块写入有界临时文件，Django 在解析前校验上传文件大小。超限时不会进入工作簿解析。删除接口的 `filePath` 必须使用上传响应 `data.path`，不能传完整 `data.url`。
+
+用户 Excel 导入的公开部门查询参数为 `deptId`；两套后端在过渡期兼容 `dept_id`。`MAX_UPLOAD_SIZE` 必须为正整数，非法配置会在应用启动时拒绝加载。
 
 ---
 
@@ -510,7 +533,7 @@ GET /health/live   # 存活检查
 
 **实现说明：**
 - Django：`backend/drf_admin/apps/system/views/health.py`，响应头会携带 `X-Request-ID`。
-- FastAPI：`fastapi/app/api/health.py`，响应中包含结构化依赖检查。
+- FastAPI：`fastapi/app/api/health.py`，响应中包含结构化依赖检查，响应头同样携带 `X-Request-ID`。
 
 ---
 

@@ -94,12 +94,16 @@ import ProDialog from "@/components/ProDialog/index.vue";
 import SafeHtml from "@/components/SafeHtml/index.vue";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
-import NoticeAPI, { NoticePageQuery, NoticeDetailVO, NoticePageVO } from "@/api/system/notice-api";
+import NoticeAPI, {
+  MyNoticePageQuery,
+  NoticeDetailVO,
+  NoticePageVO,
+} from "@/api/system/notice-api";
 
 const queryFormRef = ref<{ resetFields: () => void } | null>(null);
 const tableRef = ref<ProTableExpose | null>(null);
 
-const queryParams = reactive<Omit<NoticePageQuery, "pageNum" | "pageSize">>({});
+const queryParams = reactive<Omit<MyNoticePageQuery, "pageNum" | "pageSize">>({});
 
 const noticeDialogVisible = ref(false);
 const noticeDetail = ref<NoticeDetailVO | null>(null);
@@ -109,7 +113,7 @@ function handleQuery() {
   tableRef.value?.reload(true);
 }
 
-const requestTableData = createPageRequest<NoticePageQuery, NoticePageVO>(
+const requestTableData = createPageRequest<MyNoticePageQuery, NoticePageVO>(
   NoticeAPI.getMyNoticePage
 );
 

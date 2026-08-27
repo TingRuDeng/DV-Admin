@@ -123,6 +123,13 @@ DJANGO_FASTAPI_MODEL_CONTRACTS: tuple[DjangoFastapiModelContract, ...] = (
         fastapi_table="system_notices",
         field_aliases=COMMON_DJANGO_FIELD_ALIASES,
     ),
+    DjangoFastapiModelContract(
+        django_model="system.noticereads",
+        fastapi_model="NoticeReads",
+        django_table="system_notice_reads",
+        fastapi_table="system_notice_reads",
+        field_aliases=COMMON_DJANGO_FIELD_ALIASES,
+    ),
 )
 
 DJANGO_FASTAPI_RELATION_CONTRACTS: tuple[DjangoFastapiRelationContract, ...] = (

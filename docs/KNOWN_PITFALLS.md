@@ -153,14 +153,17 @@ uv run python manage.py migrate --env dev
 **已验证事实：**
 - FastAPI 使用 Tortoise ORM 1.1.7 内置迁移能力，迁移配置位于 `app.db.migration_config.TORTOISE_ORM`
 - `app/db/migrations/0001_initial.py` 是当前 schema 基线
+- 新增非空列时，仅设置 ORM `default` 不一定会生成数据库默认值；已有数据的 SQLite 升级会报 `Cannot add a NOT NULL column with default value NULL`
 - Tortoise 迁移写入器要求 `Meta.indexes` 使用 `Index` 对象；元组写法不能可靠生成迁移
 - SQLite 原子迁移按 ASCII 分号拆分 SQL；字段 description 中不能包含 ASCII `;`，中文说明应使用全角 `；`
 
 **解决方案：**
 1. 模型变更同时生成并提交迁移，运行 `make -C fastapi migration-check`
-2. 全新数据库直接执行 `migrate`
-3. 既有库接管前先备份并核对 schema，确认一致后仅执行一次 `migrate --fake`
-4. CI 同时保留 SQLite 全路径校验和 MySQL 8 空库迁移 smoke
+2. 新增非空列必须用带既有数据的增量测试验证；需要数据库默认值时显式设置 `db_default`
+3. 全新数据库直接执行 `migrate`
+4. 既有库接管前先备份并核对 schema，确认一致后仅执行一次 `migrate --fake`
+5. CI 同时保留 SQLite 全路径校验，以及 MySQL 8 空库与增量迁移 smoke
+6. 部署使用一次性迁移容器或单例 Job，成功后再启动 API；禁止每个 Uvicorn Worker 自行迁移
 
 ---
 
@@ -175,8 +178,11 @@ uv run python manage.py migrate --env dev
 1. 收到 401 错误
 2. 检查是否有 Refresh Token
 3. 使用 Refresh Token 获取新的 Access Token
-4. 重试原请求
-5. 如果刷新失败，跳转登录页
+4. 保存后端轮换返回的新 Refresh Token；旧令牌不能再次使用
+5. 原请求只重试一次
+6. 如果刷新失败或重试后仍返回 `40001`，跳转登录页
+
+FastAPI 多实例部署必须保持 Redis 可用，才能跨进程原子消费 Refresh Token；Redis 未初始化时的内存降级只用于非生产单进程。生产环境 Redis 未初始化或命令执行失败时，刷新流程都失败关闭，不签发新令牌。
 
 **相关代码：**
 - 前端：`frontend/src/composables/auth/useTokenRefresh.ts`
@@ -209,6 +215,23 @@ WHITE_LIST = [
 # 3. 检查角色-权限关联
 # 数据库中 system_roles_to_system_permissions 表
 ```
+
+---
+
+### 陷阱 6.1：只给列表加数据范围过滤
+
+**问题描述：**
+用户列表看起来已经隔离，但详情、下拉选项、密码重置、批量删除或统计接口仍直接使用全表查询，导致越权探测、写入或聚合泄露。
+
+**正确做法：**
+- 数据范围必须覆盖同一资源的所有对象级读写、聚合及导入导出路径，不能只覆盖分页列表
+- 范围外 ID 与真实不存在 ID 统一返回 404，避免泄露对象是否存在
+- 批量操作先确认所有目标都存在且可见，再执行一次写入；禁止部分成功
+- 创建用户或变更部门时校验目标部门范围，不能只校验被修改用户当前是否可见
+
+**相关代码：**
+- Django：`drf_admin/apps/system/services/data_scope.py`、`views/users.py`、`views/logs.py`
+- FastAPI：`app/services/system/data_scope.py`、`user_services/`、`log_service.py`
 
 ---
 

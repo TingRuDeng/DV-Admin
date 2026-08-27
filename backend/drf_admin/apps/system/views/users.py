@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from pathlib import Path
+
+from django.conf import settings
+from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.response import Response
@@ -16,6 +20,11 @@ from drf_admin.apps.system.serializers.users import (
     UsersSerializer,
 )
 from drf_admin.apps.system.services.data_scope import apply_user_data_scope
+from drf_admin.apps.system.services.user_import_export import (
+    build_import_template,
+    export_users,
+    import_users,
+)
 from drf_admin.utils.views import AdminViewSet, AutoPermissionAPIView
 
 
@@ -73,6 +82,26 @@ class UsersViewSet(AdminViewSet):
         queryset = super().get_queryset()
         return apply_user_data_scope(queryset, self.request.user)
 
+    def validate_ids(self, delete_ids):
+        """批量删除必须全部处于当前数据范围，且不因重复 ID 误判。"""
+        if not isinstance(delete_ids, list) or not delete_ids:
+            raise ValidationError("参数错误,ids为必传List")
+        if any(not isinstance(user_id, int) or user_id < 1 for user_id in delete_ids):
+            raise ValidationError("ids必须为正整数列表")
+        unique_ids = list(dict.fromkeys(delete_ids))
+        queryset = self.get_queryset().filter(id__in=unique_ids)
+        locked_ids = list(
+            queryset.select_for_update().values_list("id", flat=True)
+        )
+        if len(locked_ids) != len(unique_ids):
+            raise NotFound("用户不存在")
+        return queryset.filter(id__in=locked_ids)
+
+    @transaction.atomic
+    def multiple_delete(self, request, *args, **kwargs):
+        """在同一事务内完成范围校验与批量删除。"""
+        return super().multiple_delete(request, *args, **kwargs)
+
 
 class UsersOptionsViewSet(AutoPermissionAPIView, ListAPIView):
     """
@@ -85,6 +114,78 @@ class UsersOptionsViewSet(AutoPermissionAPIView, ListAPIView):
     serializer_class = UsersOptionsSerializer
     pagination_class = None  # 禁用分页
 
+    def get_queryset(self):
+        return apply_user_data_scope(super().get_queryset(), self.request.user)
+
+
+class UserImportTemplateAPIView(AutoPermissionAPIView):
+    """下载用户导入模板。"""
+
+    model = Users
+
+    @staticmethod
+    def get_method_permission_mapping():
+        return {"get": "import"}
+
+    def get(self, request):
+        return Response(data=build_import_template())
+
+
+class UserExportAPIView(AutoPermissionAPIView):
+    """导出当前数据范围内的用户。"""
+
+    model = Users
+
+    @staticmethod
+    def get_method_permission_mapping():
+        return {"post": "export"}
+
+    def post(self, request):
+        return Response(data=export_users(request.user))
+
+
+class UserImportAPIView(AutoPermissionAPIView):
+    """导入 xlsx 用户数据。"""
+
+    model = Users
+
+    @staticmethod
+    def get_method_permission_mapping():
+        return {"post": "import"}
+
+    def post(self, request):
+        uploaded_file = request.FILES.get("file")
+        if uploaded_file is None:
+            raise ValidationError("文件不能为空")
+        if Path(uploaded_file.name).suffix.lower() != ".xlsx":
+            raise ValidationError("文件格式错误，仅支持 .xlsx 格式")
+        if uploaded_file.size > settings.MAX_UPLOAD_SIZE:
+            max_size = settings.MAX_UPLOAD_SIZE
+            max_size_label = (
+                f"{max_size / (1024 * 1024):g} MiB"
+                if max_size >= 1024 * 1024
+                else f"{max_size} 字节"
+            )
+            raise ValidationError(f"文件大小不能超过 {max_size_label}")
+        dept_id = self._parse_dept_id(request.query_params)
+        return Response(
+            data=import_users(
+                uploaded_file.file,
+                dept_id=dept_id,
+                current_user=request.user,
+            )
+        )
+
+    @staticmethod
+    def _parse_dept_id(query_params):
+        raw_dept_id = query_params.get("deptId", query_params.get("dept_id"))
+        if raw_dept_id in (None, ""):
+            return None
+        try:
+            return int(raw_dept_id)
+        except (TypeError, ValueError) as exc:
+            raise ValidationError("deptId 必须为整数") from exc
+
 
 class ResetPasswordAPIView(mixins.UpdateModelMixin, AutoPermissionAPIView, GenericAPIView):
     """
@@ -95,6 +196,9 @@ class ResetPasswordAPIView(mixins.UpdateModelMixin, AutoPermissionAPIView, Gener
     """
     queryset = Users.objects.all()
     serializer_class = ResetPasswordSerializer
+
+    def get_queryset(self):
+        return apply_user_data_scope(super().get_queryset(), self.request.user)
 
     def put(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
@@ -159,10 +263,9 @@ class PermissionsAPIView(AutoPermissionAPIView):
     queryset = Users.objects.all()
 
     def get(self, request, pk):
-        try:
-            user = Users.objects.get(id=pk)
-        except Users.DoesNotExist:
-            raise ValidationError('无效的用户ID')
+        user = apply_user_data_scope(self.queryset, request.user).filter(id=pk).first()
+        if user is None:
+            raise NotFound("用户不存在")
         # admin角色
         if 'admin' in user.roles.values_list('name', flat=True) or user.is_superuser:
             return Response(data={'results': Permissions.objects.values_list('id', flat=True)})

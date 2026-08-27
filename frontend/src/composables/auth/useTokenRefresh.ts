@@ -7,6 +7,10 @@ const tokenRefreshLogger = createLogger("useTokenRefresh");
 
 type TokenRefreshHttpRequest = (config: InternalAxiosRequestConfig) => Promise<unknown>;
 
+export type TokenRefreshRequestConfig = InternalAxiosRequestConfig & {
+  _tokenRefreshRetried?: boolean;
+};
+
 /**
  * 等待刷新结果的请求队列项
  */
@@ -36,7 +40,11 @@ function createPendingRequest(options: PendingRequestOptions): PendingRequest {
       if (newToken && config.headers) {
         config.headers.Authorization = `Bearer ${newToken}`;
       }
-      httpRequest(config).then(resolve).catch(reject);
+      try {
+        httpRequest(config).then(resolve).catch(reject);
+      } catch (error) {
+        reject(error);
+      }
     },
     reject: (error) => reject(error),
   };
@@ -56,29 +64,30 @@ function retryPendingRequests(requests: PendingRequest[]) {
   });
 }
 
-async function rejectPendingRequests(requests: PendingRequest[]) {
-  try {
-    await redirectToLogin("登录状态已失效，请重新登录");
-  } finally {
-    // 刷新失败必须拒绝所有等待请求，避免调用方 Promise 永久 pending。
-    requests.forEach(({ reject }) => {
-      reject(new Error("Token refresh failed"));
-    });
-  }
+function rejectPendingRequests(requests: PendingRequest[]) {
+  // 先结束所有等待请求；导航失败或挂起不能阻塞调用方 Promise。
+  requests.forEach(({ reject }) => {
+    reject(new Error("Token refresh failed"));
+  });
+  void redirectToLogin("登录状态已失效，请重新登录").catch((error) => {
+    tokenRefreshLogger.error("跳转登录页失败:", error);
+  });
 }
 
 function startTokenRefresh(state: TokenRefreshState) {
-  useUserStoreHook()
-    .refreshToken()
+  Promise.resolve()
+    .then(() => useUserStoreHook().refreshToken())
     .then(() => {
-      retryPendingRequests(drainPendingRequests(state));
-    })
-    .catch(async (error) => {
-      tokenRefreshLogger.error("刷新 Token 失败:", error);
-      await rejectPendingRequests(drainPendingRequests(state));
-    })
-    .finally(() => {
+      const requests = drainPendingRequests(state);
+      // 重试可能立刻触发新的响应拦截器，必须先结束刷新态。
       state.isRefreshingToken = false;
+      retryPendingRequests(requests);
+    })
+    .catch((error) => {
+      tokenRefreshLogger.error("刷新 Token 失败:", error);
+      const requests = drainPendingRequests(state);
+      state.isRefreshingToken = false;
+      rejectPendingRequests(requests);
     });
 }
 
@@ -96,14 +105,23 @@ export function useTokenRefresh() {
    * 刷新 Token 并重试请求
    */
   async function refreshTokenAndRetry(
-    config: InternalAxiosRequestConfig,
+    config: InternalAxiosRequestConfig | undefined,
     httpRequest: TokenRefreshHttpRequest
   ): Promise<unknown> {
+    const retryConfig = config as TokenRefreshRequestConfig | undefined;
+    if (!retryConfig || retryConfig._tokenRefreshRetried) {
+      await redirectToLogin("登录状态已失效，请重新登录");
+      throw new Error("Access token remained invalid after refresh");
+    }
+
+    // 标记必须在发起刷新前写入，确保重试请求再次返回 40001 时直接终止。
+    retryConfig._tokenRefreshRetried = true;
+
     return new Promise((resolve, reject) => {
       // 队列项必须保留 reject，刷新失败时才能显式结束每个等待请求。
       state.pendingRequests.push(
         createPendingRequest({
-          config,
+          config: retryConfig,
           httpRequest,
           resolve,
           reject,

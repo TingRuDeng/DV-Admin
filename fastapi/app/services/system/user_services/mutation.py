@@ -2,12 +2,18 @@
 
 from typing import Any
 
+from tortoise.transactions import in_transaction
+
 from app.core.config import settings
 from app.core.exceptions import BusinessError, NotFound, ValidationError
 from app.core.security import get_password_hash
 from app.db.models.oauth import Users
 from app.db.models.system import Roles
 from app.schemas.system import UserCreate, UserOut, UserPartialUpdate, UserUpdate
+from app.services.system.data_scope import (
+    apply_user_data_scope,
+    can_manage_user_department,
+)
 from app.services.system.field_permission import (
     can_write_sensitive_user_fields,
     has_sensitive_user_write,
@@ -37,6 +43,8 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
             mobile=user_in.mobile,
             current_user=current_user,
         )
+        await self._validate_department_write(current_user, user_in.dept_id)
+        roles = await self._resolve_roles(user_in.role_ids)
 
         # 检查手机号是否已存在
         if user_in.mobile:
@@ -59,11 +67,10 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         )
 
         # 关联角色
-        if user_in.role_ids:
-            roles = await Roles.filter(id__in=user_in.role_ids).all()
+        if roles:
             await user.roles.add(*roles)
 
-        return await self._serialize_user(user)
+        return await self._serialize_user(user, current_user)
 
 
     async def update(
@@ -75,14 +82,19 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         """
         更新用户
         """
-        user = await Users.get_or_none(id=user_id)
-        if not user:
-            raise NotFound("用户不存在")
+        user = await self._get_scoped_user(user_id, current_user)
 
         await self._validate_sensitive_user_write(
             email=user_in.email,
             mobile=user_in.mobile,
             current_user=current_user,
+        )
+        if user_in.dept_id is not None:
+            await self._validate_department_write(current_user, user_in.dept_id)
+        roles = (
+            await self._resolve_roles(user_in.role_ids)
+            if user_in.role_ids is not None
+            else None
         )
 
         # 检查手机号是否已被其他用户使用
@@ -113,18 +125,17 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
             await user.refresh_from_db()
 
         # 更新角色关联
-        if user_in.role_ids is not None:
+        if roles is not None:
             # 清除现有角色
             await user.roles.clear()
             # 添加新角色
-            if user_in.role_ids:
-                roles = await Roles.filter(id__in=user_in.role_ids).all()
+            if roles:
                 await user.roles.add(*roles)
 
         # 清除用户缓存（角色变更会影响权限和菜单）
         await self._clear_user_cache(user_id)
 
-        return await self._serialize_user(user)
+        return await self._serialize_user(user, current_user)
 
     async def _validate_sensitive_user_write(
         self,
@@ -140,13 +151,16 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         raise ValidationError("缺少字段写入权限，不能写入手机号或邮箱")
 
 
-    async def partial_update(self, user_id: int, user_in: UserPartialUpdate) -> UserOut:
+    async def partial_update(
+        self,
+        user_id: int,
+        user_in: UserPartialUpdate,
+        current_user: Users | None = None,
+    ) -> UserOut:
         """
         局部更新用户（状态）
         """
-        user = await Users.get_or_none(id=user_id)
-        if not user:
-            raise NotFound("用户不存在")
+        user = await self._get_scoped_user(user_id, current_user)
 
         # 更新状态
         user.is_active = user_in.is_active
@@ -155,20 +169,22 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         # 清除用户缓存
         await self._clear_user_cache(user_id)
 
-        return await self._serialize_user(user)
+        return await self._serialize_user(user, current_user)
 
 
-    async def delete(self, user_id: int, current_user_id: int) -> None:
+    async def delete(
+        self,
+        user_id: int,
+        current_user: Users | None = None,
+    ) -> None:
         """
         删除用户
         """
-        user = await Users.get_or_none(id=user_id)
-        if not user:
-            raise NotFound("用户不存在")
-
         # 不能删除自己
-        if user.id == current_user_id:
+        if current_user is not None and user_id == current_user.id:
             raise BusinessError("不能删除当前登录用户")
+
+        user = await self._get_scoped_user(user_id, current_user)
 
         # 删除用户（级联删除角色关联）
         await user.delete()
@@ -177,29 +193,80 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         await self._clear_user_cache(user_id)
 
 
-    async def batch_delete(self, ids: list[int], current_user_id: int) -> None:
+    async def batch_delete(
+        self,
+        ids: list[int],
+        current_user: Users | None = None,
+    ) -> None:
         """
         批量删除用户
         """
-        if current_user_id in ids:
+        unique_ids = list(dict.fromkeys(ids))
+        if not unique_ids:
+            raise ValidationError("用户 ID 列表不能为空")
+        if current_user is not None and current_user.id in unique_ids:
             raise BusinessError("不能删除当前登录用户")
 
-        # 批量删除
-        await Users.filter(id__in=ids).delete()
+        async with in_transaction() as connection:
+            query = await apply_user_data_scope(
+                Users.all().using_db(connection),
+                current_user,
+            )
+            users = await query.filter(id__in=unique_ids).select_for_update().all()
+            if len(users) != len(unique_ids):
+                raise NotFound("用户不存在")
+
+            await query.filter(id__in=unique_ids).delete()
 
         # 清除所有被删除用户的缓存
-        for user_id in ids:
+        for user_id in unique_ids:
             await self._clear_user_cache(user_id)
 
 
-    async def reset_password(self, user_id: int) -> None:
+    async def reset_password(
+        self,
+        user_id: int,
+        current_user: Users | None = None,
+    ) -> None:
         """
         重置用户密码
         """
-        user = await Users.get_or_none(id=user_id)
-        if not user:
-            raise NotFound("用户不存在")
+        user = await self._get_scoped_user(user_id, current_user)
 
         default_password = settings.default_password
         user.password = get_password_hash(default_password)
         await user.save()
+
+    async def _get_scoped_user(
+        self,
+        user_id: int,
+        current_user: Users | None,
+    ) -> Users:
+        """按操作者数据范围读取目标用户，不泄露越权对象是否存在。"""
+        query = await apply_user_data_scope(Users.all(), current_user)
+        user = await query.filter(id=user_id).first()
+        if user is None:
+            raise NotFound("用户不存在")
+        return user
+
+    async def _validate_department_write(
+        self,
+        current_user: Users | None,
+        dept_id: int | None,
+    ) -> None:
+        if await can_manage_user_department(current_user, dept_id):
+            return
+        raise ValidationError("目标部门超出当前用户数据范围")
+
+    async def _resolve_roles(
+        self,
+        role_ids: list[int] | None,
+    ) -> list[Roles]:
+        """完整解析角色 ID，禁止静默忽略不存在的角色。"""
+        unique_role_ids = list(dict.fromkeys(role_ids or []))
+        if not unique_role_ids:
+            return []
+        roles = await Roles.filter(id__in=unique_role_ids).all()
+        if len(roles) != len(unique_role_ids):
+            raise ValidationError("角色不存在")
+        return roles

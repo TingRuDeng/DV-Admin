@@ -86,7 +86,11 @@ class Settings(BaseSettings):
     )
 
     # 文件上传配置
-    max_upload_size: int = Field(default=10 * 1024 * 1024, alias="MAX_UPLOAD_SIZE")  # 10MB
+    max_upload_size: int = Field(
+        default=10 * 1024 * 1024,
+        gt=0,
+        alias="MAX_UPLOAD_SIZE",
+    )  # 10MB
     upload_dir: str = Field(default="uploads", alias="UPLOAD_DIR")
 
     # 缓存配置

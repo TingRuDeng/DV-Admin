@@ -14,6 +14,7 @@ interface UserRow {
 interface MockState {
   users: UserRow[];
   createPayloads: unknown[];
+  exportRequests: number;
 }
 
 interface AuthMockOptions {
@@ -39,6 +40,8 @@ const DEFAULT_USER_PERMS = [
   "system:users:add",
   "system:users:edit",
   "system:users:delete",
+  "system:users:import",
+  "system:users:export",
 ];
 const USER_FORM = {
   username: "e2e_user",
@@ -62,6 +65,7 @@ function createMockState(): MockState {
       },
     ],
     createPayloads: [],
+    exportRequests: 0,
   };
 }
 
@@ -179,6 +183,19 @@ async function handleSystemRequest(context: MockRouteContext) {
     return true;
   }
 
+  if (context.method === "POST" && context.path === "/api/v1/system/users/export/") {
+    context.state.exportRequests += 1;
+    await fulfillJson(
+      context.route,
+      success({
+        filename: "用户导出.csv",
+        content: "dXNlcm5hbWUNCg==",
+        contentType: "text/csv;charset=utf-8",
+      })
+    );
+    return true;
+  }
+
   return false;
 }
 
@@ -214,6 +231,17 @@ test.describe("用户管理核心业务 smoke", () => {
     await expect(page).toHaveURL(/\/system\/users/);
     await expect(page.getByText("用户数据")).toBeVisible();
     await expect(page.getByText("admin_mock")).toBeVisible();
+
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByRole("button", { name: "导出用户" }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe("用户导出.csv");
+    expect(state.exportRequests).toBe(1);
+
+    await page.getByRole("button", { name: "导入用户" }).click();
+    const importDrawer = page.locator(".el-drawer").filter({ hasText: "导入数据" });
+    await expect(importDrawer).toBeVisible();
+    await importDrawer.getByRole("button", { name: /取\s*消/ }).click();
 
     await page.getByRole("button", { name: "新增用户" }).click();
     const drawer = page.locator(".el-drawer").filter({ hasText: "新增用户" });
@@ -254,6 +282,8 @@ test.describe("用户管理核心业务 smoke", () => {
     await expect(page.getByText("用户数据")).toBeVisible();
     await expect(page.getByText("admin_mock")).toBeVisible();
     await expect(page.getByRole("button", { name: "新增用户" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "导入用户" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "导出用户" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "批量删除" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "编辑" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "删除" })).toHaveCount(0);

@@ -18,6 +18,7 @@ class OperationLog(models.Model):
     operation = models.CharField(max_length=100, blank=True, default="", verbose_name="操作描述")
     method = models.CharField(max_length=10, blank=True, default="", verbose_name="请求方法")
     path = models.CharField(max_length=500, blank=True, default="", verbose_name="请求路径")
+    request_id = models.CharField(max_length=64, blank=True, default="", verbose_name="请求ID")
     query_params = models.TextField(blank=True, default="", verbose_name="查询参数")
 
     request_body = models.TextField(blank=True, default="", verbose_name="请求体")
@@ -50,6 +51,7 @@ class OperationLog(models.Model):
             models.Index(fields=["username"]),
             models.Index(fields=["status"]),
             models.Index(fields=["method"]),
+            models.Index(fields=["request_id"]),
             models.Index(fields=["user_id", "created_at"]),
             models.Index(fields=["status", "created_at"]),
         ]

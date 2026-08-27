@@ -79,7 +79,12 @@ async def lifespan(app: FastAPI):
         await redis_manager.init()
         logger.info("Redis 连接初始化成功")
     except Exception as e:
-        logger.warning(f"Redis 连接初始化失败: {e}，Token 黑名单功能将不可用")
+        fallback = (
+            "Refresh Token 轮换将失败关闭"
+            if settings.is_production
+            else "Token 撤销降级为当前进程内存存储"
+        )
+        logger.warning(f"Redis 连接初始化失败: {e}，{fallback}")
 
     # 初始化缓存服务
     try:

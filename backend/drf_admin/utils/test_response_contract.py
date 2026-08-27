@@ -65,6 +65,22 @@ def test_django_error_response_matches_shared_contract(api_request):
     assert response.data["errors"] == "参数错误"
 
 
+def test_django_refresh_token_error_uses_shared_error_code(api_request):
+    response = process_response(
+        build_json_response(
+            {
+                "detail": "无效的刷新令牌",
+                "code": "refresh_token_not_valid",
+            },
+            status.HTTP_401_UNAUTHORIZED,
+        ),
+        api_request,
+    )
+
+    assert_error_envelope(response.data, backend="django")
+    assert response.data["code"] == REFRESH_TOKEN_INVALID_CODE
+
+
 def test_django_wrapped_response_is_idempotent(api_request):
     wrapped = {"msg": "成功", "errors": None, "code": 20000, "data": {"id": 1}}
     response = process_response(build_json_response(wrapped), api_request)
@@ -79,6 +95,13 @@ def test_shared_endpoint_contract_catalog_covers_django_system_routes():
 
     assert contracts["auth_info"].path == "/api/v1/oauth/info/"
     assert contracts["auth_routes"].path == "/api/v1/oauth/menus/routes/"
+    assert contracts["information_profile_update"].path == "/api/v1/information/profile/"
+    assert contracts["information_password"].request_fields == (
+        "oldPassword",
+        "newPassword",
+        "confirmPassword",
+    )
+    assert contracts["information_avatar"].request_fields == ("file",)
     assert contracts["roles_menu_assign"].method == "PUT"
     assert contracts["roles_menu_assign"].permissions == ("system:roles:edit",)
     assert contracts["depts_create"].method == "POST"
@@ -98,6 +121,9 @@ def test_shared_endpoint_contract_catalog_covers_django_system_routes():
     assert contracts["notices_update"].permissions == ("system:notices:edit",)
     assert contracts["notices_publish"].permissions == ("system:notices:publish",)
     assert contracts["notices_revoke"].permissions == ("system:notices:revoke",)
+    assert contracts["notices_detail"].permissions == ("system:notices:query",)
+    assert contracts["notices_read_all"].method == "PUT"
+    assert contracts["notices_my_page"].paginated is True
 
 
 def test_shared_api_error_code_catalog_covers_django_response_contracts():

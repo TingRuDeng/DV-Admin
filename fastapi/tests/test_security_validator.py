@@ -72,7 +72,15 @@ class TestValidateSecretKey:
 
     def test_production_weak_key_pattern(self):
         """测试生产环境弱密钥模式"""
-        weak_keys = ["test-key", "dev-key", "development-key", "secret", "key"]
+        weak_keys = [
+            "test-key",
+            "dev-key",
+            "development-key",
+            "secret",
+            "key",
+            "your-secret-key-here-change-in-production",
+            "your-generated-secret-key-here",
+        ]
         for weak_key in weak_keys:
             with pytest.raises(SecurityValidationError):
                 SecurityValidator.validate_secret_key(weak_key, is_production=True)

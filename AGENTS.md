@@ -14,6 +14,7 @@ ai_summary:
     - "fastapi/scripts/dev.sh"
     - "scripts/validate_api_contracts.py"
     - "scripts/api_route_coverage_validation.py"
+    - "scripts/validate_dependency_audit.py"
   verify_with:
     - "python3 scripts/validate_docs.py . --profile generic"
     - "python3 scripts/validate_api_contracts.py ."
@@ -47,6 +48,7 @@ ai_summary:
 - `backend/` 与 `fastapi/` 是面向同一前端的替代实现，不是上下游服务。
 - 交付前需要按受影响技术栈执行最小充分验证，并同步相关文档。
 - 共享 API 契约门禁覆盖响应包裹、分页、字段、前端字段、错误码、能力边界和关键端点 `method + path` 路由覆盖。
+- 前端生产依赖审计阻断未豁免的 high/critical 公告；临时豁免必须限定公告、包、依赖路径和到期日期。
 - 单文件 300 行保留为治理风险提示，不再作为独立拆分目标；优先处理契约缺口、能力漂移、安全配置、死代码、文档事实冲突和测试盲区。
 
 ## How to verify
@@ -160,7 +162,7 @@ cp .env.example .env
    - FastAPI：`uv run python -m tortoise -c app.db.migration_config.TORTOISE_ORM makemigrations models`
    - FastAPI 模型变更必须提交 `app/db/migrations/` 中的版本化迁移，并运行 `make migration-check`
    - 开发环境的 `generate_schemas()` 只用于新建缺失表，不替代生产迁移
-   - 生产部署必须先运行 `uv run python -m tortoise -c app.db.migration_config.TORTOISE_ORM migrate`
+   - 生产部署必须通过一次性迁移容器或单例 Job 先运行 `uv run python -m tortoise -c app.db.migration_config.TORTOISE_ORM migrate`，成功后再启动 API；不得在每个 Uvicorn Worker 中并发迁移
    - 首次接管迁移基线的既有 FastAPI 数据库，必须先备份并核对 schema，再仅执行一次 `migrate --fake`
    - 如通过 MCP 访问本地 SQLite 数据库进行排查，默认仅用于查询与验证；执行写操作前要明确当前连接的是哪套后端实现对应的本地库
 
@@ -188,6 +190,7 @@ cp .env.example .env
 cd frontend
 pnpm run quality       # 只读聚合质量检查 (lint:check + type-check + test:unit)
 pnpm run build         # 构建检查（含类型检查）
+pnpm run audit:prod    # 生产依赖安全审计（high/critical + 到期豁免门禁）
 pnpm run lint:check    # 只读代码检查（eslint + prettier + stylelint）
 pnpm run lint          # 本地自动修复（eslint --fix + prettier --write + stylelint --fix）
 pnpm run test:unit     # 单元测试

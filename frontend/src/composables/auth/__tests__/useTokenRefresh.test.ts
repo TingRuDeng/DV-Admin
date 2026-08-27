@@ -72,10 +72,82 @@ describe("useTokenRefresh", () => {
 
     expect(request).toHaveBeenCalledWith(
       expect.objectContaining({
+        _tokenRefreshRetried: true,
         headers: expect.objectContaining({
           Authorization: "Bearer new-access-token",
         }),
       })
     );
+  });
+
+  it("stops after one retry when the access token is still invalid", async () => {
+    const { refreshTokenAndRetry } = useTokenRefresh();
+    const config = createRequestConfig() as InternalAxiosRequestConfig & {
+      _tokenRefreshRetried?: boolean;
+    };
+    config._tokenRefreshRetried = true;
+    const request = vi.fn();
+
+    await expect(refreshTokenAndRetry(config, request)).rejects.toThrow(
+      "Access token remained invalid after refresh"
+    );
+
+    expect(mocks.refreshToken).not.toHaveBeenCalled();
+    expect(request).not.toHaveBeenCalled();
+    expect(mocks.redirectToLogin).toHaveBeenCalledWith("登录状态已失效，请重新登录");
+  });
+
+  it("rejects the original promise when retry throws synchronously", async () => {
+    mocks.refreshToken.mockResolvedValue();
+    const { refreshTokenAndRetry } = useTokenRefresh();
+    const request = vi.fn(() => {
+      throw new Error("synchronous request failure");
+    });
+
+    await expect(refreshTokenAndRetry(createRequestConfig(), request)).rejects.toThrow(
+      "synchronous request failure"
+    );
+  });
+
+  it("rejects queued requests before an unfinished login redirect", async () => {
+    mocks.refreshToken.mockRejectedValue(new Error("refresh failed"));
+    mocks.redirectToLogin.mockReturnValue(new Promise(() => undefined));
+    const { refreshTokenAndRetry } = useTokenRefresh();
+
+    const result = await waitForSettlement(refreshTokenAndRetry(createRequestConfig(), vi.fn()));
+
+    expect(result).toBe("rejected:Token refresh failed");
+  });
+
+  it("deduplicates concurrent refreshes and retries every queued request", async () => {
+    let resolveRefresh: (() => void) | undefined;
+    mocks.refreshToken.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveRefresh = resolve;
+      })
+    );
+    const { refreshTokenAndRetry, getRefreshStatus } = useTokenRefresh();
+    const firstRequest = vi.fn().mockResolvedValue("first");
+    const secondRequest = vi.fn().mockResolvedValue("second");
+
+    const first = refreshTokenAndRetry(createRequestConfig(), firstRequest);
+    const second = refreshTokenAndRetry(createRequestConfig(), secondRequest);
+    await Promise.resolve();
+
+    expect(mocks.refreshToken).toHaveBeenCalledTimes(1);
+    expect(getRefreshStatus()).toEqual({
+      isRefreshing: true,
+      pendingCount: 2,
+    });
+
+    resolveRefresh?.();
+    await expect(first).resolves.toBe("first");
+    await expect(second).resolves.toBe("second");
+    expect(firstRequest).toHaveBeenCalledTimes(1);
+    expect(secondRequest).toHaveBeenCalledTimes(1);
+    expect(getRefreshStatus()).toEqual({
+      isRefreshing: false,
+      pendingCount: 0,
+    });
   });
 });

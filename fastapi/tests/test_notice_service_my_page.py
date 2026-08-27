@@ -130,3 +130,26 @@ class TestNoticeServiceGetMyPage:
 
         assert result.total == 1
         assert result.list[0].target_user_ids == [current_user.id]
+
+    @pytest.mark.asyncio
+    async def test_get_my_page_excludes_notices_targeted_to_other_users(self, db):
+        """我的通知不能返回定向给其他用户的记录。"""
+        current_user, visible_notice, _publisher = await create_my_notice_target_context()
+        hidden_notice = await Notices.create(
+            title=f"其他用户通知_{uuid.uuid4().hex[:6]}",
+            content="隐藏内容",
+            target_type=2,
+            target_user_ids=[current_user.id + 999],
+            publish_status=1,
+        )
+
+        result = await notice_service.get_my_page(
+            user_id=current_user.id,
+            page_num=1,
+            page_size=20,
+            current_user=current_user,
+        )
+
+        result_ids = {notice.id for notice in result.list}
+        assert visible_notice.id in result_ids
+        assert hidden_notice.id not in result_ids

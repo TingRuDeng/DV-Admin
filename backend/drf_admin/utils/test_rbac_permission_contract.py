@@ -7,7 +7,12 @@ from rest_framework.test import APIRequestFactory
 from scripts.api_endpoint_contracts import iter_critical_endpoint_contracts
 
 from drf_admin.apps.system.models import Permissions, Roles, Users
-from drf_admin.apps.system.views.users import UsersViewSet
+from drf_admin.apps.system.views.users import (
+    UserExportAPIView,
+    UserImportAPIView,
+    UserImportTemplateAPIView,
+    UsersViewSet,
+)
 from drf_admin.utils.permissions import RBACPermission
 
 
@@ -103,3 +108,17 @@ class RBACPermissionContractTestCase(TestCase):
         assert view.required_permissions["create"] == list(contracts["users_create"].permissions)
         assert view.required_permissions["update"] == list(contracts["users_update"].permissions)
         assert view.required_permissions["multiple_delete"] == list(contracts["users_delete"].permissions)
+
+    def test_user_import_export_permissions_match_endpoint_catalog(self):
+        """Django 特殊入口必须使用导入导出专用权限。"""
+        contracts = endpoint_contracts_by_key()
+
+        assert UserImportTemplateAPIView().required_permissions["get"] == list(
+            contracts["users_template"].permissions
+        )
+        assert UserImportAPIView().required_permissions["post"] == list(
+            contracts["users_import"].permissions
+        )
+        assert UserExportAPIView().required_permissions["post"] == list(
+            contracts["users_export"].permissions
+        )

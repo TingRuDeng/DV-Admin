@@ -85,4 +85,93 @@ NOTICE_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
             ContractEvidence("docs/API_ENDPOINTS.md", ("PUT    /api/v1/system/notices/{id}/revoke",)),
         ),
     ),
+    EndpointContract(
+        key="notices_form",
+        method="GET",
+        path="/api/v1/system/notices/{id}/form",
+        auth_required=True,
+        response_fields=("id", "title", "content"),
+        permissions=("system:notices:query",),
+        evidence=(
+            ContractEvidence(
+                "backend/drf_admin/apps/system/urls.py",
+                ("notices/<int:pk>/form", "retrieve"),
+            ),
+            ContractEvidence(
+                "fastapi/app/api/v1/system/notices.py",
+                ("/{notice_id}/form", "system:notices:query"),
+            ),
+            ContractEvidence(
+                "frontend/src/api/system/notice-api.ts",
+                ("getFormData", "/form"),
+            ),
+        ),
+    ),
+    EndpointContract(
+        key="notices_detail",
+        method="GET",
+        path="/api/v1/system/notices/{id}/detail",
+        auth_required=True,
+        response_fields=("id", "title", "content"),
+        permissions=("system:notices:query",),
+        evidence=(
+            ContractEvidence(
+                "backend/drf_admin/apps/system/urls.py",
+                ("notices/<int:pk>/detail", "NoticeDetailAPIView"),
+            ),
+            ContractEvidence(
+                "fastapi/app/api/v1/system/notices.py",
+                ("/{notice_id}/detail", "system:notices:query"),
+            ),
+            ContractEvidence(
+                "frontend/src/api/system/notice-api.ts",
+                ("getDetail", "/detail"),
+            ),
+        ),
+    ),
+    EndpointContract(
+        key="notices_read_all",
+        method="PUT",
+        path="/api/v1/system/notices/read-all",
+        auth_required=True,
+        permissions=("system:notices:query",),
+        evidence=(
+            ContractEvidence(
+                "backend/drf_admin/apps/system/urls.py",
+                ("notices/read-all", "NoticeReadAllAPIView"),
+            ),
+            ContractEvidence(
+                "fastapi/app/api/v1/system/notices.py",
+                ('@router.put("/read-all"', "system:notices:query"),
+            ),
+            ContractEvidence(
+                "frontend/src/api/system/notice-api.ts",
+                ("readAll", "/read-all"),
+            ),
+        ),
+    ),
+    EndpointContract(
+        key="notices_my_page",
+        method="GET",
+        path="/api/v1/system/notices/my-page/",
+        auth_required=True,
+        query_params=("pageNum", "pageSize", "title", "isRead"),
+        response_fields=("list", "total"),
+        permissions=("system:notices:query",),
+        paginated=True,
+        evidence=(
+            ContractEvidence(
+                "backend/drf_admin/apps/system/urls.py",
+                ("notices/my-page/", "NoticesAPIView"),
+            ),
+            ContractEvidence(
+                "fastapi/app/api/v1/system/notices.py",
+                ('@router.get("/my-page/"', "system:notices:query"),
+            ),
+            ContractEvidence(
+                "frontend/src/api/system/notice-api.ts",
+                ("getMyNoticePage", "/my-page/"),
+            ),
+        ),
+    ),
 )
