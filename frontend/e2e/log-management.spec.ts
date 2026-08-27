@@ -26,6 +26,7 @@ interface LogRow {
 interface MockState {
   logs: LogRow[];
   seenPaths: string[];
+  seenRequestIds: string[];
 }
 
 interface AuthMockOptions {
@@ -39,6 +40,7 @@ interface MockRouteContext {
   route: Route;
   method: string;
   path: string;
+  searchParams: URLSearchParams;
   state: MockState;
   auth: AuthMockOptions;
 }
@@ -75,6 +77,7 @@ function createMockState(): MockState {
       },
     ],
     seenPaths: [],
+    seenRequestIds: [],
   };
 }
 
@@ -93,10 +96,12 @@ function success(data: unknown) {
 async function installLogManagementMocks(page: Page, state: MockState, auth: AuthMockOptions = {}) {
   await page.route(`**${API_PREFIX}/api/v1/**`, async (route) => {
     const request = route.request();
+    const requestUrl = new URL(request.url());
     const context = {
       route,
       method: request.method(),
-      path: new URL(request.url()).pathname.replace(API_PREFIX, ""),
+      path: requestUrl.pathname.replace(API_PREFIX, ""),
+      searchParams: requestUrl.searchParams,
       state,
       auth,
     };
@@ -162,10 +167,12 @@ async function handleLogRequest(context: MockRouteContext) {
   if (context.method !== "GET") return false;
 
   if (context.path === LOGS_PAGE_PATH) {
-    await fulfillJson(
-      context.route,
-      success({ list: context.state.logs, total: context.state.logs.length })
-    );
+    const requestId = context.searchParams.get("requestId") ?? "";
+    context.state.seenRequestIds.push(requestId);
+    const logs = requestId
+      ? context.state.logs.filter((item) => item.requestId === requestId)
+      : context.state.logs;
+    await fulfillJson(context.route, success({ list: logs, total: logs.length }));
     return true;
   }
 
@@ -214,6 +221,11 @@ test.describe("日志管理链路 smoke", () => {
     await expect.poll(() => state.seenPaths.join("|")).toContain(LOGS_PAGE_PATH);
     await expect(page.locator("tbody").getByText("删除用户失败")).toBeVisible();
     await expect(page.locator("tbody").getByText("失败", { exact: true })).toBeVisible();
+
+    await page.getByLabel("请求 ID").fill("audit-request-901");
+    await page.getByRole("button", { name: "搜索" }).click();
+    await expect.poll(() => state.seenRequestIds).toContain("audit-request-901");
+    await expect(page.locator("tbody").getByText("删除用户失败")).toBeVisible();
 
     await page.getByRole("button", { name: "查看" }).click();
 

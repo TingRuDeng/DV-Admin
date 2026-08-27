@@ -471,7 +471,7 @@ GET    /api/v1/system/notices/my-page/       # 我的通知，支持 pageNum/pag
 
 **Django & FastAPI 与前端管理页：**
 ```
-GET    /api/v1/system/logs/page                    # 日志分页，支持 pageNum/pageSize/operation/username/method/status/startTime/endTime
+GET    /api/v1/system/logs/page                    # 日志分页，支持 pageNum/pageSize/operation/username/requestId/method/status/startTime/endTime
 GET    /api/v1/system/logs/{id}                    # 日志详情
 GET    /api/v1/system/logs/visit-trend             # 访问趋势，支持 startDate/endDate，最多 366 个自然日
 GET    /api/v1/system/logs/visit-stats             # 访问统计
@@ -489,7 +489,7 @@ DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
 - `/logs/page`、`/logs/{id}`、`/logs/visit-trend`、`/logs/visit-stats`、删除和历史清理统一复用日志数据范围；不在当前用户可见范围内的 ID 按不存在处理。
 - `/logs/visit-trend` 两端均在数据库按日聚合并为缺失日期补 0；反向区间或超过 366 个自然日的查询返回 400。FastAPI 以 `startDate/endDate` 为公开参数，并在过渡期兼容 `start_date/end_date`。
 - 批量删除日志采用全有或全无语义，任一 ID 不存在或不可见时不删除任何目标；历史清理只清理当前用户范围内的日志。
-- `/logs/page` 与 `/logs/{id}` 返回 `requestId`，详情页可据此关联响应头和结构化运行日志；当前尚未提供按请求 ID 的服务端筛选。
+- `/logs/page` 与 `/logs/{id}` 返回 `requestId`；分页接口支持通过 `requestId` 精确筛选，详情页可据此关联响应头和结构化运行日志。
 - Django 对非法 `status/pageNum/pageSize/startTime/endTime/startDate/endDate/ids` 会返回 400，避免把外部输入解析错误暴露为 500；FastAPI 侧通过 Query/Path 类型约束处理同类入参。
 
 ---
