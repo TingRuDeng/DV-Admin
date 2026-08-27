@@ -1,10 +1,12 @@
 """
 通知服务详情测试。
 """
+import uuid
+
 import pytest
 
 from app.core.exceptions import NotFound
-from app.db.models.system import NoticeReads
+from app.db.models.system import NoticeReads, Notices
 from app.services.system.notice_service import notice_service
 
 pytest_plugins = ["notice_service_fixtures"]
@@ -38,3 +40,19 @@ class TestNoticeServiceGetDetail:
             user_id=1,
         ).exists()
         assert read
+
+    @pytest.mark.asyncio
+    async def test_get_detail_rejects_notice_targeted_to_another_user(self, db):
+        """用户不能读取或标记定向给其他用户的通知。"""
+        notice = await Notices.create(
+            title=f"隐藏详情_{uuid.uuid4().hex[:6]}",
+            content="隐藏内容",
+            target_type=2,
+            target_user_ids=[999],
+            publish_status=1,
+        )
+
+        with pytest.raises(NotFound):
+            await notice_service.get_detail(notice.id, user_id=1)
+
+        assert not await NoticeReads.filter(notice_id=notice.id, user_id=1).exists()

@@ -2,8 +2,13 @@
 """
 系统管理 - 操作日志接口与落库中间件测试
 """
+from datetime import timedelta
+
 from django.core.cache import cache
+from django.db import connection
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -26,7 +31,7 @@ def grant_log_permissions(user):
     cache.delete(f"user_info_{user.id}_perms")
 
 
-def create_scoped_log_permission_role(data_scope):
+def create_scoped_log_permission_role(data_scope, permission_codes=()):
     """创建带操作日志查询权限的数据范围角色。"""
     role = Roles.objects.create(
         name=f"日志数据范围角色{data_scope}",
@@ -39,7 +44,68 @@ def create_scoped_log_permission_role(data_scope):
         defaults={"name": "system:logs:query", "type": "BUTTON"},
     )
     role.permissions.add(permission)
+    for code in permission_codes:
+        permission, _ = Permissions.objects.get_or_create(
+            perm=code,
+            defaults={"name": code, "type": "BUTTON"},
+        )
+        role.permissions.add(permission)
     return role
+
+
+def create_scoped_log_context(permission_codes=()):
+    """创建部门范围操作人与范围内外日志。"""
+    visible_dept = Departments.objects.create(name="日志范围内部门", status=1, sort=1)
+    hidden_dept = Departments.objects.create(name="日志范围外部门", status=1, sort=2)
+    role = create_scoped_log_permission_role(
+        Roles.DATA_SCOPE_DEPT,
+        permission_codes=permission_codes,
+    )
+    operator = Users.objects.create_user(
+        username="log_scope_operator",
+        password="admin123",
+        name="日志范围操作人",
+        dept=visible_dept,
+        is_active=1,
+    )
+    operator.roles.add(role)
+    visible_user = Users.objects.create_user(
+        username="log_scope_visible_user",
+        password="admin123",
+        name="日志范围内用户",
+        dept=visible_dept,
+        is_active=1,
+    )
+    hidden_user = Users.objects.create_user(
+        username="log_scope_hidden_user",
+        password="admin123",
+        name="日志范围外用户",
+        dept=hidden_dept,
+        is_active=1,
+    )
+    visible_log = OperationLog.objects.create(
+        user_id=visible_user.id,
+        username=visible_user.username,
+        operation="范围内操作",
+        method="POST",
+        path="/api/visible",
+        status=1,
+        execution_time=100,
+    )
+    hidden_log = OperationLog.objects.create(
+        user_id=hidden_user.id,
+        username=hidden_user.username,
+        operation="范围外操作",
+        method="POST",
+        path="/api/hidden",
+        status=0,
+        execution_time=300,
+    )
+    return {
+        "operator": operator,
+        "visible_log": visible_log,
+        "hidden_log": hidden_log,
+    }
 
 
 class OperationLogPersistenceTestCase(TestCase):
@@ -51,19 +117,43 @@ class OperationLogPersistenceTestCase(TestCase):
         self.user = create_admin_user()
         self.client.force_authenticate(user=self.user)
 
-    def test_post_request_is_persisted(self):
-        """POST 写操作必须落库一条操作日志，并记录用户与方法。"""
+    def test_post_request_is_persisted_with_request_id(self):
+        """POST 写操作必须落库，并持久化响应头对应的 request id。"""
         before = OperationLog.objects.count()
-        self.client.post(
+        response = self.client.post(
             "/api/v1/system/dicts/",
             {"name": "测试字典", "dictCode": "test_log_dict", "status": 1},
             format="json",
+            HTTP_X_REQUEST_ID="django-audit-request-id",
         )
         logs = OperationLog.objects.filter(method="POST", path__contains="/system/dicts")
         self.assertTrue(logs.exists())
         self.assertGreater(OperationLog.objects.count(), before)
         log = logs.first()
         self.assertEqual(log.username, self.user.username)
+        self.assertEqual(response["X-Request-ID"], "django-audit-request-id")
+        self.assertEqual(log.request_id, "django-audit-request-id")
+        self.assertEqual(log.error_msg, "")
+        self.assertEqual(log.response_body, "")
+
+    def test_failed_post_persists_error_summary_and_response_body(self):
+        """失败写操作必须记录可定位且已脱敏的错误摘要。"""
+        response = self.client.post(
+            "/api/v1/system/dicts/",
+            {"name": "", "dictCode": "", "password": "must-not-leak"},
+            format="json",
+            HTTP_X_REQUEST_ID="django-audit-failure-id",
+        )
+
+        self.assertGreaterEqual(response.status_code, 400)
+        log = OperationLog.objects.filter(method="POST", path__contains="/system/dicts").latest(
+            "created_at"
+        )
+        self.assertEqual(log.request_id, "django-audit-failure-id")
+        self.assertEqual(log.status, 0)
+        self.assertTrue(log.error_msg)
+        self.assertTrue(log.response_body)
+        self.assertNotIn("must-not-leak", log.response_body)
 
     def test_get_request_is_not_persisted(self):
         """GET 读请求不落库，避免审计表被轮询淹没。"""
@@ -98,6 +188,7 @@ class OperationLogPageTestCase(TestCase):
         self.assertEqual(data["total"], 4)
         self.assertIn("createdAt", data["list"][0])
         self.assertIn("executionTime", data["list"][0])
+        self.assertIn("requestId", data["list"][0])
 
     def test_page_filters_by_operation_keyword(self):
         """按 operation 关键字过滤。"""
@@ -117,6 +208,7 @@ class OperationLogPageTestCase(TestCase):
         self.assertEqual(data["id"], log.id)
         self.assertEqual(data["operation"], "删除角色")
         self.assertIn("responseStatus", data)
+        self.assertIn("requestId", data)
 
     def test_detail_returns_404_for_missing_log(self):
         """不存在或不可见的日志统一返回 404。"""
@@ -269,6 +361,22 @@ class OperationLogPageTestCase(TestCase):
         self.assertEqual(data["failCount"], 1)
         self.assertIn("topUsers", data)
 
+    def test_visit_stats_and_trend_follow_data_scope(self):
+        """统计与趋势只能聚合当前用户可见日志。"""
+        OperationLog.objects.all().delete()
+        context = create_scoped_log_context()
+        self.client.force_authenticate(user=context["operator"])
+
+        stats = self.client.get("/api/v1/system/logs/visit-stats").json()["data"]
+        trend = self.client.get("/api/v1/system/logs/visit-trend").json()["data"]
+
+        self.assertEqual(stats["totalCount"], 1)
+        self.assertEqual(stats["successCount"], 1)
+        self.assertEqual(stats["failCount"], 0)
+        self.assertEqual(stats["avgExecutionTime"], 100)
+        self.assertEqual(stats["topUsers"][0]["username"], context["visible_log"].username)
+        self.assertEqual(sum(item["count"] for item in trend), 1)
+
     def test_visit_stats_top_users_and_paths_cover_all_logs(self):
         """Top 统计应覆盖全量日志，不能只统计最近 1000 条。"""
         OperationLog.objects.all().delete()
@@ -312,10 +420,59 @@ class OperationLogPageTestCase(TestCase):
         self.assertIsInstance(data, list)
         self.assertTrue(all("date" in row and "count" in row for row in data))
 
+    def test_visit_trend_uses_database_daily_aggregation(self):
+        """趋势查询只拉取每日聚合行，不把范围内日志逐条载入 Python。"""
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.get("/api/v1/system/logs/visit-trend")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            any(
+                "GROUP BY" in query["sql"].upper()
+                and "created_at" in query["sql"]
+                for query in queries.captured_queries
+            )
+        )
+
     def test_visit_trend_rejects_invalid_date(self):
         """访问趋势日期参数非法时应返回 400。"""
         response = self.client.get("/api/v1/system/logs/visit-trend", {"startDate": "not-a-date"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_visit_trend_rejects_reversed_range(self):
+        """开始时间晚于结束时间时拒绝查询。"""
+        response = self.client.get(
+            "/api/v1/system/logs/visit-trend",
+            {
+                "startDate": "2026-01-02T00:00:00",
+                "endDate": "2026-01-01T00:00:00",
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_visit_trend_rejects_range_over_366_days(self):
+        """访问趋势最多允许 366 个自然日。"""
+        response = self.client.get(
+            "/api/v1/system/logs/visit-trend",
+            {
+                "startDate": "2025-01-01T00:00:00",
+                "endDate": "2026-01-02T00:00:00",
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_visit_trend_accepts_exactly_366_days(self):
+        """自然日数量恰好为 366 时仍允许查询。"""
+        response = self.client.get(
+            "/api/v1/system/logs/visit-trend",
+            {
+                "startDate": "2025-01-01T00:00:00",
+                "endDate": "2026-01-01T00:00:00",
+            },
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()["data"]), 366)
 
     def test_delete_logs_by_ids(self):
         """按 ID 批量删除日志（删除操作本身也会被审计，故按目标 ID 校验）。"""
@@ -327,6 +484,36 @@ class OperationLogPageTestCase(TestCase):
         """批量删除 ID 非法时应返回 400，不能抛出未处理 ValueError。"""
         response = self.client.delete("/api/v1/system/logs/1,invalid")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_delete_logs_is_atomic_across_data_scope(self):
+        """批量目标混入范围外日志时全部拒绝。"""
+        OperationLog.objects.all().delete()
+        context = create_scoped_log_context(("system:logs:delete",))
+        self.client.force_authenticate(user=context["operator"])
+
+        response = self.client.delete(
+            f"/api/v1/system/logs/{context['visible_log'].id},{context['hidden_log'].id}"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue(OperationLog.objects.filter(id=context["visible_log"].id).exists())
+        self.assertTrue(OperationLog.objects.filter(id=context["hidden_log"].id).exists())
+
+    def test_clear_old_logs_only_deletes_visible_logs(self):
+        """历史日志清理也必须遵守当前用户的数据范围。"""
+        OperationLog.objects.all().delete()
+        context = create_scoped_log_context(("system:logs:delete",))
+        old_time = timezone.now() - timedelta(days=31)
+        OperationLog.objects.filter(
+            id__in=[context["visible_log"].id, context["hidden_log"].id]
+        ).update(created_at=old_time)
+        self.client.force_authenticate(user=context["operator"])
+
+        response = self.client.delete("/api/v1/system/logs/clear/30")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(OperationLog.objects.filter(id=context["visible_log"].id).exists())
+        self.assertTrue(OperationLog.objects.filter(id=context["hidden_log"].id).exists())
 
 
 class OperationLogPermissionTestCase(TestCase):

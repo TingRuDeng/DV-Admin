@@ -9,6 +9,7 @@ from app.services.system.user_service import user_service
 
 pytest_plugins = ["user_service_fixtures"]
 
+
 class TestUserServiceDelete:
     """测试删除用户"""
 
@@ -28,8 +29,7 @@ class TestUserServiceDelete:
             dept_id=test_dept_for_service.id,
         )
 
-        # 使用不同的用户ID作为当前用户
-        await user_service.delete(user_to_delete.id, current_user_id=99999)
+        await user_service.delete(user_to_delete.id)
 
         # 验证用户已删除
         deleted_user = await Users.get_or_none(id=user_to_delete.id)
@@ -39,7 +39,7 @@ class TestUserServiceDelete:
     async def test_delete_nonexistent_user(self, db):
         """测试删除不存在的用户"""
         with pytest.raises(NotFound) as exc_info:
-            await user_service.delete(99999, current_user_id=88888)
+            await user_service.delete(99999)
 
         assert "用户不存在" in str(exc_info.value)
 
@@ -47,9 +47,25 @@ class TestUserServiceDelete:
     async def test_delete_self(self, db, test_user_for_service):
         """测试删除当前登录用户"""
         with pytest.raises(BusinessError) as exc_info:
-            await user_service.delete(test_user_for_service.id, current_user_id=test_user_for_service.id)
+            await user_service.delete(
+                test_user_for_service.id,
+                current_user=test_user_for_service,
+            )
 
         assert "不能删除当前登录用户" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_delete_hidden_user_returns_not_found(self, db, scoped_user_context):
+        """范围外用户按不存在处理，且不得被删除。"""
+        hidden_user = scoped_user_context["hidden_user"]
+
+        with pytest.raises(NotFound):
+            await user_service.delete(
+                hidden_user.id,
+                current_user=scoped_user_context["operator"],
+            )
+
+        assert await hidden_user.__class__.filter(id=hidden_user.id).exists()
 
 
 class TestUserServiceBatchDelete:
@@ -75,7 +91,7 @@ class TestUserServiceBatchDelete:
             user_ids.append(user.id)
 
         # 批量删除
-        await user_service.batch_delete(user_ids, current_user_id=99999)
+        await user_service.batch_delete(user_ids)
 
         # 验证用户已删除
         for user_id in user_ids:
@@ -86,9 +102,27 @@ class TestUserServiceBatchDelete:
     async def test_batch_delete_includes_self(self, db, test_user_for_service):
         """测试批量删除包含当前用户"""
         with pytest.raises(BusinessError) as exc_info:
-            await user_service.batch_delete([test_user_for_service.id, 99999], current_user_id=test_user_for_service.id)
+            await user_service.batch_delete(
+                [test_user_for_service.id, 99999],
+                current_user=test_user_for_service,
+            )
 
         assert "不能删除当前登录用户" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_batch_delete_is_atomic_across_data_scope(self, db, scoped_user_context):
+        """批量目标混入范围外用户时全部拒绝，不删除范围内用户。"""
+        visible_user = scoped_user_context["visible_user"]
+        hidden_user = scoped_user_context["hidden_user"]
+
+        with pytest.raises(NotFound):
+            await user_service.batch_delete(
+                [visible_user.id, hidden_user.id],
+                current_user=scoped_user_context["operator"],
+            )
+
+        assert await visible_user.__class__.filter(id=visible_user.id).exists()
+        assert await hidden_user.__class__.filter(id=hidden_user.id).exists()
 
 
 class TestUserServiceGetOptions:
@@ -129,6 +163,17 @@ class TestUserServiceGetOptions:
         option_ids = [opt["value"] for opt in result]
         assert inactive_user.id not in option_ids
 
+    @pytest.mark.asyncio
+    async def test_get_options_filters_by_data_scope(self, db, scoped_user_context):
+        """用户选项不得泄露范围外用户。"""
+        result = await user_service.get_options(
+            current_user=scoped_user_context["operator"],
+        )
+
+        option_ids = {option["value"] for option in result}
+        assert scoped_user_context["visible_user"].id in option_ids
+        assert scoped_user_context["hidden_user"].id not in option_ids
+
 
 class TestUserServiceResetPassword:
     """测试重置密码"""
@@ -151,3 +196,16 @@ class TestUserServiceResetPassword:
             await user_service.reset_password(99999)
 
         assert "用户不存在" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_reset_password_hidden_user_returns_not_found(
+        self,
+        db,
+        scoped_user_context,
+    ):
+        """不得重置范围外用户密码。"""
+        with pytest.raises(NotFound):
+            await user_service.reset_password(
+                scoped_user_context["hidden_user"].id,
+                current_user=scoped_user_context["operator"],
+            )

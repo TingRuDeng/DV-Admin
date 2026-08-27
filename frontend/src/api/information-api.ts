@@ -48,7 +48,7 @@ const InformationApi = {
     }
     // 如果传入的是文件对象，创建FormData
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("file", file);
     return request<unknown, AvatarInfo>({
       url: `${INFO_BASE_URL}/change-avatar/`,
       method: "post",
@@ -92,8 +92,6 @@ export interface UserProfile {
  * 修改个人信息表单
  */
 export interface ProfileForm {
-  /** 用户ID */
-  id?: string;
   /** 用户昵称 */
   name?: string;
   /** 性别 */
@@ -102,8 +100,6 @@ export interface ProfileForm {
   mobile?: string;
   /** 邮箱 */
   email?: string;
-  /** 头像URL */
-  avatar?: string;
 }
 
 /**
@@ -111,7 +107,7 @@ export interface ProfileForm {
  */
 export interface PasswordForm {
   /** 旧密码 */
-  currentPassword?: string;
+  oldPassword?: string;
   /** 新密码 */
   newPassword?: string;
   /** 确认新密码 */
@@ -124,4 +120,6 @@ export interface PasswordForm {
 export interface AvatarInfo {
   /** 头像URL */
   avatar?: string;
+  /** 可直接展示的头像URL */
+  url?: string;
 }

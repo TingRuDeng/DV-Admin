@@ -4,11 +4,18 @@
 """
 import os
 import tempfile
+from io import BytesIO
 
+import pytest
+from fastapi import UploadFile
+
+from app.core.config import settings
+from app.core.exceptions import ValidationError
 from app.utils.file import (
     allowed_file,
     format_file_size,
     get_file_size,
+    save_upload_file,
     secure_filename,
 )
 
@@ -60,3 +67,44 @@ class TestFileUtils:
         """测试获取不存在文件的大小"""
         size = get_file_size("/nonexistent/file/path")
         assert size == 0
+
+    @pytest.mark.asyncio
+    async def test_save_upload_file_streams_to_atomic_target(self, tmp_path, monkeypatch):
+        """上传内容分块写入临时文件，成功后再原子替换为目标文件。"""
+        monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
+        upload = UploadFile(filename="report.txt", file=BytesIO(b"streamed content"))
+
+        relative_path = await save_upload_file(
+            upload,
+            subdir="files/7",
+            max_size=1024,
+        )
+
+        saved_path = tmp_path / relative_path
+        assert saved_path.read_bytes() == b"streamed content"
+        assert not list(tmp_path.rglob("*.part"))
+
+    @pytest.mark.asyncio
+    async def test_save_upload_file_cleans_partial_file_on_size_error(
+        self,
+        tmp_path,
+        monkeypatch,
+    ):
+        """超过上限时不留下可见目标或分块临时文件。"""
+        monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
+        upload = UploadFile(filename="large.txt", file=BytesIO(b"too large"))
+
+        with pytest.raises(ValidationError):
+            await save_upload_file(upload, subdir="files/7", max_size=4)
+
+        assert not any(path.is_file() for path in tmp_path.rglob("*"))
+
+    @pytest.mark.asyncio
+    async def test_save_upload_file_accepts_exact_size_limit(self, tmp_path, monkeypatch):
+        """文件大小等于上限时允许保存，锁定边界没有少算一个字节。"""
+        monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
+        upload = UploadFile(filename="exact.txt", file=BytesIO(b"1234"))
+
+        relative_path = await save_upload_file(upload, max_size=4)
+
+        assert (tmp_path / relative_path).read_bytes() == b"1234"

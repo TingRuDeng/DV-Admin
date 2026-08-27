@@ -131,6 +131,11 @@ CORS_ALLOWED_ORIGINS = env.list(
 # 允许携带cookie
 CORS_ALLOW_CREDENTIALS = True
 
+# 上传文件硬上限；与 FastAPI 的 MAX_UPLOAD_SIZE 默认值保持一致。
+MAX_UPLOAD_SIZE = env.int("MAX_UPLOAD_SIZE", default=10 * 1024 * 1024)
+if MAX_UPLOAD_SIZE <= 0:
+    raise ValueError("MAX_UPLOAD_SIZE 必须为正整数")
+
 ROOT_URLCONF = "drf_admin.urls"
 
 TEMPLATES = [

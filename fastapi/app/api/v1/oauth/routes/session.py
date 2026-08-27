@@ -105,12 +105,29 @@ async def refresh_token(
         raise AuthenticationError(message="无法获取用户信息", code=REFRESH_TOKEN_INVALID_CODE)
 
     # 查询用户
-    user = await Users.get_or_none(id=int(user_id))
+    try:
+        user_id_value = int(user_id)
+    except (TypeError, ValueError):
+        raise AuthenticationError(
+            message="无法获取用户信息",
+            code=REFRESH_TOKEN_INVALID_CODE,
+        ) from None
+
+    user = await Users.get_or_none(id=user_id_value)
     if not user:
         raise AuthenticationError(message="用户不存在", code=REFRESH_TOKEN_INVALID_CODE)
 
     if not user.is_active:
         raise AuthenticationError(message="用户已被禁用", code=REFRESH_TOKEN_INVALID_CODE)
+
+    if not await token_blacklist_service.consume_refresh_token(
+        token_data.refresh_token,
+        user.id,
+    ):
+        raise AuthenticationError(
+            message="刷新令牌已失效",
+            code=REFRESH_TOKEN_INVALID_CODE,
+        )
 
     # 生成新的令牌
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
@@ -206,4 +223,3 @@ async def logout(
             )
 
     return ResponseModel.success(message="登出成功")
-

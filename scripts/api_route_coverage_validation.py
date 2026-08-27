@@ -10,6 +10,7 @@ FASTAPI_ONLY_ENDPOINT_KEYS = {"files_upload", "files_delete"}
 DJANGO_ROUTER_RESOURCES = {"users", "roles", "menus", "dicts", "dict-items", "departments"}
 FASTAPI_ROUTE_BASES = {
     "fastapi/app/api/v1/files/upload.py": "files",
+    "fastapi/app/api/v1/information/profile.py": "information",
     "fastapi/app/api/v1/oauth/routes/login.py": "oauth",
     "fastapi/app/api/v1/oauth/routes/menus.py": "oauth",
     "fastapi/app/api/v1/oauth/routes/profile.py": "oauth",
@@ -24,6 +25,7 @@ FASTAPI_ROUTE_BASES = {
     "fastapi/app/api/v1/system/notices.py": "system/notices",
     "fastapi/app/api/v1/system/roles.py": "system/roles",
     "fastapi/app/api/v1/system/user_routes/mutation.py": "system/users",
+    "fastapi/app/api/v1/system/user_routes/import_export.py": "system/users",
     "fastapi/app/api/v1/system/user_routes/query.py": "system/users",
 }
 FASTAPI_SYSTEM_PREFIXES = {
@@ -57,6 +59,8 @@ def validate_django_contract_route(contract: EndpointContract, routes: dict[str,
     route = normalized_contract_route(contract)
     if route.startswith("oauth/"):
         return validate_django_oauth_route(contract, route, routes)
+    if route.startswith("information/"):
+        return validate_django_information_route(contract, route, routes)
     if route.startswith("system/"):
         return validate_django_system_route(contract, route, routes)
     return [f"{contract.key}: Django 路由覆盖校验暂不支持路径 {contract.path}"]
@@ -67,6 +71,8 @@ def validate_fastapi_contract_route(contract: EndpointContract, routes: dict[str
     route = normalized_contract_route(contract)
     if route.startswith("oauth/"):
         issues = validate_fastapi_prefixed_route(contract, routes, "oauth")
+    elif route.startswith("information/"):
+        issues = validate_fastapi_prefixed_route(contract, routes, "information")
     elif route.startswith("system/"):
         route_tail = route.removeprefix("system/")
         resource = route_tail.split("/", 1)[0]
@@ -95,6 +101,18 @@ def validate_django_oauth_route(
     if route_tail in oauth_routes:
         return []
     return [f"{contract.key}: Django OAuth URLConf 未覆盖路径 {route_tail!r}"]
+
+
+def validate_django_information_route(
+    contract: EndpointContract,
+    route: str,
+    routes: dict[str, object],
+) -> list[str]:
+    """校验 Django information 显式 path 路由。"""
+    route_tail = route.removeprefix("information/")
+    if route_tail in routes["information_explicit"]:
+        return []
+    return [f"{contract.key}: Django information URLConf 未覆盖路径 {route_tail!r}"]
 
 
 def validate_django_system_route(
@@ -173,10 +191,12 @@ def validate_fastapi_endpoint_route(contract: EndpointContract, routes: dict[str
 def load_django_routes(root: Path) -> dict[str, object]:
     """读取 Django OAuth/system 路由注册信息。"""
     oauth_text = read_text(root / "backend/drf_admin/apps/oauth/urls.py")
+    information_text = read_text(root / "backend/drf_admin/apps/information/urls.py")
     system_text = read_text(root / "backend/drf_admin/apps/system/urls.py")
     role_view_text = read_text(root / "backend/drf_admin/apps/system/views/roles.py")
     return {
         "oauth_explicit": extract_django_path_routes(oauth_text),
+        "information_explicit": extract_django_path_routes(information_text),
         "system_explicit": extract_django_path_routes(system_text),
         "system_router_resources": extract_django_router_resources(system_text),
         "system_detail_actions": extract_django_detail_actions(role_view_text, resource="roles"),

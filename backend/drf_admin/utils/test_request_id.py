@@ -4,9 +4,11 @@ from django.http import HttpResponse
 from django.test import RequestFactory, TestCase
 
 from drf_admin.utils.request_id import (
+    MAX_REQUEST_ID_LENGTH,
     REQUEST_ID_HEADER,
     RequestIdMiddleware,
     get_request_id,
+    normalize_request_id,
 )
 
 
@@ -38,3 +40,23 @@ class RequestIdMiddlewareTests(TestCase):
         self.assertTrue(response[REQUEST_ID_HEADER])
         self.assertEqual(response[REQUEST_ID_HEADER], request.request_id)
         self.assertIsNone(get_request_id())
+
+    def test_request_id_is_trimmed_to_persisted_length(self):
+        request = self.factory.get("/health", HTTP_X_REQUEST_ID="x" * 80)
+
+        response = RequestIdMiddleware(lambda _request: HttpResponse("ok"))(request)
+
+        self.assertEqual(response[REQUEST_ID_HEADER], "x" * MAX_REQUEST_ID_LENGTH)
+
+    def test_request_id_rejects_control_characters(self):
+        """控制字符不得进入响应头、单行日志或操作日志关联字段。"""
+        self.assertEqual(normalize_request_id("trace\nforged"), "")
+        request = self.factory.get(
+            "/health",
+            HTTP_X_REQUEST_ID="trace\nforged",
+        )
+
+        response = RequestIdMiddleware(lambda _request: HttpResponse("ok"))(request)
+
+        self.assertNotEqual(response[REQUEST_ID_HEADER], "trace\nforged")
+        self.assertRegex(response[REQUEST_ID_HEADER], r"^[a-f0-9]{32}$")

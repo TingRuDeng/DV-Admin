@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from collections import Counter
 from datetime import datetime, timedelta
 
+from django.db import transaction
 from django.db.models import Avg, Count
+from django.db.models.functions import TruncDate
 from django.utils import timezone
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
@@ -13,6 +14,8 @@ from drf_admin.apps.system.models import OperationLog
 from drf_admin.apps.system.serializers.logs import OperationLogSerializer
 from drf_admin.apps.system.services.data_scope import apply_log_data_scope
 from drf_admin.utils.permissions import RBACPermission
+
+MAX_VISIT_TREND_DAYS = 366
 
 
 def parse_optional_int(value: str | None, field_name: str) -> int | None:
@@ -57,7 +60,18 @@ def parse_id_list(ids: str) -> list[int]:
         parsed_ids.append(parsed_id)
     if not parsed_ids:
         raise ValidationError({"ids": "不能为空"})
-    return parsed_ids
+    return list(dict.fromkeys(parsed_ids))
+
+
+def validate_visit_trend_range(start: datetime, end: datetime) -> None:
+    """限制趋势查询范围，避免反向或超长区间消耗数据库与响应内存。"""
+    if start > end:
+        raise ValidationError({"startDate": "不能晚于 endDate"})
+    range_days = (end.date() - start.date()).days + 1
+    if range_days > MAX_VISIT_TREND_DAYS:
+        raise ValidationError(
+            {"startDate": f"访问趋势查询范围不能超过 {MAX_VISIT_TREND_DAYS} 天"}
+        )
 
 
 class LogPermissionAPIView(APIView):
@@ -122,18 +136,31 @@ class VisitTrendAPIView(LogPermissionAPIView):
         start_date = params.get("start_date")
         end = parse_optional_datetime(end_date, "endDate") or timezone.localtime()
         start = parse_optional_datetime(start_date, "startDate") or (end - timedelta(days=7))
+        validate_visit_trend_range(start, end)
 
-        logs = OperationLog.objects.filter(created_at__gte=start, created_at__lte=end)
-        counter: Counter = Counter()
-        for created in logs.values_list("created_at", flat=True):
-            counter[timezone.localtime(created).strftime("%Y-%m-%d")] += 1
+        logs = apply_log_data_scope(OperationLog.objects.all(), request.user).filter(
+            created_at__gte=start,
+            created_at__lte=end,
+        )
+        daily_counts = {
+            row["date"].strftime("%Y-%m-%d"): row["count"]
+            for row in logs.annotate(
+                date=TruncDate(
+                    "created_at",
+                    tzinfo=timezone.get_current_timezone(),
+                )
+            )
+            .values("date")
+            .annotate(count=Count("id"))
+            .order_by("date")
+        }
 
         results = []
         cursor = start.date()
         end_day = end.date()
         while cursor <= end_day:
             key = cursor.strftime("%Y-%m-%d")
-            results.append({"date": key, "count": counter.get(key, 0)})
+            results.append({"date": key, "count": daily_counts.get(key, 0)})
             cursor += timedelta(days=1)
         return Response(data=results)
 
@@ -147,7 +174,7 @@ class VisitStatsAPIView(LogPermissionAPIView):
         week_start = today_start - timedelta(days=now.weekday())
         month_start = today_start.replace(day=1)
 
-        all_logs = OperationLog.objects.all()
+        all_logs = apply_log_data_scope(OperationLog.objects.all(), request.user)
         avg_time = all_logs.filter(execution_time__gt=0).aggregate(
             avg_execution_time=Avg("execution_time")
         )["avg_execution_time"]
@@ -192,10 +219,19 @@ class LogResourceAPIView(LogPermissionAPIView):
         serializer = OperationLogSerializer(operation_log, context={"request": request})
         return Response(data=serializer.data)
 
+    @transaction.atomic
     def delete(self, request, id: int | None = None, ids: str | None = None):
         raw_ids = str(id) if id is not None else (ids or "")
         id_list = parse_id_list(raw_ids)
-        OperationLog.objects.filter(id__in=id_list).delete()
+        queryset = apply_log_data_scope(OperationLog.objects.all(), request.user).filter(
+            id__in=id_list
+        )
+        locked_ids = list(
+            queryset.select_for_update().values_list("id", flat=True)
+        )
+        if len(locked_ids) != len(id_list):
+            raise NotFound("操作日志不存在")
+        queryset.filter(id__in=locked_ids).delete()
         return Response(data={})
 
 
@@ -204,5 +240,7 @@ class LogClearAPIView(LogPermissionAPIView):
 
     def delete(self, request, days: int):
         threshold = timezone.now() - timedelta(days=int(days))
-        OperationLog.objects.filter(created_at__lt=threshold).delete()
+        apply_log_data_scope(OperationLog.objects.all(), request.user).filter(
+            created_at__lt=threshold
+        ).delete()
         return Response(data={})

@@ -68,12 +68,19 @@ pnpm run test:unit
 # 统一质量门禁（lint + type-check + test:unit）
 pnpm run quality
 
+# 生产依赖安全审计（阻断未豁免的 high/critical 公告）
+pnpm run audit:prod
+
 # 构建（包含类型检查）
 pnpm run build
 
 # 代码提交（请在提交前先执行 pnpm run quality 检查代码是否符合规范）
 pnpm run commit
 ```
+
+`audit:prod` 会实时读取 pnpm 公告。临时豁免仅允许登记在
+`dependency-audit-exemptions.json`，必须限定公告、包、依赖路径、责任人和到期日期；
+到期豁免或同一公告出现新的依赖路径都会使门禁失败。
 
 
 ## 项目部署

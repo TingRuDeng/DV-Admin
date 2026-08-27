@@ -7,7 +7,14 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from drf_admin.apps.system.models import Departments, Notices, Permissions, Roles, Users
+from drf_admin.apps.system.models import (
+    Departments,
+    NoticeReads,
+    Notices,
+    Permissions,
+    Roles,
+    Users,
+)
 from drf_admin.apps.system.test_helpers import create_admin_user
 
 
@@ -263,6 +270,20 @@ class NoticesDetailTestCase(TestCase):
         
         self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND, status.HTTP_403_FORBIDDEN])
 
+    def test_get_notice_form_uses_frontend_contract_path(self):
+        """后台表单详情必须覆盖前端实际使用的 /form 路径。"""
+        notice = Notices.objects.create(
+            title="表单通知",
+            content="表单内容",
+            publisher_id=self.user.id,
+            publisher_name=self.user.username,
+        )
+
+        response = self.client.get(f"/api/v1/system/notices/{notice.id}/form")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["data"]["id"], notice.id)
+
     def test_update_notice(self):
         """测试更新通知"""
         response = self.client.put("/api/v1/system/notices/1/", {
@@ -446,13 +467,71 @@ class NoticesMyPageTestCase(TestCase):
         self.assertEqual(len(second_data["list"]), 1)
         self.assertNotEqual(first_data["list"][0]["id"], second_data["list"][0]["id"])
 
-    def test_my_page_is_read_filter_returns_empty(self):
-        """Django 不跟踪已读状态，按 isRead=1 过滤返回空列表。"""
+    def test_my_page_is_read_filter_returns_persisted_reads(self):
+        """按 isRead=1 过滤必须返回已持久化的阅读记录。"""
+        NoticeReads.objects.create(notice=self.notice_all, user_id=self.user.id)
+
         response = self.client.get("/api/v1/system/notices/my-page/", {"pageNum": 1, "pageSize": 10, "isRead": 1})
 
         data = response.json()["data"]
-        self.assertEqual(data["total"], 0)
-        self.assertEqual(data["list"], [])
+        self.assertEqual(data["total"], 1)
+        self.assertEqual(data["list"][0]["id"], self.notice_all.id)
+        self.assertEqual(data["list"][0]["isRead"], 1)
+
+    def test_detail_marks_visible_notice_read(self):
+        """查看可见通知详情后，已读状态必须在后续分页中可见。"""
+        response = self.client.get(
+            f"/api/v1/system/notices/{self.notice_targeted.id}/detail"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            NoticeReads.objects.filter(
+                notice=self.notice_targeted,
+                user_id=self.user.id,
+            ).exists()
+        )
+
+    def test_detail_rejects_notice_targeted_to_another_user(self):
+        """定向给其他用户的通知详情不能被当前用户越权读取。"""
+        hidden = Notices.objects.create(
+            title="详情隐藏通知",
+            content="隐藏内容",
+            publish_status=1,
+            target_type=2,
+            target_user_ids=[self.user.id + 999],
+        )
+
+        response = self.client.get(f"/api/v1/system/notices/{hidden.id}/detail")
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertFalse(
+            NoticeReads.objects.filter(notice=hidden, user_id=self.user.id).exists()
+        )
+
+    def test_read_all_only_marks_visible_published_notices(self):
+        """全部已读不得把草稿或其他用户的定向通知写入阅读记录。"""
+        response = self.client.put("/api/v1/system/notices/read-all")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        read_ids = set(
+            NoticeReads.objects.filter(user_id=self.user.id).values_list(
+                "notice_id",
+                flat=True,
+            )
+        )
+        self.assertEqual(read_ids, {self.notice_all.id, self.notice_targeted.id})
+
+    def test_my_page_rejects_invalid_query_values(self):
+        """非法分页和已读过滤参数必须返回 400，不能冒泡为 500。"""
+        for params in (
+            {"pageNum": "invalid"},
+            {"pageSize": 101},
+            {"isRead": 2},
+            {"isRead": "invalid"},
+        ):
+            response = self.client.get("/api/v1/system/notices/my-page/", params)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_my_page_masks_target_users_without_plain_permission(self):
         """无字段原文权限时，我的通知不暴露指定用户 ID。"""

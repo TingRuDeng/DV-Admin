@@ -104,11 +104,12 @@ httpRequest.interceptors.response.use(
     switch (code) {
       case ApiCodeEnum.ACCESS_TOKEN_INVALID: {
         // Access Token 过期
-        if (authConfig.enableTokenRefresh) {
+        const isRefreshTokenRequest = config?.url?.includes("/oauth/refresh-token/");
+        if (authConfig.enableTokenRefresh && !isRefreshTokenRequest) {
           // 启用了token刷新，尝试刷新
           return refreshTokenAndRetry(config, httpRequest);
         } else {
-          // 未启用token刷新，直接跳转登录页
+          // 未启用刷新，或刷新接口自身异常时，直接跳转登录页。
           await redirectToLogin("登录已过期");
           const accessTokenError = normalizeApiErrorEnvelope(responseData, "Access Token Invalid");
           return Promise.reject(new Error(accessTokenError.message));
