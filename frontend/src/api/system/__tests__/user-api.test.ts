@@ -34,4 +34,35 @@ describe("system user api governance", () => {
     expect(source).not.toContain("sendMobileCode");
     expect(source).not.toContain("bindOrChangeEmail");
   });
+
+  it("uses the shared JSON contract for template and export", () => {
+    vi.clearAllMocks();
+
+    UserAPI.downloadTemplate();
+    UserAPI.export();
+
+    expect(request).toHaveBeenNthCalledWith(1, {
+      url: "/api/system/users/template",
+      method: "get",
+    });
+    expect(request).toHaveBeenNthCalledWith(2, {
+      url: "/api/system/users/export/",
+      method: "post",
+    });
+  });
+
+  it("does not invent a default department for imports", () => {
+    vi.clearAllMocks();
+    const file = new File(["xlsx"], "users.xlsx");
+
+    UserAPI.import(undefined, file);
+
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "/api/system/users/import",
+        method: "post",
+        params: undefined,
+      })
+    );
+  });
 });

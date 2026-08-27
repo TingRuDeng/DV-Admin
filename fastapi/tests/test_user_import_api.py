@@ -73,3 +73,15 @@ def test_user_import_forwards_department_query_contract(
     assert captured["content"] == b"fake workbook"
     assert captured["dept_id"] == 42
     assert captured["user_id"] is not None
+
+
+def test_user_import_rejects_legacy_xls(auth_client: TestClient):
+    """openpyxl 不支持旧 xls 二进制格式，公开契约只接受 xlsx。"""
+    response = auth_client.post(
+        "/api/v1/system/users/import",
+        files={"file": ("users.xls", BytesIO(b"legacy"), "application/vnd.ms-excel")},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["code"] != 20000
+    assert "仅支持 .xlsx" in response.json()["message"]

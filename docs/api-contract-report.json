@@ -1,6 +1,6 @@
 {
-  "authenticated_count": 48,
-  "endpoint_count": 49,
+  "authenticated_count": 51,
+  "endpoint_count": 52,
   "endpoints": [
     {
       "auth_required": false,
@@ -274,6 +274,79 @@
         "ids"
       ],
       "response_fields": []
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "backend/drf_admin/apps/system/views/users.py",
+        "fastapi/app/api/v1/system/user_routes/import_export.py",
+        "frontend/src/api/system/user-api.ts"
+      ],
+      "key": "users_template",
+      "method": "GET",
+      "paginated": false,
+      "path": "/api/v1/system/users/template",
+      "permissions": [
+        "system:users:import"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "filename",
+        "content",
+        "contentType"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "backend/drf_admin/apps/system/views/users.py",
+        "fastapi/app/api/v1/system/user_routes/import_export.py",
+        "frontend/src/api/system/user-api.ts"
+      ],
+      "key": "users_import",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/system/users/import",
+      "permissions": [
+        "system:users:import"
+      ],
+      "query_params": [
+        "deptId"
+      ],
+      "request_fields": [
+        "file"
+      ],
+      "response_fields": [
+        "validCount",
+        "invalidCount",
+        "messageList"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "backend/drf_admin/apps/system/views/users.py",
+        "fastapi/app/api/v1/system/user_routes/import_export.py",
+        "frontend/src/api/system/user-api.ts"
+      ],
+      "key": "users_export",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/system/users/export/",
+      "permissions": [
+        "system:users:export"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "filename",
+        "content",
+        "contentType"
+      ]
     },
     {
       "auth_required": true,

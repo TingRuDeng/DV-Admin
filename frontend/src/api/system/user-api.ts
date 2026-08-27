@@ -1,5 +1,4 @@
 import request from "@/utils/request";
-import type { AxiosResponse } from "axios";
 
 const USER_BASE_URL = "/api/system/users";
 
@@ -90,40 +89,33 @@ const UserAPI = {
 
   /** 下载用户导入模板 */
   downloadTemplate() {
-    return request<unknown, AxiosResponse<Blob>>({
+    return request<unknown, EncodedFile>({
       url: `${USER_BASE_URL}/template`,
       method: "get",
-      responseType: "blob",
     });
   },
 
-  /**
-   * 导出用户
-   *
-   * @param queryParams 查询参数
-   */
-  export(queryParams?: UserPageQuery) {
-    return request<unknown, Blob>({
+  /** 导出当前权限范围内的用户 */
+  export() {
+    return request<unknown, EncodedFile>({
       url: `${USER_BASE_URL}/export/`,
-      method: "get",
-      params: queryParams,
-      responseType: "blob",
+      method: "post",
     });
   },
 
   /**
    * 导入用户
    *
-   * @param deptId 部门ID
+   * @param deptId 默认部门ID
    * @param file 导入文件
    */
-  import(deptId: string, file: File) {
+  import(deptId: string | number | undefined, file: File) {
     const formData = new FormData();
     formData.append("file", file);
-    return request<unknown, ExcelResult>({
+    return request<unknown, UserImportResult>({
       url: `${USER_BASE_URL}/import`,
       method: "post",
-      params: { deptId },
+      params: deptId == null ? undefined : { deptId },
       data: formData,
       headers: {
         "Content-Type": "multipart/form-data",
@@ -143,6 +135,18 @@ const UserAPI = {
 };
 
 export default UserAPI;
+
+export interface EncodedFile {
+  filename: string;
+  content: string;
+  contentType: string;
+}
+
+export interface UserImportResult {
+  invalidCount: number;
+  validCount: number;
+  messageList: string[];
+}
 
 /**
  * 用户分页查询对象

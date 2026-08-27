@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from pathlib import Path
+
+from django.conf import settings
 from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins
@@ -17,6 +20,11 @@ from drf_admin.apps.system.serializers.users import (
     UsersSerializer,
 )
 from drf_admin.apps.system.services.data_scope import apply_user_data_scope
+from drf_admin.apps.system.services.user_import_export import (
+    build_import_template,
+    export_users,
+    import_users,
+)
 from drf_admin.utils.views import AdminViewSet, AutoPermissionAPIView
 
 
@@ -108,6 +116,75 @@ class UsersOptionsViewSet(AutoPermissionAPIView, ListAPIView):
 
     def get_queryset(self):
         return apply_user_data_scope(super().get_queryset(), self.request.user)
+
+
+class UserImportTemplateAPIView(AutoPermissionAPIView):
+    """下载用户导入模板。"""
+
+    model = Users
+
+    @staticmethod
+    def get_method_permission_mapping():
+        return {"get": "import"}
+
+    def get(self, request):
+        return Response(data=build_import_template())
+
+
+class UserExportAPIView(AutoPermissionAPIView):
+    """导出当前数据范围内的用户。"""
+
+    model = Users
+
+    @staticmethod
+    def get_method_permission_mapping():
+        return {"post": "export"}
+
+    def post(self, request):
+        return Response(data=export_users(request.user))
+
+
+class UserImportAPIView(AutoPermissionAPIView):
+    """导入 xlsx 用户数据。"""
+
+    model = Users
+
+    @staticmethod
+    def get_method_permission_mapping():
+        return {"post": "import"}
+
+    def post(self, request):
+        uploaded_file = request.FILES.get("file")
+        if uploaded_file is None:
+            raise ValidationError("文件不能为空")
+        if Path(uploaded_file.name).suffix.lower() != ".xlsx":
+            raise ValidationError("文件格式错误，仅支持 .xlsx 格式")
+        if uploaded_file.size > settings.MAX_UPLOAD_SIZE:
+            max_size = settings.MAX_UPLOAD_SIZE
+            max_size_label = (
+                f"{max_size / (1024 * 1024):g} MiB"
+                if max_size >= 1024 * 1024
+                else f"{max_size} 字节"
+            )
+            raise ValidationError(f"文件大小不能超过 {max_size_label}")
+        dept_id = self._parse_dept_id(request.query_params)
+        return Response(
+            data=import_users(
+                uploaded_file.file,
+                dept_id=dept_id,
+                current_user=request.user,
+            )
+        )
+
+    @staticmethod
+    def _parse_dept_id(query_params):
+        raw_dept_id = query_params.get("deptId", query_params.get("dept_id"))
+        if raw_dept_id in (None, ""):
+            return None
+        try:
+            return int(raw_dept_id)
+        except (TypeError, ValueError) as exc:
+            raise ValidationError("deptId 必须为整数") from exc
 
 
 class ResetPasswordAPIView(mixins.UpdateModelMixin, AutoPermissionAPIView, GenericAPIView):

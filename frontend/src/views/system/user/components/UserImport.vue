@@ -17,7 +17,7 @@
           ref="uploadRef"
           v-model:file-list="importFormData.files"
           class="w-full"
-          accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+          accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           :drag="true"
           :limit="1"
           :auto-upload="false"
@@ -30,7 +30,7 @@
           </div>
           <template #tip>
             <div class="el-upload__tip">
-              格式为*.xlsx / *.xls，文件不超过一个
+              格式为*.xlsx，文件不超过一个
               <el-link
                 type="primary"
                 icon="download"
@@ -96,10 +96,13 @@ import ProDialog from "@/components/ProDialog/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import { ElMessage, type UploadInstance, type UploadUserFile } from "element-plus";
 import UserAPI from "@/api/system/user-api";
-import { ApiCodeEnum } from "@/enums/api/code-enum";
 import { createLogger } from "@/utils/logger";
+import { downloadEncodedFile } from "@/utils/file-download";
 
 const userImportLogger = createLogger("UserImport");
+const props = defineProps<{
+  deptId?: string;
+}>();
 
 const emit = defineEmits<{
   "import-success": [];
@@ -144,29 +147,13 @@ const handleFileExceed = () => {
 };
 
 // 下载导入模板
-const handleDownloadTemplate = () => {
-  UserAPI.downloadTemplate().then((response) => {
-    const fileData = response.data;
-    const contentDisposition = response.headers["content-disposition"];
-    const fileName = contentDisposition
-      ? decodeURI(contentDisposition.split(";")[1].split("=")[1])
-      : "用户导入模板.xlsx";
-    const fileType =
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8";
-
-    const blob = new Blob([fileData], { type: fileType });
-    const downloadUrl = window.URL.createObjectURL(blob);
-
-    const downloadLink = document.createElement("a");
-    downloadLink.href = downloadUrl;
-    downloadLink.download = fileName;
-
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-
-    document.body.removeChild(downloadLink);
-    window.URL.revokeObjectURL(downloadUrl);
-  });
+const handleDownloadTemplate = async () => {
+  try {
+    downloadEncodedFile(await UserAPI.downloadTemplate());
+  } catch (error: unknown) {
+    userImportLogger.error("用户导入模板下载失败:", error);
+    ElMessage.error("模板下载失败");
+  }
 };
 
 // 上传文件
@@ -178,8 +165,8 @@ const handleUpload = async () => {
 
   uploading.value = true;
   try {
-    const result = await UserAPI.import("1", importFormData.files[0].raw as File);
-    if (result.code === ApiCodeEnum.SUCCESS && result.invalidCount === 0) {
+    const result = await UserAPI.import(props.deptId, importFormData.files[0].raw as File);
+    if (result.invalidCount === 0) {
       ElMessage.success("导入成功，导入数据：" + result.validCount + "条");
       emit("import-success");
       handleClose();

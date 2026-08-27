@@ -114,6 +114,18 @@ API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
         fastapi_source="app.schemas.system_user.UserFormOut",
     ),
     FieldContract(
+        key="encoded_file",
+        canonical=frozenset({"filename", "content", "contentType"}),
+        django_source="drf_admin.apps.system.services.user_import_export._encoded_file",
+        fastapi_source="app.schemas.system_common.EncodedFile",
+    ),
+    FieldContract(
+        key="user_import_result",
+        canonical=frozenset({"validCount", "invalidCount", "messageList"}),
+        django_source="drf_admin.apps.system.services.user_import_export.import_users",
+        fastapi_source="app.schemas.system_common.UserImportResult",
+    ),
+    FieldContract(
         key="roles_out",
         canonical=frozenset(
             {
@@ -369,6 +381,9 @@ ENDPOINT_FIELD_CONTRACTS: dict[str, str] = {
     "users_form": "users_form_out",
     "users_create": "users_out",
     "users_update": "users_out",
+    "users_template": "encoded_file",
+    "users_import": "user_import_result",
+    "users_export": "encoded_file",
     "roles_page": "roles_out",
     "roles_form": "roles_with_permissions",
     "roles_create": "roles_out",

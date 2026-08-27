@@ -47,6 +47,9 @@ class TestUserServiceImportExport:
         assert "filename" in result
         assert "content" in result
         assert result["filename"].endswith(".xlsx")
+        assert result["content_type"] == (
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
     @pytest.mark.asyncio
     async def test_export_users(self, db, test_user_for_service):
@@ -56,6 +59,7 @@ class TestUserServiceImportExport:
         assert "filename" in result
         assert "content" in result
         assert result["filename"].endswith(".csv")
+        assert result["content_type"] == "text/csv;charset=utf-8"
 
     @pytest.mark.asyncio
     async def test_export_users_filters_scope_and_masks_contacts(
@@ -101,6 +105,38 @@ class TestUserServiceImportExport:
 
         assert result.valid_count >= 1
         assert result.invalid_count == 0
+
+    @pytest.mark.asyncio
+    async def test_import_users_rolls_back_when_second_save_fails(
+        self,
+        db,
+        monkeypatch,
+        test_dept_for_service,
+    ):
+        """意外保存失败时不能留下前面已写入的部分用户。"""
+        usernames = [f"atomic_import_{uuid.uuid4().hex[:8]}" for _ in range(2)]
+        buffer = build_import_file(
+            [
+                [username, "原子导入", "", "", "0", str(test_dept_for_service.id), ""]
+                for username in usernames
+            ]
+        )
+        original_save = Users.save
+        save_count = 0
+
+        async def fail_on_second_save(user, *args, **kwargs):
+            nonlocal save_count
+            save_count += 1
+            if save_count == 2:
+                raise RuntimeError("simulated persistence failure")
+            return await original_save(user, *args, **kwargs)
+
+        monkeypatch.setattr(Users, "save", fail_on_second_save)
+
+        with pytest.raises(RuntimeError, match="simulated persistence failure"):
+            await user_service.import_users(buffer)
+
+        assert not await Users.filter(username__in=usernames).exists()
 
     @pytest.mark.asyncio
     async def test_import_users_invalid_file(self, db):
