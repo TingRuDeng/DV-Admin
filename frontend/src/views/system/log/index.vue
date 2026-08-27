@@ -24,6 +24,16 @@
         />
       </el-form-item>
 
+      <el-form-item prop="requestId" label="请求 ID" class="mb-0">
+        <el-input
+          v-model="queryParams.requestId"
+          placeholder="完整请求 ID"
+          maxlength="64"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+
       <el-form-item prop="method" label="请求方法" class="mb-0">
         <el-select v-model="queryParams.method" placeholder="全部" clearable style="width: 120px">
           <el-option v-for="method in HTTP_METHODS" :key="method" :label="method" :value="method" />
@@ -99,6 +109,7 @@ const HTTP_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
 interface LogPageRequestParams extends PageQuery {
   operation?: string;
   username?: string;
+  requestId?: string;
   method?: string;
   status?: number;
   createTime?: [string, string];
@@ -111,19 +122,21 @@ const logDetailDialogRef = ref<InstanceType<typeof LogDetailDialog> | null>(null
 const queryParams = reactive<Omit<LogPageRequestParams, "pageNum" | "pageSize">>({
   operation: "",
   username: "",
+  requestId: "",
   method: undefined,
   status: undefined,
   createTime: undefined,
 });
 
-/** 将页面筛选状态转换为 FastAPI 日志分页接口契约。 */
+/** 将页面筛选状态转换为双后端日志分页接口契约。 */
 function buildLogPageQuery(params: LogPageRequestParams): LogPageQuery {
-  const { createTime, method, operation, pageNum, pageSize, status, username } = params;
+  const { createTime, method, operation, pageNum, pageSize, requestId, status, username } = params;
   return {
     pageNum,
     pageSize,
     operation: operation || undefined,
     username: username || undefined,
+    requestId: requestId?.trim() || undefined,
     method: method || undefined,
     status,
     startTime: toDateTimeStart(createTime?.[0]),

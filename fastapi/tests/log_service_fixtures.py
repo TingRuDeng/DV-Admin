@@ -22,6 +22,7 @@ async def test_logs(db):
             operation=f"测试操作{i}",
             method="GET" if i % 2 == 0 else "POST",
             path=f"/api/v1/test/{i}",
+            request_id=f"service-request-{i}",
             query_params='{"page": 1}',
             request_body="{}",
             response_status=200,
