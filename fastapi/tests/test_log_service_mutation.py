@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
+from app.core.exceptions import NotFound
 from app.db.models.system import OperationLog
 from app.services.system.log_service import log_service
 
@@ -33,8 +34,23 @@ class TestLogServiceDelete:
     @pytest.mark.asyncio
     async def test_delete_by_ids_nonexistent(self, db):
         """测试删除不存在的日志。"""
-        deleted_count = await log_service.delete_by_ids([99999, 99998])
-        assert deleted_count == 0
+        with pytest.raises(NotFound):
+            await log_service.delete_by_ids([99999, 99998])
+
+    @pytest.mark.asyncio
+    async def test_delete_by_ids_is_atomic_across_data_scope(self, db, scoped_log_context):
+        """批量目标混入范围外日志时全部拒绝。"""
+        visible_log = scoped_log_context["visible_log"]
+        hidden_log = scoped_log_context["hidden_log"]
+
+        with pytest.raises(NotFound):
+            await log_service.delete_by_ids(
+                [visible_log.id, hidden_log.id],
+                current_user=scoped_log_context["operator"],
+            )
+
+        assert await OperationLog.filter(id=visible_log.id).exists()
+        assert await OperationLog.filter(id=hidden_log.id).exists()
 
     @pytest.mark.asyncio
     async def test_clear_old_logs(self, db):
@@ -64,6 +80,25 @@ class TestLogServiceDelete:
         old_exists = await OperationLog.filter(id=old_log.id).exists()
         assert not old_exists
 
+    @pytest.mark.asyncio
+    async def test_clear_old_logs_only_deletes_visible_logs(self, db, scoped_log_context):
+        """历史日志清理也必须遵守当前用户的数据范围。"""
+        old_date = datetime.now() - timedelta(days=31)
+        visible_log = scoped_log_context["visible_log"]
+        hidden_log = scoped_log_context["hidden_log"]
+        await OperationLog.filter(id__in=[visible_log.id, hidden_log.id]).update(
+            created_at=old_date,
+        )
+
+        deleted_count = await log_service.clear_old_logs(
+            days=30,
+            current_user=scoped_log_context["operator"],
+        )
+
+        assert deleted_count == 1
+        assert not await OperationLog.filter(id=visible_log.id).exists()
+        assert await OperationLog.filter(id=hidden_log.id).exists()
+
 
 class TestLogServiceCreate:
     """测试创建日志。"""
@@ -88,10 +123,12 @@ class TestLogServiceCreate:
             execution_time=150,
             status=1,
             error_msg="",
+            request_id="create-log-request-id",
         )
         assert log.id is not None
         assert log.username == "create_user"
         assert log.operation == "创建操作"
+        assert log.request_id == "create-log-request-id"
 
     @pytest.mark.asyncio
     async def test_create_log_minimal(self, db):

@@ -1,6 +1,6 @@
 {
-  "authenticated_count": 40,
-  "endpoint_count": 41,
+  "authenticated_count": 51,
+  "endpoint_count": 52,
   "endpoints": [
     {
       "auth_required": false,
@@ -66,6 +66,94 @@
         "component",
         "meta",
         "path"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/information/urls.py",
+        "fastapi/app/api/v1/information/profile.py",
+        "frontend/src/api/information-api.ts"
+      ],
+      "key": "information_profile",
+      "method": "GET",
+      "paginated": false,
+      "path": "/api/v1/information/profile/",
+      "permissions": [],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "id",
+        "username",
+        "name",
+        "avatar",
+        "gender"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/information/views/centre.py",
+        "fastapi/app/api/v1/information/profile.py",
+        "frontend/src/api/information-api.ts"
+      ],
+      "key": "information_profile_update",
+      "method": "PUT",
+      "paginated": false,
+      "path": "/api/v1/information/profile/",
+      "permissions": [],
+      "query_params": [],
+      "request_fields": [
+        "name",
+        "email",
+        "mobile",
+        "gender"
+      ],
+      "response_fields": [
+        "id",
+        "username",
+        "name"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/information/urls.py",
+        "fastapi/app/api/v1/information/profile.py",
+        "frontend/src/api/information-api.ts"
+      ],
+      "key": "information_password",
+      "method": "PUT",
+      "paginated": false,
+      "path": "/api/v1/information/password",
+      "permissions": [],
+      "query_params": [],
+      "request_fields": [
+        "oldPassword",
+        "newPassword",
+        "confirmPassword"
+      ],
+      "response_fields": []
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/information/views/centre.py",
+        "fastapi/app/api/v1/information/profile.py",
+        "frontend/src/api/information-api.ts"
+      ],
+      "key": "information_avatar",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/information/change-avatar/",
+      "permissions": [],
+      "query_params": [],
+      "request_fields": [
+        "file"
+      ],
+      "response_fields": [
+        "avatar",
+        "url"
       ]
     },
     {
@@ -186,6 +274,79 @@
         "ids"
       ],
       "response_fields": []
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "backend/drf_admin/apps/system/views/users.py",
+        "fastapi/app/api/v1/system/user_routes/import_export.py",
+        "frontend/src/api/system/user-api.ts"
+      ],
+      "key": "users_template",
+      "method": "GET",
+      "paginated": false,
+      "path": "/api/v1/system/users/template",
+      "permissions": [
+        "system:users:import"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "filename",
+        "content",
+        "contentType"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "backend/drf_admin/apps/system/views/users.py",
+        "fastapi/app/api/v1/system/user_routes/import_export.py",
+        "frontend/src/api/system/user-api.ts"
+      ],
+      "key": "users_import",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/system/users/import",
+      "permissions": [
+        "system:users:import"
+      ],
+      "query_params": [
+        "deptId"
+      ],
+      "request_fields": [
+        "file"
+      ],
+      "response_fields": [
+        "validCount",
+        "invalidCount",
+        "messageList"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "backend/drf_admin/apps/system/views/users.py",
+        "fastapi/app/api/v1/system/user_routes/import_export.py",
+        "frontend/src/api/system/user-api.ts"
+      ],
+      "key": "users_export",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/system/users/export/",
+      "permissions": [
+        "system:users:export"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "filename",
+        "content",
+        "contentType"
+      ]
     },
     {
       "auth_required": true,
@@ -866,6 +1027,94 @@
       "auth_required": true,
       "evidence_files": [
         "backend/drf_admin/apps/system/urls.py",
+        "fastapi/app/api/v1/system/notices.py",
+        "frontend/src/api/system/notice-api.ts"
+      ],
+      "key": "notices_form",
+      "method": "GET",
+      "paginated": false,
+      "path": "/api/v1/system/notices/{id}/form",
+      "permissions": [
+        "system:notices:query"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "id",
+        "title",
+        "content"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "fastapi/app/api/v1/system/notices.py",
+        "frontend/src/api/system/notice-api.ts"
+      ],
+      "key": "notices_detail",
+      "method": "GET",
+      "paginated": false,
+      "path": "/api/v1/system/notices/{id}/detail",
+      "permissions": [
+        "system:notices:query"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "id",
+        "title",
+        "content"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "fastapi/app/api/v1/system/notices.py",
+        "frontend/src/api/system/notice-api.ts"
+      ],
+      "key": "notices_read_all",
+      "method": "PUT",
+      "paginated": false,
+      "path": "/api/v1/system/notices/read-all",
+      "permissions": [
+        "system:notices:query"
+      ],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": []
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "fastapi/app/api/v1/system/notices.py",
+        "frontend/src/api/system/notice-api.ts"
+      ],
+      "key": "notices_my_page",
+      "method": "GET",
+      "paginated": true,
+      "path": "/api/v1/system/notices/my-page/",
+      "permissions": [
+        "system:notices:query"
+      ],
+      "query_params": [
+        "pageNum",
+        "pageSize",
+        "title",
+        "isRead"
+      ],
+      "request_fields": [],
+      "response_fields": [
+        "list",
+        "total"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
         "backend/drf_admin/apps/system/views/logs.py",
         "docs/API_ENDPOINTS.md",
         "fastapi/app/api/pagination.py",
@@ -919,6 +1168,7 @@
         "id",
         "method",
         "path",
+        "requestId",
         "responseStatus",
         "status",
         "errorMsg"
@@ -973,7 +1223,7 @@
     "POST",
     "PUT"
   ],
-  "paginated_count": 6,
+  "paginated_count": 7,
   "schema_version": 1,
   "source": "scripts/api_endpoint_contracts.py"
 }

@@ -99,19 +99,5 @@ declare global {
     /** 子列表  */
     children?: OptionType[];
   }
-
-  /**
-   * 导入结果
-   */
-  interface ExcelResult {
-    /** 状态码 */
-    code: string | number;
-    /** 无效数据条数 */
-    invalidCount: number;
-    /** 有效数据条数 */
-    validCount: number;
-    /** 错误信息 */
-    messageList: Array<string>;
-  }
 }
 export {};

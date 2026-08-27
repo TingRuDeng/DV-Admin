@@ -36,6 +36,9 @@
         <el-descriptions-item label="请求信息">
           <span class="font-mono">{{ currentLog.method }} {{ currentLog.path }}</span>
         </el-descriptions-item>
+        <el-descriptions-item label="请求 ID">
+          <span class="font-mono">{{ currentLog.requestId || "-" }}</span>
+        </el-descriptions-item>
         <el-descriptions-item label="响应码">
           {{ currentLog.responseStatus || "-" }}
         </el-descriptions-item>

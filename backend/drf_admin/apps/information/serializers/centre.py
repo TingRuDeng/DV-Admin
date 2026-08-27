@@ -5,47 +5,54 @@ from rest_framework import serializers
 from drf_admin.apps.system.models import Users
 
 
-class ChangePasswordSerializer(serializers.ModelSerializer):
+class ChangePasswordSerializer(serializers.Serializer):
     """
     个人中心修改密码序列化器
     """
-    current_password = serializers.CharField(write_only=True, help_text="当前密码", required=True)
+    old_password = serializers.CharField(write_only=True, help_text="当前密码", required=False)
+    new_password = serializers.CharField(
+        write_only=True,
+        help_text="新密码",
+        required=False,
+        max_length=20,
+        min_length=6,
+    )
     confirm_password = serializers.CharField(write_only=True, help_text="确认新密码", required=True)
-
-    class Meta:
-        model = Users
-        fields = ['current_password', 'password', 'confirm_password']
-        extra_kwargs = {
-            'password': {
-                'required': True,
-                'max_length': 20,
-                'min_length': 6,
-                'write_only': True,
-                'error_messages': {
-                    'max_length': '密码长度应在6 到 20位',
-                    'min_length': '密码长度应在6 到 20位',
-                }
-            }
-        }
+    current_password = serializers.CharField(write_only=True, required=False)
+    password = serializers.CharField(
+        write_only=True,
+        required=False,
+        max_length=20,
+        min_length=6,
+    )
 
     def validate(self, attrs):
-        if not self.instance.check_password(attrs.get('current_password')):
+        old_password = attrs.get("old_password") or attrs.get("current_password")
+        new_password = attrs.get("new_password") or attrs.get("password")
+        if not old_password:
+            raise serializers.ValidationError("原密码不能为空")
+        if not new_password:
+            raise serializers.ValidationError("新密码不能为空")
+        if not self.instance.check_password(old_password):
             raise serializers.ValidationError('原密码错误')
-        if attrs.get('confirm_password') != attrs.get('password'):
+        if attrs.get('confirm_password') != new_password:
             raise serializers.ValidationError('两次输入密码不一致')
-        password = attrs.get('password')
-        if len(password) < 6:
+        if len(new_password) < 6:
             raise serializers.ValidationError('密码长度不能少于6位')
-        if not any(c.isdigit() for c in password):
+        if not any(c.isdigit() for c in new_password):
             raise serializers.ValidationError('密码必须包含数字')
-        if not any(c.isalpha() for c in password):
+        if not any(c.isalpha() for c in new_password):
             raise serializers.ValidationError('密码必须包含字母')
+        attrs["new_password"] = new_password
         return attrs
 
     def update(self, instance, validated_data):
-        self.instance.set_password(validated_data.get('password'))
+        self.instance.set_password(validated_data["new_password"])
         self.instance.save()
         return self.instance
+
+    def create(self, validated_data):
+        raise NotImplementedError
 
 
 class InformationSerializer(serializers.ModelSerializer):
@@ -53,16 +60,33 @@ class InformationSerializer(serializers.ModelSerializer):
     个人中心获取个人信息序列化器
     """
     avatar = serializers.SerializerMethodField()
+    dept_name = serializers.CharField(source="dept.name", read_only=True, default="")
+    role_names = serializers.SerializerMethodField()
+    create_time = serializers.DateTimeField(source="date_joined", read_only=True)
 
     class Meta:
         model = Users
-        fields = ['id', 'username', 'name', 'mobile', 'email', 'avatar']
+        fields = [
+            'id',
+            'username',
+            'name',
+            'mobile',
+            'email',
+            'avatar',
+            'gender',
+            'dept_name',
+            'role_names',
+            'create_time',
+        ]
 
     def get_avatar(self, obj):
         if obj.image:
             return '/media/' + str(obj.image)
         else:
             return None
+
+    def get_role_names(self, obj):
+        return ",".join(obj.roles.values_list("name", flat=True))
 
 
 class ChangeInformationSerializer(serializers.ModelSerializer):
@@ -73,15 +97,12 @@ class ChangeInformationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Users
-        fields = ['name']
+        fields = ['name', 'email', 'mobile', 'gender']
 
-    # @staticmethod
-    # def validate_mobile(mobile):
-    #     # 避免字段为 '' 时 models unique约束失败
-    #     if mobile == '':
-    #         return None
-    #     else:
-    #         return mobile
+    @staticmethod
+    def validate_mobile(mobile):
+        """空手机号按未设置处理，避免唯一约束把多个空字符串视为重复值。"""
+        return mobile or None
 
 
 class ChangeAvatarSerializer(serializers.ModelSerializer):
@@ -92,3 +113,10 @@ class ChangeAvatarSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = ['image']
+
+
+class AvatarInfoSerializer(serializers.Serializer):
+    """头像上传的双后端共享响应字段。"""
+
+    avatar = serializers.CharField(read_only=True)
+    url = serializers.CharField(read_only=True)

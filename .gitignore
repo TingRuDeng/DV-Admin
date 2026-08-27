@@ -66,6 +66,7 @@ dv_admin.db-shm
 dv_admin.db-wal
 !frontend/package.json
 !frontend/pnpm-lock.yaml
+!backend/uv.lock
 !fastapi/uv.lock
 
 # Django 迁移必须纳入版本控制，避免被用户全局 ignore 规则误排除。

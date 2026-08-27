@@ -1,4 +1,5 @@
 from datetime import datetime
+from threading import Lock
 
 from app.services.token_blacklist_keys import cleanup_expired_memory_blacklist
 
@@ -10,6 +11,7 @@ class TokenBlacklistMemoryStore:
         """初始化内存黑名单和用户撤销标记。"""
         self.blacklist: dict[str, datetime] = {}
         self.user_revocations: dict[int, datetime] = {}
+        self._lock = Lock()
 
     def add_token(self, key: str, expires_at: datetime) -> None:
         """记录单个 Token 黑名单过期时间。"""
@@ -19,6 +21,15 @@ class TokenBlacklistMemoryStore:
         """清理过期项后检查 Token 是否仍在内存黑名单中。"""
         self.cleanup_expired_tokens()
         return key in self.blacklist
+
+    def consume_token_once(self, key: str, expires_at: datetime) -> bool:
+        """原子记录首次消费；已记录的 Token 返回 False。"""
+        with self._lock:
+            self.cleanup_expired_tokens()
+            if key in self.blacklist:
+                return False
+            self.blacklist[key] = expires_at
+            return True
 
     def cleanup_expired_tokens(self) -> None:
         """清理已过期的内存黑名单 Token。"""

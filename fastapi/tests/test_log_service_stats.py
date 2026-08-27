@@ -101,3 +101,28 @@ class TestLogServiceGetVisitStats:
         assert result.avg_execution_time == 0.0
         assert result.top_users == []
         assert result.top_paths == []
+
+    @pytest.mark.asyncio
+    async def test_get_visit_stats_filters_all_aggregates_by_data_scope(
+        self,
+        db,
+        scoped_log_context,
+    ):
+        """总数、成功率、均值和 Top 统计均不得包含范围外日志。"""
+        await OperationLog.exclude(
+            id__in=[
+                scoped_log_context["visible_log"].id,
+                scoped_log_context["hidden_log"].id,
+            ]
+        ).delete()
+
+        result = await log_service.get_visit_stats(
+            current_user=scoped_log_context["operator"],
+        )
+
+        assert result.total_count == 1
+        assert result.success_count == 1
+        assert result.fail_count == 0
+        assert result.avg_execution_time == 100
+        assert result.top_users[0]["username"] == scoped_log_context["visible_log"].username
+        assert result.top_paths[0]["path"] == scoped_log_context["visible_log"].path

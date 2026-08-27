@@ -218,8 +218,9 @@ backend/drf_admin/
 - Django 响应头固定回写 `X-Request-ID`，操作日志同步输出 `RequestId` 字段。
 - Django 与 FastAPI 均提供 `OperationLog` 模型、写操作落库中间件和 `/api/v1/system/logs/*` 列表/详情/统计/删除接口。
 - 两端操作日志只记录 POST/PUT/PATCH/DELETE 写请求，GET 不落库；落库失败不阻断主请求，敏感字段会先掩码。
+- 两端将响应头对应的 request id 持久化到 `OperationLog.request_id`；失败写请求额外采集脱敏、截断后的响应体，并从统一错误响应生成错误摘要，成功写请求不保存响应体。
 - Django 与 FastAPI 的日志权限码统一为 `system:logs:query` / `system:logs:delete`，`/logs/page` 与 `/logs/{id}` 字段由双后端字段契约 `logs_out` 锁定，并执行相同的数据范围与敏感字段脱敏规则。
-- Request ID 当前用于响应头和结构化运行日志串联，尚未持久化到 `OperationLog`；详情页不能据此检索历史记录。
+- Request ID 可通过响应头、结构化运行日志和操作日志详情串联；当前日志查询接口尚未提供 request id 筛选参数。
 - Django 健康检查端点位于 `/health`、`/health/live`、`/health/ready`。
 - FastAPI 已有结构化日志、慢请求日志和 `/health` 探针，二者都可被部署探针直接调用。
 
@@ -278,6 +279,9 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 - `scripts/api_endpoint_contracts.py`：关键端点契约目录，锁定路径、方法、权限、分页和关键字段。
 - `backend/drf_admin/utils/test_response_contract.py`：Django 响应包裹契约测试。
 - `fastapi/tests/test_api_contracts.py`：FastAPI 响应与分页契约测试。
+- `backend/drf_admin/utils/runtime_api_contracts/`：通过 Django `APIClient` 执行共享端点目录中的真实路由。
+- `fastapi/tests/runtime_api_contracts/`：通过 FastAPI `TestClient` 执行同一端点目录中的真实路由。
+- `backend/drf_admin/utils/runtime_api_contracts/test_live_http_contract.py` 与 `fastapi/tests/test_live_http_contract.py`：分别启动真实 WSGI/Uvicorn 监听端口，执行登录、资料、头像、密码和通知闭环。
 - `frontend/src/utils/__tests__/api-contract.test.ts`：前端兼容读取契约测试。
 - `scripts/validate_api_contracts.py`：文档、脚本和测试入口一致性检查。
 
@@ -325,7 +329,9 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 
 **Token 刷新策略：**
 - 前端自动检测 401 错误
-- 使用 Refresh Token 无感刷新
+- 使用 Refresh Token 无感刷新，每次成功刷新都轮换令牌并立即撤销旧令牌
+- FastAPI 通过 Redis 原子 `SET NX` 保证多实例部署下的单次消费；内存降级仅用于非生产单进程，生产环境 Redis 不可用时刷新失败关闭
+- 原请求最多自动重试一次，重试后仍为 `40001` 时终止刷新链并跳转登录页
 - 刷新失败则跳转登录页
 
 ---
@@ -378,7 +384,9 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 - 角色包含 `dataScope` 与 `deptIds`，用于表达全部数据、本人数据、本部门、本部门及以下和自定义部门。
 - 多角色用户的数据范围按并集合并；任一角色拥有全部数据时不追加数据范围过滤。
 - 超级管理员默认拥有全部数据。
-- 当前已在 Django 与 FastAPI 的用户列表、操作日志列表和后台通知管理强制应用数据范围过滤；前端表单只负责配置，不作为安全边界。
+- 当前已在 Django 与 FastAPI 的用户列表、详情、下拉选项、权限查询、状态更新、密码重置、单删/批删，以及操作日志列表、详情、趋势、统计、删除和清理路径强制应用数据范围过滤；FastAPI 用户导入/导出也复用同一安全边界。前端表单只负责配置，不作为安全边界。
+- 按 ID 查询或写入不可见对象时统一按不存在处理；批量删除必须先确认全部目标都处于当前范围，再执行单次删除，禁止部分成功。
+- 创建用户或显式变更用户部门时，目标部门必须处于操作者的数据范围；`SELF` 范围不产生可创建用户的目标部门。FastAPI 角色 ID 必须完整解析，禁止静默忽略不存在项。
 - 后台通知管理按通知 `publisher_id` 映射可见用户集合；列表和按 ID 后台管理动作均必须经过该范围过滤，FastAPI 表单查询也使用同一规则。“我的通知”仍按接收人可见性判断，不复用后台管理数据范围。
 
 **字段读取控制：**
@@ -565,10 +573,12 @@ CHANNEL_LAYERS = {
 
 - `frontend` profile 启动 Vite 前端，默认连接宿主机 `8769` 后端端口。
 - `django` profile 启动 Django 后端，使用 `deploy/env/django.compose.env` 生成容器内 `.env.compose`。
-- `fastapi` profile 启动 FastAPI 后端，使用 `deploy/env/fastapi.compose.env` 生成容器内 `.env`。
+- `fastapi` profile 先运行一次性 `fastapi-migrate` 服务，再启动 FastAPI 后端；两者使用 `deploy/env/fastapi.compose.env` 生成容器内 `.env`。
 - `mysql` 与 `redis` 是共享基础设施服务。
 
 Django 与 FastAPI 仍是替代关系；同一次 compose 运行应只选择 `django` 或 `fastapi` 其中一个后端 profile，避免两个服务争用 `8769` 端口。
+
+FastAPI 应用通过 `service_completed_successfully` 等待迁移容器成功退出。迁移不得放入 Uvicorn Worker 启动入口；独立镜像、Kubernetes 或其他生产编排应使用单例迁移 Job，成功后再滚动发布 API。迁移失败时阻断发布并保留旧应用版本，数据库回滚必须依赖发布前备份和迁移自身的兼容策略，不能仅靠回滚镜像。
 
 常用命令：
 

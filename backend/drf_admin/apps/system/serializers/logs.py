@@ -23,6 +23,7 @@ class OperationLogSerializer(serializers.ModelSerializer):
             "operation",
             "method",
             "path",
+            "request_id",
             "query_params",
             "request_body",
             "response_status",

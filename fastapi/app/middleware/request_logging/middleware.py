@@ -5,6 +5,7 @@
 """
 
 import json
+import re
 import time
 import uuid
 from collections.abc import Callable
@@ -27,6 +28,16 @@ from app.utils.logger import clear_request_id, set_request_id
 # 只持久化写操作，避免 GET 轮询淹没审计表
 PERSISTED_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 SENSITIVE_KEYWORDS = ("password", "token", "secret", "key", "authorization")
+MAX_REQUEST_ID_LENGTH = 64
+REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
+
+
+def normalize_request_id(value: str | None) -> str:
+    """只接受可安全写入响应头和单行日志的有界 request id。"""
+    candidate = value.strip()[:MAX_REQUEST_ID_LENGTH] if value else ""
+    if candidate and REQUEST_ID_PATTERN.fullmatch(candidate):
+        return candidate
+    return ""
 
 
 def mask_sensitive_body(body: str) -> str:
@@ -53,6 +64,23 @@ def mask_sensitive_body(body: str) -> str:
     return json.dumps(_mask(parsed), ensure_ascii=False)[:4096]
 
 
+def summarize_error_response(body: str, status_code: int) -> str:
+    """从 JSON 错误响应中提取适合审计检索的简短摘要。"""
+    try:
+        parsed = json.loads(mask_sensitive_body(body))
+    except (ValueError, TypeError):
+        return f"HTTP {status_code}"
+
+    if isinstance(parsed, dict):
+        for key in ("message", "msg", "errors", "detail", "error"):
+            value = parsed.get(key)
+            if value not in (None, "", [], {}):
+                if isinstance(value, (dict, list)):
+                    return json.dumps(value, ensure_ascii=False)[:1000]
+                return str(value)[:1000]
+    return f"HTTP {status_code}"
+
+
 class RequestLogContext(TypedDict):
     """请求日志流程中的共享上下文字段。"""
 
@@ -61,6 +89,7 @@ class RequestLogContext(TypedDict):
     path: str
     client_ip: str
     request_log: dict[str, object]
+    response_body: str
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
@@ -117,11 +146,18 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """处理请求并记录请求、响应或异常日志。"""
-        if self._should_skip_logging(request.url.path):
-            return await call_next(request)
-
-        request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+        request_id = normalize_request_id(request.headers.get("X-Request-ID")) or str(
+            uuid.uuid4()
+        )
         set_request_id(request_id)
+
+        if self._should_skip_logging(request.url.path):
+            try:
+                response = await call_next(request)
+                response.headers["X-Request-ID"] = request_id
+                return response
+            finally:
+                clear_request_id()
 
         start_time = time.time()
         context = await self._build_request_context(request, request_id)
@@ -164,14 +200,25 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 name=getattr(user, "name", "") or "",
                 method=context["method"],
                 path=context["path"][:500],
+                request_id=context["request_id"],
                 query_params=str(request_log.get("query_params", ""))[:4096],
                 request_body=mask_sensitive_body(str(request_log.get("body", ""))),
                 response_status=response.status_code,
+                response_body=(
+                    mask_sensitive_body(context["response_body"])
+                    if response.status_code >= 400
+                    else ""
+                ),
                 ip=(context["client_ip"] or "")[:50],
                 browser=str(request_log.get("browser", ""))[:100],
                 os=str(request_log.get("os", ""))[:100],
                 execution_time=int((time.time() - start_time) * 1000),
                 status=1 if response.status_code < 400 else 0,
+                error_msg=(
+                    summarize_error_response(context["response_body"], response.status_code)
+                    if response.status_code >= 400
+                    else ""
+                ),
             )
         except Exception as error:  # noqa: BLE001  审计落库失败不能影响业务请求
             logger.warning(f"操作日志落库失败: {error}")
@@ -212,6 +259,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             "path": path,
             "client_ip": client_ip,
             "request_log": request_log,
+            "response_body": "",
         }
 
     async def _log_response(
@@ -232,25 +280,36 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             "client_ip": context["client_ip"],
         }
 
-        if self.log_response_body:
-            response = await self._attach_response_body(response, response_log)
+        capture_failed_response = (
+            context["method"] in PERSISTED_METHODS
+            and context["path"].startswith("/api/")
+            and response.status_code >= 400
+        )
+        if self.log_response_body or capture_failed_response:
+            response, response_body = await self._capture_response_body(response, response_log)
+            if self.log_response_body:
+                response_log["body"] = decode_body(response_body, self.max_body_length)
+            if capture_failed_response:
+                context["response_body"] = decode_body(
+                    response_body,
+                    max(len(response_body), 1),
+                )
 
         self._write_response_log(response, response_log, execution_time, context)
         return response
 
-    async def _attach_response_body(
+    async def _capture_response_body(
         self,
         response: Response,
         response_log: dict[str, object],
-    ) -> Response:
+    ) -> tuple[Response, bytes]:
         """读取响应体用于日志，并返回可继续下发的新响应。"""
         try:
             cloned_response, response_body = await clone_response_with_body(response)
-            response_log["body"] = decode_body(response_body, self.max_body_length)
-            return cloned_response
+            return cloned_response, response_body
         except Exception as error:
             response_log["body_error"] = str(error)
-            return response
+            return response, b""
 
     def _write_response_log(
         self,

@@ -2,6 +2,8 @@
 请求日志敏感路径测试
 """
 
+import json
+
 import pytest
 from fastapi import Response
 from starlette.requests import Request
@@ -16,6 +18,10 @@ from app.middleware.request_logging.body import (
     decode_body,
 )
 from app.middleware.request_logging.client import get_client_ip, parse_user_agent
+from app.middleware.request_logging.middleware import (
+    MAX_REQUEST_ID_LENGTH,
+    mask_sensitive_body,
+)
 
 
 def make_request(
@@ -75,6 +81,20 @@ def test_custom_excluded_logging_paths_do_not_leak_between_instances():
     assert second._should_skip_logging("/api/v1/internal/ping") is False
 
 
+@pytest.mark.asyncio
+async def test_excluded_path_still_returns_request_id_header():
+    middleware = RequestLoggingMiddleware(lambda _scope, _receive, _send: None)
+    request = make_request("/health")
+
+    async def call_next(_request: Request) -> Response:
+        return Response("ok")
+
+    response = await middleware.dispatch(request, call_next)
+
+    assert response.headers["X-Request-ID"]
+    assert len(response.headers["X-Request-ID"]) <= MAX_REQUEST_ID_LENGTH
+
+
 def test_get_client_ip_prefers_forwarded_for_header():
     request = make_request(
         headers=[
@@ -119,6 +139,30 @@ async def test_clone_response_with_body_keeps_response_content():
     assert response_body == b"hello"
     assert cloned_response.status_code == 200
     assert cloned_response.body == b"hello"
+
+
+@pytest.mark.asyncio
+async def test_capture_response_body_keeps_long_json_parseable_for_redaction():
+    middleware = RequestLoggingMiddleware(
+        lambda _scope, _receive, _send: None,
+        max_body_length=1000,
+    )
+    payload = json.dumps(
+        {
+            "message": "x" * 1200,
+            "password": "must-not-leak",
+        }
+    ).encode()
+    response = StreamingResponse(iter([payload]), status_code=400, media_type="application/json")
+
+    cloned_response, response_body = await middleware._capture_response_body(response, {})
+    decoded_body = decode_body(response_body, max(len(response_body), 1))
+    masked_body = mask_sensitive_body(decoded_body)
+
+    assert cloned_response.body == payload
+    assert json.loads(decoded_body)["message"] == "x" * 1200
+    assert "must-not-leak" not in masked_body
+    assert "******" in masked_body
 
 
 def test_compat_import_points_to_split_implementation():

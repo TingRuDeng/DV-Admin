@@ -1,6 +1,23 @@
-version: '3.8'
-
 services:
+  # 一次性迁移任务；成功后 API 才允许启动
+  migrate:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: dv-admin-fastapi-migrate
+    restart: "no"
+    environment:
+      APP_ENV: production
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set}
+      DEFAULT_PASSWORD: ${DEFAULT_PASSWORD:?DEFAULT_PASSWORD must be set}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - dv-admin-network
+    command: python -m tortoise -c app.db.migration_config.TORTOISE_ORM migrate
+
   # FastAPI 应用服务
   api:
     build:
@@ -11,33 +28,32 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - APP_ENV=production
-      - DATABASE_URL=mysql://root:password@db:3306/dv_admin
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
-      - ACCESS_TOKEN_EXPIRE_MINUTES=30
-      - REFRESH_TOKEN_EXPIRE_DAYS=7
+      APP_ENV: production
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set}
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set}
+      DEFAULT_PASSWORD: ${DEFAULT_PASSWORD:?DEFAULT_PASSWORD must be set}
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      REFRESH_TOKEN_EXPIRE_DAYS: 7
     depends_on:
+      migrate:
+        condition: service_completed_successfully
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
     networks:
       - dv-admin-network
-    volumes:
-      - ../app:/app/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-
   # MySQL 数据库服务
   db:
     image: mysql:8.0
     container_name: dv-admin-mysql
     restart: unless-stopped
     environment:
-      - MYSQL_ROOT_PASSWORD=password
-      - MYSQL_DATABASE=dv_admin
-      - MYSQL_CHARSET=utf8mb4
-      - MYSQL_COLLATION=utf8mb4_unicode_ci
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD must be set}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-dv_admin}
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
     ports:
       - "3306:3306"
     volumes:
@@ -79,7 +95,8 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./ssl:/etc/nginx/ssl
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     networks:
       - dv-admin-network
 

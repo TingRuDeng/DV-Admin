@@ -53,22 +53,59 @@ async def get_visible_user_ids(current_user: Users | None) -> set[int] | None:
     if any(role.data_scope == Roles.DATA_SCOPE_ALL for role in roles):
         return None
 
-    dept_ids: set[int] = set()
+    dept_ids = await _visible_department_ids(current_user, roles)
     include_self = False
     for role in roles:
         if role.data_scope == Roles.DATA_SCOPE_SELF:
             include_self = True
-        elif role.data_scope == Roles.DATA_SCOPE_DEPT:
-            _add_current_dept(dept_ids, current_user.dept_id)
-        elif role.data_scope == Roles.DATA_SCOPE_DEPT_AND_CHILDREN:
-            await _add_current_dept_with_children(dept_ids, current_user.dept_id)
-        elif role.data_scope == Roles.DATA_SCOPE_CUSTOM:
-            dept_ids.update(dept.id for dept in role.data_depts)
 
     visible_user_ids = await _user_ids_in_depts(dept_ids)
     if include_self and current_user.id:
         visible_user_ids.add(current_user.id)
     return visible_user_ids
+
+
+async def get_visible_department_ids(
+    current_user: Users | None,
+) -> set[int] | None:
+    """计算当前用户可管理的部门 ID；返回 None 表示不受部门范围限制。"""
+    if current_user is None or current_user.is_superuser:
+        return None
+
+    await current_user.fetch_related("roles")
+    roles = list(current_user.roles)
+    for role in roles:
+        await role.fetch_related("data_depts")
+    if any(role.data_scope == Roles.DATA_SCOPE_ALL for role in roles):
+        return None
+    return await _visible_department_ids(current_user, roles)
+
+
+async def can_manage_user_department(
+    current_user: Users | None,
+    dept_id: int | None,
+) -> bool:
+    """判断操作者能否把用户放入目标部门。"""
+    visible_department_ids = await get_visible_department_ids(current_user)
+    if visible_department_ids is None:
+        return True
+    return dept_id is not None and dept_id in visible_department_ids
+
+
+async def _visible_department_ids(
+    current_user: Users,
+    roles: list[Roles],
+) -> set[int]:
+    """按角色并集计算部门范围；SELF 不产生可创建用户的目标部门。"""
+    dept_ids: set[int] = set()
+    for role in roles:
+        if role.data_scope == Roles.DATA_SCOPE_DEPT:
+            _add_current_dept(dept_ids, current_user.dept_id)
+        elif role.data_scope == Roles.DATA_SCOPE_DEPT_AND_CHILDREN:
+            await _add_current_dept_with_children(dept_ids, current_user.dept_id)
+        elif role.data_scope == Roles.DATA_SCOPE_CUSTOM:
+            dept_ids.update(dept.id for dept in role.data_depts)
+    return dept_ids
 
 
 def _add_current_dept(dept_ids: set[int], dept_id: int | None) -> None:

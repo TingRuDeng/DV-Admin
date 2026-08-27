@@ -6,6 +6,7 @@ from django.conf import settings
 from rest_framework import serializers
 
 from drf_admin.apps.system.models import Users
+from drf_admin.apps.system.services.data_scope import can_manage_user_department
 from drf_admin.apps.system.services.field_permission import (
     apply_user_field_permissions,
     can_write_sensitive_user_fields,
@@ -36,6 +37,13 @@ class UsersSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if has_sensitive_user_write(attrs) and not can_write_sensitive_user_fields(request.user if request else None):
             raise serializers.ValidationError("缺少字段写入权限，不能写入手机号或邮箱")
+        should_validate_dept = self.instance is None or "dept_id" in attrs
+        if (
+            request is not None
+            and should_validate_dept
+            and not can_manage_user_department(request.user, attrs.get("dept_id"))
+        ):
+            raise serializers.ValidationError("目标部门超出当前用户数据范围")
         if attrs.get('username'):
             if attrs.get('username').isdigit():
                 raise serializers.ValidationError('用户名不能为纯数字')

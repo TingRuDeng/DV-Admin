@@ -42,6 +42,24 @@ services:
     volumes:
       - .:/workspace
 
+  fastapi-migrate:
+    build:
+      context: ./fastapi
+      dockerfile: docker/Dockerfile
+    profiles: ["fastapi"]
+    working_dir: /app
+    command: >
+      sh -lc "cp /workspace/deploy/env/fastapi.compose.env .env &&
+      python -m tortoise
+      -c app.db.migration_config.TORTOISE_ORM
+      migrate"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./fastapi:/app
+      - ./deploy:/workspace/deploy:ro
+
   fastapi:
     build:
       context: ./fastapi
@@ -52,10 +70,23 @@ services:
       sh -lc "cp /workspace/deploy/env/fastapi.compose.env .env &&
       uvicorn app.main:app --host 0.0.0.0 --port 8769"
     depends_on:
+      fastapi-migrate:
+        condition: service_completed_successfully
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8769/health/ready')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     ports:
       - "8769:8769"
     volumes:

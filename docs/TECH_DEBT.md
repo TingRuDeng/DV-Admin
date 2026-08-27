@@ -114,7 +114,7 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 **解决方案：**
 1. 两端均补齐写操作落库：Django `OperationLogMiddleware` 与 FastAPI `RequestLoggingMiddleware` 对 POST/PUT/PATCH/DELETE 请求落库到 `system_operation_log`，GET 不落库，落库失败不影响主请求，敏感字段掩码。
 2. Django 新增 `OperationLog` 模型（`models_log.py`，使用 `created_at/updated_at` 对齐 FastAPI 与前端）、`OperationLogSerializer` 与 `/logs/page`、`/logs/visit-trend`、`/logs/visit-stats`、`DELETE /logs/{ids}`、`DELETE /logs/clear/{days}` 路由，权限码 `system:logs:query` / `system:logs:delete` 与 FastAPI 一致。
-3. `/logs/page` 列表项字段集合由双后端字段契约 `logs_out` 锁定（两端输出 19 个 key 完全一致）；`scripts/api_capability_contracts.py` 不再将操作日志登记为 FastAPI 独占能力。
+3. `/logs/page` 列表项字段集合由双后端字段契约 `logs_out` 锁定（两端输出 20 个 key 完全一致）；`scripts/api_capability_contracts.py` 不再将操作日志登记为 FastAPI 独占能力。
 4. 两端均补落库与查询行为测试（含写操作落库、GET 不落库、敏感字段掩码、第二页翻页、权限校验）。
 5. 种子 `init_data.json` 补齐日志管理菜单与 `system:logs:query/delete` 权限并分配给 admin，使日志页在全新部署下可达。
 6. 前端清理已失效的 404/405 降级提示与死方法 `getVisitTrend/getVisitStats`，错误回归统一处理。
@@ -283,12 +283,12 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 成熟产品能力中，后台操作审计、批量任务和导入导出状态反馈仍偏基础，需要业务 PRD 后再系统推进。
 
 **具体问题：**
-- 审计日志已提供详情和基础失败展示，但 `requestId` 未持久化，`errorMsg/responseBody` 的中间件采集仍不完整
+- 审计日志已持久化 `requestId` 并采集失败响应摘要，但尚不支持按请求 ID 筛选，也未记录对象类型和对象 ID
 - 批量操作缺少统一任务状态和失败明细反馈
 - 导入导出缺少统一的异步任务进度、历史记录和重试入口
 
 **计划解决方案：**
-1. 单独确认 `requestId` 与错误摘要持久化方案及双后端迁移边界
+1. 后续按真实排障需求补充 request id 筛选和业务对象关联
 2. 抽象统一任务状态模型
 3. 补充导入导出任务列表、失败明细和重试机制
 
@@ -296,7 +296,7 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 - 已形成第一版 PRD，明确审计日志详情、批量任务状态、导入导出任务化的目标、非目标、数据契约草案、分期计划和验收标准
 - Django/FastAPI 已新增受数据范围和敏感字段权限约束的日志详情接口，前端已补详情弹窗、状态/响应码展示及操作人/方法/状态筛选
 - 日志详情已纳入 API、后端字段和前端字段契约；双后端运行时测试与前端 E2E 已覆盖失败详情链路
-- FastAPI 版本化迁移基线已建立，后续 `requestId` 与错误摘要字段可通过增量迁移实施；字段采集与对外契约仍留在下一轮
+- 两端已通过增量迁移增加 `request_id` 字段和索引；写操作中间件持久化 request id，失败响应保存脱敏摘要，前端详情和三端字段契约已同步
 
 **预计工作量：** 5-8 天
 
@@ -363,6 +363,22 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 
 ---
 
+### ✅ 2026-08 前端生产依赖安全升级
+
+**级别：** 🟡 中
+
+**描述：**
+生产依赖中的 `brace-expansion` 与 `nanoid` 高危公告已有同主版本修复版，旧豁免不再成立。
+
+**解决方案：**
+- 将根级 pnpm overrides 迁移到 `pnpm-workspace.yaml`，避免新版 pnpm 忽略 `package.json#pnpm`
+- 将 CI 与 `packageManager` 固定为 pnpm 10.34.5，并用 `allowBuilds` 只允许既有构建依赖执行安装脚本
+- 在不跨主版本的前提下，将受影响的 `brace-expansion` 与 `nanoid` 统一锁定到已修复版本
+- 移除 `GHSA-mh99-v99m-4gvg` 临时豁免；high/critical 公告重新执行零豁免门禁
+- `exceljs > uuid@8.3.2` 的 moderate 公告仍低于当前 high/critical 阻断阈值，随 ExcelJS 宿主升级跟进
+
+---
+
 ## 已解决的技术债务
 
 ### ✅ 数据权限与字段权限 v1 收口
@@ -371,7 +387,9 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 
 **解决方案：**
 - 角色级 `dataScope/deptIds` 已在 Django、FastAPI 和前端形成共享契约
-- 用户列表、操作日志列表和后台通知管理已强制应用数据范围过滤
+- 用户、操作日志和后台通知的列表及对象级读写路径已强制应用数据范围过滤；范围外对象按不存在处理，批量删除采用全有或全无语义
+- 用户创建和部门变更会校验目标部门范围，FastAPI 用户角色 ID 会完整解析后再执行写入
+- Django/FastAPI 用户导入导出已统一方法、文件包裹、大小边界、数据范围与敏感字段权限，避免批量入口绕过单用户写入规则
 - 用户、操作日志和通知敏感字段已接入显式原文/写入权限及双后端运行时测试
 - 字段权限码目录与契约守卫已接入根校验器，避免运行时代码与可授予权限漂移
 - 2026-07-18 确认 v1 覆盖边界；角色、菜单、部门、字典不机械扩展权限，个人中心采用独立的本人可编辑字段语义
@@ -406,6 +424,19 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 
 **剩余注意事项：**
 - Git 历史中已经出现过的旧 `SECRET_KEY` 仍需在真实环境轮换；如需彻底清理历史，应单独协调 `git filter-repo` 或 BFG 流程
+
+---
+
+### ✅ 2026-07 资源边界与趋势聚合收口
+
+**描述：** FastAPI 通用上传、头像和用户导入曾在大小校验前读取完整文件；两套后端的访问趋势曾把范围内日志逐条载入应用层，且未限制日期范围；公开的 FastAPI 密钥占位文本也可能被误当作生产配置。
+
+**解决方案：**
+- 通用上传和头像采用分块写入、临时文件与原子替换，超限或异常时清理部分文件
+- 用户 Excel 导入分块复制到有界 `SpooledTemporaryFile`，并复用 `MAX_UPLOAD_SIZE`
+- Django 与 FastAPI 的访问趋势统一在数据库按日聚合，反向区间和超过 366 个自然日的查询返回 400
+- FastAPI 访问趋势公开 `startDate/endDate`，过渡期兼容 snake_case 查询参数
+- 生产密钥校验拒绝仓库曾公开使用的占位文本，`.env.example` 不再提供可复制的静态密钥
 
 ---
 

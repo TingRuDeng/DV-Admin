@@ -47,7 +47,7 @@ const NoticeAPI = {
     return request({ url: `${NOTICE_BASE_URL}/read-all`, method: "put" });
   },
   /** 获取我的通知分页列表 */
-  getMyNoticePage(queryParams?: NoticePageQuery) {
+  getMyNoticePage(queryParams?: MyNoticePageQuery) {
     return request<unknown, PageResult<NoticePageVO[]>>({
       url: `${NOTICE_BASE_URL}/my-page/`,
       method: "get",
@@ -66,6 +66,7 @@ export interface NoticePageQuery extends PageQuery {
   /** 是否已读(1:是;0:否) */
   isRead?: number;
 }
+export type MyNoticePageQuery = Omit<NoticePageQuery, "publishStatus">;
 export interface NoticeForm {
   /** 通知ID(新增不填) */
   id?: string;
@@ -93,6 +94,10 @@ export interface NoticePageVO {
   type?: number;
   /** 发布人ID */
   publisherId?: bigint;
+  /** 发布人名称 */
+  publisherName?: string;
+  /** 优先级/级别 */
+  level?: string;
   /** 优先级 */
   priority?: number;
   /** 目标类型 */
@@ -107,6 +112,8 @@ export interface NoticePageVO {
   updateTime?: string | Date;
   /** 撤回时间 */
   revokeTime?: Date;
+  /** 是否已读(1:是;0:否) */
+  isRead?: number;
 }
 export interface NoticeDetailVO {
   /** 通知ID */

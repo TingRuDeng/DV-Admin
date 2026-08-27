@@ -58,6 +58,21 @@
                 新增用户
               </el-button>
               <el-button
+                v-hasPerm="['system:users:import']"
+                icon="upload"
+                @click="importDialogVisible = true"
+              >
+                导入用户
+              </el-button>
+              <el-button
+                v-hasPerm="['system:users:export']"
+                icon="download"
+                :loading="exporting"
+                @click="handleExport"
+              >
+                导出用户
+              </el-button>
+              <el-button
                 v-hasPerm="['system:users:delete']"
                 type="danger"
                 plain
@@ -124,7 +139,11 @@
 
     <UserFormDrawer ref="userFormDrawerRef" @success="handleQuery" />
 
-    <UserImport v-model="importDialogVisible" @import-success="handleQuery()" />
+    <UserImport
+      v-model="importDialogVisible"
+      :dept-id="queryParams.deptId"
+      @import-success="handleQuery()"
+    />
   </PageShell>
 </template>
 
@@ -134,6 +153,7 @@ import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
+import { downloadEncodedFile } from "@/utils/file-download";
 
 import type { UserInfo } from "@/api/auth-api";
 import UserAPI, { UserPageQuery, UserPageVO } from "@/api/system/user-api";
@@ -156,11 +176,22 @@ const tableRef = ref<ProTableExpose | null>(null);
 const queryParams = reactive<Omit<UserPageQuery, "pageNum" | "pageSize">>({});
 
 const loading = ref(false);
+const exporting = ref(false);
 
 // 选中的用户ID
 const selectIds = ref<string[]>([]);
 // 导入弹窗显示状态
 const importDialogVisible = ref(false);
+
+async function handleExport() {
+  exporting.value = true;
+  try {
+    downloadEncodedFile(await UserAPI.export());
+    ElMessage.success("导出成功");
+  } finally {
+    exporting.value = false;
+  }
+}
 
 const requestTableData = createPageRequest<UserPageQuery, UserPageVO>(UserAPI.getPage);
 

@@ -24,8 +24,8 @@ from app.services.system.field_permission import (
     has_notice_target_write,
 )
 from app.services.system.notice_read_helpers import (
-    apply_read_filter,
     find_unread_notice_ids,
+    is_notice_visible_to_user,
 )
 from app.services.system.notice_serializers import (
     notice_to_detail_out,
@@ -34,6 +34,8 @@ from app.services.system.notice_serializers import (
     notice_to_page_out,
 )
 from app.services.system.notice_time import local_now
+
+NOTICE_SCAN_BATCH_SIZE = 200
 
 
 class NoticeService:
@@ -88,6 +90,8 @@ class NoticeService:
             raise NotFound("通知不存在")
 
         if user_id is not None:
+            if notice.publish_status != 1 or not is_notice_visible_to_user(notice, user_id):
+                raise NotFound("通知不存在")
             await self._mark_read(notice_id=notice.id, user_id=user_id)
 
         return notice_to_detail_out(notice)
@@ -209,27 +213,35 @@ class NoticeService:
         return notice
 
     async def read_all(self, user_id: int) -> None:
-        published_ids = cast(
-            list[int],
-            await Notices.filter(publish_status=1).values_list("id", flat=True),
-        )
-        if not published_ids:
-            return
-
-        existing_ids = cast(
-            list[int],
-            await NoticeReads.filter(user_id=user_id, notice_id__in=published_ids).values_list(
-                "notice_id", flat=True
-            ),
-        )
-
-        missing = find_unread_notice_ids(published_ids, existing_ids)
-        if not missing:
-            return
-
-        await NoticeReads.bulk_create(
-            [NoticeReads(notice_id=nid, user_id=user_id) for nid in missing]
-        )
+        scan_offset = 0
+        query = Notices.filter(publish_status=1).order_by("id")
+        while True:
+            published_notices = (
+                await query.offset(scan_offset).limit(NOTICE_SCAN_BATCH_SIZE).all()
+            )
+            if not published_notices:
+                return
+            scan_offset += len(published_notices)
+            published_ids = [
+                notice.id
+                for notice in published_notices
+                if is_notice_visible_to_user(notice, user_id)
+            ]
+            if not published_ids:
+                continue
+            existing_ids = cast(
+                list[int],
+                await NoticeReads.filter(
+                    user_id=user_id,
+                    notice_id__in=published_ids,
+                ).values_list("notice_id", flat=True),
+            )
+            missing = find_unread_notice_ids(published_ids, existing_ids)
+            if missing:
+                await NoticeReads.bulk_create(
+                    [NoticeReads(notice_id=nid, user_id=user_id) for nid in missing],
+                    ignore_conflicts=True,
+                )
 
     async def get_my_page(
         self,
@@ -245,31 +257,49 @@ class NoticeService:
         if title:
             query = query.filter(title__icontains=title)
 
-        read_notice_ids = cast(
-            list[int],
-            await NoticeReads.filter(user_id=user_id).values_list("notice_id", flat=True),
-        )
+        if is_read not in (None, 0, 1):
+            raise ValidationError("isRead 只能为 0 或 1")
 
-        if is_read is not None:
-            query = apply_read_filter(query, read_notice_ids, is_read)
-
-        total = await query.count()
-        notices = (
-            await query.order_by("-publish_time", "-created_at")
-            .offset((page_num - 1) * page_size)
-            .limit(page_size)
-            .all()
-        )
-
-        notice_ids = [n.id for n in notices]
-        read_ids = set(
-            cast(
-                list[int],
-                await NoticeReads.filter(user_id=user_id, notice_id__in=notice_ids).values_list(
-                    "notice_id", flat=True
-                ),
+        offset = (page_num - 1) * page_size
+        scan_offset = 0
+        total = 0
+        notices: list[Notices] = []
+        read_ids: set[int] = set()
+        ordered_query = query.order_by("-publish_time", "-created_at", "-id")
+        while True:
+            batch = (
+                await ordered_query.offset(scan_offset)
+                .limit(NOTICE_SCAN_BATCH_SIZE)
+                .all()
             )
-        )
+            if not batch:
+                break
+            scan_offset += len(batch)
+            visible = [
+                notice for notice in batch
+                if is_notice_visible_to_user(notice, user_id)
+            ]
+            visible_ids = [notice.id for notice in visible]
+            if not visible_ids:
+                continue
+            batch_read_ids = set(
+                cast(
+                    list[int],
+                    await NoticeReads.filter(
+                        user_id=user_id,
+                        notice_id__in=visible_ids,
+                    ).values_list("notice_id", flat=True),
+                )
+            )
+            for notice in visible:
+                notice_is_read = notice.id in batch_read_ids
+                if is_read is not None and notice_is_read != bool(is_read):
+                    continue
+                if offset <= total < offset + page_size:
+                    notices.append(notice)
+                    if notice_is_read:
+                        read_ids.add(notice.id)
+                total += 1
 
         can_view_target_users = await can_view_notice_target_fields(current_user)
         items = [notice_to_my_page_out(notice, read_ids, can_view_target_users) for notice in notices]

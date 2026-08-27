@@ -45,7 +45,30 @@ class TestPassword:
 class TestAvatar:
     """头像修改测试"""
 
-    def test_change_avatar(self, auth_client: TestClient):
+    def test_change_avatar(self, auth_client: TestClient, tmp_path, monkeypatch):
+        from app.core.config import settings
+
+        monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
         files = {"file": ("test.png", BytesIO(b"fake image"), "image/png")}
         response = auth_client.post("/api/v1/information/change-avatar/", files=files)
         assert response.status_code == 200
+        avatar = response.json()["data"]["avatar"]
+        assert (tmp_path / "avatar" / avatar).read_bytes() == b"fake image"
+
+    def test_change_avatar_rejects_oversize_without_partial_file(
+        self,
+        auth_client: TestClient,
+        tmp_path,
+        monkeypatch,
+    ):
+        from app.api.v1.information import profile
+        from app.core.config import settings
+
+        monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
+        monkeypatch.setattr(profile, "MAX_AVATAR_UPLOAD_SIZE", 4)
+        files = {"file": ("large.png", BytesIO(b"large image"), "image/png")}
+
+        response = auth_client.post("/api/v1/information/change-avatar/", files=files)
+
+        assert response.status_code == 400
+        assert not any(path.is_file() for path in tmp_path.rglob("*"))
