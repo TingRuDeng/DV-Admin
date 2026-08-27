@@ -14,6 +14,7 @@ from drf_admin.apps.system.models import OperationLog
 from drf_admin.apps.system.serializers.logs import OperationLogSerializer
 from drf_admin.apps.system.services.data_scope import apply_log_data_scope
 from drf_admin.utils.permissions import RBACPermission
+from drf_admin.utils.request_id import MAX_REQUEST_ID_LENGTH
 
 MAX_VISIT_TREND_DAYS = 366
 
@@ -93,6 +94,7 @@ class LogPageAPIView(LogPermissionAPIView):
 
         operation = params.get("operation")
         username = params.get("username")
+        request_id = params.get("request_id")
         method = params.get("method")
         status_param = params.get("status")
         start_time = params.get("start_time")
@@ -101,10 +103,16 @@ class LogPageAPIView(LogPermissionAPIView):
         status_value = parse_optional_int(status_param, "status")
         start_time_value = parse_optional_datetime(start_time, "startTime")
         end_time_value = parse_optional_datetime(end_time, "endTime")
+        if request_id and len(request_id) > MAX_REQUEST_ID_LENGTH:
+            raise ValidationError(
+                {"requestId": f"长度不能超过 {MAX_REQUEST_ID_LENGTH} 个字符"}
+            )
         if operation:
             queryset = queryset.filter(operation__icontains=operation)
         if username:
             queryset = queryset.filter(username__icontains=username)
+        if request_id:
+            queryset = queryset.filter(request_id=request_id)
         if method:
             queryset = queryset.filter(method=method.upper())
         if status_value is not None:

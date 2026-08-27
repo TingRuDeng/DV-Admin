@@ -49,6 +49,7 @@ async def test_logs_for_api(db):
             operation=f"API操作{i}",
             method="GET" if i % 2 == 0 else "POST",
             path=f"/api/v1/test/{i}",
+            request_id=f"api-request-{i}",
             status=1 if i % 2 == 0 else 0,
             execution_time=100 + i * 10,
         )
@@ -94,6 +95,33 @@ class TestLogList:
         assert response.status_code == 200
         data = response.json()
         assert data["code"] == 20000
+
+    def test_get_logs_filters_by_exact_request_id(
+        self, client: TestClient, auth_headers: dict, test_logs_for_api
+    ):
+        """共享 API 通过 camelCase requestId 精确筛选。"""
+        response = client.get(
+            "/api/v1/system/logs/page",
+            params={"requestId": "api-request-2"},
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 200
+        data = response.json()["data"]
+        assert data["total"] == 1
+        assert data["list"][0]["requestId"] == "api-request-2"
+
+    def test_get_logs_rejects_overlong_request_id(
+        self, client: TestClient, auth_headers: dict
+    ):
+        """requestId 查询值不能超过审计链路标识的 64 字符上限。"""
+        response = client.get(
+            "/api/v1/system/logs/page",
+            params={"requestId": "x" * 65},
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 422
 
     def test_get_log_detail_unauthorized(self, client: TestClient, test_logs_for_api):
         """未登录用户不能读取日志详情。"""
