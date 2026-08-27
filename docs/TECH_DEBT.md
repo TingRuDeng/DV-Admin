@@ -363,26 +363,19 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 
 ---
 
-### 12. 前端生产依赖临时安全豁免
+### ✅ 2026-08 前端生产依赖安全升级
 
 **级别：** 🟡 中
 
 **描述：**
-前端直接生产依赖及可兼容升级的传递依赖已更新到当前修复版本。`exceljs@4.4.0`
-仍通过 Node 归档链路依赖旧主版本 `brace-expansion`，上游暂无兼容升级。
+生产依赖中的 `brace-expansion` 与 `nanoid` 高危公告已有同主版本修复版，旧豁免不再成立。
 
-**当前边界：**
-- 公告：`GHSA-mh99-v99m-4gvg`
-- 依赖路径仅限 `exceljs > archiver > ... > minimatch > brace-expansion`
-- 公告修复版 `brace-expansion@5.0.8` 改为具名 `expand` 导出，而 ExcelJS 链路中的 `minimatch@3/5` 仍把 CommonJS 导入值作为函数调用，不能安全强制跨主版本 override
-- Vite 浏览器构建使用 ExcelJS 浏览器入口，不调用该 Node 归档 glob；业务也不接收用户 glob 表达式
-- 另有 `exceljs > uuid@8.3.2` 的 moderate 公告；ExcelJS 只调用不受影响的 `v4()`，当前 high/critical 门禁不豁免也不阻断，随 ExcelJS 宿主升级一并退出
-- 豁免到期日为 `2026-08-31`，配置见 `frontend/dependency-audit-exemptions.json`
-
-**退出条件：**
-1. ExcelJS 或归档依赖发布兼容修复后移除 override 与豁免
-2. 到期前重新执行 `pnpm run audit:prod` 并验证 Excel 导出回归
-3. 不允许扩大现有豁免路径；出现新的依赖路径时门禁必须失败
+**解决方案：**
+- 将根级 pnpm overrides 迁移到 `pnpm-workspace.yaml`，避免新版 pnpm 忽略 `package.json#pnpm`
+- 将 CI 与 `packageManager` 固定为 pnpm 11.21.0，并用 `allowBuilds` 只允许既有构建依赖执行安装脚本
+- 在不跨主版本的前提下，将受影响的 `brace-expansion` 与 `nanoid` 统一锁定到已修复版本
+- 移除 `GHSA-mh99-v99m-4gvg` 临时豁免；high/critical 公告重新执行零豁免门禁
+- `exceljs > uuid@8.3.2` 的 moderate 公告仍低于当前 high/critical 阻断阈值，随 ExcelJS 宿主升级跟进
 
 ---
 
@@ -396,7 +389,7 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 - 角色级 `dataScope/deptIds` 已在 Django、FastAPI 和前端形成共享契约
 - 用户、操作日志和后台通知的列表及对象级读写路径已强制应用数据范围过滤；范围外对象按不存在处理，批量删除采用全有或全无语义
 - 用户创建和部门变更会校验目标部门范围，FastAPI 用户角色 ID 会完整解析后再执行写入
-- FastAPI 用户导入/导出已纳入数据范围与敏感字段权限，避免批量入口绕过单用户写入规则
+- Django/FastAPI 用户导入导出已统一方法、文件包裹、大小边界、数据范围与敏感字段权限，避免批量入口绕过单用户写入规则
 - 用户、操作日志和通知敏感字段已接入显式原文/写入权限及双后端运行时测试
 - 字段权限码目录与契约守卫已接入根校验器，避免运行时代码与可授予权限漂移
 - 2026-07-18 确认 v1 覆盖边界；角色、菜单、部门、字典不机械扩展权限，个人中心采用独立的本人可编辑字段语义

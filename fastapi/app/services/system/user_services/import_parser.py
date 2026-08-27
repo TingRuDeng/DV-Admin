@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from typing import Any, BinaryIO
 
+from tortoise.transactions import in_transaction
+
 from app.core.config import settings
 from app.core.exceptions import ValidationError
 from app.core.security import get_password_hash
@@ -49,7 +51,7 @@ class UserImportParserMixin:
         from openpyxl import load_workbook
 
         try:
-            wb = load_workbook(file)
+            wb = load_workbook(file, read_only=True, data_only=True)
         except Exception as exc:
             raise ValidationError(f"Excel 文件解析失败: {str(exc)}") from exc
         return wb.active
@@ -95,21 +97,17 @@ class UserImportParserMixin:
         visible_dept_ids: set[int] | None = None,
         can_write_sensitive: bool = True,
     ) -> ImportRowResult | None:
-        """解析单行导入数据，失败时只记录该行错误并继续处理后续行。"""
-        try:
-            return self._parse_import_row_inner(
-                row_idx,
-                row,
-                columns,
-                dept_id,
-                context,
-                messages,
-                visible_dept_ids,
-                can_write_sensitive,
-            )
-        except Exception as exc:
-            messages.append(f"第{row_idx}行: 数据处理错误 - {str(exc)}")
-            return None
+        """解析单行导入数据；预期校验失败返回明细，意外异常向上抛出。"""
+        return self._parse_import_row_inner(
+            row_idx,
+            row,
+            columns,
+            dept_id,
+            context,
+            messages,
+            visible_dept_ids,
+            can_write_sensitive,
+        )
 
     def _parse_import_row_inner(
         self,
@@ -241,12 +239,13 @@ class UserImportParserMixin:
         rows: list[ImportRowResult],
         all_roles: dict[int, Roles],
     ) -> None:
-        """保存导入用户并写入角色关联。"""
-        for row in rows:
-            await row.user.save()
-            if row.role_ids:
-                roles = [all_roles[role_id] for role_id in row.role_ids if role_id in all_roles]
-                await row.user.roles.add(*roles)
+        """在单一事务内保存导入用户及角色关联。"""
+        async with in_transaction() as connection:
+            for row in rows:
+                await row.user.save(using_db=connection)
+                if row.role_ids:
+                    roles = [all_roles[role_id] for role_id in row.role_ids]
+                    await row.user.roles.add(*roles, using_db=connection)
 
     def _remember_imported_user(
         self,

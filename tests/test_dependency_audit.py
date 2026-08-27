@@ -1,7 +1,11 @@
 """生产依赖审计门禁测试。"""
 
+from __future__ import annotations
+
+import json
 import unittest
 from datetime import date
+from pathlib import Path
 
 from scripts.validate_dependency_audit import (
     AuditValidationError,
@@ -12,6 +16,22 @@ from scripts.validate_dependency_audit import (
 ADVISORY_ID = "GHSA-example-0000-0000"
 PACKAGE = "transitive-package"
 PATH = ".>host-package>transitive-package"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def read_simple_overrides(path: Path) -> dict[str, str]:
+    """读取 pnpm YAML 中无需转义的根级 overrides。"""
+    lines = path.read_text(encoding="utf-8").splitlines()
+    start = lines.index("overrides:") + 1
+    overrides: dict[str, str] = {}
+    for line in lines[start:]:
+        if not line.strip():
+            continue
+        if not line.startswith("  "):
+            break
+        key, value = line.strip().split(": ", 1)
+        overrides[key] = value
+    return overrides
 
 
 def report(*, severity: str = "high", paths: list[str] | None = None):
@@ -52,6 +72,28 @@ def exemption_payload(
 
 
 class DependencyAuditTests(unittest.TestCase):
+    def test_pnpm_toolchain_and_override_sources_stay_in_sync(self):
+        frontend = REPO_ROOT / "frontend"
+        package_json = json.loads((frontend / "package.json").read_text(encoding="utf-8"))
+        workspace_overrides = read_simple_overrides(frontend / "pnpm-workspace.yaml")
+        lock_overrides = read_simple_overrides(frontend / "pnpm-lock.yaml")
+        workspace = (frontend / "pnpm-workspace.yaml").read_text(encoding="utf-8")
+        workflow = (REPO_ROOT / ".github/workflows/quality-gates.yml").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertEqual(package_json["packageManager"], "pnpm@11.21.0")
+        self.assertNotIn("pnpm", package_json)
+        self.assertIn("version: 11.21.0", workflow)
+        self.assertEqual(workspace_overrides, lock_overrides)
+        for dependency in ('"@parcel/watcher"', "es5-ext", "esbuild", "msw", "vue-demi"):
+            self.assertIn(f"  {dependency}: true", workspace)
+        self.assertEqual(workspace_overrides["brace-expansion@1.1.12"], "1.1.18")
+        self.assertEqual(workspace_overrides["brace-expansion@2.0.2"], "2.1.4")
+        self.assertEqual(workspace_overrides["nanoid@3.3.11"], "3.3.18")
+        self.assertEqual(workspace_overrides["nanoid@3.3.16"], "3.3.18")
+        self.assertEqual(workspace_overrides["nanoid@5.1.6"], "5.1.16")
+
     def test_unexempted_high_advisory_fails(self):
         violations, unused = evaluate_audit(report(), [], minimum_severity="high")
 

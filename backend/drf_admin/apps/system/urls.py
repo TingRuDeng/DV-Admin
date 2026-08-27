@@ -13,6 +13,9 @@ router.register(r'dict-items', dicts.DictItemsViewSet, basename="dict-items")  #
 router.register(r'departments', departments.DepartmentsViewSet, basename="departments")  # 部门管理
 
 urlpatterns = [
+    path('users/template', users.UserImportTemplateAPIView.as_view()),  # 用户导入模板
+    path('users/export/', users.UserExportAPIView.as_view()),  # 导出用户
+    path('users/import', users.UserImportAPIView.as_view()),  # 导入用户
     path('users/options/', users.UsersOptionsViewSet.as_view()),  # 用户下拉框列表
     path('roles/options/', roles.RolesOptionsViewSet.as_view()),  # 角色下拉框列表
     path('menus/options/', menus.MenusOptionsViewSet.as_view()),  # 菜单下拉框列表
