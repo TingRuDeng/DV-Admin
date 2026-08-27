@@ -28,6 +28,8 @@ export interface LogPageQuery extends PageQuery {
   operation?: string;
   /** 操作人 */
   username?: string;
+  /** 请求 ID（精确匹配） */
+  requestId?: string;
   /** 请求方法 */
   method?: string;
   /** 状态(1:成功;0:失败) */

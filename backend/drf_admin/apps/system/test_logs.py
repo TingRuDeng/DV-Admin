@@ -173,11 +173,13 @@ class OperationLogPageTestCase(TestCase):
         for index in range(3):
             OperationLog.objects.create(
                 username="admin", operation=f"创建用户{index}", method="POST",
-                path=f"/api/v1/system/users/{index}", status=1, execution_time=10,
+                path=f"/api/v1/system/users/{index}", request_id=f"django-request-{index}",
+                status=1, execution_time=10,
             )
         OperationLog.objects.create(
             username="admin", operation="删除角色", method="DELETE",
-            path="/api/v1/system/roles/1", status=0, execution_time=20,
+            path="/api/v1/system/roles/1", request_id="django-request-delete-role",
+            status=0, execution_time=20,
         )
 
     def test_page_returns_list_total_and_camel_fields(self):
@@ -196,6 +198,27 @@ class OperationLogPageTestCase(TestCase):
         data = response.json()["data"]
         self.assertEqual(data["total"], 1)
         self.assertEqual(data["list"][0]["operation"], "删除角色")
+
+    def test_page_filters_by_exact_request_id(self):
+        """按 requestId 精确过滤，避免链路标识被模糊命中。"""
+        response = self.client.get(
+            "/api/v1/system/logs/page",
+            {"requestId": "django-request-1"},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()["data"]
+        self.assertEqual(data["total"], 1)
+        self.assertEqual(data["list"][0]["requestId"], "django-request-1")
+
+    def test_page_rejects_overlong_request_id(self):
+        """requestId 查询值沿用审计链路标识的 64 字符上限。"""
+        response = self.client.get(
+            "/api/v1/system/logs/page",
+            {"requestId": "x" * 65},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_detail_returns_single_log(self):
         """详情接口返回指定日志，并保持 camelCase 字段契约。"""
