@@ -373,7 +373,7 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 
 **解决方案：**
 - 将根级 pnpm overrides 迁移到 `pnpm-workspace.yaml`，避免新版 pnpm 忽略 `package.json#pnpm`
-- 将 CI 与 `packageManager` 固定为 pnpm 10.34.5，并用 `allowBuilds` 只允许既有构建依赖执行安装脚本
+- 将 CI、`packageManager` 与开发容器固定为 Node 24.20.0 + pnpm 11.21.0，并用 `allowBuilds` 只允许既有构建依赖执行安装脚本
 - 在不跨主版本的前提下，将受影响的 `brace-expansion` 与 `nanoid` 统一锁定到已修复版本
 - 移除 `GHSA-mh99-v99m-4gvg` 临时豁免；high/critical 公告重新执行零豁免门禁
 - `exceljs > uuid@8.3.2` 的 moderate 公告仍低于当前 high/critical 阻断阈值，随 ExcelJS 宿主升级跟进
