@@ -2,7 +2,7 @@ name: dv-admin
 
 services:
   frontend:
-    image: node:20-alpine
+    image: node:24.20.0-alpine
     profiles: ["frontend"]
     working_dir: /workspace/frontend
     command: >
