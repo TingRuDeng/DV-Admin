@@ -7,6 +7,8 @@ ai_summary:
   source_of_truth:
     - "docs/DOC_SYNC_CHECKLIST.md"
     - "docs/README.md"
+    - "docs/ADR-0001-FRONTEND-MODERNIZATION.md"
+    - "docs/FRONTEND_OPTIMIZATION_BACKLOG.md"
     - "AGENTS.md"
     - "scripts/validate_docs.py"
   verify_with:
@@ -16,6 +18,7 @@ ai_summary:
     - "文档体系新增、迁移或改名"
     - "文档校验脚本规则变化"
     - "PR 文档同步门禁变化"
+    - "工具链主版本、前端壳层或架构决策同步责任变化"
 ---
 
 # DV-Admin 文档同步检查清单
@@ -30,6 +33,8 @@ ai_summary:
 
 - `docs/DOC_SYNC_CHECKLIST.md`
 - `docs/README.md`
+- `docs/ADR-0001-FRONTEND-MODERNIZATION.md`
+- `docs/FRONTEND_OPTIMIZATION_BACKLOG.md`
 - `AGENTS.md`
 - `scripts/validate_docs.py`
 
@@ -38,6 +43,7 @@ ai_summary:
 - API、数据库模型、架构、权限、配置和技术债变更都需要评估文档影响。
 - 若判断某次改动无文档影响，PR 描述必须写明理由。
 - 结构、AI 索引和本地链接由 `scripts/validate_docs.py` 校验。
+- 工具链主版本、前端壳层或重大前端架构变化必须同步 ADR、架构事实和实施 backlog。
 
 ## How to verify
 
@@ -49,6 +55,7 @@ ai_summary:
 - 文档导航、权威边界或文档同步责任变化。
 - `scripts/validate_docs.py` 的 authority doc contract 规则变化。
 - PR 模板或质量门禁对文档同步的要求变化。
+- 前端工具链、壳层、ADR 或 backlog 的同步责任变化。
 
 ## 目的
 
@@ -199,6 +206,23 @@ ai_summary:
   - [ ] 更新工作流规则
   - [ ] 更新约束条件
 
+### 修改前端工具链、壳层或重大架构
+
+- [ ] 更新或新增对应 ADR
+  - [ ] 区分“当前事实”与“已接受但尚未实施的目标”
+  - [ ] 记录候选方案、取舍、正负后果、兼容边界、回滚策略和停止条件
+- [ ] 更新 `docs/ARCHITECTURE.md`
+  - [ ] 同步当前技术栈与壳层/业务核心边界
+  - [ ] 仅在代码合并后更新实际 Vite、Vue Router 等版本事实
+- [ ] 更新 `docs/FRONTEND_OPTIMIZATION_BACKLOG.md`
+  - [ ] 记录实施阶段、状态、验收证据和继续/停止结论
+  - [ ] 不另建重复 roadmap
+- [ ] 更新 `docs/README.md` 与 `docs/AI_CONTEXT.md`
+  - [ ] 登记决策文档和任务阅读路径
+- [ ] 实际实施时同步模块事实
+  - [ ] 更新 `frontend/package.json`、锁文件和 `frontend/README.md` 中实际变化的内容
+  - [ ] 运行前端质量、构建、可访问性/性能 smoke 和两套真实后端 Playwright smoke
+
 ---
 
 ## 发现问题检查
@@ -238,6 +262,7 @@ ai_summary:
   - [ ] 更新安装说明
 - [ ] 检查是否影响 `AGENTS.md`
   - [ ] 更新环境准备说明
+- [ ] 如涉及工具链主版本或壳层基础设施，检查对应 ADR 与 frontend backlog
 
 ---
 
@@ -248,6 +273,7 @@ ai_summary:
 | 新增/修改/删除 API | `API_ENDPOINTS.md` |
 | 新增/修改/删除模型 | `DATABASE_SCHEMA.md` |
 | 架构变更 | `ARCHITECTURE.md` |
+| 工具链主版本/前端壳层/重大前端架构 | 对应 `ADR-*.md`, `ARCHITECTURE.md`, `FRONTEND_OPTIMIZATION_BACKLOG.md`, `README.md`, `AI_CONTEXT.md` |
 | 权限变更 | `ARCHITECTURE.md` |
 | 发现陷阱 | `KNOWN_PITFALLS.md` |
 | 发现债务 | `TECH_DEBT.md` |
@@ -268,6 +294,7 @@ ai_summary:
 - [ ] 已更新 `docs/API_ENDPOINTS.md`（API 变更）
 - [ ] 已更新 `docs/DATABASE_SCHEMA.md`（模型变更）
 - [ ] 已更新 `docs/ARCHITECTURE.md`（架构变更）
+- [ ] 已更新对应 ADR 与 `docs/FRONTEND_OPTIMIZATION_BACKLOG.md`（架构决策或分阶段实施）
 - [ ] 已更新 `docs/KNOWN_PITFALLS.md`（发现新陷阱）
 - [ ] 已更新 `docs/TECH_DEBT.md`（发现新债务）
 - [ ] 无文档影响（原因：______）
@@ -314,5 +341,5 @@ ai_summary:
 
 ---
 
-**最后更新：** 2026-03-23
+**最后更新：** 2026-09-01
 **维护者：** DV-Admin Team
