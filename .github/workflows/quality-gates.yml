@@ -181,3 +181,66 @@ jobs:
           .venv/bin/python scripts/validate_migrations.py incremental
           --database-url
           mysql://root:migration-test-password@127.0.0.1:3306/dv_admin_migration_incremental
+
+  real-backend-browser:
+    name: Real Backend Browser Smoke (${{ matrix.backend }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - backend: Django
+            project_dir: backend
+            python_pattern: 3.11.*
+            test_target: drf_admin/utils/runtime_api_contracts/test_live_http_contract.py::DjangoLiveHttpContractTestCase::test_shared_frontend_flow_over_real_django_http
+          - backend: FastAPI
+            project_dir: fastapi
+            python_pattern: 3.10.*
+            test_target: tests/test_live_http_contract.py::test_shared_frontend_flow_over_real_fastapi_http
+    steps:
+      - name: Checkout repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init .
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          git fetch --no-tags --depth=1 origin "${{ github.sha }}"
+          git checkout --detach FETCH_HEAD
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.21.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.20.0
+          package-manager-cache: false
+      - name: Use Python from runner toolcache
+        run: |
+          PY_DIR=$(find /opt/hostedtoolcache/Python -maxdepth 1 -type d -name '${{ matrix.python_pattern }}' | sort -V | tail -n 1)
+          test -n "$PY_DIR"
+          echo "$PY_DIR/x64/bin" >> "$GITHUB_PATH"
+          "$PY_DIR/x64/bin/python" --version
+      - name: Install uv
+        run: python -m pip install --upgrade pip uv
+      - name: Install backend dependencies
+        working-directory: ${{ matrix.project_dir }}
+        run: uv sync --frozen --group dev
+      - name: Create FastAPI test environment
+        if: matrix.backend == 'FastAPI'
+        working-directory: fastapi
+        run: |
+          cp .env.example .env
+          echo "SECRET_KEY=test-secret-key" >> .env
+          echo "APP_ENV=test" >> .env
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright Chromium
+        working-directory: frontend
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run real backend browser smoke
+        working-directory: ${{ matrix.project_dir }}
+        env:
+          RUN_REAL_BACKEND_PLAYWRIGHT: "1"
+        run: .venv/bin/pytest '${{ matrix.test_target }}'
