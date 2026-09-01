@@ -524,12 +524,19 @@ async def test_async_function():
 ### 陷阱 21：静态文件 404
 
 **问题描述：**
-部署后访问静态文件（CSS、JS、图片）返回 404。
+部署后访问静态文件（CSS、JS、图片）返回 404；或后端头像接口成功返回
+`/media/...`，但浏览器错误地从前端 Vite 端口加载，导致图片破损。
+
+**已验证事实：**
+- Django/FastAPI 的资料与头像接口可能返回绝对 URL，也可能返回 `/media/...` 相对路径
+- 前端通过 `resolveStaticAssetUrl` 使用 `VITE_APP_STATIC_URL` 解析相对路径，绝对 URL 保持不变
+- 双后端真实 Playwright smoke 会校验上传后的头像 `naturalWidth > 0`，不仅检查接口成功或 `src` 文本
 
 **解决方案：**
 1. 执行前端构建：`pnpm run build`
 2. 将 `dist/` 目录部署到 Nginx
-3. 配置 Nginx 静态文件路径
+3. 开发环境配置 `VITE_APP_STATIC_URL` 指向当前后端；生产同源部署时为 `/media/` 配置反向代理
+4. 新增头像或文件展示入口时复用 `frontend/src/utils/static-asset-url.ts`，不要直接拼接后端地址
 
 **Nginx 配置示例：**
 ```nginx
@@ -541,6 +548,10 @@ server {
     
     location /prod-api/ {
         proxy_pass http://backend:8769/;
+    }
+
+    location /media/ {
+        proxy_pass http://backend:8769/media/;
     }
 }
 ```
@@ -563,7 +574,7 @@ server {
 
 ---
 
-**最后更新：** 2026-07-25
+**最后更新：** 2026-08-29
 **维护者：** DV-Admin Team
 
 **贡献指南：** 发现新陷阱时，请及时更新此文档。

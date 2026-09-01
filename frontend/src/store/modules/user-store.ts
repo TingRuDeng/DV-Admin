@@ -8,6 +8,7 @@ import { useDictStoreHook } from "@/store/modules/dict-store";
 import { useTagsViewStore } from "@/store";
 import { cleanupWebSocket } from "@/plugins/websocket";
 import { createLogger } from "@/utils/logger";
+import { resolveStaticAssetUrl } from "@/utils/static-asset-url";
 
 const userStoreLogger = createLogger("userStore");
 
@@ -61,6 +62,7 @@ export const useUserStore = defineStore("user", () => {
           }
           userInfo.value = {
             ...data,
+            avatar: resolveStaticAssetUrl(data.avatar),
             roles: Array.isArray(data.roles) ? data.roles : [],
             perms: Array.isArray(data.perms) ? data.perms : [],
           };

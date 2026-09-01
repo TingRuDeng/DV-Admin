@@ -10,6 +10,8 @@ interface ImportMetaEnv {
   VITE_APP_BASE_API: string;
   /** API 地址 */
   VITE_APP_API_URL: string;
+  /** 后端静态资源地址 */
+  VITE_APP_STATIC_URL?: string;
   /** 是否开启 Mock 服务 */
   VITE_MOCK_DEV_SERVER: boolean;
   /** 登录页默认用户名，仅开发演示环境可配置 */
