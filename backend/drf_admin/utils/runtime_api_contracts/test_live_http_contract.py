@@ -8,6 +8,7 @@ import tempfile
 import unittest
 
 import requests
+from django.db import connection
 from django.test import LiveServerTestCase, override_settings
 from scripts.real_backend_playwright import run_real_backend_playwright
 
@@ -123,6 +124,10 @@ class DjangoLiveHttpContractTestCase(LiveServerTestCase):
     )
     def test_shared_frontend_flow_over_real_django_http(self):
         """让真实 Vue 页面通过 Vite 代理连接当前 Django LiveServer。"""
+        self.assertFalse(
+            connection.is_in_memory_db(),
+            "真实浏览器会并发请求，必须使用可由多个连接安全访问的文件型 SQLite",
+        )
         run_real_backend_playwright(
             backend_name="Django",
             backend_url=self.live_server_url,

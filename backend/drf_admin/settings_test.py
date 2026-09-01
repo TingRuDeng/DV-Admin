@@ -1,6 +1,8 @@
 # Django 测试配置
-# 使用 SQLite 内存数据库进行测试
+# 默认使用 SQLite 内存数据库；真实浏览器 smoke 使用临时文件数据库
 import os
+import tempfile
+from pathlib import Path
 
 # 设置环境变量
 os.environ.setdefault('ENVIRONMENT', 'test')
@@ -13,6 +15,16 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": ":memory:",
+        "TEST": {
+            "NAME": (
+                str(
+                    Path(tempfile.gettempdir())
+                    / f"dv_admin_django_live_smoke_{os.getpid()}.sqlite3"
+                )
+                if os.environ.get("RUN_REAL_BACKEND_PLAYWRIGHT") == "1"
+                else ":memory:"
+            ),
+        },
     }
 }
 
