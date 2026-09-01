@@ -8,15 +8,44 @@ import socket
 import subprocess
 import sys
 import time
+from contextlib import contextmanager
 from pathlib import Path
+from typing import Iterator
 
 import httpx
 import pytest
+
+from scripts.real_backend_playwright import run_real_backend_playwright
 
 
 @pytest.mark.integration
 def test_shared_profile_avatar_password_and_notice_flow_over_http(tmp_path: Path):
     """绕过 TestClient，验证真实 Uvicorn HTTP 链路。"""
+    with running_seeded_server(tmp_path) as (base_url, seed):
+        run_http_flow(base_url, seed)
+
+
+@pytest.mark.integration
+@pytest.mark.skipif(
+    os.environ.get("RUN_REAL_BACKEND_PLAYWRIGHT") != "1",
+    reason="仅在双后端真实浏览器 smoke 门禁中运行",
+)
+def test_shared_frontend_flow_over_real_fastapi_http(tmp_path: Path):
+    """让真实 Vue 页面通过 Vite 代理连接当前 Uvicorn。"""
+    with running_seeded_server(tmp_path) as (base_url, seed):
+        run_real_backend_playwright(
+            backend_name="FastAPI",
+            backend_url=base_url,
+            username=str(seed["username"]),
+            password="httpPass123",
+            notice_title="FastAPI 真实 HTTP 通知",
+            notice_content="FastAPI 真实 HTTP 正文",
+        )
+
+
+@contextmanager
+def running_seeded_server(tmp_path: Path) -> Iterator[tuple[str, dict[str, int | str]]]:
+    """启动隔离 Uvicorn、等待就绪并创建浏览器/HTTP smoke 共用样本。"""
     port = reserve_tcp_port()
     env = build_server_env(tmp_path)
     log_path = tmp_path / "uvicorn.log"
@@ -43,7 +72,7 @@ def test_shared_profile_avatar_password_and_notice_flow_over_http(tmp_path: Path
             base_url = f"http://127.0.0.1:{port}"
             wait_for_server(base_url, server, log_path)
             seed = seed_http_database(env)
-            run_http_flow(base_url, seed)
+            yield base_url, seed
         finally:
             server.terminate()
             try:

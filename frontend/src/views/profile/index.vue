@@ -32,6 +32,7 @@
 import InformationAPI, { UserProfile, ProfileForm, PasswordForm } from "@/api/information-api";
 import { useUserStoreHook } from "@/store";
 import { createLogger } from "@/utils/logger";
+import { resolveStaticAssetUrl } from "@/utils/static-asset-url";
 import ProfileEditDialog from "./components/ProfileEditDialog.vue";
 import ProfileInfoPanel from "./components/ProfileInfoPanel.vue";
 import ProfileSecurityPanel from "./components/ProfileSecurityPanel.vue";
@@ -120,7 +121,7 @@ const handleFileChange = async (event: Event) => {
   if (file) {
     try {
       const data = await InformationAPI.updateAvatar(file);
-      const avatarUrl = data.url ?? data.avatar;
+      const avatarUrl = resolveStaticAssetUrl(data.url ?? data.avatar);
       userStore.userInfo.avatar = avatarUrl;
       userProfile.value.avatar = avatarUrl;
     } catch (error) {
@@ -132,7 +133,11 @@ const handleFileChange = async (event: Event) => {
 
 /** 加载用户信息 */
 const loadUserProfile = async () => {
-  userProfile.value = await InformationAPI.getProfile();
+  const profile = await InformationAPI.getProfile();
+  userProfile.value = {
+    ...profile,
+    avatar: resolveStaticAssetUrl(profile.avatar),
+  };
 };
 
 onMounted(async () => {

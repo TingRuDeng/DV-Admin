@@ -282,6 +282,8 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 - `backend/drf_admin/utils/runtime_api_contracts/`：通过 Django `APIClient` 执行共享端点目录中的真实路由。
 - `fastapi/tests/runtime_api_contracts/`：通过 FastAPI `TestClient` 执行同一端点目录中的真实路由。
 - `backend/drf_admin/utils/runtime_api_contracts/test_live_http_contract.py` 与 `fastapi/tests/test_live_http_contract.py`：分别启动真实 WSGI/Uvicorn 监听端口，执行登录、资料、头像、密码和通知闭环。
+- `frontend/e2e/real-backend-smoke.spec.ts` 与 `frontend/playwright.real-backend.config.ts`：使用同一份无 API Mock 的真实浏览器流程，分别连接 Django 与 FastAPI，覆盖登录、资料修改、头像上传和通知已读闭环。
+- `.github/workflows/quality-gates.yml` 的 `real-backend-browser` 矩阵：在隔离数据库和临时上传目录中运行两套后端浏览器 smoke，不复用开发数据库或本地服务。
 - `frontend/src/utils/__tests__/api-contract.test.ts`：前端兼容读取契约测试。
 - `scripts/validate_api_contracts.py`：文档、脚本和测试入口一致性检查。
 
