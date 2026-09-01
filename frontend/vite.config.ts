@@ -208,7 +208,7 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
             },
           }
         : {},
-      rollupOptions: {
+      rolldownOptions: {
         output: {
           // manualChunks: {
           //   "vue-i18n": ["vue-i18n"],
