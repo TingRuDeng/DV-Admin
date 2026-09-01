@@ -78,7 +78,7 @@ ai_summary:
 |------|------|--------------|
 | 1. 建立基线 | 已完成（2026-09-01） | 固化构建、产物、性能 smoke 和关键页面行为基线 |
 | 2. Vite 7 + `rolldown-vite` | 已完成（2026-09-01） | 只隔离验证 Rolldown 与现有插件、配置的兼容性 |
-| 3. 升级 Vite 8 | 未开始 | 迁移当前项目实际命中的废弃配置，保持插件能力 |
+| 3. 升级 Vite 8 | 已完成（2026-09-01） | 迁移当前项目实际命中的废弃配置，保持插件能力 |
 | 4. 升级 Vue Router 5 | 未开始 | 保持动态菜单与手写路由体系，不引入文件路由 |
 | 5. 壳层 PoC | 未开始 | 只改造 Layout、Menu、TagsView、AppMain、主题和页面框架 |
 | 6. 代表页验证 | 未开始 | 验证用户管理、通知公告、个人中心三个代表页 |
@@ -150,6 +150,19 @@ ai_summary:
 - 不以删除现有插件或缩减测试范围作为迁移手段。
 - 完成阶段 2 的全部门禁和阶段 1 的性能/产物对比。
 - 文档中的“当前技术栈”只有在该 PR 合并后才更新为 Vite 8。
+
+**阶段记录（2026-09-01）**
+
+- 基准与环境：阶段 3 最终基于 `master` 提交 `9c2e111e3b23585f074772fb335ba16f62a48100`，继续使用 macOS 15.7.7 arm64、Node 24.20.0 和 pnpm 11.21.0；`pnpm install --frozen-lockfile` 通过。
+- 依赖升级：顶层 Vite 从 `npm:rolldown-vite@7.1.9` 升级并精确锁定为 Vite 8.2.2；同步升级 `@vitejs/plugin-vue` 6.0.8、UnoCSS 66.8.1，并将直接使用的 `@iconify/utils` 对齐到 UnoCSS 图标预设依赖的 3.1.4。未删除、禁用或替换现有插件。
+- 必要配置迁移：将 Vite 8 已废弃的 `build.rollupOptions` 改为 `build.rolldownOptions`，保留阶段 2 已验证的 `assetFileNames` 兼容读取、Terser 压缩和静态资源目录/哈希命名语义；没有通过移除配置或插件换取构建通过。
+- 插件与构建验证：类型检查和生产构建证明 Vue 自动导入、Element Plus resolver、UnoCSS 与现有插件可用；Mock Playwright 14/14 通过；开发预构建生成 99 个 optimized 依赖和 10 个共享 chunk；生产产物为 212 个 JS、57 个 CSS、3 个图片和 1 个字体文件，`mockServiceWorker.js` 继续原样复制；Terser 输出未发现直接 `console.log/warn/error/info` 调用或 `debugger;`。
+- 兼容观察：阶段 2 记录的 15 个全局 Sass `:deep()` Lightning CSS 告警仍存在，未出现新的选择器变化。Vite 8 还提示未来 `configLoader: native` 默认值将不支持 `__dirname` 和无 import attributes 的 JSON 导入；当前默认配置加载器、开发服务器和生产构建均通过，该未来主版本迁移提示不在本阶段“只迁移实际废弃项”的范围内。Vitest 4.0.18 的 mocker peer 尚未声明 Vite 8，因此测试链隔离保留传递 Vite 7.1.9；本阶段不夹带 Vitest/MSW 测试工具链迁移，顶层应用开发与生产构建链仍为 Vite 8，现有 276 项单元测试全部通过。
+- 构建对比：按阶段 1 相同口径串行运行三次 `/usr/bin/time -p pnpm run build`，结果为 12.31s、12.16s、12.05s，中位数为 **12.16s**；相对阶段 1 的 17.53s 改善约 **30.63%**，相对阶段 2 的 13.13s 改善约 **7.39%**。
+- JavaScript 产物：三次均为 2,686,958 bytes（212 个文件，约 2.56 MiB），中位数为 **2,686,958 bytes**；相对阶段 1 减少 17,601 bytes（约 **0.65%**），相对阶段 2 减少 45,338 bytes（约 **1.66%**），未触发 10% 停止条件。
+- 行为与门禁：`pnpm run quality` 通过（94 个测试文件、276 项测试）；生产依赖审计 critical/high 均为 0；Mock smoke 14/14、left/top/mix + AppMain + TagsView 一次性浏览器探针 1/1、Django 真实 smoke 1/1、FastAPI 真实 smoke 1/1 均通过。Django smoke 的并发测试库问题已在独立前置 PR 修复并由两套 Vite 基线复现确认，不属于 Vite 8 回归。
+- 回滚证据：完整回退本阶段对 Vite、Vue 插件、UnoCSS/Iconify、锁文件、`rolldownOptions` 和权威文档的改动，即可恢复阶段 2 的 Vite 7 + Rolldown 状态；不涉及 Django/FastAPI、共享 API、菜单字段、组件路径、JWT、Pinia、字典、WebSocket 或 Pro 组件协议。
+- 结论：未触发 ADR-0001 硬停止条件；阶段 3 验收通过。阶段 4 仍须在本 PR 合并后从最新 `master` 创建独立分支，不自动夹带到本阶段。
 
 ### 阶段 4：独立升级 Vue Router 5
 

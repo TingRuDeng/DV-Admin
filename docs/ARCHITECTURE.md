@@ -53,13 +53,13 @@ ai_summary:
 
 ## Key facts
 
-- 前端为 Vue 3 + TypeScript + Element Plus + Vite 7。
+- 前端为 Vue 3 + TypeScript + Element Plus + Vite 8。
 - `backend/` 是 Django/DRF 实现，`fastapi/` 是 FastAPI/Tortoise ORM 替代实现。
 - 共享 API 或数据契约变化时，需要同时考虑两套后端兼容性。
 - Django 与 FastAPI 都提供健康检查能力；Django 请求链路会通过 `X-Request-ID` 串联响应和操作日志。
 - 关键 API 端点不仅校验契约目录，还会静态校验 Django/FastAPI 路由中是否存在对应 `method + path`。
 - FastAPI 数据库结构使用 Tortoise ORM 版本化迁移；开发期 schema 自动创建不承担生产演进职责。
-- ADR-0001 已接受渐进式前端现代化目标并进入分阶段实施；当前技术栈仍是 Vite 7 和 Vue Router 4。
+- ADR-0001 已接受渐进式前端现代化目标并进入分阶段实施；当前技术栈是 Vite 8 和 Vue Router 4。
 
 ## How to verify
 
@@ -84,7 +84,7 @@ DV-Admin 采用前后端分离架构，支持两种后端实现（Django 和 Fas
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        前端应用                              │
-│  Vue 3 + TypeScript + Element Plus + Vite 7                │
+│  Vue 3 + TypeScript + Element Plus + Vite 8                │
 │  端口: 9527                                                  │
 └─────────────────┬───────────────────────────┬───────────────┘
                   │                           │
@@ -123,7 +123,7 @@ DV-Admin 采用前后端分离架构，支持两种后端实现（Django 和 Fas
 - Vue 3 (Composition API + `<script setup>`)
 - TypeScript 5.x
 - Element Plus (UI 组件库)
-- Vite 7 (构建工具)
+- Vite 8 (构建工具)
 - Pinia (状态管理)
 - Vue Router 4 (路由)
 - Axios (HTTP 客户端)
@@ -176,7 +176,7 @@ frontend/src/
 
 **已接受的前端演进决策：**
 
-- [ADR-0001](./ADR-0001-FRONTEND-MODERNIZATION.md) 已接受“保留 Vue 3 业务核心、分阶段升级工具链、限定壳层 PoC”的方向；当前源码和依赖为 Vite 7（`rolldown-vite`）、Vue Router 4。
+- [ADR-0001](./ADR-0001-FRONTEND-MODERNIZATION.md) 已接受“保留 Vue 3 业务核心、分阶段升级工具链、限定壳层 PoC”的方向；当前源码和依赖为 Vite 8、Vue Router 4。
 - 保留边界包括 Element Plus、Pinia、后端动态菜单、手写路由、RouteMeta、KeepAlive/cacheKey、字典、WebSocket、JWT 刷新和 Pro 组件协议。
 - Pure Admin 仅作为 Layout、Menu、TagsView、AppMain、主题和页面框架的 Element Plus 壳层参考；Vben 仅作为工程组织与交互参考，不复制其业务架构。
 - Vite 按“Vite 7 + `rolldown-vite` 验证 → Vite 8”两步迁移；Vue Router 5 在独立阶段升级，不引入文件路由。
