@@ -5,6 +5,7 @@ ai_summary:
     - "评估跨模块影响时"
     - "修改鉴权、路由、缓存、响应包裹或替代后端兼容逻辑时"
   source_of_truth:
+    - "docs/ADR-0001-FRONTEND-MODERNIZATION.md"
     - "frontend/src/utils/route-meta.ts"
     - "frontend/src/utils/view-cache.ts"
     - "frontend/src/store/modules/tags-view-store.ts"
@@ -26,6 +27,7 @@ ai_summary:
     - "前后端目录结构变化"
     - "响应包裹、鉴权、路由 meta 或缓存策略变化"
     - "Django/FastAPI 替代关系变化"
+    - "前端现代化 ADR 状态、工具链目标或壳层边界变化"
 ---
 
 # DV-Admin 系统架构
@@ -38,6 +40,7 @@ ai_summary:
 
 ## Source of truth
 
+- `docs/ADR-0001-FRONTEND-MODERNIZATION.md`
 - `frontend/src/utils/route-meta.ts`
 - `frontend/src/utils/view-cache.ts`
 - `frontend/src/store/modules/tags-view-store.ts`
@@ -56,6 +59,7 @@ ai_summary:
 - Django 与 FastAPI 都提供健康检查能力；Django 请求链路会通过 `X-Request-ID` 串联响应和操作日志。
 - 关键 API 端点不仅校验契约目录，还会静态校验 Django/FastAPI 路由中是否存在对应 `method + path`。
 - FastAPI 数据库结构使用 Tortoise ORM 版本化迁移；开发期 schema 自动创建不承担生产演进职责。
+- ADR-0001 已接受渐进式前端现代化目标，但代码尚未实施；当前技术栈仍是 Vite 7 和 Vue Router 4。
 
 ## How to verify
 
@@ -68,6 +72,7 @@ ai_summary:
 
 - 中间件顺序或响应包裹协议变化。
 - 路由 meta、KeepAlive 缓存键或 ProTable 页面契约变化。
+- ADR-0001 状态、前端工具链目标、壳层/业务核心边界或停止条件变化。
 
 ---
 
@@ -168,6 +173,15 @@ frontend/src/
 - KeepAlive 默认优先使用 `meta.cacheKey`，其次使用无动态参数的 `route.name`；仅在动态参数页或未命名场景下回退到 `fullPath`
 - 仅在显式声明 `cacheByQuery=true` 或 `cacheQueryKeys=['k1','k2']` 时，才会按 query 维度区分缓存实例，避免默认缓存膨胀
 - 标签行为约定：刷新标签只清理当前标签缓存键；关闭左/右/其它/全部按标签对应缓存键同步删除，重定向刷新复用同一缓存键规则
+
+**已接受但尚未实施的前端演进决策：**
+
+- [ADR-0001](./ADR-0001-FRONTEND-MODERNIZATION.md) 已接受“保留 Vue 3 业务核心、分阶段升级工具链、限定壳层 PoC”的方向；当前源码和依赖仍为 Vite 7、Vue Router 4。
+- 保留边界包括 Element Plus、Pinia、后端动态菜单、手写路由、RouteMeta、KeepAlive/cacheKey、字典、WebSocket、JWT 刷新和 Pro 组件协议。
+- Pure Admin 仅作为 Layout、Menu、TagsView、AppMain、主题和页面框架的 Element Plus 壳层参考；Vben 仅作为工程组织与交互参考，不复制其业务架构。
+- Vite 按“Vite 7 + `rolldown-vite` 验证 → Vite 8”两步迁移；Vue Router 5 在独立阶段升级，不引入文件路由。
+- 壳层只包裹业务核心：它可以改变布局和视觉交互，不能修改 Django/FastAPI 菜单字段、组件路径、共享 API 契约、store 或 ProTable/ProForm 协议。
+- 七个串行阶段、阶段状态、性能预算和停止条件只在 [FRONTEND_OPTIMIZATION_BACKLOG.md](./FRONTEND_OPTIMIZATION_BACKLOG.md) 跟踪。
 
 ---
 
@@ -630,5 +644,5 @@ docker compose config
 
 ---
 
-**最后更新：** 2026-07-04
+**最后更新：** 2026-09-01
 **维护者：** DV-Admin Team
