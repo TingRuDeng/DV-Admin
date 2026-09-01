@@ -218,15 +218,16 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
           // 用于命名代码拆分时创建的共享块的输出命名
           chunkFileNames: "js/[name].[hash].js",
           // 用于输出静态资源的命名，[ext]表示文件扩展名
-          assetFileNames: (assetInfo: any) => {
-            const info = assetInfo.name.split(".");
-            let extType = info[info.length - 1];
-            // console.log('文件信息', assetInfo.name)
-            if (/\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/i.test(assetInfo.name)) {
+          assetFileNames: (assetInfo: { name?: string; names?: string[] }) => {
+            const assetName = assetInfo.names?.[0] ?? assetInfo.name ?? "";
+            const info = assetName.split(".");
+            let extType = info[info.length - 1] || "assets";
+            // console.log('文件信息', assetName)
+            if (/\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/i.test(assetName)) {
               extType = "media";
-            } else if (/\.(png|jpe?g|gif|svg)(\?.*)?$/.test(assetInfo.name)) {
+            } else if (/\.(png|jpe?g|gif|svg)(\?.*)?$/.test(assetName)) {
               extType = "img";
-            } else if (/\.(woff2?|eot|ttf|otf)(\?.*)?$/i.test(assetInfo.name)) {
+            } else if (/\.(woff2?|eot|ttf|otf)(\?.*)?$/i.test(assetName)) {
               extType = "fonts";
             }
             return `${extType}/[name].[hash].[ext]`;

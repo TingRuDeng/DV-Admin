@@ -26,7 +26,7 @@ ai_summary:
 
 - **状态：** Accepted
 - **决策日期：** 2026-09-01
-- **实施状态：** 决策目标已接受，代码尚未实施
+- **实施状态：** 分阶段实施中；阶段状态只在跟踪入口维护
 - **跟踪入口：** [FRONTEND_OPTIMIZATION_BACKLOG.md](./FRONTEND_OPTIMIZATION_BACKLOG.md)
 
 ## Purpose
@@ -45,7 +45,7 @@ ai_summary:
 
 ## Key facts
 
-- 当前实现仍是 Vue 3、TypeScript、Element Plus、Pinia、Vite 7 和 Vue Router 4。
+- 当前实现仍是 Vue 3、TypeScript、Element Plus、Pinia、Vite 7 和 Vue Router 4；Vite 7 已使用 `rolldown-vite` 实现。
 - 本 ADR 接受的是演进目标与约束，不代表 Vite 8、Vue Router 5 或新壳层已经落地。
 - 现有后端动态菜单、手写路由、RouteMeta、KeepAlive/cacheKey、字典、WebSocket、JWT 刷新和 Pro 组件协议属于业务核心，必须保留。
 - `frontend/package.json`、`frontend/pnpm-lock.yaml` 与 `frontend/vite.config.ts` 当前未使用 `unplugin-vue-router`，本次不引入文件路由。

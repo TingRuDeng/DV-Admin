@@ -72,12 +72,12 @@ ai_summary:
 
 ## ADR-0001 前端现代化实施路线
 
-> 当前状态：架构决策已接受，代码尚未实施。以下七个阶段必须串行执行，每个阶段使用独立分支和独立 PR；前一阶段完成全部验收并合并后，才能开始下一阶段。
+> 当前状态：架构决策已接受并进入串行实施。以下七个阶段必须使用独立分支和独立 PR；前一阶段完成全部验收并合并后，才能开始下一阶段。
 
 | 阶段 | 状态 | 独立交付目标 |
 |------|------|--------------|
 | 1. 建立基线 | 已完成（2026-09-01） | 固化构建、产物、性能 smoke 和关键页面行为基线 |
-| 2. Vite 7 + `rolldown-vite` | 未开始 | 只隔离验证 Rolldown 与现有插件、配置的兼容性 |
+| 2. Vite 7 + `rolldown-vite` | 已完成（2026-09-01） | 只隔离验证 Rolldown 与现有插件、配置的兼容性 |
 | 3. 升级 Vite 8 | 未开始 | 迁移当前项目实际命中的废弃配置，保持插件能力 |
 | 4. 升级 Vue Router 5 | 未开始 | 保持动态菜单与手写路由体系，不引入文件路由 |
 | 5. 壳层 PoC | 未开始 | 只改造 Layout、Menu、TagsView、AppMain、主题和页面框架 |
@@ -123,6 +123,19 @@ ai_summary:
 - 不删除或禁用现有插件来换取构建通过。
 - 类型检查、单元测试、构建、Mock E2E、可访问性/性能 smoke 和两套真实后端 Playwright smoke 全部通过。
 - 记录 Rolldown 兼容问题、必要配置调整和回滚证据。
+
+**阶段记录（2026-09-01）**
+
+- 基准与环境：从阶段 1 合并提交 `5eef322a23c17e5c2061e721d9ca0b86354fa3d9` 创建独立分支；继续使用 macOS 15.7.7 arm64、Node 24.20.0 和 pnpm 11.21.0，`pnpm install --frozen-lockfile` 通过。
+- 依赖切换：将顶层 Vite 精确锁定为 `npm:rolldown-vite@7.1.9`，与阶段 1 的 Vite 7.1.9 版本语义一致，避免在验证打包器时夹带 Vite 小版本升级；未删除、禁用或替换其他插件。
+- 必要兼容调整：Rolldown 的 `PreRenderedAsset` 通过 `names` 提供资源名，原配置只读取 `name`，首次构建在 CSS 资源命名阶段失败；`assetFileNames` 现按 `names[0] -> name -> 空值` 兼容读取，并为无名资源保留 `assets` 兜底目录。该调整兼容原 Rollup 形态，不改变业务静态资源路径协议。
+- 插件与构建验证：类型检查和生产构建证明自动导入、Vue 插件与 Element Plus resolver 可用；构建产物包含 Element Plus 与 UnoCSS 规则；Mock Playwright 14/14 通过并证明 Mock 插件可用；开发预构建生成 99 个 optimized 依赖和 29 个共享 chunk；Terser 输出未发现直接 `console.log/warn/error/info` 调用或 `debugger;`；产物仍按 `js/css/img/fonts` 目录和哈希文件名输出，`mockServiceWorker.js` 继续按 public 文件原样复制。
+- 兼容观察：Rolldown 内置的 Lightning CSS 会对全局 Sass 中 15 个既有 `:deep()` 选择器发出告警；直接编译现有 Sass 也会保留同样 15 个选择器，因此这不是本阶段新增的选择器变化。现有页面、布局、可访问性、性能和双后端 smoke 均通过，本阶段不夹带无关样式重构。
+- 构建对比：与阶段 1 相同口径串行运行三次 `/usr/bin/time -p pnpm run build`，结果为 13.29s、12.63s、13.13s，中位数为 **13.13s**，相对 17.53s 基线改善约 **25.1%**。
+- JavaScript 产物：三次均为 2,732,296 bytes（223 个文件，约 2.61 MiB），中位数为 **2,732,296 bytes**；相对阶段 1 增加 27,737 bytes，约 **1.03%**，未触发 10% 停止条件。
+- 行为与门禁：`pnpm run quality` 通过（94 个测试文件、276 项测试）；生产依赖审计 critical/high 均为 0；Mock smoke 14/14、left/top/mix + AppMain + TagsView 一次性浏览器探针 1/1、Django 真实 smoke 1/1、FastAPI 真实 smoke 1/1 均通过。动态路由、RouteMeta、KeepAlive/cacheKey 和三种布局未发现回归。
+- 回滚证据：本阶段只修改 Vite 别名、锁文件、资源命名兼容配置和权威文档；完整回退该阶段提交即可恢复阶段 1 的 Vite 7/Rollup 状态，不涉及 Django/FastAPI、共享 API、菜单字段、组件路径、JWT、Pinia、字典、WebSocket 或 Pro 组件协议。
+- 结论：未触发 ADR-0001 硬停止条件；阶段 2 验收通过。阶段 3 仍须在本 PR 合并后从最新 `master` 创建独立分支，不自动夹带到本阶段。
 
 ### 阶段 3：独立升级 Vite 8
 
