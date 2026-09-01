@@ -76,7 +76,7 @@ ai_summary:
 
 | 阶段 | 状态 | 独立交付目标 |
 |------|------|--------------|
-| 1. 建立基线 | 未开始 | 固化构建、产物、性能 smoke 和关键页面行为基线 |
+| 1. 建立基线 | 已完成（2026-09-01） | 固化构建、产物、性能 smoke 和关键页面行为基线 |
 | 2. Vite 7 + `rolldown-vite` | 未开始 | 只隔离验证 Rolldown 与现有插件、配置的兼容性 |
 | 3. 升级 Vite 8 | 未开始 | 迁移当前项目实际命中的废弃配置，保持插件能力 |
 | 4. 升级 Vue Router 5 | 未开始 | 保持动态菜单与手写路由体系，不引入文件路由 |
@@ -98,6 +98,17 @@ ai_summary:
 - PR 描述包含机器与工具链版本、三次原始测量值、中位数和产物统计口径。
 - 所有现行门禁通过；未修改依赖、构建配置或业务实现。
 - 本节状态和基线摘要随该阶段 PR 更新。
+
+**基线记录（2026-09-01）**
+
+- 基准提交：`94df8e8826eecaad2f28f5df53e25bb1de98f544`；环境为 macOS 15.7.7 arm64、Node 24.20.0、pnpm 11.21.0，`pnpm install --frozen-lockfile` 确认依赖已是锁文件对应状态。
+- 构建时间口径：在同一工作区串行执行三次 `/usr/bin/time -p pnpm run build`，记录命令端到端 `real` 时间，包含 `vue-tsc --noEmit` 与 Vite 生产构建。三次结果为 17.56s、17.53s、17.39s，中位数为 **17.53s**。
+- JavaScript 产物口径：每次构建结束后汇总 `dist/js/**/*.js` 的未压缩文件字节数。三次结果均为 2,704,559 bytes（215 个文件，约 2.58 MiB），中位数为 **2,704,559 bytes**。
+- 前端质量基线：`pnpm run quality` 通过；其中 Vitest 为 94 个测试文件、276 项测试全部通过。`pnpm run audit:prod` 通过，生产依赖审计为 critical 0、high 0、moderate 1、low 0。
+- 浏览器基线：Mock Playwright smoke 14/14 通过；其中性能 smoke 满足登录页加载少于 8,000ms、关键资源数少于 180 的现有预算，可访问性 smoke 验证登录页标题、`main` landmark、可命名账号/密码控件和登录按钮。
+- 双后端基线：Django 真实浏览器 smoke 1/1 通过（9.86s），FastAPI 真实浏览器 smoke 1/1 通过（10.82s）；共享流程覆盖登录、个人资料更新、头像上传、通知详情和已读状态。
+- 关键行为基线：登录、动态菜单、用户管理和通知公告由 Mock E2E 覆盖；动态路由规范化另由 `permission-store` 单元测试覆盖；left/top/mix 三种布局、AppMain 与 TagsView 使用一次性 Playwright 探针验证真实渲染（1/1 通过，探针未进入提交）；mix 菜单状态、TagsView 增删、KeepAlive/cacheKey 由现有单元测试覆盖；个人中心由两套真实后端 smoke 覆盖。
+- 本阶段只更新本 backlog 的状态和验收证据，未修改依赖、构建配置、业务实现或 API 契约；未触发硬停止条件。阶段 2 尚未开始。
 
 ### 阶段 2：在 Vite 7 上验证 `rolldown-vite`
 
