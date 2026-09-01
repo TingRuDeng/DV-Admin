@@ -8,6 +8,7 @@ ai_summary:
     - "AGENTS.md"
     - "docs/README.md"
     - "docs/ARCHITECTURE.md"
+    - "docs/ADR-0001-FRONTEND-MODERNIZATION.md"
     - "docs/API_ENDPOINTS.md"
     - "docs/DATABASE_SCHEMA.md"
     - "frontend/package.json"
@@ -25,6 +26,7 @@ ai_summary:
   stale_when:
     - "项目技术栈、目录结构、端口或质量门禁变化"
     - "Django/FastAPI 替代关系、API 契约或文档入口变化"
+    - "前端现代化 ADR 状态、实施阶段或壳层边界变化"
 ---
 # AI Context
 
@@ -33,7 +35,7 @@ ai_summary:
 ## Project Snapshot
 
 - 项目形态：前后端分离的管理后台，前端统一接入一个选中的后端实现。
-- 前端技术栈：Vue 3、TypeScript、Element Plus、Vite 7、Pinia、Vue Router。
+- 前端技术栈：Vue 3、TypeScript、Element Plus、Vite 7、Pinia、Vue Router 4；现代化目标已接受但尚未实施。
 - 后端实现：`backend/` 是 Django/DRF；`fastapi/` 是 FastAPI/Tortoise ORM；二者是同域替代实现。
 - 本仓库不是 Android 项目；未检测到 Gradle、AndroidManifest 或 Android 插件信号，因此使用 generic profile。
 
@@ -55,6 +57,8 @@ ai_summary:
 - `AGENTS.md`：代理工作规则、分支约束、质量门禁和文档同步要求。
 - `docs/README.md`：文档导航入口与任务阅读路径。
 - `docs/ARCHITECTURE.md`：系统架构、双后端替代关系、前端路由与缓存约定。
+- `docs/ADR-0001-FRONTEND-MODERNIZATION.md`：前端现代化的已接受决策、兼容边界、后果与停止条件。
+- `docs/FRONTEND_OPTIMIZATION_BACKLOG.md`：ADR-0001 七个串行阶段、状态和验收证据的唯一跟踪入口。
 - `docs/API_ENDPOINTS.md`：核心 API 契约、认证接口和双后端差异。
 - `docs/DATABASE_SCHEMA.md`：核心模型、表名差异和迁移边界。
 - `docs/KNOWN_PITFALLS.md`：已验证陷阱和排查路径。
@@ -63,6 +67,7 @@ ai_summary:
 ## Common Task Reading Paths
 
 - 前端页面或交互：`AGENTS.md` -> `docs/README.md` -> `docs/ARCHITECTURE.md` -> `frontend/README.md` -> 目标模块。
+- 前端现代化：`docs/ARCHITECTURE.md` -> `docs/ADR-0001-FRONTEND-MODERNIZATION.md` -> `docs/FRONTEND_OPTIMIZATION_BACKLOG.md` -> 当前实现。
 - Django 后端：`AGENTS.md` -> `docs/README.md` -> `backend/README.md` -> `docs/API_ENDPOINTS.md` 或 `docs/DATABASE_SCHEMA.md` -> 目标代码。
 - FastAPI 后端：`AGENTS.md` -> `docs/README.md` -> `fastapi/README.md` -> `docs/API_ENDPOINTS.md` 或 `docs/DATABASE_SCHEMA.md` -> 目标代码。
 - 文档上下文包：`docs/README.md` -> `docs/AI_CONTEXT.md` -> `scripts/validate_docs.py`。
@@ -79,6 +84,7 @@ ai_summary:
 - 前端 Vite 端口来自 `frontend/.env.development`，Playwright 或脚本端口不能凭默认值推断。
 - 双后端可替换性同时由静态契约、各后端真实 HTTP 测试和无 API Mock 的双后端 Playwright smoke 证明；普通 Mock E2E 不能替代真实栈门禁。
 - 页面层 ProTable、RouteMeta、KeepAlive 缓存键已有治理约束，改动前先读架构文档。
+- 前端现代化不得顺带修改双后端菜单字段、组件路径、共享 API、JWT/Pinia/字典/WebSocket/Pro 组件协议；触发 ADR 停止条件时重新评审。
 
 ## Validation Commands
 
@@ -97,3 +103,4 @@ ai_summary:
 - 技术栈、目录结构、默认端口或质量门禁变化。
 - API 契约、模型关系、鉴权流程或双后端替代关系变化。
 - 新增或迁移权威文档入口。
+- ADR-0001 状态、现代化阶段、壳层/业务核心边界或性能停止条件变化。
