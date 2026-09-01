@@ -68,7 +68,7 @@ ai_summary:
 DV-Admin 是一个基于 RBAC 模型权限控制的中小型应用基础开发平台，采用前后端分离架构。
 
 **核心组件：**
-- **前端**：Vue 3 + TypeScript + Element Plus + Vite 7
+- **前端**：Vue 3 + TypeScript + Element Plus + Vite 8
 - **后端实现 A（Django）**：Django 4.x + DRF + JWT + Channels（WebSocket）
 - **后端实现 B（FastAPI）**：FastAPI + Tortoise ORM（异步，与 Django API 兼容）
 
