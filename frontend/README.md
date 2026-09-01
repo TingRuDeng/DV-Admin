@@ -76,9 +76,19 @@ pnpm run audit:prod
 # 构建（包含类型检查）
 pnpm run build
 
+# 双后端真实浏览器 smoke（从仓库根目录运行其一；测试会启动隔离后端和 Vite）
+(cd backend && RUN_REAL_BACKEND_PLAYWRIGHT=1 .venv/bin/pytest \
+  drf_admin/utils/runtime_api_contracts/test_live_http_contract.py::DjangoLiveHttpContractTestCase::test_shared_frontend_flow_over_real_django_http)
+(cd fastapi && RUN_REAL_BACKEND_PLAYWRIGHT=1 .venv/bin/pytest \
+  tests/test_live_http_contract.py::test_shared_frontend_flow_over_real_fastapi_http)
+
 # 代码提交（请在提交前先执行 pnpm run quality 检查代码是否符合规范）
 pnpm run commit
 ```
+
+真实后端 smoke 不拦截 API；同一份 Playwright 流程会分别连接 Django LiveServer 与
+FastAPI Uvicorn，使用隔离数据库和临时上传目录。日常前端 Mock E2E 仍由
+`pnpm run test:e2e:smoke` 执行。
 
 `audit:prod` 会实时读取 pnpm 公告。临时豁免仅允许登记在
 `dependency-audit-exemptions.json`，必须限定公告、包、依赖路径、责任人和到期日期；
@@ -108,6 +118,11 @@ server {
     # 反向代理配置
     location /prod-api/ {
         proxy_pass http://api.xxxx.com/;
+    }
+
+    # 后端返回 /media/... 相对路径时需要同源转发
+    location /media/ {
+        proxy_pass http://api.xxxx.com/media/;
     }
 }
 ```

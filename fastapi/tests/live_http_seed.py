@@ -15,18 +15,24 @@ from app.db.models.system import Notices, Permissions, Roles
 
 async def seed() -> dict[str, int | str]:
     await Tortoise.init(config=settings.tortoise_orm_config)
-    query_permission = await Permissions.create(
-        name="system:notices:query",
-        type="BUTTON",
-        perm="system:notices:query",
-    )
+    query_permissions = [
+        await Permissions.create(
+            name=permission_code,
+            type="BUTTON",
+            perm=permission_code,
+        )
+        for permission_code in (
+            "system:notices:query",
+            "system:dictitems:query",
+        )
+    ]
     role = await Roles.create(
         name="HTTP Smoke 角色",
         code="http-smoke",
         status=1,
         data_scope=1,
     )
-    await role.permissions.add(query_permission)
+    await role.permissions.add(*query_permissions)
     user = await Users.create(
         username="http-smoke",
         password=get_password_hash("httpPass123"),

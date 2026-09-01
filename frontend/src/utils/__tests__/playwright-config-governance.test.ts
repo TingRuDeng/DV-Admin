@@ -54,4 +54,17 @@ describe("playwright local server governance", () => {
     expect(deptSpec).toContain("/api/v1/oauth/info/");
     expect(deptSpec).toContain("/api/v1/oauth/menus/routes/");
   });
+
+  it("keeps a separate no-mock smoke for both real backends", () => {
+    const packageJson = readProjectFile("../../../package.json");
+    const realBackendConfig = readProjectFile("../../../playwright.real-backend.config.ts");
+    const realBackendSpec = readProjectFile("../../../e2e/real-backend-smoke.spec.ts");
+
+    expect(packageJson).toContain("test:e2e:real-backend");
+    expect(realBackendConfig).toContain("REAL_BACKEND_URL");
+    expect(realBackendConfig).toContain("reuseExistingServer: false");
+    expect(realBackendSpec).not.toContain("page.route(");
+    expect(realBackendSpec).toContain("/api/v1/information/change-avatar/");
+    expect(realBackendSpec).toContain("/my-notice");
+  });
 });
