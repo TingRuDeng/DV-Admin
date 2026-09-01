@@ -8,6 +8,7 @@ ai_summary:
     - "AGENTS.md"
     - "docs/AI_CONTEXT.md"
     - "docs/ARCHITECTURE.md"
+    - "docs/ADR-0001-FRONTEND-MODERNIZATION.md"
     - "docs/API_ENDPOINTS.md"
     - "docs/DATABASE_SCHEMA.md"
     - "scripts/validate_docs.py"
@@ -22,6 +23,7 @@ ai_summary:
     - "文档入口新增、迁移或改名"
     - "上下文包校验规则变化"
     - "任务阅读路径或权威边界调整"
+    - "架构决策文档新增、替代或状态变化"
 ---
 
 # DV-Admin 文档导航
@@ -37,6 +39,7 @@ ai_summary:
 - `AGENTS.md`
 - `docs/AI_CONTEXT.md`
 - `docs/ARCHITECTURE.md`
+- `docs/ADR-0001-FRONTEND-MODERNIZATION.md`
 - `docs/API_ENDPOINTS.md`
 - `docs/DATABASE_SCHEMA.md`
 - `scripts/validate_docs.py`
@@ -47,6 +50,7 @@ ai_summary:
 - `AGENTS.md` 是代理规则入口，`docs/AI_CONTEXT.md` 是短上下文地图。
 - `backend/` 与 `fastapi/` 是同域替代实现，前端通常只连接其中一套。
 - 关键 API 契约由 `scripts/validate_api_contracts.py` 校验，其中包含 `scripts/api_route_coverage_validation.py` 的 `method + path` 路由覆盖守卫。
+- ADR-0001 已接受前端现代化方向，但代码尚未实施；当前仍使用 Vite 7 和 Vue Router 4。
 
 ## How to verify
 
@@ -59,6 +63,7 @@ ai_summary:
 
 - 新增或迁移文档入口。
 - 质量门禁、端口、后端替代关系或上下文包规则变化。
+- 架构决策状态、权威分类或实施跟踪入口变化。
 
 ---
 
@@ -71,6 +76,7 @@ DV-Admin/
 │   ├── README.md               # [本文件] 文档导航入口
 │   ├── AI_CONTEXT.md           # [权威] AI 任务路由短索引
 │   ├── ARCHITECTURE.md         # [权威] 系统架构设计
+│   ├── ADR-0001-FRONTEND-MODERNIZATION.md # [权威-决策] 前端现代化决策
 │   ├── FRONTEND_OPTIMIZATION_BACKLOG.md # [跟踪] 当前前端优化待办
 │   ├── API_ENDPOINTS.md        # [权威-概览] API 契约核心概览
 │   ├── DATABASE_SCHEMA.md      # [权威-概览] 数据库模型核心概览
@@ -200,6 +206,7 @@ cp .env.example .env
 | 级别 | 含义 | 示例 |
 |------|------|------|
 | **权威** | 规则、导航、架构与风险边界事实入口 | `AGENTS.md`, `docs/README.md`, `docs/AI_CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/KNOWN_PITFALLS.md` |
+| **权威-决策** | 已接受的架构取舍、兼容边界、后果与停止条件 | `docs/ADR-0001-FRONTEND-MODERNIZATION.md` |
 | **权威-概览** | 经过代码核验的核心概要，非全量清单 | `docs/API_ENDPOINTS.md`, `docs/DATABASE_SCHEMA.md` |
 | **权威-跟踪** | 已确认且持续维护的治理事项 | `docs/TECH_DEBT.md` |
 | **权威-流程** | 提交和交付阶段必须遵循的流程门禁 | `docs/DOC_SYNC_CHECKLIST.md` |
@@ -220,6 +227,19 @@ cp .env.example .env
 4. frontend/src/目标模块/        # 实际代码
 5. docs/API_ENDPOINTS.md        # 查阅 API 接口
 ```
+
+### 前端现代化任务
+
+```
+1. AGENTS.md                                   # 了解分支和交付门禁
+2. docs/ARCHITECTURE.md                        # 核对当前架构事实
+3. docs/ADR-0001-FRONTEND-MODERNIZATION.md     # 核对已接受决策与停止条件
+4. docs/FRONTEND_OPTIMIZATION_BACKLOG.md       # 核对当前阶段与验收项
+5. frontend/package.json + frontend/vite.config.ts  # 核对实际依赖和配置
+6. frontend/src/router/ + frontend/src/layouts/     # 核对路由与壳层实现
+```
+
+**说明：** ADR 描述目标，backlog 跟踪实施；只有阶段 PR 合并后，目标版本才成为当前架构事实。
 
 ### 后端开发任务（Django）
 
@@ -324,6 +344,28 @@ cp .env.example .env
 - 架构调整
 - 新增核心模块
 - 流程变更
+
+---
+
+### ADR-0001-FRONTEND-MODERNIZATION.md
+
+**用途：** 前端现代化架构决策的权威记录
+
+**内容：**
+- 保留与不采用的方案
+- Vite、Vue Router 和壳层的分阶段决策
+- 业务核心兼容边界
+- 正负后果、回滚策略和停止条件
+
+**何时阅读：**
+- 升级前端构建工具或路由主版本前
+- 改造 Layout、Menu、TagsView、AppMain 或主题前
+- 决定是否扩大前端重构范围时
+
+**何时更新：**
+- 决策状态或候选方案变化
+- 兼容边界、回滚策略或停止条件变化
+- 新 ADR 取代本决策
 
 ---
 
@@ -491,6 +533,7 @@ cp .env.example .env
 
 - `AGENTS.md` - 工作流规则
 - `ARCHITECTURE.md` - 架构决策
+- `ADR-*.md` - 已接受的架构取舍与后果
 - `KNOWN_PITFALLS.md` - 陷阱记录
 
 ---
@@ -500,6 +543,8 @@ cp .env.example .env
 - [代理工作规则](../AGENTS.md)
 - [AI 上下文索引](./AI_CONTEXT.md)
 - [系统架构](./ARCHITECTURE.md)
+- [前端现代化 ADR](./ADR-0001-FRONTEND-MODERNIZATION.md)
+- [前端优化 backlog](./FRONTEND_OPTIMIZATION_BACKLOG.md)
 - [API 端点](./API_ENDPOINTS.md)
 - [数据库模型](./DATABASE_SCHEMA.md)
 - [文档同步清单](./DOC_SYNC_CHECKLIST.md)
@@ -510,5 +555,5 @@ cp .env.example .env
 
 ---
 
-**最后更新：** 2026-07-04
+**最后更新：** 2026-09-01
 **维护者：** DV-Admin Team

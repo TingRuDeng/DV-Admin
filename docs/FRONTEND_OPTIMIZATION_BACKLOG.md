@@ -5,6 +5,7 @@ ai_summary:
     - "规划前端治理或重构范围时"
     - "判断旧前端优化方案是否仍有效时"
   source_of_truth:
+    - "docs/ADR-0001-FRONTEND-MODERNIZATION.md"
     - "docs/ARCHITECTURE.md"
     - "frontend/src/styles"
     - "frontend/src/components"
@@ -14,9 +15,11 @@ ai_summary:
   verify_with:
     - "python3 scripts/validate_docs.py . --profile generic"
     - "pnpm --dir frontend run quality"
+    - "pnpm --dir frontend run build"
   stale_when:
     - "前端治理基线变化"
     - "系统页面迁移状态、Pro 组件边界或缓存策略变化"
+    - "ADR-0001 的实施阶段、停止条件或验收预算变化"
 ---
 
 # DV-Admin 前端优化待办
@@ -29,6 +32,7 @@ ai_summary:
 
 ## Source of truth
 
+- `docs/ADR-0001-FRONTEND-MODERNIZATION.md`
 - `docs/ARCHITECTURE.md`
 - `frontend/src/styles`
 - `frontend/src/components`
@@ -41,16 +45,19 @@ ai_summary:
 - 本文档是跟踪入口，不是架构权威。
 - 旧前端优化方案已被本文档和 `docs/ARCHITECTURE.md` 吸收；旧执行计划不再保留为现行参考。
 - 已完成治理基线不应重复规划为新增项。
+- 本文档是 ADR-0001 实施阶段、状态和验收证据的唯一跟踪入口，不另建重复 roadmap。
 
 ## How to verify
 
 - quick: `python3 scripts/validate_docs.py . --profile generic`
 - full: `pnpm --dir frontend run quality`
+- full: `pnpm --dir frontend run build`
 
 ## Stale when
 
 - 前端样式治理、Pro 组件、RouteMeta 或 KeepAlive 策略变化。
 - 旧 backlog 条目完成或失效。
+- ADR-0001 的阶段顺序、验收标准、性能预算或停止条件变化。
 
 ---
 
@@ -59,6 +66,131 @@ ai_summary:
 - 本文档是当前前端优化 backlog 的跟踪入口
 - 旧前端优化方案不再作为现行实施依据；仍有效的事实已合并到当前权威文档和本 backlog
 - 当前现状、既有规范与已落地能力，仍以 `docs/ARCHITECTURE.md`、`frontend/src/styles/README.md` 及实际代码为准
+- 前端现代化决策以 `docs/ADR-0001-FRONTEND-MODERNIZATION.md` 为准；本文件只维护阶段状态、验收证据和继续/停止结论
+
+---
+
+## ADR-0001 前端现代化实施路线
+
+> 当前状态：架构决策已接受，代码尚未实施。以下七个阶段必须串行执行，每个阶段使用独立分支和独立 PR；前一阶段完成全部验收并合并后，才能开始下一阶段。
+
+| 阶段 | 状态 | 独立交付目标 |
+|------|------|--------------|
+| 1. 建立基线 | 未开始 | 固化构建、产物、性能 smoke 和关键页面行为基线 |
+| 2. Vite 7 + `rolldown-vite` | 未开始 | 只隔离验证 Rolldown 与现有插件、配置的兼容性 |
+| 3. 升级 Vite 8 | 未开始 | 迁移当前项目实际命中的废弃配置，保持插件能力 |
+| 4. 升级 Vue Router 5 | 未开始 | 保持动态菜单与手写路由体系，不引入文件路由 |
+| 5. 壳层 PoC | 未开始 | 只改造 Layout、Menu、TagsView、AppMain、主题和页面框架 |
+| 6. 代表页验证 | 未开始 | 验证用户管理、通知公告、个人中心三个代表页 |
+| 7. 扩大或停止评审 | 未开始 | 依据完整验收证据决定扩大壳层迁移或停止 |
+
+### 阶段 1：建立可比较基线
+
+**范围**
+
+- 在同一台机器、同一 Node/pnpm 版本和干净依赖状态下连续运行三次生产构建。
+- 记录生产构建时间三次运行的中位数、`dist/js` 总大小及其三次运行中位数。
+- 记录现有性能 smoke、可访问性 smoke 和双后端真实 Playwright smoke 结果。
+- 固化登录、动态菜单、left/top/mix 布局、TagsView、KeepAlive/cacheKey、用户管理、通知公告和个人中心的行为基线。
+
+**完成标准**
+
+- PR 描述包含机器与工具链版本、三次原始测量值、中位数和产物统计口径。
+- 所有现行门禁通过；未修改依赖、构建配置或业务实现。
+- 本节状态和基线摘要随该阶段 PR 更新。
+
+### 阶段 2：在 Vite 7 上验证 `rolldown-vite`
+
+**范围**
+
+- 保持 Vite 7 语义，只将 Vite 实现切换为 `rolldown-vite`。
+- 逐项验证自动导入、Element Plus resolver、UnoCSS、Mock、依赖预构建、Terser 和静态资源命名。
+- 对比阶段 1 的构建时间、总 JavaScript 产物和关键页面行为。
+
+**完成标准**
+
+- 不删除或禁用现有插件来换取构建通过。
+- 类型检查、单元测试、构建、Mock E2E、可访问性/性能 smoke 和两套真实后端 Playwright smoke 全部通过。
+- 记录 Rolldown 兼容问题、必要配置调整和回滚证据。
+
+### 阶段 3：独立升级 Vite 8
+
+**范围**
+
+- 从已通过的 Vite 7 + Rolldown 基线升级 Vite 8。
+- 只迁移当前配置实际命中的废弃项，并验证 Rolldown/Oxc、依赖优化、Terser 和 CSS/静态资源输出。
+- 继续保留自动导入、Element Plus resolver、UnoCSS、Mock 和现有插件能力。
+
+**完成标准**
+
+- 不以删除现有插件或缩减测试范围作为迁移手段。
+- 完成阶段 2 的全部门禁和阶段 1 的性能/产物对比。
+- 文档中的“当前技术栈”只有在该 PR 合并后才更新为 Vite 8。
+
+### 阶段 4：独立升级 Vue Router 5
+
+**范围**
+
+- 只升级 Vue Router 5，不引入文件路由或 `unplugin-vue-router`。
+- 保留后端动态菜单、当前手写静态路由、RouteMeta 清洗、权限守卫、KeepAlive/cacheKey 和 TagsView 语义。
+
+**完成标准**
+
+- 动态路由注入、刷新恢复、403 准入、activeMenu、面包屑和缓存行为无回归。
+- left/top/mix 三种布局和两套真实后端 Playwright smoke 通过。
+- 文档中的“当前技术栈”只有在该 PR 合并后才更新为 Vue Router 5。
+
+### 阶段 5：制作 Pure Admin 风格壳层 PoC
+
+**范围**
+
+- 仅改造 Layout、Menu、TagsView、AppMain、主题和页面框架。
+- Pure Admin 只作为 Element Plus 壳层交互参考；Vben 只作为工程组织和交互参考。
+- 不修改业务 API、store、动态路由协议、Pro 组件协议或后端实现。
+
+**完成标准**
+
+- left/top/mix 三种布局、移动端断点、主题切换、标签页和缓存行为均通过现有测试与人工验收。
+- 现有可访问性与性能预算通过，构建/产物未触发 10% 停止条件。
+- PoC 可由单一 PR 完整回滚，不遗留新旧壳层混合协议。
+
+### 阶段 6：验证三个代表页
+
+**代表页**
+
+- 用户管理：验证 ProTable、筛选、分页、抽屉表单和权限按钮。
+- 通知公告：验证列表、详情、状态、富文本和动态菜单入口。
+- 个人中心：验证资料、头像、密码、静态资源 URL 和响应式页面框架。
+
+**完成标准**
+
+- 三页在 Django 与 FastAPI 下的共享行为一致。
+- 两套真实后端 Playwright smoke、相关 Mock E2E、单元测试、可访问性和性能 smoke 全部通过。
+- 只适配页面框架和壳层接缝，不重写 ProTable/ProForm 或数据协议。
+
+### 阶段 7：扩大或停止评审
+
+**决策输入**
+
+- 阶段 1-6 的测试、构建、性能、产物、可访问性和人工验收证据。
+- 三个代表页的改造成本、复用程度、回归数量和回滚复杂度。
+- 所有硬停止条件是否曾触发，以及触发后的处置结论。
+
+**输出**
+
+- 仅允许形成“按明确页面批次扩大壳层迁移”或“停止并保留现状”之一。
+- 扩大迁移必须另行给出页面批次和验收范围，不得把本阶段视为全量重构的默认授权。
+
+### 全阶段硬停止条件
+
+出现以下任一情况时，停止当前阶段并重新评审，不自动进入下一阶段：
+
+- 需要修改 Django/FastAPI 菜单字段、组件路径或共享 API 契约。
+- 需要重写 JWT 刷新、Pinia store、字典、WebSocket 或 ProTable/ProForm 协议。
+- 动态路由、RouteMeta、KeepAlive/cacheKey 或三种布局模式出现回归。
+- 任一后端真实 Playwright smoke 失败。
+- 现有可访问性或性能预算失败。
+- 构建时间或总 JavaScript 产物三次运行中位数相对阶段 1 基线回退超过 10%。
 
 ---
 
