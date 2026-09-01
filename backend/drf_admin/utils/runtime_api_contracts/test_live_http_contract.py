@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import base64
+import os
 import tempfile
+import unittest
 
 import requests
 from django.test import LiveServerTestCase, override_settings
+from scripts.real_backend_playwright import run_real_backend_playwright
 
 from drf_admin.apps.system.models import NoticeReads, Notices
 from drf_admin.utils.runtime_api_contracts.helpers import create_runtime_contract_user
@@ -113,6 +116,21 @@ class DjangoLiveHttpContractTestCase(LiveServerTestCase):
             timeout=10,
         )
         self.assertIn("accessToken", self.assert_success(relogin))
+
+    @unittest.skipUnless(
+        os.environ.get("RUN_REAL_BACKEND_PLAYWRIGHT") == "1",
+        "仅在双后端真实浏览器 smoke 门禁中运行",
+    )
+    def test_shared_frontend_flow_over_real_django_http(self):
+        """让真实 Vue 页面通过 Vite 代理连接当前 Django LiveServer。"""
+        run_real_backend_playwright(
+            backend_name="Django",
+            backend_url=self.live_server_url,
+            username=self.user.username,
+            password="testpass123",
+            notice_title=self.notice.title,
+            notice_content=self.notice.content,
+        )
 
     def assert_success(self, response):
         """断言真实 HTTP 响应满足 Django 成功信封并返回 data。"""
