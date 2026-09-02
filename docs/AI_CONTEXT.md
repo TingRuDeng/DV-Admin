@@ -35,7 +35,7 @@ ai_summary:
 ## Project Snapshot
 
 - 项目形态：前后端分离的管理后台，前端统一接入一个选中的后端实现。
-- 前端技术栈：Vue 3、TypeScript、Element Plus、Vite 8、Pinia、Vue Router 5；壳层 PoC 已完成，代表页验证仍按 backlog 串行实施。
+- 前端技术栈：Vue 3、TypeScript、Element Plus、Vite 8、Pinia、Vue Router 5；壳层 PoC 与三个代表页验收已完成，阶段 7 扩大或停止评审尚未开始。
 - 后端实现：`backend/` 是 Django/DRF；`fastapi/` 是 FastAPI/Tortoise ORM；二者是同域替代实现。
 - 本仓库不是 Android 项目；未检测到 Gradle、AndroidManifest 或 Android 插件信号，因此使用 generic profile。
 

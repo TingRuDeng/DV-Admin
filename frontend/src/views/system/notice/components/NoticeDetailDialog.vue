@@ -12,7 +12,7 @@
       <div class="flex justify-between items-center">
         <span class="font-semibold text-slate-700">通知公告详情</span>
         <div class="dialog-toolbar">
-          <el-button circle @click="close">
+          <el-button circle aria-label="关闭通知详情" @click="close">
             <template #icon>
               <Close />
             </template>

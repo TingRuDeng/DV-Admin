@@ -107,6 +107,9 @@ def create_runtime_contract_permissions() -> list[Permissions]:
         "system:users:add",
         "system:users:edit",
         "system:users:delete",
+        "system:users:password:reset",
+        "system:users:import",
+        "system:users:export",
         "system:roles:query",
         "system:roles:add",
         "system:roles:edit",
@@ -147,8 +150,8 @@ def create_runtime_contract_permissions() -> list[Permissions]:
         component="Layout",
         sort=1,
     )
-    menu = Permissions.objects.create(
-        name="契约菜单",
+    user_menu = Permissions.objects.create(
+        name="用户管理",
         perm="runtime:menu",
         type="MENU",
         route_name="RuntimeContractUser",
@@ -157,7 +160,17 @@ def create_runtime_contract_permissions() -> list[Permissions]:
         parent=catalog,
         sort=2,
     )
-    return [catalog, menu, *buttons]
+    notice_menu = Permissions.objects.create(
+        name="通知公告",
+        perm="runtime:notice:menu",
+        type="MENU",
+        route_name="RuntimeContractNotice",
+        route_path="notices",
+        component="system/notice/index",
+        parent=catalog,
+        sort=3,
+    )
+    return [catalog, user_menu, notice_menu, *buttons]
 
 
 def create_runtime_contract_dicts() -> None:
