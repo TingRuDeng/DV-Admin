@@ -46,6 +46,29 @@ class UserPartialUpdate(BaseSchema):
     is_active: int = Field(description="是否激活")
 
 
+class UserPasswordReset(BaseSchema):
+    """重置用户密码请求。"""
+
+    password: str = Field(min_length=6, description="新密码")
+    confirm_password: str = Field(min_length=6, description="确认新密码")
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_strength(cls, value: str) -> str:
+        if not any(character.isdigit() for character in value):
+            raise ValueError("密码必须包含数字")
+        if not any(character.isalpha() for character in value):
+            raise ValueError("密码必须包含字母")
+        return value
+
+    @field_validator("confirm_password")
+    @classmethod
+    def validate_password_match(cls, value: str, info):
+        if "password" in info.data and value != info.data["password"]:
+            raise ValueError("两次密码不一致")
+        return value
+
+
 class UserOut(TimestampSchema):
     """用户响应数据"""
 

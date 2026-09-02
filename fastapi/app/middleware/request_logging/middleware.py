@@ -251,7 +251,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         }
 
         if self.log_request_body and not self._should_exclude_body(path):
-            request_log["body"] = request_body
+            request_log["body"] = mask_sensitive_body(request_body)
 
         return {
             "request_id": request_id,

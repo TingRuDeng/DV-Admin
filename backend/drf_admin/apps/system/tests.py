@@ -458,9 +458,24 @@ class UsersPasswordTestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_reset_password_uses_dedicated_permission(self):
+        """密码重置应只要求专用权限，不应错误复用用户编辑权限。"""
+        context = create_dept_scoped_user_context(("system:users:password:reset",))
+        self.client.force_authenticate(user=context["operator"])
+
+        response = self.client.put(
+            f"/api/v1/system/users/{context['visible_user'].id}/password/reset/",
+            {"password": "LifecyclePass123", "confirm_password": "LifecyclePass123"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        context["visible_user"].refresh_from_db()
+        self.assertTrue(context["visible_user"].check_password("LifecyclePass123"))
+
     def test_reset_password_hidden_user_returns_not_found(self):
         """不得重置范围外用户密码。"""
-        context = create_dept_scoped_user_context(("system:users:edit",))
+        context = create_dept_scoped_user_context(("system:users:password:reset",))
         self.client.force_authenticate(user=context["operator"])
 
         response = self.client.put(

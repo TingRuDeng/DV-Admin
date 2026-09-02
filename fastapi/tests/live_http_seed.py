@@ -10,7 +10,7 @@ from tortoise import Tortoise
 from app.core.config import settings
 from app.core.security import get_password_hash
 from app.db.models.oauth import Users
-from app.db.models.system import Notices, Permissions, Roles
+from app.db.models.system import Departments, Notices, Permissions, Roles
 
 
 async def seed() -> dict[str, int | str | list[int]]:
@@ -98,6 +98,11 @@ async def seed() -> dict[str, int | str | list[int]]:
         status=1,
         data_scope=1,
     )
+    department = await Departments.create(
+        name="HTTP Smoke 部门",
+        status=1,
+        sort=1,
+    )
     await role.permissions.add(
         catalog,
         user_menu,
@@ -140,6 +145,8 @@ async def seed() -> dict[str, int | str | list[int]]:
         "notice_id": notice.id,
         "rbac_username": rbac_user.username,
         "rbac_role_id": rbac_role.id,
+        "lifecycle_role_name": role.name,
+        "lifecycle_dept_name": department.name,
         "rbac_base_permission_ids": [
             permission.id
             for permission in button_permissions
