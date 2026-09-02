@@ -183,7 +183,7 @@ frontend/src/
 - 壳层只包裹业务核心：它可以改变布局和视觉交互，不能修改 Django/FastAPI 菜单字段、组件路径、共享 API 契约、store 或 ProTable/ProForm 协议。
 - 当前壳层以 `--ff-shell-*` 语义 token 统一页面背景、导航表面、边界、文本、交互和尺寸；`left/top/mix` 共用现有 `useLayout` 与 store，移动端由语义化按钮、遮罩和抽屉承载，不新增状态协议。
 - `frontend/e2e/shell-layout.spec.ts` 固化三种布局、动态用户路由、TagsView、暗色主题及 `top/mix` 移动抽屉行为，并已纳入常规前端 smoke。
-- `frontend/e2e/profile.spec.ts` 与用户/通知 smoke 固化三个代表页的响应式、权限和关键业务行为；无 API Mock 的真实后端 smoke 同时覆盖 Django/FastAPI 下的三页共享流程。
+- `frontend/e2e/profile.spec.ts` 与用户/通知 smoke 固化三个代表页的响应式、权限和关键业务行为；无 API Mock 的真实后端 smoke 同时覆盖 Django/FastAPI 下的共享页面流程和 RBAC 授权闭环。
 - 阶段 7 已停止批量页面迁移：登录、错误、文档承载和 Demo 等特殊页保持各自语义，只在有具体缺陷或产品需求时逐页改进；重新启动多页批量迁移必须先通过新 ADR 授权。
 - 七个串行阶段、阶段状态、性能预算和停止条件只在 [FRONTEND_OPTIMIZATION_BACKLOG.md](./FRONTEND_OPTIMIZATION_BACKLOG.md) 跟踪。
 
@@ -299,8 +299,8 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 - `fastapi/tests/test_api_contracts.py`：FastAPI 响应与分页契约测试。
 - `backend/drf_admin/utils/runtime_api_contracts/`：通过 Django `APIClient` 执行共享端点目录中的真实路由。
 - `fastapi/tests/runtime_api_contracts/`：通过 FastAPI `TestClient` 执行同一端点目录中的真实路由。
-- `backend/drf_admin/utils/runtime_api_contracts/test_live_http_contract.py` 与 `fastapi/tests/test_live_http_contract.py`：分别启动真实 WSGI/Uvicorn 监听端口，执行登录、资料、头像、密码和通知闭环。
-- `frontend/e2e/real-backend-smoke.spec.ts` 与 `frontend/playwright.real-backend.config.ts`：使用同一份无 API Mock 的真实浏览器流程，分别连接 Django 与 FastAPI，覆盖登录、资料修改、头像上传和通知已读闭环。
+- `backend/drf_admin/utils/runtime_api_contracts/test_live_http_contract.py` 与 `fastapi/tests/test_live_http_contract.py`：分别启动真实 WSGI/Uvicorn 监听端口，执行登录、资料、头像、密码、通知和 RBAC 授权/撤权闭环。
+- `frontend/e2e/real-backend-smoke.spec.ts` 与 `frontend/playwright.real-backend.config.ts`：使用同一份无 API Mock 的真实浏览器流程，分别连接 Django 与 FastAPI，覆盖登录、资料修改、头像上传、通知已读，以及角色权限变化后的动态菜单、按钮和接口权限。
 - `.github/workflows/quality-gates.yml` 的 `real-backend-browser` 矩阵：在隔离数据库和临时上传目录中运行两套后端浏览器 smoke，不复用开发数据库或本地服务。
 - `frontend/src/utils/__tests__/api-contract.test.ts`：前端兼容读取契约测试。
 - `scripts/validate_api_contracts.py`：文档、脚本和测试入口一致性检查。
@@ -399,6 +399,11 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 2. 根据角色获取权限列表
 3. 前端根据权限生成动态路由
 4. API 请求时后端验证权限标识
+
+**权限缓存失效：**
+- 角色权限或用户角色关系变化后，必须清除受影响用户的权限缓存；FastAPI 同时清除动态菜单缓存。
+- Django 通过 `SystemConfig.ready()` 注册 `m2m_changed` 信号，FastAPI 由 `RoleService` 在角色授权入口主动清理缓存。
+- 前端权限与动态路由是登录时快照；变更后重新登录会重新拉取菜单和用户权限。双后端真实浏览器 smoke 会验证授权后菜单/API 可用、未授权按钮不可见，以及撤权后菜单消失且 API 返回 403。
 
 **数据范围控制：**
 - 角色包含 `dataScope` 与 `deptIds`，用于表达全部数据、本人数据、本部门、本部门及以下和自定义部门。
