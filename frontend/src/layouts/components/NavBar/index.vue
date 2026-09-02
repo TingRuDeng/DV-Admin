@@ -1,6 +1,6 @@
 <template>
   <div class="navbar">
-    <div class="flex-y-center">
+    <div class="navbar__primary">
       <!-- 菜单折叠按钮 -->
       <Hamburger :is-active="isSidebarOpened" @toggle-click="toggleSideBar" />
       <!-- 面包屑导航 -->
@@ -36,11 +36,29 @@ function toggleSideBar() {
   align-items: center;
   justify-content: space-between;
   height: $navbar-height;
+  padding: 0 12px;
+
+  &__primary {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    min-width: 0;
+  }
 
   &__actions {
     display: flex;
     align-items: center;
     height: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+  .navbar {
+    padding: 0 6px;
+
+    :deep(.el-breadcrumb) {
+      display: none;
+    }
   }
 }
 </style>

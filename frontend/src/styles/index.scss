@@ -11,54 +11,12 @@
 @use "./vxe-table";
 @import url("./vxe-table.css");
 
-// ============================================
-// 护眼与层次优化 (解决整体过白、辣眼睛的问题)
-// ============================================
-
-/* 1. 降低底色亮度和色温（极度关键！） */
-html:not(.dark) {
-  body,
-  #app,
-  .app-wrapper {
-    /* 换成一种带有极其轻微"冷岩灰/雾霾蓝"的高级护眼渐变 */
-    /* 这能像戴了偏光镜一样，立刻吸收掉屏幕上多余的刺眼白光 */
-    background: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%) !important;
-  }
-}
-
-/* 2. 深色模式底色 */
-html.dark {
-  body,
-  #app,
-  .app-wrapper {
-    color: #e2e8f0 !important;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
-  }
-}
-
-/* 3. 抽干主工作区的残余底色，确保右侧业务页面直接暴露在护眼渐变上 */
-.main-container,
-.app-main {
-  background: transparent !important;
-}
-
-// ============================================
-// 主题切换过渡
-// ============================================
-html {
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
-}
-
-html *,
-html *::before,
-html *::after {
-  transition:
-    background-color 0.3s ease,
-    border-color 0.3s ease,
-    color 0.2s ease,
-    box-shadow 0.3s ease;
+html,
+body,
+#app,
+.app-wrapper {
+  color: var(--ff-shell-text);
+  background: var(--ff-shell-bg);
 }
 
 .app-container {
@@ -68,41 +26,6 @@ html *::after {
 // 进度条颜色
 #nprogress .bar {
   background-color: var(--el-color-primary);
-}
-
-// 混合布局左侧菜单的hover样式
-.layout-mix .layout__sidebar--left .el-menu {
-  .el-menu-item {
-    &:hover {
-      // 极简白主题：使用浅灰色背景
-      background-color: var(--el-fill-color-light) !important;
-    }
-  }
-
-  .el-sub-menu__title {
-    &:hover {
-      // 极简白主题：使用浅灰色背景
-      background-color: var(--el-fill-color-light) !important;
-    }
-  }
-}
-
-// 深色主题或深蓝色侧边栏配色下的左侧菜单hover样式
-html.dark .layout-mix .layout__sidebar--left .el-menu,
-html.sidebar-color-blue .layout-mix .layout__sidebar--left .el-menu {
-  .el-menu-item {
-    &:hover {
-      // 深色背景：使用CSS变量
-      background-color: var(--menu-hover) !important;
-    }
-  }
-
-  .el-sub-menu__title {
-    &:hover {
-      // 深色背景：使用CSS变量
-      background-color: var(--menu-hover) !important;
-    }
-  }
 }
 
 // 窄屏时隐藏菜单文字，只显示图标
