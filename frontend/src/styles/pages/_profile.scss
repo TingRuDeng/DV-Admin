@@ -49,10 +49,11 @@
 }
 
 .ff-profile-user__edit {
-  margin-left: 0.5rem;
+  width: 32px;
+  height: 32px;
+  margin-left: 0.25rem;
+  vertical-align: middle;
   color: var(--el-text-color-secondary);
-  cursor: pointer;
-  transition: all 0.3s ease;
 }
 
 .ff-profile-user__edit:hover {
@@ -108,5 +109,24 @@
 @media (min-width: 1024px) {
   .ff-profile-page__grid {
     grid-template-columns: 320px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .ff-profile-page__sidebar {
+    padding: 1rem;
+  }
+
+  .ff-profile-user {
+    padding: 0.75rem 0;
+  }
+
+  .ff-profile-security-item {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .ff-profile-security-item__copy {
+    min-width: 0;
   }
 }
