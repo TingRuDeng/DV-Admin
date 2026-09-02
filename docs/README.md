@@ -50,7 +50,7 @@ ai_summary:
 - `AGENTS.md` 是代理规则入口，`docs/AI_CONTEXT.md` 是短上下文地图。
 - `backend/` 与 `fastapi/` 是同域替代实现，前端通常只连接其中一套。
 - 关键 API 契约由 `scripts/validate_api_contracts.py` 校验，其中包含 `scripts/api_route_coverage_validation.py` 的 `method + path` 路由覆盖守卫。
-- ADR-0001 已接受前端现代化方向并进入分阶段实施；当前已升级到 Vite 8，仍使用 Vue Router 4，具体状态只在前端 backlog 跟踪。
+- ADR-0001 已接受前端现代化方向并进入分阶段实施；当前已升级到 Vite 8 和 Vue Router 5，具体状态只在前端 backlog 跟踪。
 
 ## How to verify
 
