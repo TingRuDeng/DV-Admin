@@ -1,13 +1,11 @@
 .ff-filter-panel,
 .ff-data-panel,
 .ff-side-panel {
-  background: rgba(255, 255, 255, 0.72);
-  background-color: rgba(255, 255, 255, 0.72);
+  background: var(--ff-color-bg-panel, #ffffff);
+  background-color: var(--ff-color-bg-panel, #ffffff);
   border: 1px solid var(--ff-color-border-soft);
   border-radius: var(--ff-radius-panel);
   box-shadow: var(--ff-shadow-panel);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
 }
 
 .ff-filter-panel {
@@ -42,6 +40,6 @@
 html.dark .ff-filter-panel,
 html.dark .ff-data-panel,
 html.dark .ff-side-panel {
-  background: rgba(15, 23, 42, 0.74);
-  background-color: rgba(15, 23, 42, 0.74);
+  background: var(--ff-color-bg-panel, #111827);
+  background-color: var(--ff-color-bg-panel, #111827);
 }
