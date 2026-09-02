@@ -255,6 +255,26 @@ WHITE_LIST = [
 
 ---
 
+### 陷阱 6.3：菜单改名或删除后仍返回旧路由与权限
+
+**问题描述：**
+管理员修改菜单标题后，用户重新登录仍看到旧标题；删除菜单或其按钮权限后，动态路由虽然可能消失，但受保护 API 仍可能返回 200。
+
+**原因：**
+菜单更新和权限对象删除并不等同于角色授权接口变更。Django 级联删除角色-权限中间表时不会可靠触发 `m2m_changed`；FastAPI 若只在 `RoleService` 清缓存，`MenuService` 更新或删除已授权对象时会保留旧的用户菜单和权限缓存。
+
+**正确做法：**
+1. Django 在权限对象删除前查询关联角色用户，并清除这些用户的权限缓存。
+2. FastAPI 在已授权菜单或按钮更新、删除前确定受影响用户，写入成功后同时清除权限和动态菜单缓存。
+3. 菜单写入闭环使用新登录会话验证改名后的侧栏标题，并在删除菜单及子按钮后同时验证路由消失和受保护 API 返回 403。
+
+**相关代码：**
+- Django：`backend/drf_admin/apps/system/signals.py`
+- FastAPI：`fastapi/app/services/system/access_cache.py`、`fastapi/app/services/system/menu_service.py`
+- 双后端浏览器闭环：`frontend/e2e/real-backend-smoke.spec.ts`
+
+---
+
 ## 前端开发陷阱
 
 ### 陷阱 7：动态路由缓存

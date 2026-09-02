@@ -23,6 +23,10 @@ async def seed() -> dict[str, int | str | list[int]]:
         )
         for permission_code in (
             "system:departments:query",
+            "system:permissions:query",
+            "system:permissions:add",
+            "system:permissions:edit",
+            "system:permissions:delete",
             "system:roles:query",
             "system:roles:edit",
             "system:users:add",
@@ -68,13 +72,29 @@ async def seed() -> dict[str, int | str | list[int]]:
         parent=catalog,
         perm="system:notices:query",
     )
+    menu_management = await Permissions.create(
+        name="菜单管理",
+        type="MENU",
+        route_name="RuntimeContractMenus",
+        route_path="menus",
+        component="system/menu/index",
+        sort=4,
+        parent=catalog,
+        perm="system:permissions:query",
+    )
     role = await Roles.create(
         name="HTTP Smoke 角色",
         code="http-smoke",
         status=1,
         data_scope=1,
     )
-    await role.permissions.add(catalog, user_menu, notice_menu, *button_permissions)
+    await role.permissions.add(
+        catalog,
+        user_menu,
+        notice_menu,
+        menu_management,
+        *button_permissions,
+    )
     user = await Users.create(
         username="http-smoke",
         password=get_password_hash("httpPass123"),
