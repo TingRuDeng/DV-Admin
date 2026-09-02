@@ -299,8 +299,8 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 - `fastapi/tests/test_api_contracts.py`：FastAPI 响应与分页契约测试。
 - `backend/drf_admin/utils/runtime_api_contracts/`：通过 Django `APIClient` 执行共享端点目录中的真实路由。
 - `fastapi/tests/runtime_api_contracts/`：通过 FastAPI `TestClient` 执行同一端点目录中的真实路由。
-- `backend/drf_admin/utils/runtime_api_contracts/test_live_http_contract.py` 与 `fastapi/tests/test_live_http_contract.py`：分别启动真实 WSGI/Uvicorn 监听端口，执行登录、资料、头像、密码、通知和 RBAC 授权/撤权闭环。
-- `frontend/e2e/real-backend-smoke.spec.ts` 与 `frontend/playwright.real-backend.config.ts`：使用同一份无 API Mock 的真实浏览器流程，分别连接 Django 与 FastAPI，覆盖登录、资料修改、头像上传、通知已读，以及角色权限变化后的动态菜单、按钮和接口权限。
+- `backend/drf_admin/utils/runtime_api_contracts/test_live_http_contract.py` 与 `fastapi/tests/test_live_http_contract.py`：分别启动真实 WSGI/Uvicorn 监听端口，执行登录、资料、头像、密码、通知、RBAC 授权/撤权和菜单写入闭环。
+- `frontend/e2e/real-backend-smoke.spec.ts` 与 `frontend/playwright.real-backend.config.ts`：使用同一份无 API Mock 的真实浏览器流程，分别连接 Django 与 FastAPI，覆盖登录、资料修改、头像上传、通知已读、角色权限变化，以及菜单与子权限的创建、授权、改名和删除。
 - `.github/workflows/quality-gates.yml` 的 `real-backend-browser` 矩阵：在隔离数据库和临时上传目录中运行两套后端浏览器 smoke，不复用开发数据库或本地服务。
 - `frontend/src/utils/__tests__/api-contract.test.ts`：前端兼容读取契约测试。
 - `scripts/validate_api_contracts.py`：文档、脚本和测试入口一致性检查。
@@ -401,9 +401,10 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 4. API 请求时后端验证权限标识
 
 **权限缓存失效：**
-- 角色权限或用户角色关系变化后，必须清除受影响用户的权限缓存；FastAPI 同时清除动态菜单缓存。
-- Django 通过 `SystemConfig.ready()` 注册 `m2m_changed` 信号，FastAPI 由 `RoleService` 在角色授权入口主动清理缓存。
-- 前端权限与动态路由是登录时快照；变更后重新登录会重新拉取菜单和用户权限。双后端真实浏览器 smoke 会验证授权后菜单/API 可用、未授权按钮不可见，以及撤权后菜单消失且 API 返回 403。
+- 角色权限、用户角色关系或已授权菜单/按钮发生变化后，必须清除受影响用户的权限缓存；FastAPI 同时清除动态菜单缓存。
+- Django 通过 `SystemConfig.ready()` 注册 `m2m_changed` 和权限对象 `pre_delete` 信号；后者处理级联删除关系表时不会触发 `m2m_changed` 的场景。
+- FastAPI 由 `RoleService` 在角色授权入口、`MenuService` 在已授权菜单更新/删除入口，通过共享的 `access_cache` helper 主动清理缓存。
+- 前端权限与动态路由是登录时快照；变更后重新登录会重新拉取菜单和用户权限。双后端真实浏览器 smoke 会验证授权后菜单/API 可用、菜单改名后标题刷新，以及删除后菜单消失且 API 返回 403。
 
 **数据范围控制：**
 - 角色包含 `dataScope` 与 `deptIds`，用于表达全部数据、本人数据、本部门、本部门及以下和自定义部门。
@@ -534,6 +535,7 @@ CHANNEL_LAYERS = {
 |---------|------|---------|---------|
 | Session | 用户会话 | 浏览器关闭 | 登出时 |
 | User Info | 用户信息 | 30 分钟 | 用户信息变更 |
+| User Access | Django 用户权限；FastAPI 用户权限与动态菜单 | 10 分钟 | 角色/用户关系或已授权菜单权限变更 |
 | Dict Data | 字典数据 | 10 分钟 | 字典变更 |
 | Token Blacklist | Token 黑名单 | Token 过期时间 | 自动过期 |
 

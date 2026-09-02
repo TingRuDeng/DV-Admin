@@ -411,6 +411,7 @@ DELETE /api/v1/system/departments/          # 批量删除，请求体 ids
 **Django & FastAPI：**
 ```
 GET    /api/v1/system/menus/          # 菜单树
+GET    /api/v1/system/menus/options/  # 父级菜单树选项，data 节点为 id/label/children
 POST   /api/v1/system/menus/          # 创建
 GET    /api/v1/system/menus/{id}/     # 详情
 PUT    /api/v1/system/menus/{id}/     # 更新
