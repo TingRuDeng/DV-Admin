@@ -8,7 +8,7 @@ const noticeContent = requireEnv("REAL_BACKEND_NOTICE_CONTENT");
 const updatedName = `${backendName} E2E 用户`;
 
 test.describe(`前端连接真实 ${backendName} 后端`, () => {
-  test("完成登录、资料、头像和通知已读闭环", async ({ page }) => {
+  test("完成个人中心、用户管理和通知公告代表页闭环", async ({ page }) => {
     const failedApiResponses = collectFailedApiResponses(page);
 
     await page.goto("/login?redirect=%2Fprofile");
@@ -61,6 +61,39 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
 
     await page.reload();
     await expect(page.locator(".el-table__row", { hasText: noticeTitle })).toContainText("已读");
+
+    const userPageResponse = waitForApiResponse(page, "/api/v1/system/users/", "GET");
+    await page.goto("/runtime-contract/user");
+    await userPageResponse;
+    await expect(page).toHaveURL(/\/runtime-contract\/user$/);
+    const userTable = page.locator(".ff-user-page .ff-table");
+    await expect(userTable.getByText(username, { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "新增用户" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "导入用户" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "导出用户" })).toBeVisible();
+    await page.getByRole("button", { name: "新增用户" }).click();
+    const userDrawer = page.locator(".el-drawer", { hasText: "新增用户" });
+    await expect(userDrawer).toBeVisible();
+    await userDrawer.getByRole("button", { name: /取\s*消/ }).click();
+
+    const noticePageResponse = waitForApiResponse(page, "/api/v1/system/notices/page", "GET");
+    await page.locator(".layout__sidebar .el-menu-item", { hasText: "通知公告" }).click();
+    await noticePageResponse;
+    await expect(page).toHaveURL(/\/runtime-contract\/notices$/);
+    const managementRow = page.locator(".ff-notice-page .el-table__row", {
+      hasText: noticeTitle,
+    });
+    await expect(managementRow).toContainText("已发布");
+    await expect(managementRow.getByRole("button", { name: "撤回" })).toBeVisible();
+    await managementRow.getByRole("button", { name: "查看" }).click();
+    const managementDialog = page.locator(".ff-notice-detail-dialog");
+    await expect(managementDialog).toContainText(noticeContent);
+    await managementDialog.getByRole("button", { name: "关闭通知详情" }).click();
+
+    await page.getByRole("button", { name: "新增通知" }).click();
+    const noticeDrawer = page.locator(".el-drawer", { hasText: "新增公告" });
+    await expect(noticeDrawer).toBeVisible();
+    await noticeDrawer.getByRole("button", { name: /取\s*消/ }).click();
     expect(failedApiResponses).toEqual([]);
   });
 });

@@ -9,6 +9,7 @@
           circle
           :icon="Camera"
           size="small"
+          aria-label="上传头像"
           @click="emit('upload-avatar')"
         />
         <input
@@ -21,9 +22,16 @@
       </div>
       <div class="ff-profile-user__name">
         <span class="ff-profile-user__display-name">{{ profile.name }}</span>
-        <el-icon class="ff-profile-user__edit" @click="emit('edit-account')">
-          <Edit />
-        </el-icon>
+        <el-button
+          type="primary"
+          link
+          circle
+          class="ff-profile-user__edit"
+          aria-label="编辑账号资料"
+          @click="emit('edit-account')"
+        >
+          <el-icon><Edit /></el-icon>
+        </el-button>
       </div>
       <div class="ff-profile-user__role">{{ profile.roleNames }}</div>
     </div>

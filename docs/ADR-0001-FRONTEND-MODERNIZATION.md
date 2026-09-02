@@ -45,8 +45,8 @@ ai_summary:
 
 ## Key facts
 
-- 当前实现是 Vue 3、TypeScript、Element Plus、Pinia、Vite 8 和 Vue Router 5；Vite 7 + `rolldown-vite`、Vite 8、Vue Router 5 与壳层 PoC 四个阶段已完成。
-- 壳层 PoC 已在不改业务协议的前提下落地统一 shell token、三种布局、TagsView、AppMain 和移动端抽屉；三个代表页的阶段 6 验证尚未开始。
+- 当前实现是 Vue 3、TypeScript、Element Plus、Pinia、Vite 8 和 Vue Router 5；阶段 1-6 已完成，阶段 7 扩大或停止评审尚未开始。
+- 壳层 PoC 已在不改业务协议的前提下落地统一 shell token、三种布局、TagsView、AppMain 和移动端抽屉；用户管理、通知公告、个人中心已通过 Mock 与双真实后端代表页验收。
 - 现有后端动态菜单、手写路由、RouteMeta、KeepAlive/cacheKey、字典、WebSocket、JWT 刷新和 Pro 组件协议属于业务核心，必须保留。
 - `frontend/package.json`、`frontend/pnpm-lock.yaml` 与 `frontend/vite.config.ts` 当前未使用 `unplugin-vue-router`，本次不引入文件路由。
 - 具体阶段、状态和验收证据只在 `docs/FRONTEND_OPTIMIZATION_BACKLOG.md` 跟踪，不另建重复 roadmap。
@@ -117,7 +117,7 @@ Vue Router 5 已在 Vite 8 稳定后通过独立阶段升级，继续使用后�
 
 ### 5. 壳层 PoC 限定范围
 
-壳层 PoC 已限定在 Layout、Menu、TagsView、AppMain、主题和页面框架内完成，保留了动态菜单、RouteMeta、KeepAlive/cacheKey 和三种布局协议。下一阶段只验证用户管理、通知公告、个人中心三个代表页，再依据验收结果决定扩大或停止；不得默认进入全量重构。
+壳层 PoC 已限定在 Layout、Menu、TagsView、AppMain、主题和页面框架内完成，保留了动态菜单、RouteMeta、KeepAlive/cacheKey 和三种布局协议。用户管理、通知公告、个人中心三个代表页也已完成验收；下一阶段只依据阶段 1-6 的完整证据决定扩大或停止，不得默认进入全量重构。
 
 ## 正面后果
 

@@ -30,6 +30,7 @@ describe("playwright local server governance", () => {
     const packageJson = readProjectFile("../../../package.json");
 
     expect(packageJson).toContain("e2e/user-management.spec.ts");
+    expect(packageJson).toContain("e2e/profile.spec.ts");
     expect(packageJson).toContain("e2e/role-management.spec.ts");
     expect(packageJson).toContain("e2e/menu-management.spec.ts");
     expect(packageJson).toContain("e2e/file-upload-delete.spec.ts");
@@ -65,6 +66,8 @@ describe("playwright local server governance", () => {
     expect(realBackendConfig).toContain("reuseExistingServer: false");
     expect(realBackendSpec).not.toContain("page.route(");
     expect(realBackendSpec).toContain("/api/v1/information/change-avatar/");
+    expect(realBackendSpec).toContain("/api/v1/system/users/");
+    expect(realBackendSpec).toContain("/api/v1/system/notices/page");
     expect(realBackendSpec).toContain("/my-notice");
   });
 });

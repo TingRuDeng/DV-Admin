@@ -15,24 +15,64 @@ from app.db.models.system import Notices, Permissions, Roles
 
 async def seed() -> dict[str, int | str]:
     await Tortoise.init(config=settings.tortoise_orm_config)
-    query_permissions = [
+    button_permissions = [
         await Permissions.create(
             name=permission_code,
             type="BUTTON",
             perm=permission_code,
         )
         for permission_code in (
-            "system:notices:query",
+            "system:departments:query",
+            "system:roles:query",
+            "system:users:add",
+            "system:users:edit",
+            "system:users:delete",
+            "system:users:password:reset",
+            "system:users:import",
+            "system:users:export",
             "system:dictitems:query",
+            "system:notices:add",
+            "system:notices:edit",
+            "system:notices:delete",
+            "system:notices:publish",
+            "system:notices:revoke",
         )
     ]
+    catalog = await Permissions.create(
+        name="契约目录",
+        type="CATALOG",
+        route_name="RuntimeContract",
+        route_path="/runtime-contract",
+        component="Layout",
+        sort=1,
+    )
+    user_menu = await Permissions.create(
+        name="用户管理",
+        type="MENU",
+        route_name="RuntimeContractUser",
+        route_path="user",
+        component="system/user/index",
+        sort=2,
+        parent=catalog,
+        perm="system:users:query",
+    )
+    notice_menu = await Permissions.create(
+        name="通知公告",
+        type="MENU",
+        route_name="RuntimeContractNotice",
+        route_path="notices",
+        component="system/notice/index",
+        sort=3,
+        parent=catalog,
+        perm="system:notices:query",
+    )
     role = await Roles.create(
         name="HTTP Smoke 角色",
         code="http-smoke",
         status=1,
         data_scope=1,
     )
-    await role.permissions.add(*query_permissions)
+    await role.permissions.add(catalog, user_menu, notice_menu, *button_permissions)
     user = await Users.create(
         username="http-smoke",
         password=get_password_hash("httpPass123"),
