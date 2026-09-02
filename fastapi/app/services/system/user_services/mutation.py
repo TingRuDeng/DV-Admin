@@ -227,14 +227,14 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         self,
         user_id: int,
         current_user: Users | None = None,
+        password: str | None = None,
     ) -> None:
         """
         重置用户密码
         """
         user = await self._get_scoped_user(user_id, current_user)
 
-        default_password = settings.default_password
-        user.password = get_password_hash(default_password)
+        user.password = get_password_hash(password or settings.default_password)
         await user.save()
 
     async def _get_scoped_user(
