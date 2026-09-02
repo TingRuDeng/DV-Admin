@@ -14,6 +14,7 @@ from typing import Iterator
 
 import httpx
 import pytest
+
 from scripts.real_backend_playwright import run_real_backend_playwright
 
 SeedPayload = dict[str, int | str | list[int]]
