@@ -235,6 +235,26 @@ WHITE_LIST = [
 
 ---
 
+### 陷阱 6.2：角色权限变化后仍命中旧权限缓存
+
+**问题描述：**
+管理员已经为角色授权或撤权，重新登录后动态菜单已经变化，但关联用户访问接口时仍沿用变更前的权限，造成错误的 403 或撤权后仍返回 200。
+
+**原因：**
+权限判断缓存以用户为单位，而授权入口修改的是角色与权限的多对多关系。若 Django 没有加载对应 signal，或 FastAPI 只更新角色关系而未清理关联用户缓存，数据库与运行时权限会短暂或持续不一致。
+
+**正确做法：**
+1. Django 的 `SystemConfig.ready()` 必须加载 `apps/system/signals.py`，由 `m2m_changed` 清理关联用户权限缓存。
+2. FastAPI 的角色授权服务必须清理所有关联用户的权限与菜单缓存。
+3. 权限闭环测试必须使用新登录会话，并同时验证动态菜单、按钮和受保护 API；不能只断言数据库关系已更新。
+
+**相关代码：**
+- Django：`backend/drf_admin/apps/system/apps.py`、`backend/drf_admin/apps/system/signals.py`
+- FastAPI：`fastapi/app/services/system/role_service.py`
+- 双后端浏览器闭环：`frontend/e2e/real-backend-smoke.spec.ts`
+
+---
+
 ## 前端开发陷阱
 
 ### 陷阱 7：动态路由缓存
