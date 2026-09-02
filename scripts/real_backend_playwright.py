@@ -24,6 +24,8 @@ def run_real_backend_playwright(
     rbac_role_id: int,
     rbac_base_permission_ids: list[int],
     rbac_granted_permission_ids: list[int],
+    lifecycle_role_name: str,
+    lifecycle_dept_name: str,
 ) -> None:
     """让同一份浏览器流程连接指定真实后端，失败时保留 Playwright 原始错误。"""
     env = os.environ.copy()
@@ -44,6 +46,8 @@ def run_real_backend_playwright(
             "REAL_BACKEND_RBAC_GRANTED_PERMISSION_IDS": ",".join(
                 str(permission_id) for permission_id in rbac_granted_permission_ids
             ),
+            "REAL_BACKEND_LIFECYCLE_ROLE_NAME": lifecycle_role_name,
+            "REAL_BACKEND_LIFECYCLE_DEPT_NAME": lifecycle_dept_name,
         }
     )
     subprocess.run(

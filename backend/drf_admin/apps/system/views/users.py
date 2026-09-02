@@ -197,6 +197,10 @@ class ResetPasswordAPIView(mixins.UpdateModelMixin, AutoPermissionAPIView, Gener
     queryset = Users.objects.all()
     serializer_class = ResetPasswordSerializer
 
+    @staticmethod
+    def get_method_permission_mapping():
+        return {"put": "password:reset", "patch": "password:reset"}
+
     def get_queryset(self):
         return apply_user_data_scope(super().get_queryset(), self.request.user)
 

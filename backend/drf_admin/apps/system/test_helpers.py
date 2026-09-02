@@ -10,6 +10,7 @@ ADMIN_PERMISSION_CODES = (
     "system:users:add",
     "system:users:edit",
     "system:users:delete",
+    "system:users:password:reset",
     "system:roles:query",
     "system:roles:add",
     "system:roles:edit",
