@@ -76,7 +76,7 @@ function handleLink(item: BreadcrumbRoute) {
 
 function resolveRedirect(redirect: NonNullable<BreadcrumbRoute["redirect"]>): RouteLocationRaw {
   if (typeof redirect === "function") {
-    return redirect(currentRoute);
+    return redirect(currentRoute, currentRoute);
   }
   return redirect;
 }
