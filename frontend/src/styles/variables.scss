@@ -48,15 +48,19 @@
 /** 全局SCSS变量 */
 
 :root {
-  --menu-background: #fff; // 菜单背景色
-  --menu-text: #212121; // 菜单文字颜色 浅色主题-白色侧边栏配色下仅占位，实际颜色由 el-menu-item 组件决定
+  --menu-background: var(--ff-shell-surface); // 菜单背景色
+  --menu-text: var(
+    --ff-shell-text
+  ); // 菜单文字颜色 浅色主题-白色侧边栏配色下仅占位，实际颜色由 el-menu-item 组件决定
   --menu-active-text: var(
     --el-menu-active-color
   ); // 菜单激活文字颜色 浅色主题-白色侧边栏配色下仅占位，实际颜色由 el-menu-item 组件决定
 
-  --menu-hover: #e6f4ff; // 菜单悬停背景色 浅色主题-白色侧边栏配色下仅占位，实际颜色由 el-menu-item 组件决定
-  --sidebar-logo-background: #f5f5f5; // 侧边栏 Logo 背景色
-  --sidebar-logo-text-color: #333; // 侧边栏 Logo 文字颜色
+  --menu-hover: var(
+    --ff-shell-hover
+  ); // 菜单悬停背景色 浅色主题-白色侧边栏配色下仅占位，实际颜色由 el-menu-item 组件决定
+  --sidebar-logo-background: var(--ff-shell-surface); // 侧边栏 Logo 背景色
+  --sidebar-logo-text-color: var(--ff-shell-text); // 侧边栏 Logo 文字颜色
 }
 
 /** 浅色主题-深蓝色侧边栏配色 */
@@ -71,12 +75,12 @@ html.sidebar-color-blue {
 
 /** 暗黑主题 */
 html.dark {
-  --menu-background: var(--el-bg-color-overlay);
-  --menu-text: #fff;
+  --menu-background: var(--ff-shell-surface);
+  --menu-text: var(--ff-shell-text);
   --menu-active-text: var(--el-menu-active-color);
-  --menu-hover: rgb(0 0 0 / 20%);
-  --sidebar-logo-background: rgb(0 0 0 / 20%);
-  --sidebar-logo-text-color: #fff;
+  --menu-hover: var(--ff-shell-hover);
+  --sidebar-logo-background: var(--ff-shell-surface);
+  --sidebar-logo-text-color: var(--ff-shell-text);
 
   /** WangEditor Dark */
   /* Textarea - css vars */
@@ -109,7 +113,7 @@ $menu-hover: var(--menu-hover); // 菜单悬停背景色
 $sidebar-logo-background: var(--sidebar-logo-background); // 侧边栏 Logo 背景色
 $sidebar-logo-text-color: var(--sidebar-logo-text-color); // 侧边栏 Logo 文字颜色
 
-$sidebar-width: 210px; // 侧边栏宽度
-$sidebar-width-collapsed: 54px; // 侧边栏收缩宽度
-$navbar-height: 50px; // 导航栏高度
-$tags-view-height: 34px; // TagsView 高度
+$sidebar-width: 216px; // 侧边栏宽度
+$sidebar-width-collapsed: 64px; // 侧边栏收缩宽度
+$navbar-height: 56px; // 导航栏高度
+$tags-view-height: 40px; // TagsView 高度

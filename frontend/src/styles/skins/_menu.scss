@@ -1,85 +1,123 @@
 /* stylelint-disable no-descending-specificity */
 
 .el-menu {
-  background-color: var(--el-bg-color-overlay) !important;
-  border-right: none !important;
+  background: transparent !important;
+  border: 0 !important;
 }
 
 .el-menu-item,
 .el-sub-menu__title {
-  height: 44px !important;
-  margin: 4px 12px !important;
-  line-height: 44px !important;
-  color: var(--el-text-color-regular) !important;
-  border-radius: 8px !important;
-  transition: all 0.2s ease !important;
+  height: 42px !important;
+  margin: 4px 10px !important;
+  line-height: 42px !important;
+  color: var(--ff-shell-text-muted) !important;
+  border-radius: var(--ff-radius-nav) !important;
+  transition:
+    color var(--ff-duration-fast) ease,
+    background-color var(--ff-duration-fast) ease !important;
 }
 
 .el-menu-item:hover,
 .el-sub-menu__title:hover {
-  color: var(--el-text-color-primary) !important;
-  background-color: var(--el-fill-color-light) !important;
+  color: var(--ff-shell-text) !important;
+  background: var(--ff-shell-hover) !important;
+}
+
+.el-menu-item.is-active,
+.el-sub-menu.has-active-child > .el-sub-menu__title {
+  font-weight: 600 !important;
+  color: var(--el-color-primary) !important;
+  background: var(--ff-shell-active) !important;
 }
 
 .el-menu-item.is-active {
-  font-weight: 600 !important;
-  color: var(--el-color-primary) !important;
-  background-color: rgba(99, 102, 241, 0.1) !important;
+  position: relative;
+}
+
+.el-menu-item.is-active::before {
+  position: absolute;
+  top: 9px;
+  bottom: 9px;
+  left: 0;
+  width: 3px;
+  content: "";
+  background: var(--el-color-primary);
+  border-radius: 0 4px 4px 0;
 }
 
 .el-sub-menu .el-menu {
-  background-color: var(--el-bg-color-overlay) !important;
+  background: transparent !important;
 }
 
 .el-sub-menu .el-menu-item {
-  height: 40px !important;
-  margin: 4px 12px 4px 20px !important;
-  line-height: 40px !important;
+  height: 38px !important;
+  margin: 3px 10px 3px 18px !important;
+  line-height: 38px !important;
+}
+
+.el-menu--horizontal {
+  display: flex;
+  align-items: center;
+}
+
+.el-menu--horizontal > .el-menu-item,
+.el-menu--horizontal > .el-sub-menu .el-sub-menu__title {
+  height: var(--ff-shell-navbar-height) !important;
+  margin: 0 2px !important;
+  line-height: var(--ff-shell-navbar-height) !important;
+  border-bottom: 2px solid transparent !important;
+  border-radius: 0 !important;
+}
+
+.el-menu--horizontal > .el-menu-item.is-active,
+.el-menu--horizontal > .el-sub-menu.has-active-child .el-sub-menu__title {
+  background: transparent !important;
+  border-bottom-color: var(--el-color-primary) !important;
+}
+
+.el-menu--horizontal > .el-menu-item.is-active::before {
+  display: none;
+}
+
+.el-menu--collapse > .el-menu-item.is-active::before {
+  top: 8px;
+  bottom: 8px;
 }
 
 html.dark {
-  .el-menu {
-    background-color: transparent !important;
-  }
-
   .el-menu-item,
   .el-sub-menu__title {
-    color: #e2e8f0 !important;
-  }
-
-  .el-menu-item i,
-  .el-menu-item span,
-  .el-menu-item .menu-title,
-  .el-sub-menu__title i,
-  .el-sub-menu__title span,
-  .el-sub-menu__title .menu-title {
-    color: inherit !important;
+    color: var(--ff-shell-text-muted) !important;
   }
 
   .el-menu-item:hover,
   .el-sub-menu__title:hover {
-    color: #f8fafc !important;
-    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: var(--ff-shell-text) !important;
+    background: var(--ff-shell-hover) !important;
   }
 
-  .el-menu-item.is-active {
-    color: #818cf8 !important;
-    background-color: rgba(129, 140, 248, 0.15) !important;
+  .el-menu-item.is-active,
+  .el-sub-menu.has-active-child > .el-sub-menu__title {
+    color: var(--el-color-primary-light-3) !important;
+    background: var(--ff-shell-active) !important;
+  }
+}
+
+html.sidebar-color-blue {
+  .el-menu-item,
+  .el-sub-menu__title {
+    color: var(--menu-text) !important;
   }
 
-  .el-menu-item:hover i,
-  .el-menu-item:hover span,
-  .el-sub-menu__title:hover i,
-  .el-sub-menu__title:hover span {
-    color: #f8fafc !important;
+  .el-menu-item:hover,
+  .el-sub-menu__title:hover {
+    color: #ffffff !important;
+    background: var(--menu-hover) !important;
   }
 
-  .el-menu-item.is-active i,
-  .el-menu-item.is-active span {
-    color: #818cf8 !important;
-  }
-
-  .el-sub-menu .el-menu {
-    background-color: #1e293b !important;
+  .el-menu-item.is-active,
+  .el-sub-menu.has-active-child > .el-sub-menu__title {
+    color: var(--el-color-primary-light-3) !important;
+    background: rgba(129, 140, 248, 0.18) !important;
   }
 }
