@@ -8,8 +8,10 @@
           <AppLogo :collapse="isLogoCollapsed" />
         </div>
 
+        <Hamburger v-if="isMobile" :is-active="isSidebarOpen" @toggle-click="toggleSidebar" />
+
         <!-- 顶部菜单区域 -->
-        <div class="layout__header-menu">
+        <div v-if="!isMobile" class="layout__header-menu">
           <MixTopMenu />
         </div>
 
@@ -23,7 +25,12 @@
     <!-- 主内容区容器 -->
     <div class="layout__container">
       <!-- 左侧菜单栏 -->
-      <div class="layout__sidebar--left" :class="{ 'layout__sidebar--collapsed': !isSidebarOpen }">
+      <div
+        class="layout__sidebar--left"
+        :class="{ 'layout__sidebar--collapsed': !isSidebarOpen }"
+        :aria-hidden="isMobile && !isSidebarOpen ? 'true' : undefined"
+        :inert="isMobile && !isSidebarOpen"
+      >
         <el-scrollbar>
           <el-menu
             :default-active="activeLeftMenuPath"
@@ -75,7 +82,7 @@ import variables from "@/styles/variables.module.scss";
 const route = useRoute();
 
 // 布局相关参数
-const { isShowTagsView, isShowLogo, isSidebarOpen, toggleSidebar } = useLayout();
+const { isShowTagsView, isShowLogo, isSidebarOpen, isMobile, toggleSidebar } = useLayout();
 
 // 菜单相关
 const { sideMenuRoutes, activeTopMenuPath } = useLayoutMenu();
@@ -98,8 +105,9 @@ const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
     z-index: 999;
     width: 100%;
     height: $navbar-height;
-    background-color: var(--menu-background);
-    border-bottom: 1px solid var(--el-border-color-lighter);
+    background: var(--ff-shell-surface);
+    border-bottom: 1px solid var(--ff-shell-border);
+    box-shadow: var(--ff-shadow-shell);
 
     &-content {
       display: flex;
@@ -153,7 +161,7 @@ const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
       flex-shrink: 0;
       align-items: center;
       height: 100%;
-      padding: 0 16px;
+      padding: 0 8px;
     }
   }
 
@@ -166,7 +174,8 @@ const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
       position: relative;
       width: $sidebar-width;
       height: 100%;
-      background-color: var(--menu-background);
+      background: var(--ff-shell-surface);
+      border-right: 1px solid var(--ff-shell-border);
       transition: width 0.28s;
 
       &.layout__sidebar--collapsed {
@@ -191,8 +200,8 @@ const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
         width: 100%;
         height: 50px;
         line-height: 50px;
-        background-color: var(--menu-background);
-        box-shadow: 0 0 6px -2px var(--el-color-primary);
+        background: var(--ff-shell-surface-muted);
+        border-top: 1px solid var(--ff-shell-border);
       }
     }
 
@@ -202,6 +211,7 @@ const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
       height: 100%;
       margin-left: 0;
       overflow-y: auto;
+      background: var(--ff-shell-bg);
     }
   }
 }
@@ -215,6 +225,7 @@ const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
       bottom: 0;
       left: 0;
       z-index: 1000;
+      box-shadow: var(--ff-shadow-shell-raised);
       transition: transform 0.28s;
     }
   }
