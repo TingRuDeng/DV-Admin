@@ -27,12 +27,18 @@ from app.middleware.request_logging.middleware import (
 def make_request(
     path: str = "/api/v1/demo",
     headers: list[tuple[bytes, bytes]] | None = None,
+    method: str = "GET",
+    body: bytes = b"",
 ) -> Request:
     """构造最小 HTTP 请求对象。"""
+
+    async def receive():
+        return {"type": "http.request", "body": body, "more_body": False}
+
     return Request(
         {
             "type": "http",
-            "method": "GET",
+            "method": method,
             "path": path,
             "raw_path": path.encode(),
             "query_string": b"",
@@ -40,7 +46,8 @@ def make_request(
             "client": ("127.0.0.1", 12345),
             "server": ("testserver", 80),
             "scheme": "http",
-        }
+        },
+        receive,
     )
 
 
@@ -79,6 +86,22 @@ def test_custom_excluded_logging_paths_do_not_leak_between_instances():
 
     assert first._should_skip_logging("/api/v1/internal/ping") is True
     assert second._should_skip_logging("/api/v1/internal/ping") is False
+
+
+@pytest.mark.asyncio
+async def test_request_context_masks_password_reset_body_before_console_logging():
+    middleware = RequestLoggingMiddleware(lambda _scope, _receive, _send: None)
+    request = make_request(
+        "/api/v1/system/users/7/password/reset/",
+        method="PUT",
+        body=b'{"password":"must-not-leak","confirm_password":"must-not-leak"}',
+    )
+
+    context = await middleware._build_request_context(request, "request-id")
+
+    logged_body = str(context["request_log"]["body"])
+    assert "must-not-leak" not in logged_body
+    assert logged_body.count("******") == 2
 
 
 @pytest.mark.asyncio

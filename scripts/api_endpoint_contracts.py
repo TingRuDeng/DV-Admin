@@ -22,6 +22,7 @@ REQUIRED_ENDPOINT_KEYS = {
     "users_form",
     "users_create",
     "users_update",
+    "users_password_reset",
     "users_delete",
     "users_template",
     "users_import",
@@ -163,6 +164,36 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("users", "UsersViewSet")),
             ContractEvidence("fastapi/app/api/v1/system/user_routes/mutation.py", ("@router.put", "system:users:edit")),
             ContractEvidence("frontend/src/api/system/user-api.ts", ("update", 'method: "put"')),
+        ),
+    ),
+    EndpointContract(
+        key="users_password_reset",
+        method="PUT",
+        path="/api/v1/system/users/{id}/password/reset/",
+        auth_required=True,
+        request_fields=("password", "confirm_password"),
+        permissions=("system:users:password:reset",),
+        evidence=(
+            ContractEvidence(
+                "backend/drf_admin/apps/system/urls.py",
+                ("users/<int:pk>/password/reset/", "ResetPasswordAPIView"),
+            ),
+            ContractEvidence(
+                "backend/drf_admin/apps/system/views/users.py",
+                ("ResetPasswordAPIView", '"put": "password:reset"'),
+            ),
+            ContractEvidence(
+                "fastapi/app/api/v1/system/user_routes/password.py",
+                ("@router.put", "UserPasswordReset", "system:users:password:reset"),
+            ),
+            ContractEvidence(
+                "frontend/src/api/system/user-api.ts",
+                ("resetPassword", 'method: "put"', "confirm_password"),
+            ),
+            ContractEvidence(
+                "docs/API_ENDPOINTS.md",
+                ("PUT  /api/v1/system/users/{id}/password/reset/",),
+            ),
         ),
     ),
     EndpointContract(

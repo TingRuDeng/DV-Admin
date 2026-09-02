@@ -13,7 +13,10 @@ from django.test import LiveServerTestCase, override_settings
 from scripts.real_backend_playwright import run_real_backend_playwright
 
 from drf_admin.apps.system.models import NoticeReads, Notices, Permissions, Roles, Users
-from drf_admin.utils.runtime_api_contracts.helpers import create_runtime_contract_user
+from drf_admin.utils.runtime_api_contracts.helpers import (
+    create_runtime_contract_departments,
+    create_runtime_contract_user,
+)
 
 
 class DjangoLiveHttpContractTestCase(LiveServerTestCase):
@@ -34,6 +37,8 @@ class DjangoLiveHttpContractTestCase(LiveServerTestCase):
 
     def setUp(self):
         self.user = create_runtime_contract_user()
+        self.lifecycle_dept = create_runtime_contract_departments()
+        self.lifecycle_role = self.user.roles.get()
         self.rbac_role = Roles.objects.create(
             name="运行时 RBAC 角色",
             code="runtime-rbac",
@@ -164,6 +169,8 @@ class DjangoLiveHttpContractTestCase(LiveServerTestCase):
             rbac_role_id=self.rbac_role.id,
             rbac_base_permission_ids=self.rbac_base_permission_ids,
             rbac_granted_permission_ids=self.rbac_granted_permission_ids,
+            lifecycle_role_name=self.lifecycle_role.name,
+            lifecycle_dept_name=self.lifecycle_dept.name,
         )
 
     def assert_success(self, response):
