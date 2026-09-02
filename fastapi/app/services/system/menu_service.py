@@ -6,6 +6,10 @@ from typing import Any
 from app.core.exceptions import BusinessError, NotFound, ValidationError
 from app.db.models.system import Permissions
 from app.schemas.system import MenuCreate, MenuOut, MenuTree, MenuUpdate
+from app.services.system.access_cache import (
+    clear_user_access_cache,
+    get_permission_user_ids,
+)
 
 
 class MenuService:
@@ -104,6 +108,8 @@ class MenuService:
         if not menu:
             raise NotFound("菜单不存在")
 
+        assigned_user_ids = await get_permission_user_ids(menu_id)
+
         # 检查不能将自己设为父菜单
         if menu_data.parent_id == menu_id:
             raise ValidationError("不能将自己设为父菜单")
@@ -116,6 +122,7 @@ class MenuService:
         if update_fields:
             await Permissions.filter(id=menu_id).update(**update_fields)
             await menu.refresh_from_db()
+            await clear_user_access_cache(assigned_user_ids)
 
         return MenuOut(
             id=menu.id,
@@ -146,12 +153,15 @@ class MenuService:
         if not menu:
             raise NotFound("菜单不存在")
 
+        assigned_user_ids = await get_permission_user_ids(menu_id)
+
         # 检查是否有子菜单
         children = await Permissions.filter(parent_id=menu_id).count()
         if children > 0:
             raise BusinessError("该菜单下存在子菜单，无法删除")
 
         await menu.delete()
+        await clear_user_access_cache(assigned_user_ids)
 
     async def get_permissions(self) -> list[str]:
         """
@@ -199,17 +209,23 @@ class MenuService:
                 )
         return sorted(tree, key=lambda item: item.sort)
 
-    def _build_options(self, menus: list[Permissions], parent_id: int | None = None, level: int = 0) -> list[dict[str, Any]]:
-        """构建菜单选项"""
+    def _build_options(
+        self,
+        menus: list[Permissions],
+        parent_id: int | None = None,
+    ) -> list[dict[str, Any]]:
+        """构建前端 ElTreeSelect 使用的嵌套菜单选项。"""
         options: list[dict[str, Any]] = []
-        for menu in menus:
+        for menu in sorted(menus, key=lambda item: item.sort):
             if menu.parent_id == parent_id:
-                prefix = "  " * level
-                options.append({
-                    "value": menu.id,
-                    "label": f"{prefix}{menu.name}",
-                })
-                options.extend(self._build_options(menus, menu.id, level + 1))
+                option: dict[str, Any] = {
+                    "id": menu.id,
+                    "label": menu.name,
+                }
+                children = self._build_options(menus, menu.id)
+                if children:
+                    option["children"] = children
+                options.append(option)
         return options
 
 

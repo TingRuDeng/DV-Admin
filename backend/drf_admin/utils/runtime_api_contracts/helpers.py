@@ -170,7 +170,17 @@ def create_runtime_contract_permissions() -> list[Permissions]:
         parent=catalog,
         sort=3,
     )
-    return [catalog, user_menu, notice_menu, *buttons]
+    menu_management = Permissions.objects.create(
+        name="菜单管理",
+        perm="system:permissions:query",
+        type="MENU",
+        route_name="RuntimeContractMenus",
+        route_path="menus",
+        component="system/menu/index",
+        parent=catalog,
+        sort=4,
+    )
+    return [catalog, user_menu, notice_menu, menu_management, *buttons]
 
 
 def create_runtime_contract_dicts() -> None:

@@ -5,10 +5,10 @@ from typing import Any
 
 from app.core.cache import CacheKeys, cache_service
 from app.core.exceptions import NotFound, ValidationError
-from app.db.models.oauth import Users
 from app.db.models.system import Departments, Permissions, Roles
 from app.schemas.base import PageResult
 from app.schemas.system import RoleCreate, RoleOut, RoleUpdate, RoleWithPermissions
+from app.services.system.access_cache import clear_user_access_cache, get_role_user_ids
 from app.services.system.role_serializers import (
     build_role_menu_items,
     build_role_out,
@@ -41,14 +41,7 @@ class RoleService:
 
     async def _clear_assigned_user_access_cache(self, role_id: int) -> None:
         """角色权限变化后清除所有关联用户的权限和菜单缓存。"""
-        user_ids = await Users.filter(roles__id=role_id).values_list("id", flat=True)
-        for user_id in user_ids:
-            await cache_service.delete(
-                CacheKeys.format_key(CacheKeys.USER_PERMISSIONS, user_id=user_id)
-            )
-            await cache_service.delete(
-                CacheKeys.format_key(CacheKeys.USER_MENUS, user_id=user_id)
-            )
+        await clear_user_access_cache(await get_role_user_ids(role_id))
 
     async def get_page(
         self,

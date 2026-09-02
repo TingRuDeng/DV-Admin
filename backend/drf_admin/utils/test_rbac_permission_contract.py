@@ -88,6 +88,18 @@ class RBACPermissionContractTestCase(TestCase):
 
         assert "system:users:query" not in RBACPermission.get_user_permissions(user)
 
+    def test_permission_delete_invalidates_assigned_user_cache(self):
+        """权限对象被删除时也必须清除缓存，级联删除不会触发 m2m_changed。"""
+        permission_code = "system:users:query"
+        user = self.create_user_with_permissions(permission_code)
+        permission = Permissions.objects.get(perm=permission_code)
+
+        assert permission_code in RBACPermission.get_user_permissions(user)
+
+        permission.delete()
+
+        assert permission_code not in RBACPermission.get_user_permissions(user)
+
     def test_operation_without_required_permissions_is_denied(self):
         """非白名单接口没有权限声明时必须拒绝，避免新增接口默认裸奔。"""
         user = self.create_user_with_permissions("system:users:add")
