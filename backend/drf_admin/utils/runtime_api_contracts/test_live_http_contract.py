@@ -12,7 +12,7 @@ from django.db import connection
 from django.test import LiveServerTestCase, override_settings
 from scripts.real_backend_playwright import run_real_backend_playwright
 
-from drf_admin.apps.system.models import NoticeReads, Notices
+from drf_admin.apps.system.models import NoticeReads, Notices, Permissions, Roles, Users
 from drf_admin.utils.runtime_api_contracts.helpers import create_runtime_contract_user
 
 
@@ -34,6 +34,30 @@ class DjangoLiveHttpContractTestCase(LiveServerTestCase):
 
     def setUp(self):
         self.user = create_runtime_contract_user()
+        self.rbac_role = Roles.objects.create(
+            name="运行时 RBAC 角色",
+            code="runtime-rbac",
+            status=1,
+            sort=2,
+        )
+        self.rbac_user = Users.objects.create_user(
+            username="runtime-rbac",
+            password="rbacPass123",
+            name="运行时 RBAC 用户",
+            is_active=1,
+        )
+        self.rbac_user.roles.add(self.rbac_role)
+        self.rbac_base_permission_ids = [
+            Permissions.objects.get(type="BUTTON", perm="system:departments:query").id,
+            Permissions.objects.get(type="BUTTON", perm="system:dictitems:query").id,
+            Permissions.objects.get(type="BUTTON", perm="system:notices:query").id,
+        ]
+        self.rbac_granted_permission_ids = [
+            *self.rbac_base_permission_ids,
+            Permissions.objects.get(route_name="RuntimeContract").id,
+            Permissions.objects.get(route_name="RuntimeContractUser").id,
+            Permissions.objects.get(perm="system:users:query").id,
+        ]
         self.notice = Notices.objects.create(
             title="Django 真实 HTTP 通知",
             content="Django 真实 HTTP 正文",
@@ -135,6 +159,11 @@ class DjangoLiveHttpContractTestCase(LiveServerTestCase):
             password="testpass123",
             notice_title=self.notice.title,
             notice_content=self.notice.content,
+            rbac_username=self.rbac_user.username,
+            rbac_password="rbacPass123",
+            rbac_role_id=self.rbac_role.id,
+            rbac_base_permission_ids=self.rbac_base_permission_ids,
+            rbac_granted_permission_ids=self.rbac_granted_permission_ids,
         )
 
     def assert_success(self, response):

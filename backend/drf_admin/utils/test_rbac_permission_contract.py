@@ -77,6 +77,17 @@ class RBACPermissionContractTestCase(TestCase):
 
         assert allowed is False
 
+    def test_role_permission_change_invalidates_assigned_user_cache(self):
+        """角色撤权后必须清除关联用户的权限缓存。"""
+        user = self.create_user_with_permissions("system:users:query")
+        role = user.roles.get()
+
+        assert "system:users:query" in RBACPermission.get_user_permissions(user)
+
+        role.permissions.clear()
+
+        assert "system:users:query" not in RBACPermission.get_user_permissions(user)
+
     def test_operation_without_required_permissions_is_denied(self):
         """非白名单接口没有权限声明时必须拒绝，避免新增接口默认裸奔。"""
         user = self.create_user_with_permissions("system:users:add")
