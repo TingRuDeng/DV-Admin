@@ -512,13 +512,13 @@ POST /api/v1/information/change-avatar/ # 上传头像，multipart 字段为 fil
 
 ## 文件管理模块 (Files)
 
-**FastAPI：**
+**Django / FastAPI 共享端点：**
 ```
 POST   /api/v1/files/   # 上传文件，返回 name/url/path
 DELETE /api/v1/files/?filePath=files/{user_id}/{filename}   # 删除当前用户文件
 ```
 
-> FastAPI 通用上传和两套后端的用户 Excel 导入使用 `MAX_UPLOAD_SIZE`（默认 10 MiB）作为硬上限；FastAPI 分块写入有界临时文件，Django 在解析前校验上传文件大小。超限时不会进入工作簿解析。删除接口的 `filePath` 必须使用上传响应 `data.path`，不能传完整 `data.url`。
+> 两套后端的通用上传和用户 Excel 导入使用 `MAX_UPLOAD_SIZE`（默认 10 MiB）作为硬上限。通用上传按 `files/{user_id}/` 隔离目录，先写有界临时文件再原子替换；删除接口只允许当前用户删除自己目录中的文件。`filePath` 必须使用上传响应 `data.path`，不能传完整 `data.url`、绝对路径或包含 `..` 的路径。
 
 用户 Excel 导入的公开部门查询参数为 `deptId`；两套后端在过渡期兼容 `dept_id`。`MAX_UPLOAD_SIZE` 必须为正整数，非法配置会在应用启动时拒绝加载。
 

@@ -32,6 +32,12 @@ interface MenuTreeItem {
   children?: MenuTreeItem[];
 }
 
+interface UploadedFileInfo {
+  name: string;
+  url: string;
+  path: string;
+}
+
 test.describe(`前端连接真实 ${backendName} 后端`, () => {
   test("完成个人中心、用户管理和通知公告代表页闭环", async ({ page }) => {
     const failedApiResponses = collectFailedApiResponses(page);
@@ -184,6 +190,64 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     expect(failedApiResponses).toEqual([]);
     expect(revokedFailedApiResponses).toEqual([]);
     await revokedContext.close();
+  });
+
+  test("文件上传、越权删除拒绝和所有者删除形成真实闭环", async ({ page }) => {
+    const failedApiResponses = collectFailedApiResponses(page);
+    const apiRequest = page.request;
+    const fileName = `${backendName.toLowerCase()}-ownership.txt`;
+    const fileContent = `${backendName} real file ownership smoke`;
+
+    await loginWithRoutes(page, username, password, "/runtime-contract/upload");
+    await expect(page).toHaveURL(/\/runtime-contract\/upload$/);
+    const fileUploadFormItem = page.locator(".el-form-item", { hasText: "文件上传" });
+    await expect(fileUploadFormItem.getByRole("button", { name: "上传文件" })).toBeVisible();
+
+    const uploadResponsePromise = waitForApiResponse(page, "/api/v1/files/", "POST");
+    await fileUploadFormItem.locator('input[type="file"]').setInputFiles({
+      name: fileName,
+      mimeType: "text/plain",
+      buffer: Buffer.from(fileContent),
+    });
+    const uploadResponse = await uploadResponsePromise;
+    const uploadedFile = await expectPageApiSuccess<UploadedFileInfo>(uploadResponse);
+    expect(uploadedFile).toMatchObject({ name: fileName });
+    expect(uploadedFile.path).toMatch(/^files\/\d+\/[^/]+\.txt$/);
+    expect(uploadedFile.url).toContain(`/media/${uploadedFile.path}`);
+
+    const uploadedRow = fileUploadFormItem
+      .locator(".el-upload-list__item")
+      .filter({ hasText: fileName });
+    await expect(uploadedRow).toBeVisible();
+
+    const mediaBeforeDelete = await apiRequest.get(uploadedFile.url);
+    expect(mediaBeforeDelete.status()).toBe(200);
+    expect((await mediaBeforeDelete.body()).toString()).toBe(fileContent);
+
+    const otherLoginResponse = await apiRequest.post(`${apiBasePath}/oauth/login/`, {
+      data: { username: rbacUsername, password: rbacPassword },
+    });
+    const otherLoginData = await expectApiSuccess<{ accessToken: string }>(otherLoginResponse);
+    const forbiddenDeleteResponse = await apiRequest.delete(`${apiBasePath}/files/`, {
+      headers: { Authorization: `Bearer ${otherLoginData.accessToken}` },
+      params: { filePath: uploadedFile.path },
+    });
+    expect(forbiddenDeleteResponse.status()).toBe(403);
+    const forbiddenPayload = (await forbiddenDeleteResponse.json()) as { code?: number };
+    expect(forbiddenPayload.code).not.toBe(20000);
+
+    const mediaAfterForbiddenDelete = await apiRequest.get(uploadedFile.url);
+    expect(mediaAfterForbiddenDelete.status()).toBe(200);
+
+    const deleteResponsePromise = waitForApiResponse(page, "/api/v1/files/", "DELETE");
+    await uploadedRow.hover();
+    await uploadedRow.locator(".el-icon--close").click();
+    await expectPageApiSuccess(await deleteResponsePromise);
+    await expect(fileUploadFormItem.getByText(fileName)).toHaveCount(0);
+
+    const mediaAfterOwnerDelete = await apiRequest.get(uploadedFile.url);
+    expect(mediaAfterOwnerDelete.status()).toBe(404);
+    expect(failedApiResponses).toEqual([]);
   });
 
   test("菜单创建、编辑、授权和删除同步动态路由", async ({ browser, page }) => {
@@ -451,6 +515,13 @@ async function readAccessToken(page: Page): Promise<string> {
 }
 
 async function expectApiSuccess<T = unknown>(response: APIResponse): Promise<T> {
+  expect(response.status(), await response.text()).toBe(200);
+  const payload = (await response.json()) as { code?: number; data?: T };
+  expect(payload.code).toBe(20000);
+  return payload.data as T;
+}
+
+async function expectPageApiSuccess<T = unknown>(response: Response): Promise<T> {
   expect(response.status(), await response.text()).toBe(200);
   const payload = (await response.json()) as { code?: number; data?: T };
   expect(payload.code).toBe(20000);
