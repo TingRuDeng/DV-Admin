@@ -20,6 +20,7 @@ REQUIRED_FILES = (
     "scripts/api_contract_validation_rules.py",
     "backend/drf_admin/utils/runtime_api_contracts/helpers.py",
     "backend/drf_admin/utils/runtime_api_contracts/test_dict_write_contracts.py",
+    "backend/drf_admin/utils/runtime_api_contracts/test_file_contracts.py",
     "backend/drf_admin/utils/runtime_api_contracts/test_notice_write_contracts.py",
     "backend/drf_admin/utils/runtime_api_contracts/test_read_contracts.py",
     "backend/drf_admin/utils/runtime_api_contracts/test_write_contracts.py",
@@ -120,6 +121,11 @@ REQUIRED_TEST_SNIPPETS = {
         "test_django_dict_item_write_runtime_samples_match_endpoint_catalog",
         "dicts_create",
         "dict_items_create",
+    ),
+    "backend/drf_admin/utils/runtime_api_contracts/test_file_contracts.py": (
+        "test_django_file_runtime_sample_matches_endpoint_catalog",
+        "files_upload",
+        "files_delete",
     ),
     "backend/drf_admin/utils/runtime_api_contracts/test_notice_write_contracts.py": (
         "test_django_notice_write_runtime_samples_match_endpoint_catalog",

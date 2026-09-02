@@ -6,7 +6,6 @@ from pathlib import Path
 
 from scripts.api_endpoint_contract_types import EndpointContract
 
-FASTAPI_ONLY_ENDPOINT_KEYS = {"files_upload", "files_delete"}
 DJANGO_ROUTER_RESOURCES = {"users", "roles", "menus", "dicts", "dict-items", "departments"}
 FASTAPI_ROUTE_BASES = {
     "fastapi/app/api/v1/files/upload.py": "files",
@@ -48,8 +47,7 @@ def validate_route_coverage(root: Path) -> list[str]:
     fastapi_routes = load_fastapi_routes(root)
 
     for contract in contracts:
-        if contract.key not in FASTAPI_ONLY_ENDPOINT_KEYS:
-            issues.extend(validate_django_contract_route(contract, django_routes))
+        issues.extend(validate_django_contract_route(contract, django_routes))
         issues.extend(validate_fastapi_contract_route(contract, fastapi_routes))
     return issues
 
@@ -63,6 +61,8 @@ def validate_django_contract_route(contract: EndpointContract, routes: dict[str,
         return validate_django_information_route(contract, route, routes)
     if route.startswith("system/"):
         return validate_django_system_route(contract, route, routes)
+    if route == "files" or route.startswith("files/"):
+        return validate_django_files_route(contract, route, routes)
     return [f"{contract.key}: Django 路由覆盖校验暂不支持路径 {contract.path}"]
 
 
@@ -137,6 +137,18 @@ def validate_django_system_route(
     return [f"{contract.key}: Django system URLConf 未覆盖路径 {route_tail!r}"]
 
 
+def validate_django_files_route(
+    contract: EndpointContract,
+    route: str,
+    routes: dict[str, object],
+) -> list[str]:
+    """校验 Django files 显式 path 路由。"""
+    route_tail = route.removeprefix("files/") if route != "files" else ""
+    if route_tail in routes["files_explicit"]:
+        return []
+    return [f"{contract.key}: Django files URLConf 未覆盖路径 {route_tail!r}"]
+
+
 def is_django_router_crud_route(
     resource: str,
     segments: list[str],
@@ -189,15 +201,17 @@ def validate_fastapi_endpoint_route(contract: EndpointContract, routes: dict[str
 
 
 def load_django_routes(root: Path) -> dict[str, object]:
-    """读取 Django OAuth/system 路由注册信息。"""
+    """读取 Django OAuth/information/system/files 路由注册信息。"""
     oauth_text = read_text(root / "backend/drf_admin/apps/oauth/urls.py")
     information_text = read_text(root / "backend/drf_admin/apps/information/urls.py")
     system_text = read_text(root / "backend/drf_admin/apps/system/urls.py")
+    files_text = read_text(root / "backend/drf_admin/apps/files/urls.py")
     role_view_text = read_text(root / "backend/drf_admin/apps/system/views/roles.py")
     return {
         "oauth_explicit": extract_django_path_routes(oauth_text),
         "information_explicit": extract_django_path_routes(information_text),
         "system_explicit": extract_django_path_routes(system_text),
+        "files_explicit": extract_django_path_routes(files_text),
         "system_router_resources": extract_django_router_resources(system_text),
         "system_detail_actions": extract_django_detail_actions(role_view_text, resource="roles"),
     }
@@ -215,7 +229,7 @@ def load_fastapi_routes(root: Path) -> dict[str, object]:
 def extract_django_path_routes(text: str) -> set[str]:
     """从 Django urls.py 文本中提取 path('...') 路由并统一占位符。"""
     routes: set[str] = set()
-    for match in re.finditer(r"path\('([^']+)'", text):
+    for match in re.finditer(r"path\('([^']*)'", text):
         route = normalize_django_path(match.group(1))
         routes.add(route)
         if route.startswith("notices/") and "{ids}" in route:

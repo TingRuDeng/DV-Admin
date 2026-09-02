@@ -3,6 +3,10 @@
 
 JWT认证,可使用simple_history实现审计功能,支持 Swagger API 文档
 
+通用文件接口与 FastAPI 保持一致：`POST /api/v1/files/` 上传文件，
+`DELETE /api/v1/files/?filePath=...` 删除当前用户目录中的文件。上传使用
+`MAX_UPLOAD_SIZE` 限制大小，并返回后续删除所需的相对 `path`。
+
 ### Swagger API 文档
 
 启动服务后，可通过以下地址访问 API 文档：

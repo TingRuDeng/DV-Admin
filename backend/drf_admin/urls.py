@@ -49,6 +49,7 @@ urlpatterns = [
     path(f'{base_api}oauth/', include('drf_admin.apps.oauth.urls')),  # 用户鉴权模块
     path(f'{base_api}system/', include('drf_admin.apps.system.urls')),  # 系统管理模块
     path(f'{base_api}information/', include('drf_admin.apps.information.urls')),  # 个人中心模块
+    path(f'{base_api}files/', include('drf_admin.apps.files.urls')),  # 通用文件模块
 ]
 
 EXTRA_ROUTES = [path(f'{base_api}{route}/', include(f'drf_admin.apps.{route}.urls')) for route in env.list('EXTRA_INSTALLED_APPS', default=[])]
