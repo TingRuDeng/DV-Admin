@@ -13,6 +13,24 @@ const rbacGrantedPermissionIds = requireIntegerListEnv("REAL_BACKEND_RBAC_GRANTE
 const updatedName = `${backendName} E2E 用户`;
 const apiBasePath = "/dev-api/api/v1";
 const accessTokenStorageKey = "vea:auth:access_token";
+const menuCatalogRouteName = "RuntimeContract";
+const menuWriteRouteName = "RuntimeMenuWriteContract";
+const menuWriteRoutePath = "menu-write-contract";
+const menuWriteInitialName = `${backendName} 菜单写入`;
+const menuWriteUpdatedName = `${backendName} 菜单已更新`;
+const menuWritePermissionName = `${backendName} 用户查询权限`;
+
+interface MenuTreeItem {
+  id: number | string;
+  name: string;
+  routeName?: string;
+  routePath?: string;
+  component?: string;
+  perm?: string;
+  type?: string;
+  parentId?: number | string | null;
+  children?: MenuTreeItem[];
+}
 
 test.describe(`前端连接真实 ${backendName} 后端`, () => {
   test("完成个人中心、用户管理和通知公告代表页闭环", async ({ page }) => {
@@ -167,7 +185,210 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     expect(revokedFailedApiResponses).toEqual([]);
     await revokedContext.close();
   });
+
+  test("菜单创建、编辑、授权和删除同步动态路由", async ({ browser, page }) => {
+    const failedApiResponses = collectFailedApiResponses(page);
+    const apiRequest = page.request;
+
+    await loginWithRoutes(page, username, password, "/runtime-contract/menus");
+    await expect(page).toHaveURL(/\/runtime-contract\/menus$/);
+    await expect(page.getByText("菜单数据", { exact: true })).toBeVisible();
+    const adminToken = await readAccessToken(page);
+
+    const catalogRow = menuTableRow(page, "契约目录");
+    await expect(catalogRow).toBeVisible();
+    await catalogRow.getByRole("button", { name: "新增", exact: true }).click();
+
+    const createDrawer = page.locator(".el-drawer", { hasText: "新增菜单" });
+    await expect(createDrawer).toBeVisible();
+    await createDrawer.getByPlaceholder("请输入菜单名称").fill(menuWriteInitialName);
+    await createDrawer.getByRole("textbox", { name: "* 路由名称" }).fill(menuWriteRouteName);
+    await createDrawer.getByRole("textbox", { name: "* 路由路径" }).fill(menuWriteRoutePath);
+    await createDrawer.getByRole("textbox", { name: "* 组件路径" }).fill("system/user/index");
+
+    const createResponse = waitForApiResponse(page, "/api/v1/system/menus/", "POST");
+    await createDrawer.getByRole("button", { name: /确\s*定/ }).click();
+    await createResponse;
+    await expect(page.getByText("新增成功", { exact: true }).last()).toBeVisible();
+    await expandMenuTableRow(page, "契约目录");
+    await expect(menuTableRow(page, menuWriteInitialName)).toBeVisible();
+
+    const menuTreeResponse = await apiRequest.get(`${apiBasePath}/system/menus/`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const menuTree = await expectApiSuccess<MenuTreeItem[]>(menuTreeResponse);
+    const catalog = findMenuByRouteName(menuTree, menuCatalogRouteName);
+    const createdMenu = findMenuByRouteName(menuTree, menuWriteRouteName);
+    expect(catalog).toBeDefined();
+    expect(createdMenu).toMatchObject({
+      name: menuWriteInitialName,
+      routePath: menuWriteRoutePath,
+      component: "system/user/index",
+    });
+    if (!catalog || !createdMenu) {
+      throw new Error("创建的菜单或父目录未出现在真实菜单树中");
+    }
+    expect(Number(createdMenu.parentId)).toBe(Number(catalog.id));
+
+    await menuTableRow(page, menuWriteInitialName)
+      .getByRole("button", { name: "新增", exact: true })
+      .click();
+    const permissionDrawer = page.locator(".el-drawer", { hasText: "新增菜单" });
+    await expect(permissionDrawer).toBeVisible();
+    await permissionDrawer.getByPlaceholder("请输入菜单名称").fill(menuWritePermissionName);
+    await permissionDrawer.locator(".el-radio", { hasText: "按钮" }).click();
+    await permissionDrawer.getByPlaceholder("sys:user:add").fill("system:users:query");
+
+    const createPermissionResponse = waitForApiResponse(page, "/api/v1/system/menus/", "POST");
+    await permissionDrawer.getByRole("button", { name: /确\s*定/ }).click();
+    await createPermissionResponse;
+    await expect(page.getByText("新增成功", { exact: true }).last()).toBeVisible();
+
+    const permissionTreeResponse = await apiRequest.get(`${apiBasePath}/system/menus/`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const permissionTree = await expectApiSuccess<MenuTreeItem[]>(permissionTreeResponse);
+    const createdPermission = findMenuByName(permissionTree, menuWritePermissionName);
+    expect(createdPermission).toMatchObject({
+      type: "BUTTON",
+      perm: "system:users:query",
+    });
+    if (!createdPermission) {
+      throw new Error("创建的按钮权限未出现在真实菜单树中");
+    }
+    expect(Number(createdPermission.parentId)).toBe(Number(createdMenu.id));
+
+    const grantResponse = await apiRequest.put(`${apiBasePath}/system/roles/${rbacRoleId}/menus/`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+      data: {
+        menuIds: [
+          ...rbacBasePermissionIds,
+          Number(catalog.id),
+          Number(createdMenu.id),
+          Number(createdPermission.id),
+        ],
+      },
+    });
+    await expectApiSuccess(grantResponse);
+
+    const frontendBaseUrl = new URL(page.url()).origin;
+    const initialUserContext = await browser.newContext({ baseURL: frontendBaseUrl });
+    const initialUserPage = await initialUserContext.newPage();
+    const initialUserFailures = collectFailedApiResponses(initialUserPage);
+    await loginWithRoutes(
+      initialUserPage,
+      rbacUsername,
+      rbacPassword,
+      `/runtime-contract/${menuWriteRoutePath}`
+    );
+    await expect(initialUserPage).toHaveURL(new RegExp(`/runtime-contract/${menuWriteRoutePath}$`));
+    await expect(sidebarMenuItem(initialUserPage, menuWriteInitialName)).toBeVisible();
+    expect(initialUserFailures).toEqual([]);
+    await initialUserContext.close();
+
+    const initialRow = menuTableRow(page, menuWriteInitialName);
+    await initialRow.getByRole("button", { name: "编辑", exact: true }).click();
+    const editDrawer = page.locator(".el-drawer", { hasText: "编辑菜单" });
+    await expect(editDrawer).toBeVisible();
+    await editDrawer.getByPlaceholder("请输入菜单名称").fill(menuWriteUpdatedName);
+    const updateResponse = waitForApiResponse(
+      page,
+      `/api/v1/system/menus/${createdMenu.id}/`,
+      "PUT"
+    );
+    await editDrawer.getByRole("button", { name: /确\s*定/ }).click();
+    await updateResponse;
+    await expect(page.getByText("修改成功", { exact: true }).last()).toBeVisible();
+    await expandMenuTableRow(page, "契约目录");
+    await expect(menuTableRow(page, menuWriteUpdatedName)).toBeVisible();
+
+    const updatedUserContext = await browser.newContext({ baseURL: frontendBaseUrl });
+    const updatedUserPage = await updatedUserContext.newPage();
+    const updatedUserFailures = collectFailedApiResponses(updatedUserPage);
+    await loginWithRoutes(updatedUserPage, rbacUsername, rbacPassword, "/dashboard");
+    await expect(sidebarMenuItem(updatedUserPage, menuWriteUpdatedName)).toBeVisible();
+    await expect(sidebarMenuItem(updatedUserPage, menuWriteInitialName)).toHaveCount(0);
+    expect(updatedUserFailures).toEqual([]);
+    await updatedUserContext.close();
+
+    await expandMenuTableRow(page, menuWriteUpdatedName);
+    const permissionRow = menuTableRow(page, menuWritePermissionName);
+    await permissionRow.getByRole("button", { name: "删除", exact: true }).click();
+    const deletePermissionResponse = waitForApiResponse(
+      page,
+      `/api/v1/system/menus/${createdPermission.id}/`,
+      "DELETE"
+    );
+    await page.getByRole("button", { name: "确定", exact: true }).click();
+    await deletePermissionResponse;
+    await expect(page.getByText("删除成功", { exact: true }).last()).toBeVisible();
+
+    await expandMenuTableRow(page, "契约目录");
+    const updatedRow = menuTableRow(page, menuWriteUpdatedName);
+    await updatedRow.getByRole("button", { name: "删除", exact: true }).click();
+    const deleteResponse = waitForApiResponse(
+      page,
+      `/api/v1/system/menus/${createdMenu.id}/`,
+      "DELETE"
+    );
+    await page.getByRole("button", { name: "确定", exact: true }).click();
+    await deleteResponse;
+    await expect(page.getByText("删除成功", { exact: true }).last()).toBeVisible();
+    await expect(menuTableRow(page, menuWriteUpdatedName)).toHaveCount(0);
+
+    const deletedUserContext = await browser.newContext({ baseURL: frontendBaseUrl });
+    const deletedUserPage = await deletedUserContext.newPage();
+    const deletedUserFailures = collectFailedApiResponses(deletedUserPage);
+    await loginWithRoutes(deletedUserPage, rbacUsername, rbacPassword, "/dashboard");
+    await expect(sidebarMenuItem(deletedUserPage, menuWriteUpdatedName)).toHaveCount(0);
+    const deletedUserToken = await readAccessToken(deletedUserPage);
+    const forbiddenUsersResponse = await apiRequest.get(`${apiBasePath}/system/users/`, {
+      headers: { Authorization: `Bearer ${deletedUserToken}` },
+      params: { pageNum: 1, pageSize: 10 },
+    });
+    expect(forbiddenUsersResponse.status()).toBe(403);
+    expect(failedApiResponses).toEqual([]);
+    expect(deletedUserFailures).toEqual([]);
+    await deletedUserContext.close();
+  });
 });
+
+function menuTableRow(page: Page, name: string) {
+  return page
+    .locator(".ff-menu-page .el-table__row")
+    .filter({ has: page.getByText(name, { exact: true }) })
+    .first();
+}
+
+async function expandMenuTableRow(page: Page, name: string) {
+  const expandButton = menuTableRow(page, name).locator(".el-table__expand-icon");
+  await expect(expandButton).toBeVisible();
+  if (!(await expandButton.getAttribute("class"))?.includes("el-table__expand-icon--expanded")) {
+    await expandButton.click();
+  }
+}
+
+function sidebarMenuItem(page: Page, name: string) {
+  return page.locator(".layout__sidebar .el-menu-item", { hasText: name });
+}
+
+function findMenuByRouteName(menus: MenuTreeItem[], routeName: string): MenuTreeItem | undefined {
+  for (const menu of menus) {
+    if (menu.routeName === routeName) return menu;
+    const child = findMenuByRouteName(menu.children ?? [], routeName);
+    if (child) return child;
+  }
+  return undefined;
+}
+
+function findMenuByName(menus: MenuTreeItem[], name: string): MenuTreeItem | undefined {
+  for (const menu of menus) {
+    if (menu.name === name) return menu;
+    const child = findMenuByName(menu.children ?? [], name);
+    if (child) return child;
+  }
+  return undefined;
+}
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -241,7 +462,8 @@ function waitForApiResponse(page: Page, path: string, method: string): Promise<R
     (response) =>
       response.url().includes(path) &&
       response.request().method() === method &&
-      response.status() === 200
+      response.status() >= 200 &&
+      response.status() < 300
   );
 }
 
