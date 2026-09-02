@@ -1,11 +1,18 @@
-import { expect, test, type Page, type Response } from "@playwright/test";
+import { expect, test, type APIResponse, type Page, type Response } from "@playwright/test";
 
 const backendName = requireEnv("REAL_BACKEND_NAME");
 const username = requireEnv("REAL_BACKEND_USERNAME");
 const password = requireEnv("REAL_BACKEND_PASSWORD");
 const noticeTitle = requireEnv("REAL_BACKEND_NOTICE_TITLE");
 const noticeContent = requireEnv("REAL_BACKEND_NOTICE_CONTENT");
+const rbacUsername = requireEnv("REAL_BACKEND_RBAC_USERNAME");
+const rbacPassword = requireEnv("REAL_BACKEND_RBAC_PASSWORD");
+const rbacRoleId = requireIntegerEnv("REAL_BACKEND_RBAC_ROLE_ID");
+const rbacBasePermissionIds = requireIntegerListEnv("REAL_BACKEND_RBAC_BASE_PERMISSION_IDS");
+const rbacGrantedPermissionIds = requireIntegerListEnv("REAL_BACKEND_RBAC_GRANTED_PERMISSION_IDS");
 const updatedName = `${backendName} E2E 用户`;
+const apiBasePath = "/dev-api/api/v1";
+const accessTokenStorageKey = "vea:auth:access_token";
 
 test.describe(`前端连接真实 ${backendName} 后端`, () => {
   test("完成个人中心、用户管理和通知公告代表页闭环", async ({ page }) => {
@@ -96,6 +103,70 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     await noticeDrawer.getByRole("button", { name: /取\s*消/ }).click();
     expect(failedApiResponses).toEqual([]);
   });
+
+  test("角色授权与撤权后同步动态菜单、按钮和接口权限", async ({ browser, page }) => {
+    const failedApiResponses = collectFailedApiResponses(page);
+    const apiRequest = page.request;
+
+    const adminLoginResponse = await apiRequest.post(`${apiBasePath}/oauth/login/`, {
+      data: { username, password },
+    });
+    const adminLoginData = await expectApiSuccess<{ accessToken: string }>(adminLoginResponse);
+    const adminToken = adminLoginData.accessToken;
+
+    const grantResponse = await apiRequest.put(`${apiBasePath}/system/roles/${rbacRoleId}/menus/`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+      data: { menuIds: rbacGrantedPermissionIds },
+    });
+    await expectApiSuccess(grantResponse);
+
+    await loginWithRoutes(page, rbacUsername, rbacPassword, "/runtime-contract/user");
+    await expect(page).toHaveURL(/\/runtime-contract\/user$/);
+    await expect(
+      page.locator(".layout__sidebar .el-menu-item", { hasText: "用户管理" })
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "新增用户" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "导入用户" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "导出用户" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "批量删除" })).toHaveCount(0);
+
+    const rbacToken = await readAccessToken(page);
+    const allowedUsersResponse = await apiRequest.get(`${apiBasePath}/system/users/`, {
+      headers: { Authorization: `Bearer ${rbacToken}` },
+      params: { pageNum: 1, pageSize: 10 },
+    });
+    await expectApiSuccess(allowedUsersResponse);
+
+    const frontendBaseUrl = new URL(page.url()).origin;
+    await page.close();
+
+    const revokeResponse = await apiRequest.put(
+      `${apiBasePath}/system/roles/${rbacRoleId}/menus/`,
+      {
+        headers: { Authorization: `Bearer ${adminToken}` },
+        data: { menuIds: rbacBasePermissionIds },
+      }
+    );
+    await expectApiSuccess(revokeResponse);
+
+    const revokedContext = await browser.newContext({ baseURL: frontendBaseUrl });
+    const revokedPage = await revokedContext.newPage();
+    const revokedFailedApiResponses = collectFailedApiResponses(revokedPage);
+    await loginWithRoutes(revokedPage, rbacUsername, rbacPassword, "/dashboard");
+    await expect(
+      revokedPage.locator(".layout__sidebar .el-menu-item", { hasText: "用户管理" })
+    ).toHaveCount(0);
+
+    const revokedToken = await readAccessToken(revokedPage);
+    const forbiddenUsersResponse = await apiRequest.get(`${apiBasePath}/system/users/`, {
+      headers: { Authorization: `Bearer ${revokedToken}` },
+      params: { pageNum: 1, pageSize: 10 },
+    });
+    expect(forbiddenUsersResponse.status()).toBe(403);
+    expect(failedApiResponses).toEqual([]);
+    expect(revokedFailedApiResponses).toEqual([]);
+    await revokedContext.close();
+  });
 });
 
 function requireEnv(name: string): string {
@@ -104,6 +175,65 @@ function requireEnv(name: string): string {
     throw new Error(`${name} is required for the real backend Playwright smoke`);
   }
   return value;
+}
+
+function requireIntegerEnv(name: string): number {
+  const value = Number(requireEnv(name));
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`${name} must be a positive integer`);
+  }
+  return value;
+}
+
+function requireIntegerListEnv(name: string): number[] {
+  const values = requireEnv(name)
+    .split(",")
+    .map((value) => Number(value));
+  if (values.length === 0 || values.some((value) => !Number.isInteger(value) || value <= 0)) {
+    throw new Error(`${name} must be a comma-separated list of positive integers`);
+  }
+  return values;
+}
+
+async function loginWithRoutes(
+  page: Page,
+  loginUsername: string,
+  loginPassword: string,
+  redirect: string
+): Promise<void> {
+  await page.goto(`/login?redirect=${encodeURIComponent(redirect)}`);
+  await page.getByLabel("用户名").fill(loginUsername);
+  await page.getByLabel("密码").fill(loginPassword);
+
+  const loginBootstrap = Promise.all([
+    waitForApiResponse(page, "/api/v1/oauth/login/", "POST"),
+    waitForApiResponse(page, "/api/v1/oauth/info/", "GET"),
+    waitForApiResponse(page, "/api/v1/oauth/menus/routes/", "GET"),
+  ]);
+  await page.getByRole("button", { name: /登\s*录|Login/i }).click();
+  await loginBootstrap;
+}
+
+async function readAccessToken(page: Page): Promise<string> {
+  const token = await page.evaluate((storageKey) => {
+    const rawValue = sessionStorage.getItem(storageKey) ?? localStorage.getItem(storageKey);
+    if (!rawValue) return "";
+    try {
+      const value: unknown = JSON.parse(rawValue);
+      return typeof value === "string" ? value : "";
+    } catch {
+      return rawValue;
+    }
+  }, accessTokenStorageKey);
+  expect(token).not.toBe("");
+  return token;
+}
+
+async function expectApiSuccess<T = unknown>(response: APIResponse): Promise<T> {
+  expect(response.status(), await response.text()).toBe(200);
+  const payload = (await response.json()) as { code?: number; data?: T };
+  expect(payload.code).toBe(20000);
+  return payload.data as T;
 }
 
 function waitForApiResponse(page: Page, path: string, method: string): Promise<Response> {

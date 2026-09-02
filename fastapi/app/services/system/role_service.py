@@ -5,6 +5,7 @@ from typing import Any
 
 from app.core.cache import CacheKeys, cache_service
 from app.core.exceptions import NotFound, ValidationError
+from app.db.models.oauth import Users
 from app.db.models.system import Departments, Permissions, Roles
 from app.schemas.base import PageResult
 from app.schemas.system import RoleCreate, RoleOut, RoleUpdate, RoleWithPermissions
@@ -37,6 +38,17 @@ class RoleService:
             await cache_service.delete(cache_key)
         # 清除角色选项缓存
         await cache_service.delete(CacheKeys.ROLE_OPTIONS)
+
+    async def _clear_assigned_user_access_cache(self, role_id: int) -> None:
+        """角色权限变化后清除所有关联用户的权限和菜单缓存。"""
+        user_ids = await Users.filter(roles__id=role_id).values_list("id", flat=True)
+        for user_id in user_ids:
+            await cache_service.delete(
+                CacheKeys.format_key(CacheKeys.USER_PERMISSIONS, user_id=user_id)
+            )
+            await cache_service.delete(
+                CacheKeys.format_key(CacheKeys.USER_MENUS, user_id=user_id)
+            )
 
     async def get_page(
         self,
@@ -146,6 +158,7 @@ class RoleService:
             if role_data.permission_ids:
                 perms = await Permissions.filter(id__in=role_data.permission_ids).all()
                 await role.permissions.add(*perms)
+            await self._clear_assigned_user_access_cache(role_id)
         if role_data.dept_ids is not None:
             await role.data_depts.clear()
             if role_data.dept_ids:
@@ -178,6 +191,7 @@ class RoleService:
         await role.permissions.clear()
         if permissions:
             await role.permissions.add(*permissions)
+        await self._clear_assigned_user_access_cache(role_id)
         await self._clear_role_cache(role_id)
         return unique_ids
 
