@@ -15,6 +15,7 @@ interface MockState {
   users: UserRow[];
   createPayloads: unknown[];
   exportRequests: number;
+  pageQueries: Array<Record<string, string>>;
 }
 
 interface AuthMockOptions {
@@ -28,6 +29,7 @@ interface MockRouteContext {
   route: Route;
   method: string;
   path: string;
+  query: URLSearchParams;
   readBody: () => unknown;
   state: MockState;
   auth: AuthMockOptions;
@@ -66,6 +68,7 @@ function createMockState(): MockState {
     ],
     createPayloads: [],
     exportRequests: 0,
+    pageQueries: [],
   };
 }
 
@@ -88,10 +91,12 @@ async function installUserManagementMocks(
 ) {
   await page.route(`**${API_PREFIX}/api/v1/**`, async (route) => {
     const request = route.request();
+    const url = new URL(request.url());
     const context = {
       route,
       method: request.method(),
-      path: new URL(request.url()).pathname.replace(API_PREFIX, ""),
+      path: url.pathname.replace(API_PREFIX, ""),
+      query: url.searchParams,
       readBody: request.postDataJSON.bind(request),
       state,
       auth,
@@ -146,6 +151,11 @@ function createAuthInfo(auth: AuthMockOptions) {
 }
 
 async function handleSystemRequest(context: MockRouteContext) {
+  if (context.method === "GET" && context.path === "/api/v1/system/notices/my-page/") {
+    await fulfillJson(context.route, success({ list: [], total: 0 }));
+    return true;
+  }
+
   if (context.method === "GET" && context.path === "/api/v1/system/departments/") {
     await fulfillJson(
       context.route,
@@ -160,9 +170,24 @@ async function handleSystemRequest(context: MockRouteContext) {
   }
 
   if (context.method === "GET" && context.path === USERS_PATH) {
+    context.state.pageQueries.push(Object.fromEntries(context.query.entries()));
+    const search = context.query.get("search")?.trim().toLowerCase();
+    const pageNum = Number(context.query.get("pageNum") ?? 1);
+    const pageSize = Number(context.query.get("pageSize") ?? 10);
+    const filteredUsers = search
+      ? context.state.users.filter((user) =>
+          [user.username, user.name, user.mobile].some((value) =>
+            value.toLowerCase().includes(search)
+          )
+        )
+      : context.state.users;
+    const pageStart = (pageNum - 1) * pageSize;
     await fulfillJson(
       context.route,
-      success({ list: context.state.users, total: context.state.users.length })
+      success({
+        list: filteredUsers.slice(pageStart, pageStart + pageSize),
+        total: filteredUsers.length,
+      })
     );
     return true;
   }
@@ -232,6 +257,12 @@ test.describe("用户管理核心业务 smoke", () => {
     await expect(page.getByText("用户数据")).toBeVisible();
     await expect(page.getByText("admin_mock")).toBeVisible();
 
+    await page.getByPlaceholder("用户名/昵称/手机号").fill("admin_mock");
+    await page.getByRole("button", { name: "搜索" }).click();
+    await expect.poll(() => state.pageQueries.at(-1)?.search).toBe("admin_mock");
+    await page.getByRole("button", { name: "重置" }).click();
+    await expect.poll(() => state.pageQueries.at(-1)?.search).toBeUndefined();
+
     const downloadPromise = page.waitForEvent("download");
     await page.getByRole("button", { name: "导出用户" }).click();
     const download = await downloadPromise;
@@ -288,5 +319,47 @@ test.describe("用户管理核心业务 smoke", () => {
     await expect(page.getByRole("button", { name: "编辑" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "删除" })).toHaveCount(0);
     expect(state.createPayloads).toHaveLength(0);
+  });
+
+  test("移动端保持分页和抽屉可用且页面不产生横向溢出", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const state = createMockState();
+    state.users.push(
+      ...Array.from({ length: 11 }, (_, index) => ({
+        id: String(200 + index),
+        username: `mobile_user_${index + 1}`,
+        name: `移动用户 ${index + 1}`,
+        deptName: "研发部",
+        mobile: `13800139${String(index).padStart(3, "0")}`,
+        email: `mobile${index + 1}@example.com`,
+        isActive: 1,
+        roleNames: "管理员",
+      }))
+    );
+    await installUserManagementMocks(page, state);
+
+    await page.goto("/login?redirect=%2Fsystem%2Fusers");
+    await page.getByLabel("用户名").fill("admin");
+    await page.getByLabel("密码").fill("123456");
+    await page.getByRole("button", { name: /登\s*录|Login/i }).click();
+    await expect(page.getByText("用户数据")).toBeVisible();
+
+    await page.locator(".ff-user-page .btn-next").click();
+    await expect.poll(() => state.pageQueries.at(-1)?.pageNum).toBe("2");
+    await expect(page.getByText("mobile_user_10", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "新增用户" }).click();
+    const drawer = page.locator(".el-drawer", { hasText: "新增用户" });
+    await expect(drawer).toBeVisible();
+    await expect
+      .poll(() => drawer.evaluate((element) => element.getBoundingClientRect().width))
+      .toBeLessThanOrEqual(390);
+    await drawer.getByRole("button", { name: /取\s*消/ }).click();
+
+    const pageWidth = await page.evaluate(() => ({
+      viewport: window.innerWidth,
+      document: document.documentElement.scrollWidth,
+    }));
+    expect(pageWidth.document).toBeLessThanOrEqual(pageWidth.viewport);
   });
 });

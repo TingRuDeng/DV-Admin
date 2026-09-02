@@ -49,3 +49,20 @@ html.dark .ff-drawer.el-drawer .el-drawer__footer {
   background-color: rgba(30, 41, 59, 0.96);
   border-top-color: #334155;
 }
+
+@media (max-width: 767px) {
+  .ff-drawer,
+  .ff-drawer.el-drawer {
+    max-width: calc(100vw - 12px);
+  }
+
+  .ff-drawer .el-drawer__header,
+  .ff-drawer.el-drawer .el-drawer__header,
+  .ff-drawer .el-drawer__body,
+  .ff-drawer.el-drawer .el-drawer__body,
+  .ff-drawer .el-drawer__footer,
+  .ff-drawer.el-drawer .el-drawer__footer {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+}
