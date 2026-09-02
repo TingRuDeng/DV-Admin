@@ -5,10 +5,49 @@ import uuid
 
 import pytest
 
+from app.core.cache import CacheKeys, cache_service
 from app.core.exceptions import NotFound
 from app.services.system.role_service import role_service
 
 pytest_plugins = ["role_service_fixtures"]
+
+
+class TestRoleServiceAssignMenus:
+    """测试角色权限分配及关联用户缓存失效。"""
+
+    @pytest.mark.asyncio
+    async def test_assign_menus_clears_assigned_user_access_cache(
+        self,
+        db,
+        test_role_for_service,
+        test_permission_for_service,
+    ):
+        """撤权或授权后不应继续返回关联用户的旧权限与菜单。"""
+        from app.db.models.oauth import Users
+
+        user = await Users.create(
+            username=f"角色缓存用户_{uuid.uuid4().hex[:8]}",
+            password="not-used",
+            name="角色缓存用户",
+            is_active=1,
+        )
+        await user.roles.add(test_role_for_service)
+        permission_cache_key = CacheKeys.format_key(
+            CacheKeys.USER_PERMISSIONS,
+            user_id=user.id,
+        )
+        menu_cache_key = CacheKeys.format_key(CacheKeys.USER_MENUS, user_id=user.id)
+        await cache_service.set(permission_cache_key, ["stale:permission"])
+        await cache_service.set(menu_cache_key, [{"path": "/stale"}])
+
+        result = await role_service.assign_menus(
+            test_role_for_service.id,
+            [test_permission_for_service.id],
+        )
+
+        assert result == [test_permission_for_service.id]
+        assert await cache_service.get(permission_cache_key) is None
+        assert await cache_service.get(menu_cache_key) is None
 
 
 class TestRoleServiceGetMenuIds:

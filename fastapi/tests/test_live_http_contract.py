@@ -17,6 +17,8 @@ import pytest
 
 from scripts.real_backend_playwright import run_real_backend_playwright
 
+SeedPayload = dict[str, int | str | list[int]]
+
 
 @pytest.mark.integration
 def test_shared_profile_avatar_password_and_notice_flow_over_http(tmp_path: Path):
@@ -40,11 +42,16 @@ def test_shared_frontend_flow_over_real_fastapi_http(tmp_path: Path):
             password="httpPass123",
             notice_title="FastAPI 真实 HTTP 通知",
             notice_content="FastAPI 真实 HTTP 正文",
+            rbac_username=str(seed["rbac_username"]),
+            rbac_password="rbacPass123",
+            rbac_role_id=int(seed["rbac_role_id"]),
+            rbac_base_permission_ids=list(seed["rbac_base_permission_ids"]),
+            rbac_granted_permission_ids=list(seed["rbac_granted_permission_ids"]),
         )
 
 
 @contextmanager
-def running_seeded_server(tmp_path: Path) -> Iterator[tuple[str, dict[str, int | str]]]:
+def running_seeded_server(tmp_path: Path) -> Iterator[tuple[str, SeedPayload]]:
     """启动隔离 Uvicorn、等待就绪并创建浏览器/HTTP smoke 共用样本。"""
     port = reserve_tcp_port()
     env = build_server_env(tmp_path)
@@ -121,7 +128,7 @@ def wait_for_server(base_url: str, server: subprocess.Popen, log_path: Path) -> 
     raise AssertionError(f"FastAPI HTTP smoke 启动超时\n{log_path.read_text(encoding='utf-8')}")
 
 
-def seed_http_database(env: dict[str, str]) -> dict[str, int | str]:
+def seed_http_database(env: dict[str, str]) -> SeedPayload:
     """通过独立进程写入 smoke 用户、权限和通知。"""
     result = subprocess.run(
         [sys.executable, "tests/live_http_seed.py"],
@@ -135,7 +142,7 @@ def seed_http_database(env: dict[str, str]) -> dict[str, int | str]:
     return json.loads(result.stdout.strip().splitlines()[-1])
 
 
-def run_http_flow(base_url: str, seed: dict[str, int | str]) -> None:
+def run_http_flow(base_url: str, seed: SeedPayload) -> None:
     """执行与 Django smoke 相同的共享业务闭环。"""
     with httpx.Client(base_url=base_url, timeout=10) as client:
         login = client.post(

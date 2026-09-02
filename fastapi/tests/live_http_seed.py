@@ -13,7 +13,7 @@ from app.db.models.oauth import Users
 from app.db.models.system import Notices, Permissions, Roles
 
 
-async def seed() -> dict[str, int | str]:
+async def seed() -> dict[str, int | str | list[int]]:
     await Tortoise.init(config=settings.tortoise_orm_config)
     button_permissions = [
         await Permissions.create(
@@ -24,6 +24,7 @@ async def seed() -> dict[str, int | str]:
         for permission_code in (
             "system:departments:query",
             "system:roles:query",
+            "system:roles:edit",
             "system:users:add",
             "system:users:edit",
             "system:users:delete",
@@ -31,6 +32,7 @@ async def seed() -> dict[str, int | str]:
             "system:users:import",
             "system:users:export",
             "system:dictitems:query",
+            "system:notices:query",
             "system:notices:add",
             "system:notices:edit",
             "system:notices:delete",
@@ -80,6 +82,19 @@ async def seed() -> dict[str, int | str]:
         is_active=1,
     )
     await user.roles.add(role)
+    rbac_role = await Roles.create(
+        name="HTTP Smoke RBAC 角色",
+        code="http-smoke-rbac",
+        status=1,
+        data_scope=1,
+    )
+    rbac_user = await Users.create(
+        username="http-smoke-rbac",
+        password=get_password_hash("rbacPass123"),
+        name="HTTP Smoke RBAC 用户",
+        is_active=1,
+    )
+    await rbac_user.roles.add(rbac_role)
     notice = await Notices.create(
         title="FastAPI 真实 HTTP 通知",
         content="FastAPI 真实 HTTP 正文",
@@ -88,7 +103,28 @@ async def seed() -> dict[str, int | str]:
         publisher_id=user.id,
         publisher_name=user.username,
     )
-    result = {"username": user.username, "user_id": user.id, "notice_id": notice.id}
+    result = {
+        "username": user.username,
+        "user_id": user.id,
+        "notice_id": notice.id,
+        "rbac_username": rbac_user.username,
+        "rbac_role_id": rbac_role.id,
+        "rbac_base_permission_ids": [
+            permission.id
+            for permission in button_permissions
+            if permission.perm
+            in {
+                "system:departments:query",
+                "system:dictitems:query",
+                "system:notices:query",
+            }
+        ],
+    }
+    result["rbac_granted_permission_ids"] = [
+        *result["rbac_base_permission_ids"],
+        catalog.id,
+        user_menu.id,
+    ]
     await Tortoise.close_connections()
     return result
 
