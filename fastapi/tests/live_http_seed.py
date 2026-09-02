@@ -82,6 +82,16 @@ async def seed() -> dict[str, int | str | list[int]]:
         parent=catalog,
         perm="system:permissions:query",
     )
+    upload_menu = await Permissions.create(
+        name="文件上传",
+        type="MENU",
+        route_name="RuntimeContractUpload",
+        route_path="upload",
+        component="demo/upload",
+        sort=5,
+        parent=catalog,
+        perm="demo:upload:query",
+    )
     role = await Roles.create(
         name="HTTP Smoke 角色",
         code="http-smoke",
@@ -93,6 +103,7 @@ async def seed() -> dict[str, int | str | list[int]]:
         user_menu,
         notice_menu,
         menu_management,
+        upload_menu,
         *button_permissions,
     )
     user = await Users.create(

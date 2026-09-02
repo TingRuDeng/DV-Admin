@@ -180,7 +180,17 @@ def create_runtime_contract_permissions() -> list[Permissions]:
         parent=catalog,
         sort=4,
     )
-    return [catalog, user_menu, notice_menu, menu_management, *buttons]
+    upload_menu = Permissions.objects.create(
+        name="文件上传",
+        perm="demo:upload:query",
+        type="MENU",
+        route_name="RuntimeContractUpload",
+        route_path="upload",
+        component="demo/upload",
+        parent=catalog,
+        sort=5,
+    )
+    return [catalog, user_menu, notice_menu, menu_management, upload_menu, *buttons]
 
 
 def create_runtime_contract_dicts() -> None:

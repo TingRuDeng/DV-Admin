@@ -89,6 +89,7 @@ INSTALLED_APPS = [
     "drf_admin.apps.oauth",
     "drf_admin.apps.system",
     "drf_admin.apps.information",
+    "drf_admin.apps.files",
 ]
 
 # 从环境变量中获取额外的应用
