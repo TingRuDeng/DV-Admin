@@ -59,7 +59,7 @@ ai_summary:
 - Django 与 FastAPI 都提供健康检查能力；Django 请求链路会通过 `X-Request-ID` 串联响应和操作日志。
 - 关键 API 端点不仅校验契约目录，还会静态校验 Django/FastAPI 路由中是否存在对应 `method + path`。
 - FastAPI 数据库结构使用 Tortoise ORM 版本化迁移；开发期 schema 自动创建不承担生产演进职责。
-- ADR-0001 已接受渐进式前端现代化目标并进入分阶段实施；当前技术栈是 Vite 8 和 Vue Router 5，壳层 PoC 与三个代表页验收已完成，扩大或停止评审尚未开始。
+- ADR-0001 的七个阶段已完成；当前技术栈是 Vite 8 和 Vue Router 5，统一壳层与三个代表页验收已保留，最终决定停止批量页面迁移。
 
 ## How to verify
 
@@ -176,7 +176,7 @@ frontend/src/
 
 **已接受的前端演进决策：**
 
-- [ADR-0001](./ADR-0001-FRONTEND-MODERNIZATION.md) 已接受“保留 Vue 3 业务核心、分阶段升级工具链、限定壳层 PoC”的方向；当前源码和依赖为 Vite 8、Vue Router 5，壳层 PoC 与用户管理、通知公告、个人中心验收已完成。
+- [ADR-0001](./ADR-0001-FRONTEND-MODERNIZATION.md) 已完成“保留 Vue 3 业务核心、分阶段升级工具链、限定壳层 PoC”的七阶段路线；当前源码和依赖为 Vite 8、Vue Router 5，壳层与用户管理、通知公告、个人中心验收成果继续保留。
 - 保留边界包括 Element Plus、Pinia、后端动态菜单、手写路由、RouteMeta、KeepAlive/cacheKey、字典、WebSocket、JWT 刷新和 Pro 组件协议。
 - Pure Admin 仅作为 Layout、Menu、TagsView、AppMain、主题和页面框架的 Element Plus 壳层参考；Vben 仅作为工程组织与交互参考，不复制其业务架构。
 - Vite 已按“Vite 7 + `rolldown-vite` 验证 → Vite 8”两步迁移；Vue Router 5 也已在独立阶段升级，仍不引入文件路由。
@@ -184,6 +184,7 @@ frontend/src/
 - 当前壳层以 `--ff-shell-*` 语义 token 统一页面背景、导航表面、边界、文本、交互和尺寸；`left/top/mix` 共用现有 `useLayout` 与 store，移动端由语义化按钮、遮罩和抽屉承载，不新增状态协议。
 - `frontend/e2e/shell-layout.spec.ts` 固化三种布局、动态用户路由、TagsView、暗色主题及 `top/mix` 移动抽屉行为，并已纳入常规前端 smoke。
 - `frontend/e2e/profile.spec.ts` 与用户/通知 smoke 固化三个代表页的响应式、权限和关键业务行为；无 API Mock 的真实后端 smoke 同时覆盖 Django/FastAPI 下的三页共享流程。
+- 阶段 7 已停止批量页面迁移：登录、错误、文档承载和 Demo 等特殊页保持各自语义，只在有具体缺陷或产品需求时逐页改进；重新启动多页批量迁移必须先通过新 ADR 授权。
 - 七个串行阶段、阶段状态、性能预算和停止条件只在 [FRONTEND_OPTIMIZATION_BACKLOG.md](./FRONTEND_OPTIMIZATION_BACKLOG.md) 跟踪。
 
 ---
