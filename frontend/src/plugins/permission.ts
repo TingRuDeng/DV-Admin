@@ -10,7 +10,7 @@ const permissionLogger = createLogger("permission");
 export function setupPermission() {
   const whiteList = ["/login", "/401", "/403", "/404"];
 
-  router.beforeEach(async (to, from, next) => {
+  router.beforeEach(async (to) => {
     NProgress.start();
 
     try {
@@ -19,18 +19,16 @@ export function setupPermission() {
       // 未登录处理
       if (!isLoggedIn) {
         if (whiteList.includes(to.path)) {
-          next();
-        } else {
-          next(`/login?redirect=${encodeURIComponent(to.fullPath)}`);
-          NProgress.done();
+          return;
         }
-        return;
+
+        NProgress.done();
+        return `/login?redirect=${encodeURIComponent(to.fullPath)}`;
       }
 
       // 已登录登录页重定向
       if (to.path === "/login") {
-        next({ path: "/" });
-        return;
+        return { path: "/" };
       }
 
       const permissionStore = usePermissionStore();
@@ -47,14 +45,12 @@ export function setupPermission() {
           router.addRoute(route);
         });
 
-        next({ ...to, replace: true });
-        return;
+        return { ...to, replace: true };
       }
 
       // 路由404检查
       if (to.matched.length === 0) {
-        next("/404");
-        return;
+        return "/404";
       }
 
       // 路由级权限拦截：页面准入语义由 RouteMeta.perms/roles 决定
@@ -63,8 +59,7 @@ export function setupPermission() {
         userRoles: userStore.userInfo?.roles ?? [],
       });
       if (!canAccessRoute) {
-        next("/403");
-        return;
+        return "/403";
       }
 
       // 设置页面标题
@@ -72,14 +67,12 @@ export function setupPermission() {
       if (title) {
         to.meta.title = title;
       }
-
-      next();
     } catch (error) {
       // 错误处理：重置状态并跳转登录
       permissionLogger.error("路由守卫异常:", error);
       await useUserStore().resetAllState();
-      next("/login");
       NProgress.done();
+      return "/login";
     }
   });
 

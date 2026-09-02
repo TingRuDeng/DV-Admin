@@ -79,7 +79,7 @@ ai_summary:
 | 1. 建立基线 | 已完成（2026-09-01） | 固化构建、产物、性能 smoke 和关键页面行为基线 |
 | 2. Vite 7 + `rolldown-vite` | 已完成（2026-09-01） | 只隔离验证 Rolldown 与现有插件、配置的兼容性 |
 | 3. 升级 Vite 8 | 已完成（2026-09-01） | 迁移当前项目实际命中的废弃配置，保持插件能力 |
-| 4. 升级 Vue Router 5 | 未开始 | 保持动态菜单与手写路由体系，不引入文件路由 |
+| 4. 升级 Vue Router 5 | 已完成（2026-09-02） | 保持动态菜单与手写路由体系，不引入文件路由 |
 | 5. 壳层 PoC | 未开始 | 只改造 Layout、Menu、TagsView、AppMain、主题和页面框架 |
 | 6. 代表页验证 | 未开始 | 验证用户管理、通知公告、个人中心三个代表页 |
 | 7. 扩大或停止评审 | 未开始 | 依据完整验收证据决定扩大壳层迁移或停止 |
@@ -176,6 +176,19 @@ ai_summary:
 - 动态路由注入、刷新恢复、403 准入、activeMenu、面包屑和缓存行为无回归。
 - left/top/mix 三种布局和两套真实后端 Playwright smoke 通过。
 - 文档中的“当前技术栈”只有在该 PR 合并后才更新为 Vue Router 5。
+
+**阶段记录（2026-09-02）**
+
+- 基准与环境：从阶段 3 合并提交 `0e6aab608e97eae2e4e6e721d3dc6df761c216d2` 创建独立分支；继续使用 macOS 15.7.7 arm64、Node 24.20.0 和 pnpm 11.21.0，`pnpm install --frozen-lockfile` 通过。
+- 依赖升级：将 Vue Router 从 4.5.1 升级到 5.3.0，没有引入 `unplugin-vue-router` 或文件路由；直接依赖范围内的 Vue 和 Pinia 声明保持不变，锁文件分别解析为 Vue 3.5.42 和 Pinia 3.0.4，以满足 Router 5 的 peer 要求。
+- 必要兼容调整：Router 5 的函数式 redirect 接收 `to/from` 两个参数，面包屑解析据此补传当前路由；全局权限守卫从已废弃的第三参数 `next()` 改为返回导航结果，保留白名单、登录重定向、动态路由注入重试、403/404、动态标题和异常复位语义。新增 10 项权限守卫行为测试，未修改菜单字段、路由协议或后端实现。
+- 依赖安全：升级后审计暴露 Router 5 可选工具链中的旧版 Rollup、picomatch、immutable 和 yaml 公告；通过精确 pnpm overrides 分别锁定到 4.63.1、2.3.2、5.1.8 和 2.8.3。最终生产依赖审计为 critical 0、high 0、moderate 1、low 0，未新增豁免；剩余 moderate 是既有 `exceljs -> uuid@8.3.2` 路径。
+- 行为与门禁：`pnpm run quality` 通过（94 个测试文件、285 项测试）；Mock smoke 14/14、left/top/mix + AppMain + TagsView + 动态用户路由一次性浏览器探针 1/1、Django 真实 smoke 1/1（10.93s）、FastAPI 真实 smoke 1/1（11.07s）均通过，且未再出现 Router 5 的 `VUE_ROUTER_R0025` 弃用告警。
+- 构建对比：按阶段 1 相同口径串行运行三次 `/usr/bin/time -p pnpm run build`，结果为 12.17s、12.14s、12.03s，中位数为 **12.14s**；相对阶段 3 的 12.16s 改善约 **0.16%**，相对阶段 1 的 17.53s 改善约 **30.75%**。
+- JavaScript 产物：三次均为 2,691,088 bytes（212 个文件，约 2.57 MiB），中位数为 **2,691,088 bytes**；相对阶段 3 增加 4,130 bytes（约 **0.15%**），相对阶段 1 减少 13,471 bytes（约 **0.50%**），未触发 10% 停止条件。
+- 兼容观察：阶段 2 起记录的 15 个全局 Sass `:deep()` Lightning CSS 告警和 Vite 未来原生配置加载器提示仍存在；本阶段未新增对应告警。pnpm peer 检查仅保留既有 Vitest mocker 与 MSW 1.x 的可选 peer 提示，不属于应用 Router 运行链。
+- 回滚证据：完整回退本阶段对 Router 依赖、锁文件、安全 overrides、面包屑 redirect、权限守卫、守卫测试和权威文档的改动，即可恢复 Router 4 状态；不涉及 Django/FastAPI、共享 API、菜单字段、组件路径、JWT、Pinia store、字典、WebSocket 或 Pro 组件协议。
+- 结论：未触发 ADR-0001 硬停止条件；阶段 4 验收通过。阶段 5 仍须在本 PR 合并后从最新 `master` 创建独立分支，不自动夹带到本阶段。
 
 ### 阶段 5：制作 Pure Admin 风格壳层 PoC
 
