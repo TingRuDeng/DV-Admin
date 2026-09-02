@@ -1178,6 +1178,8 @@
     {
       "auth_required": true,
       "evidence_files": [
+        "backend/drf_admin/apps/files/urls.py",
+        "backend/drf_admin/apps/files/views.py",
         "docs/API_ENDPOINTS.md",
         "fastapi/app/api/v1/README.md",
         "fastapi/app/api/v1/files/upload.py",
@@ -1201,6 +1203,8 @@
     {
       "auth_required": true,
       "evidence_files": [
+        "backend/drf_admin/apps/files/urls.py",
+        "backend/drf_admin/apps/files/views.py",
         "docs/API_ENDPOINTS.md",
         "fastapi/app/api/v1/README.md",
         "fastapi/app/api/v1/files/upload.py",

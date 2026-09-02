@@ -351,6 +351,11 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         request_fields=("file",),
         response_fields=("name", "url", "path"),
         evidence=(
+            ContractEvidence("backend/drf_admin/apps/files/urls.py", ("FileAPIView.as_view",)),
+            ContractEvidence(
+                "backend/drf_admin/apps/files/views.py",
+                ("class FileAPIView", "def post", "save_upload_file"),
+            ),
             ContractEvidence("fastapi/app/api/v1/files/upload.py", ("@router.post", "save_upload_file")),
             ContractEvidence("frontend/src/api/file-api.ts", ("upload", "/api/v1/files/", "path")),
             ContractEvidence("docs/API_ENDPOINTS.md", ("POST   /api/v1/files/", "name/url/path")),
@@ -364,6 +369,11 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         auth_required=True,
         query_params=("filePath",),
         evidence=(
+            ContractEvidence("backend/drf_admin/apps/files/urls.py", ("FileAPIView.as_view",)),
+            ContractEvidence(
+                "backend/drf_admin/apps/files/views.py",
+                ("def delete", 'get("filePath")', "ensure_file_owner"),
+            ),
             ContractEvidence("fastapi/app/api/v1/files/upload.py", ("@router.delete", "filePath")),
             ContractEvidence("frontend/src/api/file-api.ts", ("delete", "/api/v1/files/")),
             ContractEvidence("docs/API_ENDPOINTS.md", ("DELETE /api/v1/files/",)),
