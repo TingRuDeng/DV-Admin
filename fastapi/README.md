@@ -179,7 +179,7 @@ FastAPI 后端保持与原有 Django 前端 API 接口完全兼容：
 | `SECRET_KEY` | JWT 密钥（生产环境必填） | 开发环境自动生成 |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | 访问令牌过期时间（分钟） | `30` |
 | `REFRESH_TOKEN_EXPIRE_DAYS` | 刷新令牌过期时间（天） | `7` |
-| `DEFAULT_PASSWORD` | 新增、导入和重置用户时使用的默认密码 | `Admin@123456` |
+| `DEFAULT_PASSWORD` | 新增、导入用户及旧 POST 重置兼容入口使用的默认密码 | `Admin@123456` |
 | `LOG_LEVEL` | 日志级别 | `INFO` |
 | `LOG_FORMAT` | 日志格式（json/text） | `json` |
 | `SLOW_QUERY_THRESHOLD_MS` | 慢查询阈值（毫秒） | `1000` |

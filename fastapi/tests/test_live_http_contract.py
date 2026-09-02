@@ -47,6 +47,8 @@ def test_shared_frontend_flow_over_real_fastapi_http(tmp_path: Path):
             rbac_role_id=int(seed["rbac_role_id"]),
             rbac_base_permission_ids=list(seed["rbac_base_permission_ids"]),
             rbac_granted_permission_ids=list(seed["rbac_granted_permission_ids"]),
+            lifecycle_role_name=str(seed["lifecycle_role_name"]),
+            lifecycle_dept_name=str(seed["lifecycle_dept_name"]),
         )
 
 
