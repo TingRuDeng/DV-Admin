@@ -1,4 +1,11 @@
-import { expect, test, type APIResponse, type Page, type Response } from "@playwright/test";
+import {
+  expect,
+  test,
+  type APIRequestContext,
+  type APIResponse,
+  type Page,
+  type Response,
+} from "@playwright/test";
 
 const backendName = requireEnv("REAL_BACKEND_NAME");
 const username = requireEnv("REAL_BACKEND_USERNAME");
@@ -10,7 +17,13 @@ const rbacPassword = requireEnv("REAL_BACKEND_RBAC_PASSWORD");
 const rbacRoleId = requireIntegerEnv("REAL_BACKEND_RBAC_ROLE_ID");
 const rbacBasePermissionIds = requireIntegerListEnv("REAL_BACKEND_RBAC_BASE_PERMISSION_IDS");
 const rbacGrantedPermissionIds = requireIntegerListEnv("REAL_BACKEND_RBAC_GRANTED_PERMISSION_IDS");
+const lifecycleRoleName = requireEnv("REAL_BACKEND_LIFECYCLE_ROLE_NAME");
+const lifecycleDeptName = requireEnv("REAL_BACKEND_LIFECYCLE_DEPT_NAME");
 const updatedName = `${backendName} E2E 用户`;
+const lifecycleUsername = `${backendName.toLowerCase()}_lifecycle`;
+const lifecycleInitialName = `${backendName} 生命周期用户`;
+const lifecycleUpdatedName = `${backendName} 生命周期已更新`;
+const lifecyclePassword = "LifecyclePass456";
 const apiBasePath = "/dev-api/api/v1";
 const accessTokenStorageKey = "vea:auth:access_token";
 const menuCatalogRouteName = "RuntimeContract";
@@ -36,6 +49,18 @@ interface UploadedFileInfo {
   name: string;
   url: string;
   path: string;
+}
+
+interface UserPageItem {
+  id: number | string;
+  username: string;
+  name?: string;
+  isActive?: number;
+}
+
+interface UserPageResult {
+  list: UserPageItem[];
+  total: number;
 }
 
 test.describe(`前端连接真实 ${backendName} 后端`, () => {
@@ -125,6 +150,138 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     const noticeDrawer = page.locator(".el-drawer", { hasText: "新增公告" });
     await expect(noticeDrawer).toBeVisible();
     await noticeDrawer.getByRole("button", { name: /取\s*消/ }).click();
+    expect(failedApiResponses).toEqual([]);
+  });
+
+  test("用户创建、编辑、密码重置、禁用和删除形成真实闭环", async ({ browser, page }) => {
+    const failedApiResponses = collectFailedApiResponses(page);
+    const apiRequest = page.request;
+
+    await loginWithRoutes(page, username, password, "/runtime-contract/user");
+    await expect(page).toHaveURL(/\/runtime-contract\/user$/);
+    const adminToken = await readAccessToken(page);
+
+    await page.getByRole("button", { name: "新增用户" }).click();
+    const createDrawer = page.locator(".el-drawer", { hasText: "新增用户" });
+    await expect(createDrawer).toBeVisible();
+    await createDrawer.getByPlaceholder("请输入用户名").fill(lifecycleUsername);
+    await createDrawer.getByPlaceholder("请输入用户昵称").fill(lifecycleInitialName);
+    await createDrawer
+      .locator(".el-form-item", { hasText: "所属部门" })
+      .locator(".el-select__wrapper")
+      .click();
+    await page.getByRole("option", { name: lifecycleDeptName, exact: true }).click();
+    await createDrawer
+      .locator(".el-form-item", { hasText: "角色" })
+      .locator(".el-select__wrapper")
+      .click();
+    await page.getByRole("option", { name: lifecycleRoleName, exact: true }).click();
+    await page.keyboard.press("Escape");
+
+    const createResponse = waitForApiResponse(page, "/api/v1/system/users/", "POST");
+    await createDrawer.getByRole("button", { name: /确\s*定/ }).click();
+    await createResponse;
+    await expect(page.getByText("新增用户成功", { exact: true }).last()).toBeVisible();
+    await searchUser(page, lifecycleUsername);
+    await expect(userTableRow(page, lifecycleUsername)).toContainText(lifecycleInitialName);
+
+    const createdUsersResponse = await apiRequest.get(`${apiBasePath}/system/users/`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+      params: { pageNum: 1, pageSize: 10, search: lifecycleUsername },
+    });
+    const createdUsers = await expectApiSuccess<UserPageResult>(createdUsersResponse);
+    const createdUser = createdUsers.list.find((user) => user.username === lifecycleUsername);
+    expect(createdUser).toBeDefined();
+    if (!createdUser) {
+      throw new Error("真实后端未返回刚创建的生命周期用户");
+    }
+
+    await userTableRow(page, lifecycleUsername)
+      .getByRole("button", { name: "编辑", exact: true })
+      .click();
+    const editDrawer = page.locator(".el-drawer", { hasText: "修改用户" });
+    await expect(editDrawer.getByPlaceholder("请输入用户昵称")).toHaveValue(lifecycleInitialName);
+    await editDrawer.getByPlaceholder("请输入用户昵称").fill(lifecycleUpdatedName);
+    const updateResponse = waitForApiResponse(
+      page,
+      `/api/v1/system/users/${createdUser.id}/`,
+      "PUT"
+    );
+    await editDrawer.getByRole("button", { name: /确\s*定/ }).click();
+    await updateResponse;
+    await expect(page.getByText("修改用户成功", { exact: true }).last()).toBeVisible();
+    await expect(userTableRow(page, lifecycleUsername)).toContainText(lifecycleUpdatedName);
+
+    await userTableRow(page, lifecycleUsername)
+      .getByRole("button", { name: "重置密码", exact: true })
+      .click();
+    const resetDialog = page.getByRole("dialog", { name: "重置密码" });
+    await resetDialog.locator("input").fill(lifecyclePassword);
+    const resetResponse = waitForApiResponse(
+      page,
+      `/api/v1/system/users/${createdUser.id}/password/reset/`,
+      "PUT"
+    );
+    await resetDialog.getByRole("button", { name: "确定", exact: true }).click();
+    await resetResponse;
+    await expect(page.getByText(/密码重置成功/).last()).toBeVisible();
+
+    const frontendBaseUrl = new URL(page.url()).origin;
+    const lifecycleContext = await browser.newContext({ baseURL: frontendBaseUrl });
+    const lifecyclePage = await lifecycleContext.newPage();
+    const lifecycleFailures = collectFailedApiResponses(lifecyclePage);
+    await loginWithRoutes(
+      lifecyclePage,
+      lifecycleUsername,
+      lifecyclePassword,
+      "/runtime-contract/user"
+    );
+    await expect(lifecyclePage).toHaveURL(/\/runtime-contract\/user$/);
+    await expect(userTableRow(lifecyclePage, lifecycleUsername)).toContainText(
+      lifecycleUpdatedName
+    );
+    expect(lifecycleFailures).toEqual([]);
+    await lifecycleContext.close();
+
+    await userTableRow(page, lifecycleUsername)
+      .getByRole("button", { name: "编辑", exact: true })
+      .click();
+    const disableDrawer = page.locator(".el-drawer", { hasText: "修改用户" });
+    const statusSwitch = disableDrawer.getByRole("switch");
+    const statusSwitchControl = disableDrawer
+      .locator(".el-form-item", { hasText: "状态" })
+      .locator(".el-switch__core");
+    await expect(statusSwitch).toHaveAttribute("aria-checked", "true");
+    await statusSwitchControl.click();
+    await expect(statusSwitch).toHaveAttribute("aria-checked", "false");
+    const disableResponse = waitForApiResponse(
+      page,
+      `/api/v1/system/users/${createdUser.id}/`,
+      "PUT"
+    );
+    await disableDrawer.getByRole("button", { name: /确\s*定/ }).click();
+    await disableResponse;
+    await expect(
+      userTableRow(page, lifecycleUsername).getByText("禁用", { exact: true })
+    ).toBeVisible();
+
+    await expectLoginRejected(apiRequest, lifecycleUsername, lifecyclePassword);
+
+    await userTableRow(page, lifecycleUsername)
+      .getByRole("button", { name: "删除", exact: true })
+      .click();
+    const deleteResponse = waitForApiResponse(page, "/api/v1/system/users/", "DELETE");
+    await page.getByRole("button", { name: "确定", exact: true }).click();
+    await deleteResponse;
+    await expect(page.getByText("删除成功", { exact: true }).last()).toBeVisible();
+    await expect(userTableRow(page, lifecycleUsername)).toHaveCount(0);
+
+    const deletedDetailResponse = await apiRequest.get(
+      `${apiBasePath}/system/users/${createdUser.id}/`,
+      { headers: { Authorization: `Bearer ${adminToken}` } }
+    );
+    expect(deletedDetailResponse.status()).toBe(404);
+    await expectLoginRejected(apiRequest, lifecycleUsername, lifecyclePassword);
     expect(failedApiResponses).toEqual([]);
   });
 
@@ -424,6 +581,20 @@ function menuTableRow(page: Page, name: string) {
     .first();
 }
 
+function userTableRow(page: Page, usernameToFind: string) {
+  return page
+    .locator(".ff-user-page .el-table__row")
+    .filter({ has: page.getByText(usernameToFind, { exact: true }) })
+    .first();
+}
+
+async function searchUser(page: Page, usernameToFind: string): Promise<void> {
+  await page.getByPlaceholder("用户名/昵称/手机号").fill(usernameToFind);
+  const searchResponse = waitForApiResponse(page, "/api/v1/system/users/", "GET");
+  await page.getByRole("button", { name: "搜索", exact: true }).click();
+  await searchResponse;
+}
+
 async function expandMenuTableRow(page: Page, name: string) {
   const expandButton = menuTableRow(page, name).locator(".el-table__expand-icon");
   await expect(expandButton).toBeVisible();
@@ -526,6 +697,19 @@ async function expectPageApiSuccess<T = unknown>(response: Response): Promise<T>
   const payload = (await response.json()) as { code?: number; data?: T };
   expect(payload.code).toBe(20000);
   return payload.data as T;
+}
+
+async function expectLoginRejected(
+  apiRequest: APIRequestContext,
+  loginUsername: string,
+  loginPassword: string
+): Promise<void> {
+  const response = await apiRequest.post(`${apiBasePath}/oauth/login/`, {
+    data: { username: loginUsername, password: loginPassword },
+  });
+  expect(response.status()).toBeGreaterThanOrEqual(400);
+  const payload = (await response.json()) as { code?: number };
+  expect(payload.code).not.toBe(20000);
 }
 
 function waitForApiResponse(page: Page, path: string, method: string): Promise<Response> {

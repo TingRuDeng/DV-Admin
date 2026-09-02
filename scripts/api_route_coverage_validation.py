@@ -25,6 +25,7 @@ FASTAPI_ROUTE_BASES = {
     "fastapi/app/api/v1/system/roles.py": "system/roles",
     "fastapi/app/api/v1/system/user_routes/mutation.py": "system/users",
     "fastapi/app/api/v1/system/user_routes/import_export.py": "system/users",
+    "fastapi/app/api/v1/system/user_routes/password.py": "system/users",
     "fastapi/app/api/v1/system/user_routes/query.py": "system/users",
 }
 FASTAPI_SYSTEM_PREFIXES = {

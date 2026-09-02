@@ -35,6 +35,9 @@ DEBUG = False
 REST_FRAMEWORK["DEFAULT_PERMISSION_CLASSES"] = [
     "rest_framework.permissions.AllowAny",
 ]
+if os.environ.get("RUN_REAL_BACKEND_PLAYWRIGHT") == "1":
+    # 一次 Playwright 套件会创建多个隔离登录会话；限流本身由专门测试覆盖。
+    REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["anon"] = "100/min"
 
 # 测试运行器
 TEST_RUNNER = "django.test.runner.DiscoverRunner"

@@ -1,6 +1,6 @@
 {
-  "authenticated_count": 51,
-  "endpoint_count": 52,
+  "authenticated_count": 52,
+  "endpoint_count": 53,
   "endpoints": [
     {
       "auth_required": false,
@@ -254,6 +254,29 @@
         "username",
         "name"
       ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "backend/drf_admin/apps/system/views/users.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/user_routes/password.py",
+        "frontend/src/api/system/user-api.ts"
+      ],
+      "key": "users_password_reset",
+      "method": "PUT",
+      "paginated": false,
+      "path": "/api/v1/system/users/{id}/password/reset/",
+      "permissions": [
+        "system:users:password:reset"
+      ],
+      "query_params": [],
+      "request_fields": [
+        "password",
+        "confirm_password"
+      ],
+      "response_fields": []
     },
     {
       "auth_required": true,
