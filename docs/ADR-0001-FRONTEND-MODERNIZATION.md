@@ -45,8 +45,8 @@ ai_summary:
 
 ## Key facts
 
-- 当前实现是 Vue 3、TypeScript、Element Plus、Pinia、Vite 8 和 Vue Router 4；Vite 7 + `rolldown-vite` 与 Vite 8 两个工具链阶段已完成。
-- 本 ADR 接受的是演进目标与约束；Vite 8 已落地，但 Vue Router 5 和新壳层尚未实施。
+- 当前实现是 Vue 3、TypeScript、Element Plus、Pinia、Vite 8 和 Vue Router 5；Vite 7 + `rolldown-vite`、Vite 8 与 Vue Router 5 三个基础设施阶段已完成。
+- 本 ADR 接受的是演进目标与约束；Vite 8 和 Vue Router 5 已落地，新壳层尚未实施。
 - 现有后端动态菜单、手写路由、RouteMeta、KeepAlive/cacheKey、字典、WebSocket、JWT 刷新和 Pro 组件协议属于业务核心，必须保留。
 - `frontend/package.json`、`frontend/pnpm-lock.yaml` 与 `frontend/vite.config.ts` 当前未使用 `unplugin-vue-router`，本次不引入文件路由。
 - 具体阶段、状态和验收证据只在 `docs/FRONTEND_OPTIMIZATION_BACKLOG.md` 跟踪，不另建重复 roadmap。
@@ -113,7 +113,7 @@ Vite 8 已稳定发布，并将生产构建、依赖优化和 JavaScript 转换�
 
 ### 4. Vue Router 5 独立升级
 
-Vue Router 5 在 Vite 8 稳定后单独升级，继续使用后端动态菜单和当前手写路由体系，不引入文件路由。当前仓库未使用 `unplugin-vue-router`，因此按照 [Vue Router 5 迁移指南](https://router.vuejs.org/guide/migration/v4-to-v5)，不规划业务路由重写。
+Vue Router 5 已在 Vite 8 稳定后通过独立阶段升级，继续使用后端动态菜单和当前手写路由体系，没有引入文件路由。当前仓库未使用 `unplugin-vue-router`，因此按照 [Vue Router 5 迁移指南](https://router.vuejs.org/guide/migration/v4-to-v5)，没有进行业务路由重写。
 
 ### 5. 壳层 PoC 限定范围
 
