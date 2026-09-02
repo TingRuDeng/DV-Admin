@@ -26,7 +26,7 @@ ai_summary:
 
 - **状态：** Accepted
 - **决策日期：** 2026-09-01
-- **实施状态：** 分阶段实施中；阶段状态只在跟踪入口维护
+- **实施状态：** 已完成；阶段 7 决定停止批量壳层迁移并保留现状
 - **跟踪入口：** [FRONTEND_OPTIMIZATION_BACKLOG.md](./FRONTEND_OPTIMIZATION_BACKLOG.md)
 
 ## Purpose
@@ -45,8 +45,9 @@ ai_summary:
 
 ## Key facts
 
-- 当前实现是 Vue 3、TypeScript、Element Plus、Pinia、Vite 8 和 Vue Router 5；阶段 1-6 已完成，阶段 7 扩大或停止评审尚未开始。
+- 当前实现是 Vue 3、TypeScript、Element Plus、Pinia、Vite 8 和 Vue Router 5；阶段 1-7 已完成，现代化路线已经收口。
 - 壳层 PoC 已在不改业务协议的前提下落地统一 shell token、三种布局、TagsView、AppMain 和移动端抽屉；用户管理、通知公告、个人中心已通过 Mock 与双真实后端代表页验收。
+- 阶段 7 选择停止批量壳层迁移并保留现状；剩余特殊页只在出现明确缺陷或产品需求时逐页处理，不自动延续本路线。
 - 现有后端动态菜单、手写路由、RouteMeta、KeepAlive/cacheKey、字典、WebSocket、JWT 刷新和 Pro 组件协议属于业务核心，必须保留。
 - `frontend/package.json`、`frontend/pnpm-lock.yaml` 与 `frontend/vite.config.ts` 当前未使用 `unplugin-vue-router`，本次不引入文件路由。
 - 具体阶段、状态和验收证据只在 `docs/FRONTEND_OPTIMIZATION_BACKLOG.md` 跟踪，不另建重复 roadmap。
@@ -117,7 +118,13 @@ Vue Router 5 已在 Vite 8 稳定后通过独立阶段升级，继续使用后�
 
 ### 5. 壳层 PoC 限定范围
 
-壳层 PoC 已限定在 Layout、Menu、TagsView、AppMain、主题和页面框架内完成，保留了动态菜单、RouteMeta、KeepAlive/cacheKey 和三种布局协议。用户管理、通知公告、个人中心三个代表页也已完成验收；下一阶段只依据阶段 1-6 的完整证据决定扩大或停止，不得默认进入全量重构。
+壳层 PoC 已限定在 Layout、Menu、TagsView、AppMain、主题和页面框架内完成，保留了动态菜单、RouteMeta、KeepAlive/cacheKey 和三种布局协议。用户管理、通知公告、个人中心三个代表页也已完成验收。
+
+### 6. 停止批量页面迁移
+
+阶段 7 基于阶段 1-6 的完整证据选择停止批量壳层迁移并保留现状。后台业务页已经收敛到 `PageShell`、Pro 组件和共享弹层边界；剩余未迁移页面主要是登录、错误、文档承载和 Demo 等异构特殊页，当前没有证据证明把它们批量套入同一页面骨架能带来可验证收益。
+
+这项停止决策不回退已经完成的工具链、路由、壳层或代表页成果，也不禁止后续修复具体页面问题。单页缺陷继续按普通需求独立交付；只有出现多个同类正式业务页、可复现问题和共享抽象收益时，才允许通过新 ADR 重新授权批量迁移。不得把阶段 7 完成解释为全量重构授权。
 
 ## 正面后果
 
@@ -132,6 +139,7 @@ Vue Router 5 已在 Vite 8 稳定后通过独立阶段升级，继续使用后�
 - `rolldown-vite` 和 Vite 8 的插件兼容性必须逐项验证，不能只以构建成功判断完成。
 - 壳层 PoC 需要覆盖三种布局、缓存和可访问性，工作量高于直接替换模板。
 - Pure Admin 与 Vben 的后续变化不会自动同步到本项目，参考内容必须由本项目验收标准裁决。
+- 停止批量迁移后，登录、错误、文档和 Demo 等特殊页仍保留各自布局；视觉一致性只在出现具体问题时逐页改进。
 
 ## 兼容边界
 
@@ -167,4 +175,4 @@ Vue Router 5 已在 Vite 8 稳定后通过独立阶段升级，继续使用后�
 
 ## 实施与验收
 
-七个串行阶段、状态、分支/PR 边界和阶段验收项统一记录在 [FRONTEND_OPTIMIZATION_BACKLOG.md](./FRONTEND_OPTIMIZATION_BACKLOG.md)。本 ADR 只定义决策和不可突破的边界，不复制实施状态。
+七个串行阶段已经完成；状态、分支/PR 边界、阶段验收证据和最终停止结论统一记录在 [FRONTEND_OPTIMIZATION_BACKLOG.md](./FRONTEND_OPTIMIZATION_BACKLOG.md)。本 ADR 定义长期决策与不可突破的边界，不复制阶段证据。
