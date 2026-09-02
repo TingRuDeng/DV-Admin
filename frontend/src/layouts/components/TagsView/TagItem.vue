@@ -1,14 +1,17 @@
 <template>
   <el-tag
-    h-26px
     cursor-pointer
     :closable="!tag.affix"
     :effect="isActive ? 'dark' : 'light'"
     :type="isActive ? 'primary' : 'info'"
+    role="link"
+    tabindex="0"
+    :aria-current="isActive ? 'page' : undefined"
     @click.middle="emit('middle-click', tag)"
     @contextmenu.prevent="(event: MouseEvent) => emit('open-menu', tag, event)"
     @close="emit('close', tag)"
     @click="emit('navigate', tag)"
+    @keydown.enter.space.prevent="emit('navigate', tag)"
   >
     {{ translateRouteTitle(tag.title) }}
   </el-tag>
@@ -32,41 +35,45 @@ const emit = defineEmits<{
 
 <style lang="scss" scoped>
 :deep(.el-tag) {
-  height: 28px;
-  padding: 0 12px;
-  margin: 0 4px;
-  font-size: 13px;
+  height: 30px;
+  padding: 0 11px;
+  margin: 0 3px;
+  font-size: 12px;
   font-weight: 500;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  border: 1px solid var(--ff-shell-border);
+  border-radius: 6px;
+  transition:
+    color var(--ff-duration-fast) ease,
+    background-color var(--ff-duration-fast) ease,
+    border-color var(--ff-duration-fast) ease,
+    box-shadow var(--ff-duration-fast) ease;
 
   &.el-tag--info {
-    color: #64748b;
-    background: rgba(255, 255, 255, 0.8);
-    border-color: rgba(0, 0, 0, 0.06);
+    color: var(--ff-shell-text-muted);
+    background: var(--ff-shell-surface);
 
     &:hover {
-      color: #3b82f6;
-      background: rgba(255, 255, 255, 1);
-      border-color: rgba(59, 130, 246, 0.3);
+      color: var(--el-color-primary);
+      background: var(--ff-shell-hover);
+      border-color: var(--el-color-primary-light-5);
     }
   }
 
   &.el-tag--primary {
-    color: #3b82f6;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
-    border-color: rgba(59, 130, 246, 0.3);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+    color: #ffffff;
+    background: var(--el-color-primary);
+    border-color: var(--el-color-primary);
+    box-shadow: 0 6px 14px -9px var(--el-color-primary);
 
     &:hover {
-      background: linear-gradient(
-        135deg,
-        rgba(59, 130, 246, 0.15) 0%,
-        rgba(99, 102, 241, 0.15) 100%
-      );
-      border-color: rgba(59, 130, 246, 0.5);
+      background: var(--el-color-primary-light-3);
+      border-color: var(--el-color-primary-light-3);
     }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--el-color-primary-light-5);
+    outline-offset: 1px;
   }
 
   .el-tag__close {
@@ -78,42 +85,6 @@ const emit = defineEmits<{
     &:hover {
       background: transparent;
       opacity: 1;
-    }
-  }
-}
-
-:global(html.dark) {
-  :deep(.el-tag) {
-    &.el-tag--info {
-      color: #cbd5e1;
-      background: rgba(30, 41, 59, 0.8);
-      border-color: rgba(255, 255, 255, 0.08);
-
-      &:hover {
-        color: #60a5fa;
-        background: rgba(30, 41, 59, 1);
-        border-color: rgba(96, 165, 250, 0.3);
-      }
-    }
-
-    &.el-tag--primary {
-      color: #60a5fa;
-      background: linear-gradient(
-        135deg,
-        rgba(96, 165, 250, 0.15) 0%,
-        rgba(139, 92, 246, 0.15) 100%
-      );
-      border-color: rgba(96, 165, 250, 0.3);
-      box-shadow: 0 2px 8px rgba(96, 165, 250, 0.2);
-
-      &:hover {
-        background: linear-gradient(
-          135deg,
-          rgba(96, 165, 250, 0.2) 0%,
-          rgba(139, 92, 246, 0.2) 100%
-        );
-        border-color: rgba(96, 165, 250, 0.5);
-      }
     }
   }
 }

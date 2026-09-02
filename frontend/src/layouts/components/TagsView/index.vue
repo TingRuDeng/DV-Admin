@@ -193,24 +193,20 @@ useRouteTagSync();
 
 <style lang="scss" scoped>
 .tags-container {
+  position: relative;
+  z-index: 8;
+  display: flex;
+  align-items: center;
   width: 100%;
   height: $tags-view-height;
-  padding: 0 16px;
-  background: rgba(255, 255, 255, 0.6);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  padding: 0 12px;
+  background: var(--ff-shell-surface-muted);
+  border-bottom: 1px solid var(--ff-shell-border);
+  box-shadow: var(--ff-shadow-shell);
 
   .scroll-container {
+    width: 100%;
     white-space: nowrap;
-  }
-}
-
-/* 深色模式适配 */
-html.dark {
-  .tags-container {
-    background: rgba(30, 41, 59, 0.6);
-    border-bottom-color: rgba(255, 255, 255, 0.05);
   }
 }
 </style>

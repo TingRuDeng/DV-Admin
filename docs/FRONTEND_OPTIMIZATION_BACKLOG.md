@@ -80,7 +80,7 @@ ai_summary:
 | 2. Vite 7 + `rolldown-vite` | 已完成（2026-09-01） | 只隔离验证 Rolldown 与现有插件、配置的兼容性 |
 | 3. 升级 Vite 8 | 已完成（2026-09-01） | 迁移当前项目实际命中的废弃配置，保持插件能力 |
 | 4. 升级 Vue Router 5 | 已完成（2026-09-02） | 保持动态菜单与手写路由体系，不引入文件路由 |
-| 5. 壳层 PoC | 未开始 | 只改造 Layout、Menu、TagsView、AppMain、主题和页面框架 |
+| 5. 壳层 PoC | 已完成（2026-09-02） | 只改造 Layout、Menu、TagsView、AppMain、主题和页面框架 |
 | 6. 代表页验证 | 未开始 | 验证用户管理、通知公告、个人中心三个代表页 |
 | 7. 扩大或停止评审 | 未开始 | 依据完整验收证据决定扩大壳层迁移或停止 |
 
@@ -203,6 +203,17 @@ ai_summary:
 - left/top/mix 三种布局、移动端断点、主题切换、标签页和缓存行为均通过现有测试与人工验收。
 - 现有可访问性与性能预算通过，构建/产物未触发 10% 停止条件。
 - PoC 可由单一 PR 完整回滚，不遗留新旧壳层混合协议。
+
+**阶段记录（2026-09-02）**
+
+- 基准与环境：从阶段 4 合并提交 `bf36607693f41a273024ee29bcd3dc002fcb43ff` 创建独立分支；使用 macOS 15.7.7 arm64、Node 24.20.0 和 pnpm 11.21.0。
+- 壳层实现：以 `--ff-shell-*` 语义 token 统一页面背景、导航表面、边界、文本、交互、阴影和尺寸；收敛 AppLogo、Menu、NavBar、TagsView、AppMain 与 `left/top/mix` 模式的视觉层级，保留 Element Plus 和现有业务组件。Hamburger 与移动遮罩改为可命名按钮，`top/mix` 在移动端复用现有菜单数据提供抽屉导航。
+- 兼容边界：继续复用 `useLayout`、Pinia store、后端动态菜单、RouteMeta、KeepAlive/cacheKey、TagsView 缓存和手写路由；未修改 Django/FastAPI、共享 API、菜单字段、组件路径、JWT、字典、WebSocket 或 ProTable/ProForm 协议，也未引入 Pure Admin/Vben 依赖和状态模型。
+- 测试与视觉：新增 `frontend/e2e/shell-layout.spec.ts` 并纳入 `test:e2e:smoke`，覆盖桌面 `left/top/mix`、动态用户路由、TagsView 键盘导航、KeepAlive 状态保持、刷新驱逐、关闭标签、暗色主题及三种布局的移动抽屉。`pnpm run quality` 通过（94 个测试文件、285 项测试），Mock smoke 16/16 通过；实图复核未见壳层遮挡或溢出；Django 真实 smoke 1/1（9.85s）、FastAPI 真实 smoke 1/1（11.60s）通过。
+- 构建对比：按阶段 1 相同口径串行运行三次 `/usr/bin/time -p pnpm run build`，结果为 12.07s、11.92s、12.25s，中位数为 **12.07s**；相对阶段 4 的 12.14s 改善约 **0.58%**，未触发 10% 停止条件。
+- JavaScript 产物：三次均为 2,692,598 bytes（212 个文件，约 2.57 MiB），中位数为 **2,692,598 bytes**；相对阶段 4 增加 1,510 bytes（约 **0.06%**），未触发 10% 停止条件。
+- 回滚证据：本阶段只涉及壳层组件、共享样式 token、常规 smoke 入口与权威文档；完整回退单一 PR 即可恢复原壳层，不涉及业务页面、store、API 或后端迁移。
+- 结论：未触发 ADR-0001 硬停止条件；阶段 5 验收通过。阶段 6 仍须在本 PR 合并后从最新 `master` 创建独立分支，不自动夹带到本阶段。
 
 ### 阶段 6：验证三个代表页
 

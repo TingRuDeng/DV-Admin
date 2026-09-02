@@ -1,5 +1,5 @@
 <template>
-  <section class="app-main" :style="{ height: appMainHeight }">
+  <main class="app-main" :style="{ height: appMainHeight }">
     <router-view>
       <template #default="{ Component, route }">
         <transition enter-active-class="animate__animated animate__fadeIn" mode="out-in">
@@ -14,7 +14,7 @@
     <el-backtop target=".app-main">
       <div class="i-svg:backtop w-6 h-6" />
     </el-backtop>
-  </section>
+  </main>
 </template>
 
 <script setup lang="ts">
@@ -79,7 +79,8 @@ const appMainHeight = computed(() => {
 .app-main {
   position: relative;
   overflow-y: auto;
-  background-color: var(--el-bg-color-page);
+  scrollbar-gutter: stable;
+  background: var(--ff-shell-bg);
 
   /* 布局切换动画优化 */
   &.animate__animated {
@@ -93,6 +94,12 @@ const appMainHeight = computed(() => {
 
   &.animate__fadeIn {
     animation-timing-function: ease-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(.app-main .animate__animated) {
+    animation: none !important;
   }
 }
 </style>

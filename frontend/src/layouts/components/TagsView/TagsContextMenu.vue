@@ -1,29 +1,47 @@
 <template>
   <Teleport to="body">
-    <ul v-show="visible" class="contextmenu" :style="{ left: x + 'px', top: y + 'px' }">
-      <li @click="emit('refresh')">
-        <div class="i-svg:refresh" />
-        刷新
+    <ul
+      v-show="visible"
+      class="contextmenu"
+      role="menu"
+      aria-label="标签页操作"
+      :style="{ left: x + 'px', top: y + 'px' }"
+    >
+      <li role="none">
+        <button type="button" role="menuitem" @click="emit('refresh')">
+          <div class="i-svg:refresh" aria-hidden="true" />
+          刷新
+        </button>
       </li>
-      <li v-if="!selectedTag?.affix" @click="emit('close')">
-        <div class="i-svg:close" />
-        关闭
+      <li v-if="!selectedTag?.affix" role="none">
+        <button type="button" role="menuitem" @click="emit('close')">
+          <div class="i-svg:close" aria-hidden="true" />
+          关闭
+        </button>
       </li>
-      <li @click="emit('close-other')">
-        <div class="i-svg:close_other" />
-        关闭其它
+      <li role="none">
+        <button type="button" role="menuitem" @click="emit('close-other')">
+          <div class="i-svg:close_other" aria-hidden="true" />
+          关闭其它
+        </button>
       </li>
-      <li v-if="!isFirstView" @click="emit('close-left')">
-        <div class="i-svg:close_left" />
-        关闭左侧
+      <li v-if="!isFirstView" role="none">
+        <button type="button" role="menuitem" @click="emit('close-left')">
+          <div class="i-svg:close_left" aria-hidden="true" />
+          关闭左侧
+        </button>
       </li>
-      <li v-if="!isLastView" @click="emit('close-right')">
-        <div class="i-svg:close_right" />
-        关闭右侧
+      <li v-if="!isLastView" role="none">
+        <button type="button" role="menuitem" @click="emit('close-right')">
+          <div class="i-svg:close_right" aria-hidden="true" />
+          关闭右侧
+        </button>
       </li>
-      <li @click="emit('close-all')">
-        <div class="i-svg:close_all" />
-        关闭所有
+      <li role="none">
+        <button type="button" role="menuitem" @click="emit('close-all')">
+          <div class="i-svg:close_all" aria-hidden="true" />
+          关闭所有
+        </button>
       </li>
     </ul>
   </Teleport>
@@ -57,49 +75,44 @@ const emit = defineEmits<{
   margin: 0;
   font-size: 13px;
   font-weight: 500;
-  color: #334155;
+  color: var(--ff-shell-text);
   list-style-type: none;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  background: var(--ff-shell-surface);
+  border: 1px solid var(--ff-shell-border);
+  border-radius: var(--ff-radius-shell);
+  box-shadow: var(--ff-shadow-shell-raised);
 
-  li {
+  li button {
     display: flex;
     gap: 10px;
     align-items: center;
+    width: 100%;
     padding: 10px 16px;
     margin: 0;
+    font: inherit;
+    color: inherit;
+    text-align: left;
     cursor: pointer;
-    transition: all 0.2s ease;
+    background: transparent;
+    border: 0;
+    transition:
+      color var(--ff-duration-fast) ease,
+      background-color var(--ff-duration-fast) ease;
 
-    &:hover {
-      color: #3b82f6;
-      background: rgba(59, 130, 246, 0.08);
-    }
-
-    &:first-child {
-      border-radius: 12px 12px 0 0;
-    }
-
-    &:last-child {
-      border-radius: 0 0 12px 12px;
+    &:hover,
+    &:focus-visible {
+      color: var(--el-color-primary);
+      outline: none;
+      background: var(--ff-shell-hover);
     }
   }
-}
 
-:global(html.dark) {
-  .contextmenu {
-    color: #e2e8f0;
-    background: rgba(30, 41, 59, 0.95);
-    border-color: rgba(255, 255, 255, 0.08);
+  li:first-child button {
+    border-radius: var(--ff-radius-shell) var(--ff-radius-shell) 0 0;
+  }
 
-    li:hover {
-      color: #60a5fa;
-      background: rgba(96, 165, 250, 0.15);
-    }
+  li:last-child button {
+    border-radius: 0 0 var(--ff-radius-shell) var(--ff-radius-shell);
   }
 }
 </style>
