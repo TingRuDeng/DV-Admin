@@ -1,155 +1,47 @@
 <template>
-  <div class="sidebar-logo-container" :class="{ collapse: collapse }">
-    <transition name="sidebarLogoFade">
-      <router-link v-if="collapse" key="collapse" class="sidebar-logo-link" to="/">
-        <div class="cyber-logo-mini">
-          <div class="logo-glow"></div>
-          <div class="logo-glass">
-            <span class="logo-letter">{{ logoText }}</span>
-          </div>
-        </div>
-      </router-link>
-
-      <router-link v-else key="expand" class="sidebar-logo-link" to="/">
-        <div class="cyber-logo-mini">
-          <div class="logo-glow"></div>
-          <div class="logo-glass">
-            <span class="logo-letter">{{ logoTextFull }}</span>
-          </div>
-        </div>
-        <h1 class="sidebar-title">{{ platformName }}</h1>
-      </router-link>
-    </transition>
+  <div class="sidebar-logo-container" :class="{ collapse }">
+    <router-link class="sidebar-logo-link" to="/" :aria-label="platformName">
+      <span class="sidebar-logo-mark" aria-hidden="true">{{ logoMark }}</span>
+      <transition name="sidebar-logo-fade">
+        <span v-if="!collapse" class="sidebar-title">{{ platformName }}</span>
+      </transition>
+    </router-link>
   </div>
 </template>
 
-<script lang="ts" setup>
-defineProps({
-  collapse: {
-    type: Boolean,
-    required: true,
-  },
-});
+<script setup lang="ts">
+defineProps<{
+  collapse: boolean;
+}>();
 
-// 从环境变量读取配置，提供默认值
-const logoTextFull = import.meta.env.VITE_APP_LOGO_TEXT || "DV";
-// 折叠时自动取首字母
-const logoText = logoTextFull.charAt(0);
-// 平台名称使用 VITE_APP_TITLE，与页面标题统一
+const logoText = import.meta.env.VITE_APP_LOGO_TEXT || "DV";
+const logoMark = logoText.slice(0, 2).toUpperCase();
 const platformName = import.meta.env.VITE_APP_TITLE || "DV-Admin";
 </script>
 
 <style lang="scss" scoped>
-/* ============================================
-   左上角：迷你全息玻璃态 Logo
-   ============================================ */
-.cyber-logo-mini {
-  position: relative;
+.sidebar-logo-link {
   display: flex;
+  gap: 10px;
   align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  margin-right: 12px;
-
-  /* 底层呼吸光晕 */
-  .logo-glow {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-    border-radius: 10px; /* 柔和的小圆角 */
-    opacity: 0.8;
-    filter: blur(6px);
-    transform: rotate(-15deg);
-    animation: pulseGlowMini 4s ease-in-out infinite alternate;
-  }
-
-  /* 顶层玻璃晶体 */
-  .logo-glass {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.4) 0%,
-      rgba(255, 255, 255, 0.05) 100%
-    );
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    border-radius: 10px;
-    box-shadow:
-      inset 0 0 8px rgba(255, 255, 255, 0.3),
-      0 4px 12px rgba(0, 0, 0, 0.05);
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
-
-    /* 内部金属白字 */
-    .logo-letter {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 14px;
-      font-weight: 900;
-      background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-  }
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  color: var(--sidebar-logo-text-color);
+  text-decoration: none;
 }
 
-@keyframes pulseGlowMini {
-  0% {
-    opacity: 0.6;
-    transform: rotate(-15deg) scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: rotate(-5deg) scale(1.05);
-  }
-}
-
-/* ============================================
-   赛博渐变平台标题
-   ============================================ */
-.sidebar-title {
-  margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  font-size: 18px; /* 根据实际视觉微调 */
-  font-weight: 800;
-  letter-spacing: 0.5px;
-
-  /* 防止在折叠动画时闪烁 */
-  white-space: nowrap;
-
-  /* 类似钛金属的冷蓝灰渐变 */
-  background: linear-gradient(135deg, #0f172a 0%, #3b82f6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* ============================================
-   Logo 容器和链接样式
-   ============================================ */
 .sidebar-logo-container {
   display: flex;
   align-items: center;
   width: 100%;
   height: $navbar-height;
-  padding: 0 16px;
-  background-color: $sidebar-logo-background;
-  transition: all 0.3s ease;
-
-  .sidebar-logo-link {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    text-decoration: none;
-  }
+  padding: 0 14px;
+  background: var(--sidebar-logo-background);
+  border-bottom: 1px solid var(--ff-shell-border);
+  transition:
+    width var(--ff-duration-base) var(--ff-ease-standard),
+    padding var(--ff-duration-base) var(--ff-ease-standard);
 
   &.collapse {
     justify-content: center;
@@ -157,74 +49,68 @@ const platformName = import.meta.env.VITE_APP_TITLE || "DV-Admin";
 
     .sidebar-logo-link {
       justify-content: center;
-      width: 44px;
-      height: 44px;
-    }
-
-    .cyber-logo-mini {
-      margin-right: 0;
-
-      .logo-glow {
-        transform: none;
-      }
     }
   }
 }
 
-/* 过渡动画 */
-.sidebarLogoFade-enter-active,
-.sidebarLogoFade-leave-active {
-  transition: opacity 0.3s;
+.sidebar-logo-mark {
+  display: inline-flex;
+  flex: 0 0 32px;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--el-color-primary), var(--el-color-primary-light-3));
+  border-radius: 9px;
+  box-shadow: 0 6px 14px -8px var(--el-color-primary);
 }
 
-.sidebarLogoFade-enter-from,
-.sidebarLogoFade-leave-to {
+.sidebar-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ff-shell-text);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.sidebar-logo-fade-enter-active,
+.sidebar-logo-fade-leave-active {
+  transition: opacity var(--ff-duration-fast) ease;
+}
+
+.sidebar-logo-fade-enter-from,
+.sidebar-logo-fade-leave-to {
   opacity: 0;
-}
-
-/* ============================================
-   全局深色模式适配 (Dark Mode)
-   ============================================ */
-:global(html.dark) .sidebar-title {
-  /* 深色模式下的文字亮蓝白渐变 */
-  background: linear-gradient(135deg, #f8fafc 0%, #60a5fa 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-:global(html.dark) .cyber-logo-mini .logo-glass {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.02) 100%);
-  border-color: rgba(255, 255, 255, 0.2);
 }
 </style>
 
 <style lang="scss">
-// 顶部布局和混合布局的特殊处理
 .layout-top,
 .layout-mix {
   .sidebar-logo-container {
-    background-color: transparent !important;
+    background: transparent;
+    border-bottom: 0;
   }
 }
 
-// 宽屏时：openSidebar 状态下显示完整Logo+文字
 .openSidebar {
   &.layout-top .layout__header-left .sidebar-logo-container,
   &.layout-mix .layout__header-logo .sidebar-logo-container {
-    width: $sidebar-width; // 210px，显示logo+文字
+    width: $sidebar-width;
   }
 }
 
-// 窄屏时：hideSidebar 状态下只显示Logo图标
 .hideSidebar {
   &.layout-top .layout__header-left .sidebar-logo-container,
   &.layout-mix .layout__header-logo .sidebar-logo-container {
-    width: $sidebar-width-collapsed; // 54px，只显示logo
-  }
-
-  // 隐藏文字，只显示图标
-  .sidebar-logo-container .sidebar-title {
-    display: none;
+    width: $sidebar-width-collapsed;
   }
 }
 </style>

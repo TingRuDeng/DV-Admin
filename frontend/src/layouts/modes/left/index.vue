@@ -1,7 +1,12 @@
 <template>
   <BaseLayout>
     <!-- 左侧菜单栏 -->
-    <div class="layout__sidebar" :class="{ 'layout__sidebar--collapsed': !isSidebarOpen }">
+    <div
+      class="layout__sidebar"
+      :class="{ 'layout__sidebar--collapsed': !isSidebarOpen }"
+      :aria-hidden="isMobile && !isSidebarOpen ? 'true' : undefined"
+      :inert="isMobile && !isSidebarOpen"
+    >
       <div :class="{ 'has-logo': isShowLogo }" class="layout-sidebar">
         <!-- Logo -->
         <AppLogo v-if="isShowLogo" :collapse="!isSidebarOpen" />
@@ -38,7 +43,7 @@ import AppMain from "../../components/AppMain/index.vue";
 import BasicMenu from "../../components/Menu/BasicMenu.vue";
 
 // 布局相关参数
-const { isShowTagsView, isShowLogo, isSidebarOpen } = useLayout();
+const { isShowTagsView, isShowLogo, isSidebarOpen, isMobile } = useLayout();
 
 // 菜单相关
 const { routes } = useLayoutMenu();
@@ -53,8 +58,10 @@ const { routes } = useLayoutMenu();
     left: 0;
     z-index: 999;
     width: $sidebar-width;
-    background-color: $menu-background;
-    transition: width 0.28s;
+    background: var(--ff-shell-surface);
+    border-right: 1px solid var(--ff-shell-border);
+    box-shadow: var(--ff-shadow-shell);
+    transition: width var(--ff-duration-base) var(--ff-ease-standard);
 
     &--collapsed {
       width: $sidebar-width-collapsed;
@@ -63,8 +70,8 @@ const { routes } = useLayoutMenu();
     .layout-sidebar {
       position: relative;
       height: 100%;
-      background-color: var(--menu-background);
-      transition: width 0.28s;
+      background: transparent;
+      transition: width var(--ff-duration-base) var(--ff-ease-standard);
 
       &.has-logo {
         .el-scrollbar {
@@ -83,7 +90,8 @@ const { routes } = useLayoutMenu();
     height: 100%;
     margin-left: $sidebar-width;
     overflow-y: auto;
-    transition: margin-left 0.28s;
+    background: var(--ff-shell-bg);
+    transition: margin-left var(--ff-duration-base) var(--ff-ease-standard);
 
     &--collapsed {
       margin-left: $sidebar-width-collapsed;
@@ -102,8 +110,9 @@ const { routes } = useLayoutMenu();
 .mobile {
   .layout__sidebar {
     width: $sidebar-width !important;
+    box-shadow: var(--ff-shadow-shell-raised);
     transition:
-      transform 0.28s,
+      transform var(--ff-duration-base) var(--ff-ease-standard),
       width 0s;
   }
 
