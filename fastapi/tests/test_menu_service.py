@@ -7,10 +7,39 @@ import uuid
 import pytest
 import pytest_asyncio
 
+from app.core.cache import CacheKeys, cache_service
 from app.core.exceptions import NotFound
-from app.db.models.system import Permissions
+from app.db.models.oauth import Users
+from app.db.models.system import Permissions, Roles
 from app.schemas.system import MenuCreate, MenuUpdate
 from app.services.system.menu_service import menu_service
+
+
+async def assign_permission_to_user(permission: Permissions) -> Users:
+    """创建通过角色持有指定权限的用户。"""
+    role = await Roles.create(
+        name=f"菜单缓存角色_{uuid.uuid4().hex[:6]}",
+        code=f"menu-cache-{uuid.uuid4().hex[:8]}",
+        status=1,
+    )
+    user = await Users.create(
+        username=f"菜单缓存用户_{uuid.uuid4().hex[:8]}",
+        password="not-used",
+        name="菜单缓存用户",
+        is_active=1,
+    )
+    await role.permissions.add(permission)
+    await user.roles.add(role)
+    return user
+
+
+async def seed_user_access_cache(user_id: int) -> tuple[str, str]:
+    """写入可识别的旧权限与旧菜单缓存。"""
+    permission_key = CacheKeys.format_key(CacheKeys.USER_PERMISSIONS, user_id=user_id)
+    menu_key = CacheKeys.format_key(CacheKeys.USER_MENUS, user_id=user_id)
+    await cache_service.set(permission_key, ["stale:permission"])
+    await cache_service.set(menu_key, [{"path": "/stale"}])
+    return permission_key, menu_key
 
 
 @pytest_asyncio.fixture
@@ -72,9 +101,20 @@ class TestMenuServiceGetOptions:
 
     @pytest.mark.asyncio
     async def test_get_options_basic(self, db, test_menus_for_service):
-        """测试基本获取菜单选项"""
+        """菜单选项必须匹配前端 ElTreeSelect 的 id/label/children 契约。"""
         result = await menu_service.get_options()
-        assert len(result) >= 1
+        catalog = next(
+            item for item in result if item["id"] == test_menus_for_service["catalog"].id
+        )
+        menu = next(
+            item
+            for item in catalog["children"]
+            if item["id"] == test_menus_for_service["menu"].id
+        )
+
+        assert catalog["label"] == test_menus_for_service["catalog"].name
+        assert menu["children"][0]["id"] == test_menus_for_service["button"].id
+        assert "value" not in catalog
 
 
 class TestMenuServiceGet:
@@ -155,6 +195,18 @@ class TestMenuServiceUpdate:
         assert result.name == menu_in.name
 
     @pytest.mark.asyncio
+    async def test_update_clears_assigned_user_access_cache(self, db, test_menus_for_service):
+        """菜单变更后重新登录必须读取新动态路由。"""
+        menu = test_menus_for_service["menu"]
+        user = await assign_permission_to_user(menu)
+        permission_key, menu_key = await seed_user_access_cache(user.id)
+
+        await menu_service.update(menu.id, MenuUpdate(name="缓存已更新菜单"))
+
+        assert await cache_service.get(permission_key) is None
+        assert await cache_service.get(menu_key) is None
+
+    @pytest.mark.asyncio
     async def test_update_nonexistent(self, db):
         """测试更新不存在的菜单"""
         menu_in = MenuUpdate(name="更新菜单")
@@ -176,6 +228,22 @@ class TestMenuServiceDelete:
         await menu_service.delete(menu.id)
         exists = await Permissions.filter(id=menu.id).exists()
         assert not exists
+
+    @pytest.mark.asyncio
+    async def test_delete_clears_assigned_user_access_cache(self, db):
+        """权限对象删除后不得继续返回旧按钮权限或菜单。"""
+        permission = await Permissions.create(
+            name=f"待删除权限_{uuid.uuid4().hex[:6]}",
+            type="BUTTON",
+            perm="delete:permission:test",
+        )
+        user = await assign_permission_to_user(permission)
+        permission_key, menu_key = await seed_user_access_cache(user.id)
+
+        await menu_service.delete(permission.id)
+
+        assert await cache_service.get(permission_key) is None
+        assert await cache_service.get(menu_key) is None
 
     @pytest.mark.asyncio
     async def test_delete_nonexistent(self, db):

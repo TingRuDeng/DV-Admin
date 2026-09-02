@@ -198,7 +198,7 @@ export const handlers = [
       ctx.json({
         code: 20000,
         msg: "success",
-        data: [{ label: "系统管理", value: 1 }],
+        data: [{ id: 1, label: "系统管理" }],
       })
     );
   }),
