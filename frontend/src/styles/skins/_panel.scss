@@ -43,3 +43,20 @@ html.dark .ff-side-panel {
   background: var(--ff-color-bg-panel, #111827);
   background-color: var(--ff-color-bg-panel, #111827);
 }
+
+@media (max-width: 767px) {
+  .ff-filter-panel,
+  .ff-data-panel,
+  .ff-side-panel {
+    padding: 1rem;
+  }
+
+  .ff-data-panel__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ff-data-panel__actions {
+    min-width: 0;
+  }
+}

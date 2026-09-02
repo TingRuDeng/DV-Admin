@@ -54,3 +54,25 @@ html.dark {
     border-top-color: #334155;
   }
 }
+
+@media (max-width: 767px) {
+  .ff-dialog,
+  .ff-dialog.el-dialog {
+    width: calc(100vw - 24px) !important;
+    max-width: none;
+    margin: 12px auto;
+  }
+
+  .ff-dialog .el-dialog__header,
+  .ff-dialog.el-dialog .el-dialog__header,
+  .ff-dialog .el-dialog__body,
+  .ff-dialog .el-dialog__footer {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .ff-dialog .el-dialog__body {
+    max-height: calc(100vh - 160px);
+    overflow-y: auto;
+  }
+}
