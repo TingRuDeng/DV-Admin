@@ -282,8 +282,10 @@ class TestNoticeServiceDelete:
     @pytest.mark.asyncio
     async def test_delete_published_notice(self, db, test_published_notice):
         """测试删除已发布通知。"""
-        with pytest.raises(ValidationError):
-            await notice_service.delete_by_ids([test_published_notice.id])
+        result = await notice_service.delete_by_ids([test_published_notice.id])
+        assert result.status == "failed"
+        assert result.failures[0].error_code == "PUBLISHED_OBJECT"
+        assert result.failures[0].retryable is True
 
     @pytest.mark.asyncio
     async def test_delete_rejects_notice_outside_publisher_dept_scope(self, db):

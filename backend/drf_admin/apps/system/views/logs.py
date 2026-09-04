@@ -95,6 +95,8 @@ class LogPageAPIView(LogPermissionAPIView):
         operation = params.get("operation")
         username = params.get("username")
         request_id = params.get("request_id")
+        object_type = params.get("object_type")
+        object_id = params.get("object_id")
         method = params.get("method")
         status_param = params.get("status")
         start_time = params.get("start_time")
@@ -113,6 +115,10 @@ class LogPageAPIView(LogPermissionAPIView):
             queryset = queryset.filter(username__icontains=username)
         if request_id:
             queryset = queryset.filter(request_id=request_id)
+        if object_type:
+            queryset = queryset.filter(object_type=object_type)
+        if object_id:
+            queryset = queryset.filter(object_id=str(object_id))
         if method:
             queryset = queryset.filter(method=method.upper())
         if status_value is not None:

@@ -1,4 +1,9 @@
 import request from "@/utils/request";
+import {
+  batchDeleteRequest,
+  type BatchDeleteObjectId,
+  type BatchDeleteResult,
+} from "./batch-delete";
 
 const NOTICE_BASE_URL = "/api/system/notices";
 
@@ -23,9 +28,28 @@ const NoticeAPI = {
   update(id: string, data: NoticeForm) {
     return request({ url: `${NOTICE_BASE_URL}/${id}`, method: "put", data });
   },
-  /** 批量删除通知公告，多个以英文逗号(,)分割 */
-  deleteByIds(ids: string) {
-    return request({ url: `${NOTICE_BASE_URL}/${ids}`, method: "delete" });
+  /** 批量删除通知公告并返回逐条处理结果。 */
+  deleteByIds(ids: readonly BatchDeleteObjectId[]) {
+    return request<unknown, BatchDeleteResult>({
+      url: `${NOTICE_BASE_URL}/`,
+      method: "delete",
+      data: batchDeleteRequest(ids),
+    });
+  },
+  /** 兼容旧版逗号分隔路径，新的页面请求统一使用 JSON body。 */
+  deleteByLegacyPath(ids: string) {
+    return request<unknown, BatchDeleteResult>({
+      url: `${NOTICE_BASE_URL}/${ids}`,
+      method: "delete",
+    });
+  },
+  /** 重试单个或多个可重试的通知删除失败项。 */
+  retryBatchDelete(ids: readonly BatchDeleteObjectId[]) {
+    return request<unknown, BatchDeleteResult>({
+      url: `${NOTICE_BASE_URL}/batch-delete/retry/`,
+      method: "post",
+      data: batchDeleteRequest(ids),
+    });
   },
   /** 发布通知 */
   publish(id: string) {

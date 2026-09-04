@@ -2,7 +2,15 @@
 系统管理 Schema 兼容导出入口
 """
 
-from app.schemas.system_common import BulkDelete, EncodedFile, UserImportResult
+from app.schemas.system_common import (
+    BatchDeleteFailure,
+    BatchDeleteRequest,
+    BatchDeleteResult,
+    BatchDeleteSuccessItem,
+    BulkDelete,
+    EncodedFile,
+    UserImportResult,
+)
 from app.schemas.system_dept import DeptCreate, DeptOut, DeptTree, DeptUpdate
 from app.schemas.system_dict import (
     DictDataCreate,
@@ -43,6 +51,10 @@ from app.schemas.system_user import (
 
 __all__ = [
     "BulkDelete",
+    "BatchDeleteFailure",
+    "BatchDeleteRequest",
+    "BatchDeleteResult",
+    "BatchDeleteSuccessItem",
     "DeptCreate",
     "DeptOut",
     "DeptTree",

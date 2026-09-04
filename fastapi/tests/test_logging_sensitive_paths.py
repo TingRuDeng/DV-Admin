@@ -32,6 +32,10 @@ def make_request(
 ) -> Request:
     """构造最小 HTTP 请求对象。"""
 
+    request_headers = list(headers or [])
+    if body and not any(name.lower() == b"content-length" for name, _value in request_headers):
+        request_headers.append((b"content-length", str(len(body)).encode()))
+
     async def receive():
         return {"type": "http.request", "body": body, "more_body": False}
 
@@ -42,7 +46,7 @@ def make_request(
             "path": path,
             "raw_path": path.encode(),
             "query_string": b"",
-            "headers": headers or [],
+            "headers": request_headers,
             "client": ("127.0.0.1", 12345),
             "server": ("testserver", 80),
             "scheme": "http",
@@ -116,6 +120,29 @@ async def test_excluded_path_still_returns_request_id_header():
 
     assert response.headers["X-Request-ID"]
     assert len(response.headers["X-Request-ID"]) <= MAX_REQUEST_ID_LENGTH
+
+
+@pytest.mark.asyncio
+async def test_structured_context_failure_does_not_fail_successful_request(monkeypatch):
+    """附加审计上下文构造失败时，原本成功的业务响应仍应返回。"""
+    middleware = RequestLoggingMiddleware(lambda _scope, _receive, _send: None)
+    request = make_request("/api/v1/demo")
+
+    async def fail_build_context(_request):
+        raise RuntimeError("context unavailable")
+
+    monkeypatch.setattr(
+        "app.middleware.request_logging.middleware.build_request_context",
+        fail_build_context,
+    )
+
+    async def call_next(_request: Request) -> Response:
+        return Response("ok")
+
+    response = await middleware.dispatch(request, call_next)
+
+    assert response.status_code == 200
+    assert response.body == b"ok"
 
 
 def test_get_client_ip_prefers_forwarded_for_header():

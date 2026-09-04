@@ -4,7 +4,7 @@
 
 from app.db.models.system import OperationLog
 from app.schemas.system import OperationLogOut
-from app.services.system.field_permission import mask_ip, mask_payload
+from app.services.system.field_permission import mask_ip, mask_log_request_context, mask_payload
 
 
 def operation_log_to_out(log: OperationLog, can_view_plain: bool = True) -> OperationLogOut:
@@ -12,6 +12,9 @@ def operation_log_to_out(log: OperationLog, can_view_plain: bool = True) -> Oper
     request_body = _visible_text(log.request_body, can_view_plain, mask_payload)
     response_body = _visible_text(log.response_body, can_view_plain, mask_payload)
     ip = _visible_text(log.ip, can_view_plain, mask_ip)
+    request_context = log.request_context or {}
+    if not can_view_plain:
+        request_context = mask_log_request_context(request_context)
     return OperationLogOut(
         id=log.id,
         user_id=log.user_id,
@@ -21,7 +24,10 @@ def operation_log_to_out(log: OperationLog, can_view_plain: bool = True) -> Oper
         method=log.method,
         path=log.path,
         request_id=log.request_id,
+        object_type=log.object_type,
+        object_id=log.object_id,
         query_params=log.query_params,
+        request_context=request_context,
         request_body=request_body,
         response_status=log.response_status,
         response_body=response_body,
