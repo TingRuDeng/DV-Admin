@@ -1,5 +1,7 @@
 """字段读取权限与脱敏规则。"""
 
+from typing import Any
+
 from app.db.models.oauth import Users
 
 USER_FIELD_PLAIN_PERMISSION = "system:users:field:plain"
@@ -9,6 +11,9 @@ NOTICE_TARGET_WRITE_PERMISSION = "system:notices:target:write"
 NOTICE_TARGET_PLAIN_PERMISSION = "system:notices:target:plain"
 NOTICE_CONTENT_PLAIN_PERMISSION = "system:notices:content:plain"
 MASKED_TEXT = "[已脱敏]"
+
+_LOG_CONTEXT_VALUE_KEYS = ("body", "query", "pathParams", "path_params")
+_SAFE_LOG_CONTEXT_HEADERS = frozenset({"content-type", "accept", "user-agent", "x-request-id"})
 
 
 async def can_view_plain_fields(
@@ -134,3 +139,21 @@ def filter_notice_content(content: str, can_view_plain: bool) -> str:
     if can_view_plain:
         return content
     return MASKED_TEXT if content else content
+
+
+def mask_log_request_context(value: Any) -> dict[str, Any]:
+    """隐藏结构化请求中的可逆输入值，保留审计定位所需元数据。"""
+    if not isinstance(value, dict):
+        return {}
+    context = dict(value)
+    for key in _LOG_CONTEXT_VALUE_KEYS:
+        if context.get(key) not in (None, "", {}, []):
+            context[key] = MASKED_TEXT
+
+    headers = context.get("selectedHeaders")
+    if isinstance(headers, dict):
+        context["selectedHeaders"] = {
+            key: header_value if key.lower() in _SAFE_LOG_CONTEXT_HEADERS else MASKED_TEXT
+            for key, header_value in headers.items()
+        }
+    return context

@@ -1,4 +1,9 @@
 import request from "@/utils/request";
+import {
+  batchDeleteRequest,
+  type BatchDeleteObjectId,
+  type BatchDeleteResult,
+} from "./batch-delete";
 
 const ROLE_BASE_URL = "/api/system/roles";
 
@@ -54,12 +59,21 @@ const RoleAPI = {
   update(id: string, data: RoleForm) {
     return request({ url: `${ROLE_BASE_URL}/${id}/`, method: "put", data });
   },
-  /** 批量删除角色，多个以英文逗号(,)分割 */
-  deleteByIds(ids: number[]) {
-    return request({
+  /** 批量删除角色并返回逐条处理结果。 */
+  deleteByIds(ids: readonly BatchDeleteObjectId[]) {
+    return request<unknown, BatchDeleteResult>({
       url: `${ROLE_BASE_URL}/`,
       method: "delete",
-      data: { ids },
+      data: batchDeleteRequest(ids),
+    });
+  },
+
+  /** 重试单个或多个可重试的角色删除失败项。 */
+  retryBatchDelete(ids: readonly BatchDeleteObjectId[]) {
+    return request<unknown, BatchDeleteResult>({
+      url: `${ROLE_BASE_URL}/batch-delete/retry/`,
+      method: "post",
+      data: batchDeleteRequest(ids),
     });
   },
 };

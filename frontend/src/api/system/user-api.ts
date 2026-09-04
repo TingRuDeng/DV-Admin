@@ -1,4 +1,9 @@
 import request from "@/utils/request";
+import {
+  batchDeleteRequest,
+  type BatchDeleteObjectId,
+  type BatchDeleteResult,
+} from "./batch-delete";
 
 const USER_BASE_URL = "/api/system/users";
 
@@ -74,16 +79,21 @@ const UserAPI = {
     });
   },
 
-  /**
-   * 批量删除用户，多个以英文逗号(,)分割
-   *
-   * @param ids 用户ID字符串，多个以英文逗号(,)分割
-   */
-  deleteByIds(ids: Array<string | number>) {
-    return request({
+  /** 批量删除用户并返回逐条处理结果。 */
+  deleteByIds(ids: readonly BatchDeleteObjectId[]) {
+    return request<unknown, BatchDeleteResult>({
       url: `${USER_BASE_URL}/`,
       method: "delete",
-      data: { ids },
+      data: batchDeleteRequest(ids),
+    });
+  },
+
+  /** 重试单个或多个可重试的用户删除失败项。 */
+  retryBatchDelete(ids: readonly BatchDeleteObjectId[]) {
+    return request<unknown, BatchDeleteResult>({
+      url: `${USER_BASE_URL}/batch-delete/retry/`,
+      method: "post",
+      data: batchDeleteRequest(ids),
     });
   },
 

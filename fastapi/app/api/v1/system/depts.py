@@ -9,6 +9,7 @@ from app.api.deps import require_permissions
 from app.schemas.base import ResponseModel
 from app.schemas.system import BulkDelete, DeptCreate, DeptOut, DeptTree, DeptUpdate
 from app.services.system.dept_service import dept_service
+from app.utils.audit import set_audit_context, set_audit_object
 
 router = APIRouter()
 
@@ -53,7 +54,19 @@ async def create_dept(
     current_user=require_permissions("system:departments:add"),
 ):
     """创建部门"""
+    set_audit_object(
+        request,
+        "system.departments",
+        "",
+        changed_fields=list(dept_data.model_dump(exclude_unset=True)),
+    )
     dept = await dept_service.create(dept_data)
+    set_audit_object(
+        request,
+        "system.departments",
+        dept.id,
+        changed_fields=list(dept_data.model_dump(exclude_unset=True)),
+    )
     return ResponseModel.success(data=dept, message="创建成功")
 
 
@@ -65,6 +78,12 @@ async def update_dept(
     current_user=require_permissions("system:departments:edit"),
 ):
     """更新部门"""
+    set_audit_object(
+        request,
+        "system.departments",
+        dept_id,
+        changed_fields=list(dept_data.model_dump(exclude_unset=True)),
+    )
     dept = await dept_service.update(dept_id, dept_data)
     return ResponseModel.success(data=dept, message="更新成功")
 
@@ -76,6 +95,7 @@ async def delete_dept(
     current_user=require_permissions("system:departments:delete"),
 ):
     """删除部门"""
+    set_audit_object(request, "system.departments", dept_id)
     await dept_service.delete(dept_id)
     return ResponseModel.success(message="删除成功")
 
@@ -87,5 +107,11 @@ async def bulk_delete_depts(
     current_user=require_permissions("system:departments:delete"),
 ):
     """批量删除部门"""
+    set_audit_object(request, "system.departments", "", changed_fields=["ids"])
+    set_audit_context(
+        request,
+        batch_count=len(delete_req.ids),
+        batch_ids=[str(item) for item in delete_req.ids[:100]],
+    )
     await dept_service.bulk_delete(delete_req.ids)
     return ResponseModel.success(message="删除成功")

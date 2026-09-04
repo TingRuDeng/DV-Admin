@@ -154,12 +154,14 @@ uv run python manage.py migrate --env dev
 - FastAPI 使用 Tortoise ORM 1.1.7 内置迁移能力，迁移配置位于 `app.db.migration_config.TORTOISE_ORM`
 - `app/db/migrations/0001_initial.py` 是当前 schema 基线
 - 新增非空列时，仅设置 ORM `default` 不一定会生成数据库默认值；已有数据的 SQLite 升级会报 `Cannot add a NOT NULL column with default value NULL`
+- 当前 MySQL 8 迁移目标不接受 JSON 列的普通数据库默认值；JSON 非空列应先按可空列新增、回填既有行，再收紧为非空，并仅在 ORM 层保留 `default`
+- Tortoise ORM 1.1.7 在 SQLite 上通过重建表执行 `AlterField`，重建后不会自动恢复已有普通索引；迁移必须显式恢复并由增量校验确认索引仍存在
 - Tortoise 迁移写入器要求 `Meta.indexes` 使用 `Index` 对象；元组写法不能可靠生成迁移
 - SQLite 原子迁移按 ASCII 分号拆分 SQL；字段 description 中不能包含 ASCII `;`，中文说明应使用全角 `；`
 
 **解决方案：**
 1. 模型变更同时生成并提交迁移，运行 `make -C fastapi migration-check`
-2. 新增非空列必须用带既有数据的增量测试验证；需要数据库默认值时显式设置 `db_default`
+2. 新增非空列必须用带既有数据的增量测试验证；非 JSON 字段确需数据库默认值时显式设置 `db_default`，JSON 字段使用“可空新增 → 回填 → 收紧非空”迁移
 3. 全新数据库直接执行 `migrate`
 4. 既有库接管前先备份并核对 schema，确认一致后仅执行一次 `migrate --fake`
 5. CI 同时保留 SQLite 全路径校验，以及 MySQL 8 空库与增量迁移 smoke
@@ -556,6 +558,27 @@ async def test_async_function():
 1. 新增必填环境变量时，同时检查 `backend/.env.example`、`backend/.env.test` 和 `.github/workflows/quality-gates.yml`
 2. 对 settings 层新增回归测试，确保默认值不会退回弱口令或已弃用配置
 3. 修改环境变量后至少运行 `cd backend && uv run pytest`，确认全量测试会收集到 settings 回归测试
+
+---
+
+### 陷阱 20.1：npm 审计专用 POST 超时不等于漏洞门禁结果
+
+**问题描述：**
+`pnpm audit --prod --json` 访问 npm advisory bulk 接口时，可能已经完成连接和请求体
+上传，却在服务端迟迟没有返回响应。普通 registry GET 正常并不能证明这个 POST 接口
+可用；pnpm 自身的重试也可能耗尽项目脚本的总超时预算。
+
+**已验证事实：**
+- `scripts/validate_dependency_audit.py` 默认对审计命令设置 120 秒总超时
+- 空请求体和单包请求体均可复现 audit POST 超时，因此不能归因于项目依赖树大小
+- 最近一次成功报告中的 high/critical 为 0，超时本身不是漏洞发现结果
+
+**解决方案：**
+1. 默认仍让网络超时使审计失败，避免把外部服务故障静默当成安全通过
+2. 确需临时解除 PR 阻塞时，使用独立的限期网络例外配置；只允许明确的超时状态码被
+   当前 PR workflow 转换为带警告的放行
+3. 例外必须包含生效日、到期日、责任人、原因和追踪项；到期后自动恢复阻断
+4. 生产发布前重新运行实时审计，不得使用网络例外替代发布门禁
 
 ---
 

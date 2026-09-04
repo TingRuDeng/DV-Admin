@@ -30,6 +30,8 @@ router = APIRouter()
 - `username` (可选): 用户名，模糊匹配
 - `operation` (可选): 操作描述，模糊匹配
 - `requestId` (可选): 请求 ID，精确匹配
+- `objectType` (可选): 业务对象类型，精确匹配（如 system.users）
+- `objectId` (可选): 业务对象 ID，精确匹配
 - `method` (可选): 请求方法（GET/POST/PUT/DELETE/PATCH）
 - `status` (可选): 状态（1: 成功, 0: 失败）
 - `startTime` (可选): 开始时间，ISO 8601 格式
@@ -50,6 +52,8 @@ async def get_log_page(
         max_length=64,
         description="请求 ID（精确匹配）",
     ),
+    object_type: str | None = Query(None, alias="objectType", max_length=100, description="业务对象类型"),
+    object_id: str | None = Query(None, alias="objectId", max_length=255, description="业务对象ID"),
     method: str | None = Query(None, description="请求方法"),
     status: int | None = Query(None, description="状态"),
     start_time: datetime | None = Query(None, alias="startTime", description="开始时间"),
@@ -62,6 +66,8 @@ async def get_log_page(
         username=username,
         operation=operation,
         request_id=request_id,
+        object_type=object_type,
+        object_id=object_id,
         method=method,
         status=status,
         start_time=start_time,

@@ -34,7 +34,7 @@ class DjangoRuntimeNoticeWriteApiContractTestCase(TestCase):
         self.assert_notice_update_contract(contracts["notices_update"], notice_id)
         self.assert_notice_publish_contract(contracts["notices_publish"], notice_id)
         self.assert_notice_revoke_contract(contracts["notices_revoke"], notice_id)
-        self.assert_notice_delete_contract(contracts["notices_delete"], notice_id)
+        self.assert_notice_delete_contract(contracts, notice_id)
 
     def unique_title(self) -> str:
         """生成唯一标题，避免重复运行时被历史数据干扰。"""
@@ -80,11 +80,32 @@ class DjangoRuntimeNoticeWriteApiContractTestCase(TestCase):
         response = self.client.put(contract.path.replace("{id}", str(notice_id)), format="json")
         assert_success_payload(response, contract)
 
-    def assert_notice_delete_contract(self, contract, notice_id: int) -> None:
-        """验证通知删除接口使用共享路径中的逗号分隔 ID。"""
-        response = self.client.delete(contract.path.replace("{ids}", str(notice_id)), format="json")
-        assert_success_payload(response, contract)
+    def assert_notice_delete_contract(self, contracts, notice_id: int) -> None:
+        """验证通知 JSON body 删除和逐条重试接口返回共享结果结构。"""
+        contract = contracts["notices_delete"]
+        response = self.client.delete(
+            contract.path,
+            {"ids": [notice_id]},
+            format="json",
+        )
+        data = assert_success_payload(response, contract)
+        assert data["status"] == "succeeded"
+        assert data["totalCount"] == 1
+        assert data["successCount"] == 1
+        assert data["failedCount"] == 0
+        assert data["processedCount"] == 1
+        assert data["successItems"][0]["objectId"] == str(notice_id)
         assert not self.notice_model().objects.filter(id=notice_id).exists()
+
+        retry_contract = contracts["notices_delete_retry"]
+        retry_response = self.client.post(
+            retry_contract.path,
+            {"ids": [notice_id]},
+            format="json",
+        )
+        retry_data = assert_success_payload(retry_response, retry_contract)
+        assert retry_data["status"] == "failed"
+        assert retry_data["failures"][0]["errorCode"] == "ALREADY_DELETED"
 
     def notice_model(self):
         """延迟获取通知模型，确保 RED 阶段暴露当前 Django 缺模型的事实。"""

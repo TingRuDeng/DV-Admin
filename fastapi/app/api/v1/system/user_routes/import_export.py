@@ -13,6 +13,7 @@ from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
 from app.schemas.system import EncodedFile, UserImportResult
 from app.services.system.user_service import user_service
+from app.utils.audit import set_audit_context, set_audit_object
 from app.utils.file import copy_upload_file
 
 router = APIRouter()
@@ -35,9 +36,10 @@ async def export_users(
     """
     导出用户
     """
-    return ResponseModel.success(
-        data=await user_service.export_users(current_user=current_user)
-    )
+    set_audit_object(request, "system.users", "", changed_fields=["export"])
+    result = await user_service.export_users(current_user=current_user)
+    set_audit_context(request, export_fields=list(result.keys()))
+    return ResponseModel.success(data=result)
 @router.post(
     "/import",
     response_model=ResponseModel[UserImportResult],
@@ -129,6 +131,7 @@ async def import_users(
     file: UploadFile = File(..., description="Excel文件"),
     current_user: Users = require_permissions("system:users:import"),
 ) -> ResponseModel[UserImportResult]:
+    set_audit_object(request, "system.users", "", changed_fields=["file", "deptId"])
     # 验证文件类型
     if not file.filename or Path(file.filename).suffix.lower() != ".xlsx":
         raise ValidationError("文件格式错误，仅支持 .xlsx 格式")
@@ -142,5 +145,12 @@ async def import_users(
             dept_id if dept_id is not None else legacy_dept_id,
             current_user=current_user,
         )
+
+    set_audit_context(
+        request,
+        batch_count=result.valid_count + result.invalid_count,
+        success_count=result.valid_count,
+        failed_count=result.invalid_count,
+    )
 
     return ResponseModel.success(data=result, message="导入完成")

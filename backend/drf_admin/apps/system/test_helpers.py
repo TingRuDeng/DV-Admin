@@ -3,6 +3,8 @@
 系统管理测试辅助函数
 """
 
+from django.core.cache import cache
+
 from drf_admin.apps.system.models import Permissions, Roles, Users
 
 ADMIN_PERMISSION_CODES = (
@@ -35,7 +37,7 @@ ADMIN_PERMISSION_CODES = (
 
 
 def create_admin_user():
-    """创建带完整 system 按钮权限的管理员测试用户。"""
+    """创建带常用 system 按钮权限、但不含日志权限的管理员测试用户。"""
     role, _ = Roles.objects.get_or_create(
         name="超级管理员",
         code="admin",
@@ -59,3 +61,21 @@ def create_admin_user():
     )
     user.roles.add(role)
     return user
+
+
+def grant_log_permissions(user, *, plain=False):
+    """给测试用户授予操作日志权限码，可显式开启原文读取。"""
+    role = user.roles.first()
+    if role is None:
+        role, _ = Roles.objects.get_or_create(name="日志角色", code="log", defaults={"status": 1})
+        user.roles.add(role)
+    codes = ["system:logs:query", "system:logs:delete"]
+    if plain:
+        codes.append("system:logs:field:plain")
+    for code in codes:
+        permission, _ = Permissions.objects.get_or_create(
+            perm=code, defaults={"name": code, "type": "BUTTON"}
+        )
+        role.permissions.add(permission)
+    # RBAC 权限有进程级缓存，授权后需清除，避免跨用例脏读。
+    cache.delete(f"user_info_{user.id}_perms")

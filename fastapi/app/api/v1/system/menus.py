@@ -9,6 +9,7 @@ from app.api.deps import require_permissions
 from app.schemas.base import ResponseModel
 from app.schemas.system import MenuCreate, MenuOut, MenuTree, MenuUpdate
 from app.services.system.menu_service import menu_service
+from app.utils.audit import set_audit_object
 
 router = APIRouter()
 
@@ -61,7 +62,19 @@ async def create_menu(
     current_user=require_permissions("system:permissions:add"),
 ):
     """创建菜单"""
+    set_audit_object(
+        request,
+        "system.menus",
+        "",
+        changed_fields=list(menu_data.model_dump(exclude_unset=True)),
+    )
     menu = await menu_service.create(menu_data)
+    set_audit_object(
+        request,
+        "system.menus",
+        menu.id,
+        changed_fields=list(menu_data.model_dump(exclude_unset=True)),
+    )
     return ResponseModel.success(data=menu, message="创建成功")
 
 
@@ -73,6 +86,12 @@ async def update_menu(
     current_user=require_permissions("system:permissions:edit"),
 ):
     """更新菜单"""
+    set_audit_object(
+        request,
+        "system.menus",
+        menu_id,
+        changed_fields=list(menu_data.model_dump(exclude_unset=True)),
+    )
     menu = await menu_service.update(menu_id, menu_data)
     return ResponseModel.success(data=menu, message="更新成功")
 
@@ -84,5 +103,6 @@ async def delete_menu(
     current_user=require_permissions("system:permissions:delete"),
 ):
     """删除菜单"""
+    set_audit_object(request, "system.menus", menu_id)
     await menu_service.delete(menu_id)
     return ResponseModel.success(message="删除成功")

@@ -13,6 +13,9 @@ NOTICE_TARGET_PLAIN_PERMISSION = "system:notices:target:plain"
 NOTICE_CONTENT_PLAIN_PERMISSION = "system:notices:content:plain"
 MASKED_TEXT = "[已脱敏]"
 
+_LOG_CONTEXT_VALUE_KEYS = ("body", "query", "pathParams", "path_params")
+_SAFE_LOG_CONTEXT_HEADERS = frozenset({"content-type", "accept", "user-agent", "x-request-id"})
+
 
 def can_view_plain_fields(user, permission_code: str) -> bool:
     """判断当前用户是否可以查看指定资源的敏感字段原文。"""
@@ -102,7 +105,26 @@ def apply_log_field_permissions(data: dict[str, Any], user) -> dict[str, Any]:
     data["request_body"] = mask_payload(data.get("request_body"))
     data["response_body"] = mask_payload(data.get("response_body"))
     data["ip"] = mask_ip(data.get("ip"))
+    data["request_context"] = mask_log_request_context(data.get("request_context"))
     return data
+
+
+def mask_log_request_context(value: Any) -> dict[str, Any]:
+    """隐藏结构化请求中的可逆输入值，保留审计定位所需元数据。"""
+    if not isinstance(value, dict):
+        return {}
+    context = dict(value)
+    for key in _LOG_CONTEXT_VALUE_KEYS:
+        if context.get(key) not in (None, "", {}, []):
+            context[key] = MASKED_TEXT
+
+    headers = context.get("selectedHeaders")
+    if isinstance(headers, dict):
+        context["selectedHeaders"] = {
+            key: header_value if key.lower() in _SAFE_LOG_CONTEXT_HEADERS else MASKED_TEXT
+            for key, header_value in headers.items()
+        }
+    return context
 
 
 def apply_notice_field_permissions(

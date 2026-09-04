@@ -30,6 +30,10 @@ export interface LogPageQuery extends PageQuery {
   username?: string;
   /** 请求 ID（精确匹配） */
   requestId?: string;
+  /** 业务对象类型（精确匹配） */
+  objectType?: string;
+  /** 业务对象 ID（精确匹配） */
+  objectId?: string;
   /** 请求方法 */
   method?: string;
   /** 状态(1:成功;0:失败) */
@@ -58,8 +62,14 @@ export interface LogPageVO {
   path: string;
   /** 请求 ID */
   requestId: string;
+  /** 业务对象类型 */
+  objectType: string;
+  /** 业务对象 ID */
+  objectId: string;
   /** 查询参数 */
   queryParams: string;
+  /** 结构化请求上下文 */
+  requestContext: LogRequestContext;
   /** 请求方法 */
   method: string;
   /** 请求体 */
@@ -80,4 +90,35 @@ export interface LogPageVO {
   status: number;
   /** 错误信息 */
   errorMsg: string;
+}
+
+/** 审计日志中经过后端脱敏的结构化请求上下文。 */
+export interface LogRequestContext {
+  pathParams?: Record<string, unknown> | string;
+  query?: Record<string, unknown> | string;
+  body?: unknown;
+  selectedHeaders?: Record<string, string>;
+  fileMeta?: LogFileMeta[];
+  changedFields?: string[];
+  bodyHash?: string;
+  bodyCapture?: {
+    status?: "skipped" | "unavailable";
+    reason?: string;
+    contentLength?: number;
+    maxBytes?: number;
+  };
+  objectType?: string;
+  objectId?: string;
+  batchCount?: number;
+  batchIds?: string[];
+  truncated?: boolean;
+  [key: string]: unknown;
+}
+
+export interface LogFileMeta {
+  fieldName?: string;
+  fileName?: string;
+  contentType?: string;
+  size?: number;
+  sha256?: string;
 }

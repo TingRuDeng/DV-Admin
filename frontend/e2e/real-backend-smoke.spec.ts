@@ -273,7 +273,7 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     const deleteResponse = waitForApiResponse(page, "/api/v1/system/users/", "DELETE");
     await page.getByRole("button", { name: "确定", exact: true }).click();
     await deleteResponse;
-    await expect(page.getByText("删除成功", { exact: true }).last()).toBeVisible();
+    await expect(page.getByText("删除成功，共 1 条", { exact: true }).last()).toBeVisible();
     await expect(userTableRow(page, lifecycleUsername)).toHaveCount(0);
 
     const deletedDetailResponse = await apiRequest.get(
