@@ -44,30 +44,7 @@ jobs:
       - name: Install dependencies
         working-directory: frontend
         run: pnpm install --frozen-lockfile
-      # Temporary, PR-scoped exception for the npm advisory endpoint outage.
-      # The checked-in exception expires on 2026-09-07 and must be removed after recovery.
-      - name: Audit production dependencies (temporary registry exception)
-        if: github.event_name == 'pull_request' && github.event.pull_request.number == 360
-        working-directory: frontend
-        run: |
-          set +e
-          python3 ../scripts/validate_dependency_audit.py --network-exception dependency-audit-network-exception.json
-          status=$?
-          if [ "$status" -eq 3 ]; then
-            echo "::warning::Production dependency audit temporarily bypassed because the npm advisory endpoint timed out; expires 2026-09-07."
-            if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
-              {
-                echo "### Dependency audit"
-                echo
-                echo "Temporarily bypassed for PR #360 because the npm advisory endpoint timed out."
-                echo "The exception expires on 2026-09-07; a fresh audit is required before production release."
-              } >> "$GITHUB_STEP_SUMMARY"
-            fi
-            exit 0
-          fi
-          exit "$status"
       - name: Audit production dependencies
-        if: github.event_name != 'pull_request' || github.event.pull_request.number != 360
         working-directory: frontend
         run: pnpm run audit:prod
       - name: Run quality checks
