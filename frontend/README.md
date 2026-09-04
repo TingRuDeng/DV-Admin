@@ -94,6 +94,12 @@ FastAPI Uvicorn，使用隔离数据库和临时上传目录。日常前端 Mock
 `dependency-audit-exemptions.json`，必须限定公告、包、依赖路径、责任人和到期日期；
 到期豁免或同一公告出现新的依赖路径都会使门禁失败。
 
+如果 npm advisory bulk 接口临时不可用，CI 只能通过独立的
+`dependency-audit-network-exception.json` 对明确范围的 PR 做限期放行。该例外只处理
+审计请求超时，审计结果一旦返回仍会执行 high/critical 门禁；到期后脚本自动失败，且
+生产发布前必须重新取得一份成功的实时审计报告。网络恢复后应删除例外配置及 workflow
+中的临时条件，不得把网络例外写入漏洞公告豁免文件。
+
 
 ## 项目部署
 
