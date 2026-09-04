@@ -154,12 +154,14 @@ uv run python manage.py migrate --env dev
 - FastAPI 使用 Tortoise ORM 1.1.7 内置迁移能力，迁移配置位于 `app.db.migration_config.TORTOISE_ORM`
 - `app/db/migrations/0001_initial.py` 是当前 schema 基线
 - 新增非空列时，仅设置 ORM `default` 不一定会生成数据库默认值；已有数据的 SQLite 升级会报 `Cannot add a NOT NULL column with default value NULL`
+- 当前 MySQL 8 迁移目标不接受 JSON 列的普通数据库默认值；JSON 非空列应先按可空列新增、回填既有行，再收紧为非空，并仅在 ORM 层保留 `default`
+- Tortoise ORM 1.1.7 在 SQLite 上通过重建表执行 `AlterField`，重建后不会自动恢复已有普通索引；迁移必须显式恢复并由增量校验确认索引仍存在
 - Tortoise 迁移写入器要求 `Meta.indexes` 使用 `Index` 对象；元组写法不能可靠生成迁移
 - SQLite 原子迁移按 ASCII 分号拆分 SQL；字段 description 中不能包含 ASCII `;`，中文说明应使用全角 `；`
 
 **解决方案：**
 1. 模型变更同时生成并提交迁移，运行 `make -C fastapi migration-check`
-2. 新增非空列必须用带既有数据的增量测试验证；需要数据库默认值时显式设置 `db_default`
+2. 新增非空列必须用带既有数据的增量测试验证；非 JSON 字段确需数据库默认值时显式设置 `db_default`，JSON 字段使用“可空新增 → 回填 → 收紧非空”迁移
 3. 全新数据库直接执行 `migrate`
 4. 既有库接管前先备份并核对 schema，确认一致后仅执行一次 `migrate --fake`
 5. CI 同时保留 SQLite 全路径校验，以及 MySQL 8 空库与增量迁移 smoke

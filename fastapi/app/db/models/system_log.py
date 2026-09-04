@@ -5,7 +5,6 @@
 from typing import Any
 
 from tortoise import fields
-from tortoise.fields.db_defaults import SqlDefault
 from tortoise.indexes import Index
 
 from app.db.models.base import BaseModel
@@ -46,7 +45,6 @@ class OperationLog(BaseModel):
     query_params = fields.TextField(default="", description="查询参数")
     request_context: fields.Field[dict[str, Any]] = fields.JSONField(
         default=dict,
-        db_default=SqlDefault("('{}')"),
         description="结构化请求上下文",
     )
 
