@@ -56,6 +56,11 @@ def test_api_field_contracts_track_endpoint_coverage_and_converge_debt():
     assert coverage["roles_form"] == "roles_with_permissions"
     assert ("dict_items_out", "tagType") not in converge_items
     assert coverage["logs_page"] == "logs_out"
+    assert coverage["users_delete_retry"] == "batch_delete_result"
+    assert coverage["roles_delete_retry"] == "batch_delete_result"
+    assert coverage["notices_delete_retry"] == "batch_delete_result"
+    batch_contract = next(contract for contract in iter_api_field_contracts() if contract.key == "batch_delete_result")
+    assert {"status", "totalCount", "successItems", "failures"} <= batch_contract.canonical
     assert "logs_page" not in exempt_endpoints
     assert "auth_login" in exempt_endpoints
     assert "auth_login" in frontend_exempt_endpoints

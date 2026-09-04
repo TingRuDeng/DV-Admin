@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from scripts.api_endpoint_contract_types import ContractEvidence, EndpointContract
+from scripts.api_endpoint_contract_types import (
+    BATCH_DELETE_RESPONSE_FIELDS,
+    ContractEvidence,
+    EndpointContract,
+)
 
 
 ROLE_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
@@ -73,12 +77,34 @@ ROLE_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         path="/api/v1/system/roles/",
         auth_required=True,
         request_fields=("ids",),
+        response_fields=BATCH_DELETE_RESPONSE_FIELDS,
         permissions=("system:roles:delete",),
         evidence=(
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("roles", "RolesViewSet")),
             ContractEvidence("fastapi/app/api/v1/system/roles.py", ("@router.delete", "system:roles:delete")),
             ContractEvidence("frontend/src/api/system/role-api.ts", ("deleteByIds", 'method: "delete"')),
             ContractEvidence("docs/API_ENDPOINTS.md", ("DELETE /api/v1/system/roles/",)),
+        ),
+    ),
+    EndpointContract(
+        key="roles_delete_retry",
+        method="POST",
+        path="/api/v1/system/roles/batch-delete/retry/",
+        auth_required=True,
+        request_fields=("ids",),
+        response_fields=BATCH_DELETE_RESPONSE_FIELDS,
+        permissions=("system:roles:delete",),
+        evidence=(
+            ContractEvidence("backend/drf_admin/apps/system/urls.py", ("roles/batch-delete/retry/",)),
+            ContractEvidence(
+                "fastapi/app/api/v1/system/roles.py",
+                ("/batch-delete/retry/", "system:roles:delete"),
+            ),
+            ContractEvidence(
+                "frontend/src/api/system/role-api.ts",
+                ("retryBatchDelete", "/batch-delete/retry/", 'method: "post"'),
+            ),
+            ContractEvidence("docs/API_ENDPOINTS.md", ("POST   /api/v1/system/roles/batch-delete/retry/",)),
         ),
     ),
     EndpointContract(

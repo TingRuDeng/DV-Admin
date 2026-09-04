@@ -4,10 +4,15 @@
 
 from typing import cast
 
+from tortoise.transactions import in_transaction
+
 from app.core.exceptions import NotFound, ValidationError
 from app.db.models.oauth import Users
 from app.db.models.system import NoticeReads, Notices
 from app.schemas.system import (
+    BatchDeleteFailure,
+    BatchDeleteResult,
+    BatchDeleteSuccessItem,
     NoticeAdminPageResult,
     NoticeCreate,
     NoticeDetailOut,
@@ -16,6 +21,7 @@ from app.schemas.system import (
     NoticePageOut,
     NoticeUpdate,
 )
+from app.services.system.batch_delete import build_batch_delete_result, normalize_batch_ids
 from app.services.system.data_scope import apply_notice_admin_data_scope
 from app.services.system.field_permission import (
     can_view_notice_content_fields,
@@ -36,6 +42,10 @@ from app.services.system.notice_serializers import (
 from app.services.system.notice_time import local_now
 
 NOTICE_SCAN_BATCH_SIZE = 200
+
+
+class _PublishedNoticeError(Exception):
+    """内部控制流异常：通知当前处于已发布状态。"""
 
 
 class NoticeService:
@@ -170,16 +180,163 @@ class NoticeService:
         self,
         ids: list[int],
         current_user: Users | None = None,
-    ) -> None:
-        query = await apply_notice_admin_data_scope(Notices.filter(id__in=ids), current_user)
-        if await query.count() != len(set(ids)):
+    ) -> BatchDeleteResult:
+        """兼容旧方法名的结果化批量删除入口。"""
+        return await self.batch_delete(ids, current_user=current_user)
+
+    async def batch_delete(
+        self,
+        ids: list[int],
+        current_user: Users | None = None,
+    ) -> BatchDeleteResult:
+        """批量删除通知并返回逐条结果。"""
+        unique_ids = normalize_batch_ids(ids, resource_name="通知")
+        all_notices = await Notices.filter(id__in=unique_ids).all()
+        if len(all_notices) != len(unique_ids):
             raise NotFound("通知不存在")
 
-        published = await query.filter(publish_status=1).exists()
-        if published:
-            raise ValidationError("已发布通知不允许删除")
+        scoped_query = await apply_notice_admin_data_scope(
+            Notices.filter(id__in=unique_ids), current_user
+        )
+        visible_ids = set(await scoped_query.values_list("id", flat=True))
+        if len(visible_ids) != len(unique_ids):
+            raise NotFound("通知不存在")
 
-        await query.delete()
+        notices_by_id = {notice.id: notice for notice in all_notices}
+        success_items: list[BatchDeleteSuccessItem] = []
+        failures: list[BatchDeleteFailure] = []
+        for notice_id in unique_ids:
+            notice = notices_by_id[notice_id]
+            outcome = await self._delete_one_for_batch(
+                notice_id,
+                notice.title,
+                current_user=current_user,
+            )
+            if isinstance(outcome, BatchDeleteFailure):
+                failures.append(outcome)
+            else:
+                success_items.append(outcome)
+
+        return build_batch_delete_result(unique_ids, success_items, failures)
+
+    async def retry_batch_delete(
+        self,
+        ids: list[int],
+        current_user: Users | None = None,
+    ) -> BatchDeleteResult:
+        """逐条重新校验并重试通知删除。"""
+        unique_ids = normalize_batch_ids(ids, resource_name="通知")
+        success_items: list[BatchDeleteSuccessItem] = []
+        failures: list[BatchDeleteFailure] = []
+        for notice_id in unique_ids:
+            notice = await Notices.get_or_none(id=notice_id)
+            if notice is None:
+                failures.append(
+                    BatchDeleteFailure(
+                        object_id=str(notice_id),
+                        error_code="ALREADY_DELETED",
+                        message="通知已不存在",
+                        retryable=False,
+                    )
+                )
+                continue
+
+            scoped_query = await apply_notice_admin_data_scope(
+                Notices.filter(id=notice_id), current_user
+            )
+            visible = await scoped_query.first()
+            if visible is None:
+                failures.append(
+                    BatchDeleteFailure(
+                        object_id=str(notice_id),
+                        object_name=notice.title,
+                        error_code="NOT_FOUND",
+                        message="通知不存在",
+                        retryable=False,
+                    )
+                )
+                continue
+
+            outcome = await self._delete_one_for_batch(
+                notice_id,
+                notice.title,
+                missing_code="ALREADY_DELETED",
+                missing_message="通知已不存在",
+                current_user=current_user,
+            )
+            if isinstance(outcome, BatchDeleteFailure):
+                failures.append(outcome)
+            else:
+                success_items.append(outcome)
+
+        return build_batch_delete_result(unique_ids, success_items, failures)
+
+    async def _delete_one_for_batch(
+        self,
+        notice_id: int,
+        object_name: str,
+        *,
+        missing_code: str = "NOT_FOUND",
+        missing_message: str = "通知不存在",
+        current_user: Users | None = None,
+    ) -> BatchDeleteSuccessItem | BatchDeleteFailure:
+        """在独立事务中复核状态并删除单个通知。"""
+        try:
+            async with in_transaction() as connection:
+                scoped_query = await apply_notice_admin_data_scope(
+                    Notices.filter(id=notice_id).using_db(connection),
+                    current_user,
+                )
+                notice = await scoped_query.select_for_update().first()
+                if notice is None:
+                    # 通过同一事务连接确认对象是否仍存在，区分越权和已删除。
+                    unscoped_notice = await (
+                        Notices.filter(id=notice_id)
+                        .using_db(connection)
+                        .select_for_update()
+                        .first()
+                    )
+                    if unscoped_notice is not None:
+                        return BatchDeleteFailure(
+                            object_id=str(notice_id),
+                            object_name=object_name,
+                            error_code="NOT_FOUND",
+                            message="通知不存在",
+                            retryable=False,
+                        )
+                    raise NotFound(missing_message)
+                if notice.publish_status == 1:
+                    raise _PublishedNoticeError
+                await notice.delete(using_db=connection)
+            return BatchDeleteSuccessItem(
+                object_id=str(notice_id),
+                object_name=object_name,
+            )
+        except _PublishedNoticeError:
+            return BatchDeleteFailure(
+                object_id=str(notice_id),
+                object_name=object_name,
+                error_code="PUBLISHED_OBJECT",
+                message="已发布通知不允许删除",
+                retryable=True,
+            )
+        except NotFound:
+            return BatchDeleteFailure(
+                object_id=str(notice_id),
+                object_name=object_name,
+                error_code=missing_code,
+                message=missing_message,
+                retryable=False,
+            )
+        except Exception:  # noqa: BLE001 - 单条失败不能阻塞其余项目
+            return BatchDeleteFailure(
+                object_id=str(notice_id),
+                object_name=object_name,
+                error_code="DELETE_FAILED",
+                message="删除通知失败",
+                retryable=True,
+            )
+
 
     async def publish(self, notice_id: int, current_user: Users | None = None) -> None:
         notice = await self._get_admin_notice(notice_id, current_user)

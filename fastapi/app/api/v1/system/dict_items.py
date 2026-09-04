@@ -15,6 +15,7 @@ from app.schemas.system import (
     DictItemUpdate,
 )
 from app.services.system.dict_service import dict_service
+from app.utils.audit import set_audit_context, set_audit_object
 
 router = APIRouter()
 
@@ -46,7 +47,23 @@ async def create_dict_item(
     current_user=require_permissions("system:dictitems:add"),
 ):
     """创建字典项"""
+    set_audit_object(
+        request,
+        "system.dict_items",
+        "",
+        changed_fields=list(item_data.model_dump(exclude_unset=True)),
+        parent_object_type="system.dicts",
+        parent_object_id=item_data.dict_data_id,
+    )
     item = await dict_service.create_item_flat(item_data)
+    set_audit_object(
+        request,
+        "system.dict_items",
+        item.id,
+        changed_fields=list(item_data.model_dump(exclude_unset=True)),
+        parent_object_type="system.dicts",
+        parent_object_id=item_data.dict_data_id,
+    )
     return ResponseModel.success(data=item, message="创建成功")
 
 
@@ -58,6 +75,12 @@ async def update_dict_item(
     current_user=require_permissions("system:dictitems:edit"),
 ):
     """更新字典项"""
+    set_audit_object(
+        request,
+        "system.dict_items",
+        item_id,
+        changed_fields=list(item_data.model_dump(exclude_unset=True)),
+    )
     item = await dict_service.update_item_flat(item_id, item_data)
     return ResponseModel.success(data=item, message="更新成功")
 
@@ -69,6 +92,7 @@ async def delete_dict_item(
     current_user=require_permissions("system:dictitems:delete"),
 ):
     """删除字典项"""
+    set_audit_object(request, "system.dict_items", item_id)
     await dict_service.delete_item_flat(item_id)
     return ResponseModel.success(message="删除成功")
 
@@ -80,5 +104,11 @@ async def batch_delete_dict_items(
     current_user=require_permissions("system:dictitems:delete"),
 ):
     """批量删除字典项"""
+    set_audit_object(request, "system.dict_items", "", changed_fields=["ids"])
+    set_audit_context(
+        request,
+        batch_count=len(delete_req.ids),
+        batch_ids=[str(item) for item in delete_req.ids[:100]],
+    )
     await dict_service.batch_delete_items_flat(delete_req.ids)
     return ResponseModel.success(message="删除成功")

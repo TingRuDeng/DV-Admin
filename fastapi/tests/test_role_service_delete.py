@@ -5,7 +5,7 @@ import uuid
 
 import pytest
 
-from app.core.exceptions import NotFound
+from app.core.exceptions import NotFound, ValidationError
 from app.services.system.role_service import role_service
 
 
@@ -65,4 +65,5 @@ class TestRoleServiceBatchDelete:
     @pytest.mark.asyncio
     async def test_batch_delete_empty_list(self, db):
         """测试批量删除空列表。"""
-        await role_service.batch_delete([])
+        with pytest.raises(ValidationError):
+            await role_service.batch_delete([])

@@ -1,6 +1,6 @@
 {
-  "authenticated_count": 52,
-  "endpoint_count": 53,
+  "authenticated_count": 55,
+  "endpoint_count": 56,
   "endpoints": [
     {
       "auth_required": false,
@@ -296,7 +296,44 @@
       "request_fields": [
         "ids"
       ],
-      "response_fields": []
+      "response_fields": [
+        "status",
+        "totalCount",
+        "successCount",
+        "failedCount",
+        "processedCount",
+        "successItems",
+        "failures"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/user_routes/mutation.py",
+        "frontend/src/api/system/user-api.ts"
+      ],
+      "key": "users_delete_retry",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/system/users/batch-delete/retry/",
+      "permissions": [
+        "system:users:delete"
+      ],
+      "query_params": [],
+      "request_fields": [
+        "ids"
+      ],
+      "response_fields": [
+        "status",
+        "totalCount",
+        "successCount",
+        "failedCount",
+        "processedCount",
+        "successItems",
+        "failures"
+      ]
     },
     {
       "auth_required": true,
@@ -488,7 +525,44 @@
       "request_fields": [
         "ids"
       ],
-      "response_fields": []
+      "response_fields": [
+        "status",
+        "totalCount",
+        "successCount",
+        "failedCount",
+        "processedCount",
+        "successItems",
+        "failures"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/roles.py",
+        "frontend/src/api/system/role-api.ts"
+      ],
+      "key": "roles_delete_retry",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/system/roles/batch-delete/retry/",
+      "permissions": [
+        "system:roles:delete"
+      ],
+      "query_params": [],
+      "request_fields": [
+        "ids"
+      ],
+      "response_fields": [
+        "status",
+        "totalCount",
+        "successCount",
+        "failedCount",
+        "processedCount",
+        "successItems",
+        "failures"
+      ]
     },
     {
       "auth_required": true,
@@ -995,6 +1069,7 @@
     {
       "auth_required": true,
       "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
         "docs/API_ENDPOINTS.md",
         "fastapi/app/api/v1/system/notices.py",
         "frontend/src/api/system/notice-api.ts"
@@ -1002,13 +1077,52 @@
       "key": "notices_delete",
       "method": "DELETE",
       "paginated": false,
-      "path": "/api/v1/system/notices/{ids}",
+      "path": "/api/v1/system/notices/",
       "permissions": [
         "system:notices:delete"
       ],
       "query_params": [],
-      "request_fields": [],
-      "response_fields": []
+      "request_fields": [
+        "ids"
+      ],
+      "response_fields": [
+        "status",
+        "totalCount",
+        "successCount",
+        "failedCount",
+        "processedCount",
+        "successItems",
+        "failures"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/system/urls.py",
+        "docs/API_ENDPOINTS.md",
+        "fastapi/app/api/v1/system/notices.py",
+        "frontend/src/api/system/notice-api.ts"
+      ],
+      "key": "notices_delete_retry",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/system/notices/batch-delete/retry/",
+      "permissions": [
+        "system:notices:delete"
+      ],
+      "query_params": [],
+      "request_fields": [
+        "ids"
+      ],
+      "response_fields": [
+        "status",
+        "totalCount",
+        "successCount",
+        "failedCount",
+        "processedCount",
+        "successItems",
+        "failures"
+      ]
     },
     {
       "auth_required": true,
@@ -1158,6 +1272,8 @@
         "operation",
         "username",
         "requestId",
+        "objectType",
+        "objectId",
         "method",
         "status",
         "startTime",
@@ -1193,9 +1309,12 @@
         "method",
         "path",
         "requestId",
+        "objectType",
+        "objectId",
         "responseStatus",
         "status",
-        "errorMsg"
+        "errorMsg",
+        "requestContext"
       ]
     },
     {

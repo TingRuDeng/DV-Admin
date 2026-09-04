@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from scripts.api_endpoint_contract_types import ContractEvidence, EndpointContract
+from scripts.api_endpoint_contract_types import (
+    BATCH_DELETE_RESPONSE_FIELDS,
+    ContractEvidence,
+    EndpointContract,
+)
 
 
 NOTICE_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
@@ -52,13 +56,49 @@ NOTICE_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
     EndpointContract(
         key="notices_delete",
         method="DELETE",
-        path="/api/v1/system/notices/{ids}",
+        path="/api/v1/system/notices/",
         auth_required=True,
+        request_fields=("ids",),
+        response_fields=BATCH_DELETE_RESPONSE_FIELDS,
         permissions=("system:notices:delete",),
         evidence=(
-            ContractEvidence("fastapi/app/api/v1/system/notices.py", ("@router.delete", "system:notices:delete")),
-            ContractEvidence("frontend/src/api/system/notice-api.ts", ("deleteByIds", 'method: "delete"')),
-            ContractEvidence("docs/API_ENDPOINTS.md", ("DELETE /api/v1/system/notices/{ids}",)),
+            ContractEvidence(
+                "backend/drf_admin/apps/system/urls.py",
+                ("notices/", "notices/<str:ids>"),
+            ),
+            ContractEvidence(
+                "fastapi/app/api/v1/system/notices.py",
+                ('@router.delete("",', '@router.delete("/",', '@router.delete("/{ids}",', "system:notices:delete"),
+            ),
+            ContractEvidence(
+                "frontend/src/api/system/notice-api.ts",
+                ("deleteByIds", 'method: "delete"', 'data: batchDeleteRequest(ids)'),
+            ),
+            ContractEvidence(
+                "docs/API_ENDPOINTS.md",
+                ("DELETE /api/v1/system/notices/", "DELETE /api/v1/system/notices/{ids}"),
+            ),
+        ),
+    ),
+    EndpointContract(
+        key="notices_delete_retry",
+        method="POST",
+        path="/api/v1/system/notices/batch-delete/retry/",
+        auth_required=True,
+        request_fields=("ids",),
+        response_fields=BATCH_DELETE_RESPONSE_FIELDS,
+        permissions=("system:notices:delete",),
+        evidence=(
+            ContractEvidence("backend/drf_admin/apps/system/urls.py", ("notices/batch-delete/retry/",)),
+            ContractEvidence(
+                "fastapi/app/api/v1/system/notices.py",
+                ("/batch-delete/retry/", "system:notices:delete"),
+            ),
+            ContractEvidence(
+                "frontend/src/api/system/notice-api.ts",
+                ("retryBatchDelete", "/batch-delete/retry/", 'method: "post"'),
+            ),
+            ContractEvidence("docs/API_ENDPOINTS.md", ("POST   /api/v1/system/notices/batch-delete/retry/",)),
         ),
     ),
     EndpointContract(
