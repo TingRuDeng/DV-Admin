@@ -113,6 +113,8 @@ REQUIRED_TEST_SNIPPETS = {
         "users_create",
         "users_update",
         "users_delete",
+        "users_delete_retry",
+        "roles_delete_retry",
         "depts_create",
         "menus_create",
     ),
@@ -132,6 +134,7 @@ REQUIRED_TEST_SNIPPETS = {
         "notices_create",
         "notices_publish",
         "notices_revoke",
+        "notices_delete_retry",
     ),
     "fastapi/tests/test_api_contracts.py": (
         "ResponseModel.success",
@@ -171,6 +174,8 @@ REQUIRED_TEST_SNIPPETS = {
     "fastapi/tests/runtime_api_contracts/test_write_contracts.py": (
         "test_fastapi_user_write_runtime_samples_match_endpoint_catalog",
         "users_create",
+        "users_delete_retry",
+        "roles_delete_retry",
         "roles_menu_assign",
         "depts_create",
         "menus_create",
@@ -186,6 +191,7 @@ REQUIRED_TEST_SNIPPETS = {
         "notices_create",
         "notices_publish",
         "notices_revoke",
+        "notices_delete_retry",
     ),
     "frontend/src/utils/__tests__/api-contract.test.ts": (
         "Django",

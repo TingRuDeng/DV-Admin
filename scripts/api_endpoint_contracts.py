@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from scripts.api_endpoint_contract_types import ContractEvidence, EndpointContract
+from scripts.api_endpoint_contract_types import (
+    BATCH_DELETE_RESPONSE_FIELDS,
+    ContractEvidence,
+    EndpointContract,
+)
 from scripts.api_endpoint_dept_contracts import DEPT_ENDPOINT_CONTRACTS
 from scripts.api_endpoint_dict_contracts import DICT_ENDPOINT_CONTRACTS
 from scripts.api_endpoint_information_contracts import INFORMATION_ENDPOINT_CONTRACTS
@@ -24,6 +28,7 @@ REQUIRED_ENDPOINT_KEYS = {
     "users_update",
     "users_password_reset",
     "users_delete",
+    "users_delete_retry",
     "users_template",
     "users_import",
     "users_export",
@@ -32,6 +37,7 @@ REQUIRED_ENDPOINT_KEYS = {
     "roles_update",
     "roles_form",
     "roles_delete",
+    "roles_delete_retry",
     "roles_menu_ids",
     "roles_menu_assign",
     "depts_tree",
@@ -54,6 +60,7 @@ REQUIRED_ENDPOINT_KEYS = {
     "notices_create",
     "notices_update",
     "notices_delete",
+    "notices_delete_retry",
     "notices_publish",
     "notices_revoke",
     "notices_form",
@@ -202,11 +209,33 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         path="/api/v1/system/users/",
         auth_required=True,
         request_fields=("ids",),
+        response_fields=BATCH_DELETE_RESPONSE_FIELDS,
         permissions=("system:users:delete",),
         evidence=(
             ContractEvidence("backend/drf_admin/apps/system/urls.py", ("users", "UsersViewSet")),
             ContractEvidence("fastapi/app/api/v1/system/user_routes/mutation.py", ("@router.delete", "system:users:delete")),
             ContractEvidence("frontend/src/api/system/user-api.ts", ("deleteByIds", 'method: "delete"')),
+        ),
+    ),
+    EndpointContract(
+        key="users_delete_retry",
+        method="POST",
+        path="/api/v1/system/users/batch-delete/retry/",
+        auth_required=True,
+        request_fields=("ids",),
+        response_fields=BATCH_DELETE_RESPONSE_FIELDS,
+        permissions=("system:users:delete",),
+        evidence=(
+            ContractEvidence("backend/drf_admin/apps/system/urls.py", ("users/batch-delete/retry/",)),
+            ContractEvidence(
+                "fastapi/app/api/v1/system/user_routes/mutation.py",
+                ("/batch-delete/retry/", "system:users:delete"),
+            ),
+            ContractEvidence(
+                "frontend/src/api/system/user-api.ts",
+                ("retryBatchDelete", "/batch-delete/retry/", 'method: "post"'),
+            ),
+            ContractEvidence("docs/API_ENDPOINTS.md", ("POST   /api/v1/system/users/batch-delete/retry/",)),
         ),
     ),
     EndpointContract(
@@ -305,6 +334,8 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
             "operation",
             "username",
             "requestId",
+            "objectType",
+            "objectId",
             "method",
             "status",
             "startTime",
@@ -321,6 +352,8 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
                     "system:logs:query",
                     "page_params",
                     'alias="requestId"',
+                    'alias="objectType"',
+                    'alias="objectId"',
                     'alias="startTime"',
                 ),
             ),
@@ -331,13 +364,13 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
             ),
             ContractEvidence(
                 "backend/drf_admin/apps/system/views/logs.py",
-                ("system:logs:query", "page_num", "request_id", "start_time"),
+                ("system:logs:query", "page_num", "request_id", "object_type", "object_id", "start_time"),
             ),
             ContractEvidence(
                 "frontend/src/api/system/log-api.ts",
-                ("getPage", "/api/system/logs", "requestId"),
+                ("getPage", "/api/system/logs", "requestId", "objectType", "objectId"),
             ),
-            ContractEvidence("docs/API_ENDPOINTS.md", ("GET    /api/v1/system/logs/page",)),
+            ContractEvidence("docs/API_ENDPOINTS.md", ("GET    /api/v1/system/logs/page", "objectType/objectId")),
             ContractEvidence("fastapi/app/api/v1/README.md", ("GET /api/v1/system/logs/page",)),
         ),
     ),
@@ -351,15 +384,18 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
             "method",
             "path",
             "requestId",
+            "objectType",
+            "objectId",
             "responseStatus",
             "status",
             "errorMsg",
+            "requestContext",
         ),
         permissions=("system:logs:query",),
         evidence=(
             ContractEvidence(
                 "fastapi/app/api/v1/system/log_routes/query.py",
-                ("/{log_id}", "get_log_detail", "system:logs:query"),
+                ("/{log_id}", "get_log_detail", "system:logs:query", "OperationLogOut"),
             ),
             ContractEvidence(
                 "backend/drf_admin/apps/system/urls.py",

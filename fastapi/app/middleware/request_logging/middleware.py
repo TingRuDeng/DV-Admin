@@ -23,6 +23,11 @@ from app.middleware.request_logging.body import (
 )
 from app.middleware.request_logging.client import get_client_ip, parse_user_agent
 from app.middleware.request_logging.constants import EXCLUDED_BODY_PATHS, EXCLUDED_PATHS
+from app.utils.audit import (
+    build_request_context,
+    get_audit_object,
+    serialize_query_params,
+)
 from app.utils.logger import clear_request_id, set_request_id
 
 # 只持久化写操作，避免 GET 轮询淹没审计表
@@ -169,7 +174,18 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             response = await self._log_response(response, context, start_time)
             response.headers["X-Request-ID"] = request_id
-            await self._persist_operation_log(request, response, context, start_time)
+            try:
+                request_context = await build_request_context(request)
+            except Exception as context_error:  # noqa: BLE001 - 审计上下文失败不能影响主请求
+                logger.warning(f"结构化审计上下文构造失败: {context_error}")
+                request_context = {}
+            await self._persist_operation_log(
+                request,
+                response,
+                context,
+                start_time,
+                request_context,
+            )
             return response
         except Exception as error:
             self._log_error(error, context, start_time)
@@ -183,6 +199,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         response: Response,
         context: RequestLogContext,
         start_time: float,
+        request_context: dict[str, object] | None = None,
     ) -> None:
         """将写操作落库到 OperationLog；任何失败都不得影响主请求。"""
         if context["method"] not in PERSISTED_METHODS:
@@ -194,6 +211,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
             user = getattr(request.state, "user", None)
             request_log = context["request_log"]
+            object_info = get_audit_object(request) or {}
             await log_service.create_log(
                 user_id=getattr(user, "id", None),
                 username=getattr(user, "username", "") or "",
@@ -201,8 +219,11 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 method=context["method"],
                 path=context["path"][:500],
                 request_id=context["request_id"],
-                query_params=str(request_log.get("query_params", ""))[:4096],
+                object_type=str(object_info.get("type", ""))[:100],
+                object_id=str(object_info.get("id", ""))[:255],
+                query_params=serialize_query_params(request.query_params)[:4096],
                 request_body=mask_sensitive_body(str(request_log.get("body", ""))),
+                request_context=request_context or {},
                 response_status=response.status_code,
                 response_body=(
                     mask_sensitive_body(context["response_body"])
@@ -231,7 +252,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         """构造请求日志上下文，避免主流程重复提取字段。"""
         method = request.method
         path = request.url.path
-        query_params = str(request.query_params) if request.query_params else ""
+        query_params = serialize_query_params(request.query_params)
         client_ip = self._get_client_ip(request)
         user_agent = request.headers.get("User-Agent", "")
         ua_info = self._parse_user_agent(user_agent)

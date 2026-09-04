@@ -8,6 +8,9 @@ const REQUIRED_CONTRACT_SNIPPETS = [
   "iter_frontend_field_contract_exempt_endpoints",
   "required_fields",
   "logs_page_type",
+  "objectType",
+  "objectId",
+  "requestContext",
   "auth_login",
   "files_upload",
 ];

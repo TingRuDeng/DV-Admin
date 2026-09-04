@@ -13,11 +13,19 @@ from rest_framework.response import Response
 
 from drf_admin.apps.system.filters.users import UsersFilter
 from drf_admin.apps.system.models import Permissions, Users
+from drf_admin.apps.system.serializers.batch_delete import BatchDeleteResultSerializer
 from drf_admin.apps.system.serializers.users import (
     ResetPasswordSerializer,
     UsersOptionsSerializer,
     UsersPartialSerializer,
     UsersSerializer,
+)
+from drf_admin.apps.system.services.batch_delete import (
+    build_batch_delete_result,
+    failure_item,
+    normalize_batch_ids,
+    preflight_batch_ids,
+    success_item,
 )
 from drf_admin.apps.system.services.data_scope import apply_user_data_scope
 from drf_admin.apps.system.services.user_import_export import (
@@ -25,6 +33,7 @@ from drf_admin.apps.system.services.user_import_export import (
     export_users,
     import_users,
 )
+from drf_admin.utils.audit import set_audit_context, set_audit_object
 from drf_admin.utils.views import AdminViewSet, AutoPermissionAPIView
 
 
@@ -43,7 +52,7 @@ class UsersViewSet(AdminViewSet):
     multiple_delete:
     用户--批量删除
 
-    用户批量删除, status: 204(成功), return: None
+    用户批量删除, status: 200(成功), return: 逐条处理结果
 
     update:
     用户--修改
@@ -84,23 +93,137 @@ class UsersViewSet(AdminViewSet):
 
     def validate_ids(self, delete_ids):
         """批量删除必须全部处于当前数据范围，且不因重复 ID 误判。"""
-        if not isinstance(delete_ids, list) or not delete_ids:
-            raise ValidationError("参数错误,ids为必传List")
-        if any(not isinstance(user_id, int) or user_id < 1 for user_id in delete_ids):
-            raise ValidationError("ids必须为正整数列表")
-        unique_ids = list(dict.fromkeys(delete_ids))
-        queryset = self.get_queryset().filter(id__in=unique_ids)
-        locked_ids = list(
-            queryset.select_for_update().values_list("id", flat=True)
+        unique_ids = normalize_batch_ids(delete_ids, resource_name="用户")
+        include_ids = self._current_user_include_ids(unique_ids)
+        preflight_batch_ids(
+            self.get_queryset(),
+            unique_ids,
+            resource_name="用户",
+            include_ids=include_ids,
         )
-        if len(locked_ids) != len(unique_ids):
-            raise NotFound("用户不存在")
-        return queryset.filter(id__in=locked_ids)
+        return Users.objects.filter(id__in=unique_ids)
 
-    @transaction.atomic
+    @staticmethod
+    def get_action_permission_mapping():
+        """为逐条重试动作复用用户删除权限。"""
+        mapping = AdminViewSet.get_action_permission_mapping()
+        return {**mapping, "retry_batch_delete": "delete"}
+
     def multiple_delete(self, request, *args, **kwargs):
-        """在同一事务内完成范围校验与批量删除。"""
-        return super().multiple_delete(request, *args, **kwargs)
+        """批量删除用户并返回逐条结果。"""
+        return self._run_batch_delete(request, retry=False)
+
+    def retry_batch_delete(self, request, *args, **kwargs):
+        """逐条重新校验并重试用户删除。"""
+        return self._run_batch_delete(request, retry=True)
+
+    def _run_batch_delete(self, request, *, retry: bool):
+        """执行一次批量删除或重试，单个对象失败不影响其他对象。"""
+        unique_ids = normalize_batch_ids(request.data.get("ids"), resource_name="用户")
+        object_by_id = {}
+        if not retry:
+            preflight_batch_ids(
+                self.get_queryset(),
+                unique_ids,
+                resource_name="用户",
+                include_ids=self._current_user_include_ids(unique_ids),
+            )
+            object_by_id = {
+                user.id: user for user in Users.objects.filter(id__in=unique_ids)
+            }
+
+        success_items = []
+        failures = []
+        current_user_id = getattr(request.user, "id", None)
+        for user_id in unique_ids:
+            user = (
+                Users.objects.filter(id=user_id).first()
+                if retry
+                else object_by_id.get(user_id)
+            )
+            if user is None:
+                failures.append(
+                    failure_item(
+                        user_id,
+                        error_code="ALREADY_DELETED" if retry else "NOT_FOUND",
+                        message="用户已不存在" if retry else "用户不存在",
+                    )
+                )
+                continue
+
+            if retry and user_id != current_user_id:
+                if not self.get_queryset().filter(id=user_id).exists():
+                    failures.append(
+                        failure_item(
+                            user_id,
+                            object_name=user.name or user.username,
+                            error_code="NOT_FOUND",
+                            message="用户不存在",
+                        )
+                    )
+                    continue
+
+            object_name = user.name or user.username
+            if current_user_id is not None and user_id == current_user_id:
+                failures.append(
+                    failure_item(
+                        user_id,
+                        object_name=object_name,
+                        error_code="PROTECTED_OBJECT",
+                        message="不能删除当前登录用户",
+                    )
+                )
+                continue
+
+            try:
+                with transaction.atomic():
+                    scoped_queryset = (
+                        self.get_queryset()
+                        .filter(id=user_id)
+                        .select_related(None)
+                        .prefetch_related(None)
+                    )
+                    locked_user = scoped_queryset.select_for_update().first()
+                    if locked_user is None:
+                        failures.append(
+                            failure_item(
+                                user_id,
+                                object_name=object_name,
+                                error_code="ALREADY_DELETED" if retry else "NOT_FOUND",
+                                message="用户已不存在" if retry else "用户不存在",
+                            )
+                        )
+                    else:
+                        locked_user.delete()
+                        success_items.append(success_item(user_id, object_name))
+            except Exception:  # noqa: BLE001 - 单条失败不能阻塞其余项目
+                failures.append(
+                    failure_item(
+                        user_id,
+                        object_name=object_name,
+                        error_code="DELETE_FAILED",
+                        message="删除用户失败",
+                        retryable=True,
+                    )
+                )
+
+        result = build_batch_delete_result(unique_ids, success_items, failures)
+        set_audit_context(
+            request,
+            batch_count=result["total_count"],
+            success_count=result["success_count"],
+            failed_count=result["failed_count"],
+            failure_codes=sorted({item["error_code"] for item in failures}),
+            retry=retry,
+        )
+        return Response(data=BatchDeleteResultSerializer(result).data)
+
+    def _current_user_include_ids(self, unique_ids):
+        """允许把当前用户纳入预检，以便返回稳定的保护对象失败项。"""
+        current_user_id = getattr(self.request.user, "id", None)
+        if current_user_id in unique_ids and Users.objects.filter(id=current_user_id).exists():
+            return [current_user_id]
+        return []
 
 
 class UsersOptionsViewSet(AutoPermissionAPIView, ListAPIView):
@@ -140,8 +263,14 @@ class UserExportAPIView(AutoPermissionAPIView):
     def get_method_permission_mapping():
         return {"post": "export"}
 
+    def initial(self, request, *args, **kwargs):
+        set_audit_object(request, "system.users", "", changed_fields=["export"])
+        return super().initial(request, *args, **kwargs)
+
     def post(self, request):
-        return Response(data=export_users(request.user))
+        result = export_users(request.user)
+        set_audit_context(request, export_fields=list(result.keys()))
+        return Response(data=result)
 
 
 class UserImportAPIView(AutoPermissionAPIView):
@@ -152,6 +281,10 @@ class UserImportAPIView(AutoPermissionAPIView):
     @staticmethod
     def get_method_permission_mapping():
         return {"post": "import"}
+
+    def initial(self, request, *args, **kwargs):
+        set_audit_object(request, "system.users", "", changed_fields=["file", "deptId"])
+        return super().initial(request, *args, **kwargs)
 
     def post(self, request):
         uploaded_file = request.FILES.get("file")
@@ -168,13 +301,18 @@ class UserImportAPIView(AutoPermissionAPIView):
             )
             raise ValidationError(f"文件大小不能超过 {max_size_label}")
         dept_id = self._parse_dept_id(request.query_params)
-        return Response(
-            data=import_users(
-                uploaded_file.file,
-                dept_id=dept_id,
-                current_user=request.user,
-            )
+        result = import_users(
+            uploaded_file.file,
+            dept_id=dept_id,
+            current_user=request.user,
         )
+        set_audit_context(
+            request,
+            batch_count=result.get("validCount", 0) + result.get("invalidCount", 0),
+            success_count=result.get("validCount", 0),
+            failed_count=result.get("invalidCount", 0),
+        )
+        return Response(data=result)
 
     @staticmethod
     def _parse_dept_id(query_params):
@@ -203,6 +341,15 @@ class ResetPasswordAPIView(mixins.UpdateModelMixin, AutoPermissionAPIView, Gener
 
     def get_queryset(self):
         return apply_user_data_scope(super().get_queryset(), self.request.user)
+
+    def initial(self, request, *args, **kwargs):
+        set_audit_object(
+            request,
+            "system.users",
+            kwargs.get(self.lookup_url_kwarg or self.lookup_field, ""),
+            changed_fields=["password"],
+        )
+        return super().initial(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)

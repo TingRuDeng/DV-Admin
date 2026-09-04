@@ -1,12 +1,13 @@
 """用户密码 API 路由。"""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from app.api.deps import require_permissions
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
 from app.schemas.system_user import UserPasswordReset
 from app.services.system.user_service import user_service
+from app.utils.audit import set_audit_object
 
 router = APIRouter()
 
@@ -57,10 +58,12 @@ router = APIRouter()
     },
 )
 async def reset_user_password(
+    request: Request,
     user_id: int,
     password_in: UserPasswordReset,
     current_user: Users = require_permissions("system:users:password:reset"),
 ) -> ResponseModel[None]:
+    set_audit_object(request, "system.users", user_id, changed_fields=["password"])
     await user_service.reset_password(
         user_id,
         current_user=current_user,
@@ -76,9 +79,11 @@ async def reset_user_password(
     deprecated=True,
 )
 async def reset_user_password_to_default(
+    request: Request,
     user_id: int,
     current_user: Users = require_permissions("system:users:password:reset"),
 ) -> ResponseModel[None]:
     """兼容旧客户端；共享前端契约使用 PUT 并显式提供新密码。"""
+    set_audit_object(request, "system.users", user_id, changed_fields=["password"])
     await user_service.reset_password(user_id, current_user=current_user)
     return ResponseModel.success(message="密码重置成功")

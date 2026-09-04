@@ -19,6 +19,7 @@ from app.schemas.system import (
     DictWithItems,
 )
 from app.services.system.dict_service import dict_service
+from app.utils.audit import set_audit_context, set_audit_object
 
 router = APIRouter()
 
@@ -57,7 +58,19 @@ async def create_dict(
     current_user=require_permissions("system:dicts:add"),
 ):
     """创建字典类型"""
+    set_audit_object(
+        request,
+        "system.dicts",
+        "",
+        changed_fields=list(dict_data.model_dump(exclude_unset=True)),
+    )
     d = await dict_service.create_dict(dict_data)
+    set_audit_object(
+        request,
+        "system.dicts",
+        d.id,
+        changed_fields=list(dict_data.model_dump(exclude_unset=True)),
+    )
     return ResponseModel.success(data=d, message="创建成功")
 
 
@@ -69,16 +82,24 @@ async def update_dict(
     current_user=require_permissions("system:dicts:edit"),
 ):
     """更新字典类型"""
+    set_audit_object(
+        request,
+        "system.dicts",
+        dict_id,
+        changed_fields=list(dict_data.model_dump(exclude_unset=True)),
+    )
     d = await dict_service.update_dict(dict_id, dict_data)
     return ResponseModel.success(data=d, message="更新成功")
 
 
 @router.delete("/{dict_id}/", response_model=ResponseModel[None])
 async def delete_dict(
+    request: Request,
     dict_id: int,
     current_user=require_permissions("system:dicts:delete"),
 ):
     """删除字典类型"""
+    set_audit_object(request, "system.dicts", dict_id)
     await dict_service.delete_dict(dict_id)
     return ResponseModel.success(message="删除成功")
 
@@ -90,6 +111,12 @@ async def batch_delete_dicts(
     current_user=require_permissions("system:dicts:delete"),
 ):
     """批量删除字典类型"""
+    set_audit_object(request, "system.dicts", "", changed_fields=["ids"])
+    set_audit_context(
+        request,
+        batch_count=len(delete_req.ids),
+        batch_ids=[str(item) for item in delete_req.ids[:100]],
+    )
     await dict_service.batch_delete_dicts(delete_req.ids)
     return ResponseModel.success(message="删除成功")
 
@@ -114,18 +141,43 @@ async def create_dict_item(
     current_user=require_permissions("system:dicts:add"),
 ):
     """创建字典项"""
+    set_audit_object(
+        request,
+        "system.dict_items",
+        "",
+        changed_fields=list(item_data.model_dump(exclude_unset=True)),
+        parent_object_type="system.dicts",
+        parent_object_id=dict_id,
+    )
     item = await dict_service.create_item(dict_id, item_data)
+    set_audit_object(
+        request,
+        "system.dict_items",
+        item.id,
+        changed_fields=list(item_data.model_dump(exclude_unset=True)),
+        parent_object_type="system.dicts",
+        parent_object_id=dict_id,
+    )
     return ResponseModel.success(data=item, message="创建成功")
 
 
 @router.put("/{dict_id}/items/{item_id}", response_model=ResponseModel[DictItemOut])
 async def update_dict_item(
+    request: Request,
     dict_id: int,
     item_id: int,
     item_data: DictItemUpdate,
     current_user=require_permissions("system:dicts:edit"),
 ):
     """更新字典项"""
+    set_audit_object(
+        request,
+        "system.dict_items",
+        item_id,
+        changed_fields=list(item_data.model_dump(exclude_unset=True)),
+        parent_object_type="system.dicts",
+        parent_object_id=dict_id,
+    )
     item = await dict_service.update_item(dict_id, item_id, item_data)
     return ResponseModel.success(data=item, message="更新成功")
 
@@ -138,6 +190,13 @@ async def delete_dict_item(
     current_user=require_permissions("system:dicts:delete"),
 ):
     """删除字典项"""
+    set_audit_object(
+        request,
+        "system.dict_items",
+        item_id,
+        parent_object_type="system.dicts",
+        parent_object_id=dict_id,
+    )
     await dict_service.delete_item(dict_id, item_id)
     return ResponseModel.success(message="删除成功")
 
