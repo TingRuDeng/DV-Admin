@@ -2,14 +2,21 @@
 
 from __future__ import annotations
 
+import io
 import json
+import subprocess
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
 from datetime import date
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from scripts.validate_dependency_audit import (
     AuditValidationError,
     evaluate_audit,
+    main,
+    parse_network_exception,
     parse_exemptions,
 )
 
@@ -71,6 +78,21 @@ def exemption_payload(
     }
 
 
+def network_exception_payload(
+    *,
+    introduced_at: str = "2026-09-04",
+    expires_at: str = "2026-09-07",
+):
+    return {
+        "version": 1,
+        "introducedAt": introduced_at,
+        "expiresAt": expires_at,
+        "owner": "DV-Admin Team",
+        "reason": "npm advisory bulk endpoint is intermittently timing out in CI.",
+        "tracking": "PR #360",
+    }
+
+
 class DependencyAuditTests(unittest.TestCase):
     def test_pnpm_toolchain_and_override_sources_stay_in_sync(self):
         frontend = REPO_ROOT / "frontend"
@@ -95,6 +117,35 @@ class DependencyAuditTests(unittest.TestCase):
         self.assertEqual(workspace_overrides["nanoid@3.3.11"], "3.3.18")
         self.assertEqual(workspace_overrides["nanoid@3.3.16"], "3.3.18")
         self.assertEqual(workspace_overrides["nanoid@5.1.6"], "5.1.16")
+
+    def test_network_exception_is_expiring_and_pr_scoped(self):
+        frontend = REPO_ROOT / "frontend"
+        exception = json.loads(
+            (frontend / "dependency-audit-network-exception.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        parsed = parse_network_exception(exception, today=date(2026, 9, 4))
+        workflow = (REPO_ROOT / ".github/workflows/quality-gates.yml").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertEqual(parsed.expires_at, date(2026, 9, 7))
+        self.assertEqual(parsed.tracking, "PR #360")
+        self.assertIn(
+            "github.event_name == 'pull_request' && github.event.pull_request.number == 360",
+            workflow,
+        )
+        self.assertIn(
+            "github.event_name != 'pull_request' || github.event.pull_request.number != 360",
+            workflow,
+        )
+        self.assertIn(
+            "python3 ../scripts/validate_dependency_audit.py "
+            "--network-exception dependency-audit-network-exception.json",
+            workflow,
+        )
+        self.assertIn('if [ "$status" -eq 3 ]; then', workflow)
 
     def test_unexempted_high_advisory_fails(self):
         violations, unused = evaluate_audit(report(), [], minimum_severity="high")
@@ -181,6 +232,118 @@ class DependencyAuditTests(unittest.TestCase):
     def test_invalid_exemption_schema_fails_closed(self):
         with self.assertRaisesRegex(AuditValidationError, "version=1"):
             parse_exemptions({}, today=date(2026, 7, 28))
+
+    @patch("scripts.validate_dependency_audit.subprocess.run")
+    def test_active_network_exception_reports_distinct_timeout_status(self, run_process):
+        run_process.side_effect = subprocess.TimeoutExpired(["pnpm", "audit"], 120)
+        with TemporaryDirectory() as directory:
+            exception_path = Path(directory) / "network-exception.json"
+            exception_path.write_text(
+                json.dumps(network_exception_payload()),
+                encoding="utf-8",
+            )
+            with patch(
+                "sys.argv",
+                [
+                    "validate_dependency_audit.py",
+                    "--network-exception",
+                    str(exception_path),
+                    "--today",
+                    "2026-09-04",
+                ],
+            ), redirect_stderr(io.StringIO()) as stderr, redirect_stdout(io.StringIO()):
+                result = main()
+
+        self.assertEqual(result, 3)
+        self.assertIn("temporary network exception", stderr.getvalue())
+
+    @patch("scripts.validate_dependency_audit.run_pnpm_audit")
+    def test_expired_network_exception_fails_before_running_audit(self, run_audit):
+        with TemporaryDirectory() as directory:
+            exception_path = Path(directory) / "network-exception.json"
+            exception_path.write_text(
+                json.dumps(
+                    network_exception_payload(
+                        introduced_at="2026-09-01",
+                        expires_at="2026-09-03",
+                    )
+                ),
+                encoding="utf-8",
+            )
+            with patch(
+                "sys.argv",
+                [
+                    "validate_dependency_audit.py",
+                    "--network-exception",
+                    str(exception_path),
+                    "--today",
+                    "2026-09-04",
+                ],
+            ), redirect_stderr(io.StringIO()) as stderr, redirect_stdout(io.StringIO()):
+                result = main()
+
+        self.assertEqual(result, 2)
+        run_audit.assert_not_called()
+        self.assertIn("已于 2026-09-03 过期", stderr.getvalue())
+
+    @patch("scripts.validate_dependency_audit.run_pnpm_audit")
+    def test_network_exception_does_not_bypass_high_advisory(self, run_audit):
+        run_audit.return_value = report(severity="high")
+        with TemporaryDirectory() as directory:
+            exception_path = Path(directory) / "network-exception.json"
+            exception_path.write_text(
+                json.dumps(network_exception_payload()),
+                encoding="utf-8",
+            )
+            with patch(
+                "sys.argv",
+                [
+                    "validate_dependency_audit.py",
+                    "--network-exception",
+                    str(exception_path),
+                    "--today",
+                    "2026-09-04",
+                ],
+            ), redirect_stderr(io.StringIO()) as stderr, redirect_stdout(io.StringIO()):
+                result = main()
+
+        self.assertEqual(result, 1)
+        self.assertIn("Dependency audit gate failed", stderr.getvalue())
+
+    @patch("scripts.validate_dependency_audit.subprocess.run")
+    def test_timeout_without_network_exception_still_fails(self, run_process):
+        run_process.side_effect = subprocess.TimeoutExpired(["pnpm", "audit"], 120)
+        with patch("sys.argv", ["validate_dependency_audit.py"]), redirect_stderr(
+            io.StringIO()
+        ) as stderr:
+            result = main()
+
+        self.assertEqual(result, 2)
+        self.assertIn("pnpm audit 网络请求超时", stderr.getvalue())
+
+    @patch("scripts.validate_dependency_audit.subprocess.run")
+    def test_command_start_failure_is_not_bypassed(self, run_process):
+        run_process.side_effect = OSError("pnpm executable is unavailable")
+        with TemporaryDirectory() as directory:
+            exception_path = Path(directory) / "network-exception.json"
+            exception_path.write_text(
+                json.dumps(network_exception_payload()),
+                encoding="utf-8",
+            )
+            with patch(
+                "sys.argv",
+                [
+                    "validate_dependency_audit.py",
+                    "--network-exception",
+                    str(exception_path),
+                    "--today",
+                    "2026-09-04",
+                ],
+            ), redirect_stderr(io.StringIO()) as stderr:
+                result = main()
+
+        self.assertEqual(result, 2)
+        self.assertIn("pnpm audit 执行失败", stderr.getvalue())
 
 
 if __name__ == "__main__":
