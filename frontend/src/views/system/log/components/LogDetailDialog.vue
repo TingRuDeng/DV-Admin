@@ -39,6 +39,12 @@
         <el-descriptions-item label="请求 ID">
           <span class="font-mono">{{ currentLog.requestId || "-" }}</span>
         </el-descriptions-item>
+        <el-descriptions-item label="关联对象类型">
+          <span class="font-mono">{{ currentLog.objectType || "-" }}</span>
+        </el-descriptions-item>
+        <el-descriptions-item label="关联对象 ID">
+          <span class="font-mono">{{ currentLog.objectId || "-" }}</span>
+        </el-descriptions-item>
         <el-descriptions-item label="响应码">
           {{ currentLog.responseStatus || "-" }}
         </el-descriptions-item>
@@ -53,6 +59,9 @@
         </el-descriptions-item>
         <el-descriptions-item label="查询参数">
           <pre class="ff-log-detail-payload">{{ formatLogPayload(currentLog.queryParams) }}</pre>
+        </el-descriptions-item>
+        <el-descriptions-item label="请求上下文">
+          <pre class="ff-log-detail-payload">{{ formatLogPayload(currentLog.requestContext) }}</pre>
         </el-descriptions-item>
         <el-descriptions-item label="请求体">
           <pre class="ff-log-detail-payload">{{ formatLogPayload(currentLog.requestBody) }}</pre>

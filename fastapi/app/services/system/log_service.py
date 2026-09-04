@@ -33,6 +33,8 @@ class LogService:
         username: str | None = None,
         operation: str | None = None,
         request_id: str | None = None,
+        object_type: str | None = None,
+        object_id: str | None = None,
         method: str | None = None,
         status: int | None = None,
         start_time: datetime | None = None,
@@ -49,6 +51,10 @@ class LogService:
             query = query.filter(operation__icontains=operation)
         if request_id:
             query = query.filter(request_id=request_id)
+        if object_type:
+            query = query.filter(object_type=object_type)
+        if object_id:
+            query = query.filter(object_id=str(object_id))
         if method:
             query = query.filter(method=method.upper())
         if status is not None:
@@ -281,8 +287,11 @@ class LogService:
         method: str = "",
         path: str = "",
         request_id: str = "",
+        object_type: str = "",
+        object_id: str = "",
         query_params: str = "",
         request_body: str = "",
+        request_context: dict[str, Any] | None = None,
         response_status: int = 0,
         response_body: str = "",
         ip: str = "",
@@ -301,8 +310,11 @@ class LogService:
             method=method,
             path=path,
             request_id=request_id,
+            object_type=object_type,
+            object_id=object_id,
             query_params=query_params,
             request_body=request_body,
+            request_context=request_context or {},
             response_status=response_status,
             response_body=response_body,
             ip=ip,

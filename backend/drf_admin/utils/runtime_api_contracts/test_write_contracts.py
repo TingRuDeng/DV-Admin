@@ -64,10 +64,26 @@ class DjangoRuntimeWriteApiContractTestCase(TestCase):
         assert Users.objects.get(id=user_id).name == "运行时写入用户已更新"
 
     def assert_user_delete_contract(self, contract, user_id: int) -> None:
-        """验证用户批量删除接口接受共享契约声明的 ids 请求体。"""
+        """验证用户批量删除和逐条重试接口返回共享结果结构。"""
         response = self.client.delete(contract.path, {"ids": [user_id]}, format="json")
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        data = assert_success_payload(response, contract)
+        assert data["status"] == "succeeded"
+        assert data["totalCount"] == 1
+        assert data["successCount"] == 1
+        assert data["failedCount"] == 0
+        assert data["processedCount"] == 1
+        assert data["successItems"][0]["objectId"] == str(user_id)
         assert not Users.objects.filter(id=user_id).exists()
+
+        retry_contract = contracts_by_key()["users_delete_retry"]
+        retry_response = self.client.post(
+            retry_contract.path,
+            {"ids": [user_id]},
+            format="json",
+        )
+        retry_data = assert_success_payload(retry_response, retry_contract)
+        assert retry_data["status"] == "failed"
+        assert retry_data["failures"][0]["errorCode"] == "ALREADY_DELETED"
 
     def test_django_role_write_runtime_samples_match_endpoint_catalog(self):
         """角色写接口运行时响应必须满足端点目录声明的前端请求契约。"""
@@ -129,10 +145,26 @@ class DjangoRuntimeWriteApiContractTestCase(TestCase):
         assert menu_ids_data == [permission_id]
 
     def assert_role_delete_contract(self, contract, role_id: int) -> None:
-        """验证角色批量删除接口接受共享契约声明的 ids 请求体。"""
+        """验证角色批量删除和逐条重试接口返回共享结果结构。"""
         response = self.client.delete(contract.path, {"ids": [role_id]}, format="json")
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        data = assert_success_payload(response, contract)
+        assert data["status"] == "succeeded"
+        assert data["totalCount"] == 1
+        assert data["successCount"] == 1
+        assert data["failedCount"] == 0
+        assert data["processedCount"] == 1
+        assert data["successItems"][0]["objectId"] == str(role_id)
         assert not Roles.objects.filter(id=role_id).exists()
+
+        retry_contract = contracts_by_key()["roles_delete_retry"]
+        retry_response = self.client.post(
+            retry_contract.path,
+            {"ids": [role_id]},
+            format="json",
+        )
+        retry_data = assert_success_payload(retry_response, retry_contract)
+        assert retry_data["status"] == "failed"
+        assert retry_data["failures"][0]["errorCode"] == "ALREADY_DELETED"
 
     def test_django_dept_write_runtime_samples_match_endpoint_catalog(self):
         """部门写接口运行时响应必须满足端点目录声明的前端请求契约。"""
@@ -211,4 +243,3 @@ class DjangoRuntimeWriteApiContractTestCase(TestCase):
         response = self.client.delete(contract.path.replace("{id}", str(menu_id)))
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not Permissions.objects.filter(id=menu_id).exists()
-

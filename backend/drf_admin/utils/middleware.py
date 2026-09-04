@@ -14,6 +14,11 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from drf_admin.apps.oauth.utils import get_request_ip
+from drf_admin.utils.audit import (
+    build_request_context,
+    get_audit_object,
+    serialize_query_params,
+)
 from drf_admin.utils.request_id import get_request_id
 
 SENSITIVE_KEYWORDS = ["password", "token", "secret", "key", "authorization"]
@@ -88,6 +93,13 @@ class OperationLogMiddleware:
             logging.error(f"日志敏感信息覆写失败: {e}, 请求URL：{request.path}")
             response_body = {}
 
+        # 结构化上下文必须在 endpoint 返回后构造，才能包含 endpoint 显式登记的对象 ID。
+        try:
+            request_context = build_request_context(request)
+        except Exception as exc:  # noqa: BLE001 - 审计上下文失败不能影响主请求
+            logging.error(f"结构化审计上下文构造失败: {exc}, 请求URL：{request.path}")
+            request_context = {}
+
         request_ip = get_request_ip(request)
         request_id = get_request_id() or "-"
 
@@ -114,6 +126,7 @@ class OperationLogMiddleware:
             request_ip,
             request_id,
             execution_time,
+            request_context,
         )
 
         return response
@@ -127,6 +140,7 @@ class OperationLogMiddleware:
         request_ip: str,
         request_id: str,
         execution_time: int,
+        request_context: dict,
     ) -> None:
         """将写操作落库到 OperationLog；任何失败都不得影响主请求。"""
         if request.method not in PERSISTED_METHODS:
@@ -149,7 +163,10 @@ class OperationLogMiddleware:
                 method=request.method,
                 path=request.path[:500],
                 request_id=request_id[:64],
-                query_params=self._truncate_log(dict(request.GET)),
+                object_type=(get_audit_object(request) or {}).get("type", "")[:100],
+                object_id=(get_audit_object(request) or {}).get("id", "")[:255],
+                query_params=self._truncate_log(serialize_query_params(request.GET)),
+                request_context=request_context,
                 request_body=self._truncate_log(request_body),
                 response_status=response.status_code,
                 response_body=(

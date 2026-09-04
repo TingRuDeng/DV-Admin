@@ -4,6 +4,7 @@ from importlib import import_module
 from importlib.metadata import version
 from pathlib import Path
 
+from tortoise.fields.db_defaults import SqlDefault
 from tortoise.indexes import Index
 
 from app.core.config import Settings
@@ -23,6 +24,9 @@ from app.db.models.system import (
 Migration = import_module("app.db.migrations.0001_initial").Migration
 RequestIdMigration = import_module(
     "app.db.migrations.0002_auto_20260725_2230"
+).Migration
+AuditContextMigration = import_module(
+    "app.db.migrations.0003_operationlog_audit_context"
 ).Migration
 
 MODELS = (
@@ -73,6 +77,16 @@ def test_request_id_migration_keeps_database_default_for_existing_rows():
     assert RequestIdMigration.dependencies == [("models", "0001_initial")]
     assert add_field.field.default == ""
     assert add_field.field.db_default == ""
+
+
+def test_audit_context_migration_uses_sql_default_for_existing_json_rows():
+    request_context_field = AuditContextMigration.operations[2].field
+
+    assert AuditContextMigration.dependencies == [
+        ("models", "0002_auto_20260725_2230")
+    ]
+    assert request_context_field.default is dict
+    assert request_context_field.db_default == SqlDefault("('{}')")
 
 
 def test_compose_waits_for_single_migration_service_before_fastapi_start():

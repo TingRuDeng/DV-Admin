@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
+from drf_admin.utils.audit import set_audit_context, set_audit_object
 from drf_admin.utils.permissions import RBACPermission
 from drf_admin.utils.swagger_schema import OperationIDAutoSchema
 
@@ -156,7 +157,93 @@ class AdminViewSet(AutoPermissionModelViewSet, MultipleDestroyMixin):
     继承AutoPermissionModelViewSet, 并新增MultipleDestroyMixin
     添加multiple_delete action
     """
-    pass
+    # 模型名与对外业务对象名并不总是一一对应（Permissions 对外称 menus）。
+    AUDIT_OBJECT_TYPES = {
+        "users": "system.users",
+        "roles": "system.roles",
+        "permissions": "system.menus",
+        "departments": "system.departments",
+        "dicts": "system.dicts",
+        "dictitems": "system.dict_items",
+        "notices": "system.notices",
+    }
+
+    def get_audit_object_type(self) -> str:
+        """返回稳定的业务对象类型，供两套后端共享审计筛选语义。"""
+        explicit = getattr(self, "audit_object_type", "")
+        if explicit:
+            return explicit
+        model = self.get_model()
+        model_name = getattr(getattr(model, "_meta", None), "model_name", "")
+        return self.AUDIT_OBJECT_TYPES.get(
+            model_name,
+            f"system.{model_name}" if model_name else "system.unknown",
+        )
+
+    def _audit_object_id(self) -> str:
+        lookup = self.lookup_url_kwarg or self.lookup_field
+        value = self.kwargs.get(lookup)
+        return "" if value is None else str(value)
+
+    def _set_audit_request(self, object_id: object = None) -> None:
+        """在校验前登记对象类型，确保失败请求也能按对象检索。"""
+        if object_id is None:
+            object_id = self._audit_object_id()
+        changed_fields = []
+        try:
+            data = self.request.data
+            if hasattr(data, "keys"):
+                changed_fields = [str(field) for field in data.keys()]
+        except Exception:  # noqa: BLE001 - 请求体解析失败由 DRF 自己返回错误
+            changed_fields = []
+        set_audit_object(
+            self.request,
+            self.get_audit_object_type(),
+            object_id,
+            changed_fields=changed_fields,
+        )
+
+        # 批量接口只保存有界 ID 摘要，避免把任意长度列表写入单条日志。
+        if self.action in {"multiple_delete", "delete_by_ids", "retry_batch_delete"}:
+            raw_ids = []
+            if isinstance(getattr(self.request, "data", None), dict):
+                raw_ids = self.request.data.get("ids", [])
+            if isinstance(raw_ids, str):
+                raw_ids = [item.strip() for item in raw_ids.split(",") if item.strip()]
+            if not isinstance(raw_ids, (list, tuple)):
+                raw_ids = []
+            set_audit_context(
+                self.request,
+                batch_count=len(raw_ids),
+                batch_ids=[str(item)[:255] for item in list(raw_ids)[:100]],
+            )
+
+    def initial(self, request, *args, **kwargs):
+        self._set_audit_request()
+        return super().initial(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        object_id = response.data.get("id") if isinstance(getattr(response, "data", None), dict) else ""
+        if object_id not in (None, ""):
+            self._set_audit_request(object_id)
+        return response
+
+    def update(self, request, *args, **kwargs):
+        self._set_audit_request(self._audit_object_id())
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        self._set_audit_request(self._audit_object_id())
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        self._set_audit_request(self._audit_object_id())
+        return super().destroy(request, *args, **kwargs)
+
+    def multiple_delete(self, request, *args, **kwargs):
+        self._set_audit_request()
+        return super().multiple_delete(request, *args, **kwargs)
 
 
 # 辅助方法用于安全访问model的meta属性

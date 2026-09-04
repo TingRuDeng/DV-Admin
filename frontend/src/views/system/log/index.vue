@@ -34,6 +34,26 @@
         />
       </el-form-item>
 
+      <el-form-item prop="objectType" label="对象类型" class="mb-0">
+        <el-input
+          v-model="queryParams.objectType"
+          placeholder="如 system.users"
+          maxlength="100"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+
+      <el-form-item prop="objectId" label="对象 ID" class="mb-0">
+        <el-input
+          v-model="queryParams.objectId"
+          placeholder="完整对象 ID"
+          maxlength="255"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+
       <el-form-item prop="method" label="请求方法" class="mb-0">
         <el-select v-model="queryParams.method" placeholder="全部" clearable style="width: 120px">
           <el-option v-for="method in HTTP_METHODS" :key="method" :label="method" :value="method" />
@@ -65,6 +85,8 @@
       <el-table-column label="操作时间" prop="createdAt" width="180" />
       <el-table-column label="操作人" prop="username" width="120" />
       <el-table-column label="请求方法" prop="method" width="100" />
+      <el-table-column label="对象类型" prop="objectType" width="150" show-overflow-tooltip />
+      <el-table-column label="对象 ID" prop="objectId" width="150" show-overflow-tooltip />
       <el-table-column label="执行状态" prop="status" width="100" align="center">
         <template #default="{ row }">
           <el-tag :type="row.status === 1 ? 'success' : 'danger'" effect="light">
@@ -110,6 +132,8 @@ interface LogPageRequestParams extends PageQuery {
   operation?: string;
   username?: string;
   requestId?: string;
+  objectType?: string;
+  objectId?: string;
   method?: string;
   status?: number;
   createTime?: [string, string];
@@ -123,6 +147,8 @@ const queryParams = reactive<Omit<LogPageRequestParams, "pageNum" | "pageSize">>
   operation: "",
   username: "",
   requestId: "",
+  objectType: "",
+  objectId: "",
   method: undefined,
   status: undefined,
   createTime: undefined,
@@ -130,13 +156,26 @@ const queryParams = reactive<Omit<LogPageRequestParams, "pageNum" | "pageSize">>
 
 /** 将页面筛选状态转换为双后端日志分页接口契约。 */
 function buildLogPageQuery(params: LogPageRequestParams): LogPageQuery {
-  const { createTime, method, operation, pageNum, pageSize, requestId, status, username } = params;
+  const {
+    createTime,
+    method,
+    objectId,
+    objectType,
+    operation,
+    pageNum,
+    pageSize,
+    requestId,
+    status,
+    username,
+  } = params;
   return {
     pageNum,
     pageSize,
     operation: operation || undefined,
     username: username || undefined,
     requestId: requestId?.trim() || undefined,
+    objectType: objectType?.trim() || undefined,
+    objectId: objectId?.trim() || undefined,
     method: method || undefined,
     status,
     startTime: toDateTimeStart(createTime?.[0]),
