@@ -1,7 +1,15 @@
 from tortoise import fields, migrations
-from tortoise.fields.db_defaults import SqlDefault
 from tortoise.indexes import Index
 from tortoise.migrations import operations as ops
+
+
+async def restore_sqlite_operation_log_indexes(apps, schema_editor):
+    if schema_editor.DIALECT != "sqlite":
+        return
+
+    operation_log = apps.get_model("models", "OperationLog")
+    for index in operation_log._meta.indexes:
+        await schema_editor.add_index(operation_log, index)
 
 
 class Migration(migrations.Migration):
@@ -10,6 +18,10 @@ class Migration(migrations.Migration):
     initial = False
 
     operations = [
+        ops.RunPython(
+            ops.RunPython.noop,
+            reverse_code=restore_sqlite_operation_log_indexes,
+        ),
         ops.AddField(
             model_name="OperationLog",
             name="object_type",
@@ -34,10 +46,26 @@ class Migration(migrations.Migration):
             model_name="OperationLog",
             name="request_context",
             field=fields.JSONField(
-                default=dict,
-                db_default=SqlDefault("('{}')"),
+                null=True,
                 description="结构化请求上下文",
             ),
+        ),
+        ops.RunSQL(
+            "UPDATE system_operation_log "
+            "SET request_context = '{}' "
+            "WHERE request_context IS NULL",
+            reverse_sql=ops.RunSQL.noop,
+        ),
+        ops.AlterField(
+            model_name="OperationLog",
+            name="request_context",
+            field=fields.JSONField(
+                description="结构化请求上下文",
+            ),
+        ),
+        ops.RunPython(
+            restore_sqlite_operation_log_indexes,
+            reverse_code=ops.RunPython.noop,
         ),
         ops.AddIndex(
             model_name="OperationLog",
