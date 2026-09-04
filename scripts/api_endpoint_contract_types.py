@@ -3,6 +3,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
+BATCH_DELETE_RESPONSE_FIELDS = (
+    "status",
+    "totalCount",
+    "successCount",
+    "failedCount",
+    "processedCount",
+    "successItems",
+    "failures",
+)
+
+
 @dataclass(frozen=True)
 class ContractEvidence:
     """端点契约对应的代码或文档证据。"""

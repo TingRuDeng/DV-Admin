@@ -3,18 +3,44 @@
 """
 from typing import Any
 
+from loguru import logger
+from tortoise.transactions import in_transaction
+
 from app.core.cache import CacheKeys, cache_service
 from app.core.exceptions import NotFound, ValidationError
 from app.db.models.system import Departments, Permissions, Roles
 from app.schemas.base import PageResult
-from app.schemas.system import RoleCreate, RoleOut, RoleUpdate, RoleWithPermissions
+from app.schemas.system import (
+    BatchDeleteFailure,
+    BatchDeleteResult,
+    BatchDeleteSuccessItem,
+    RoleCreate,
+    RoleOut,
+    RoleUpdate,
+    RoleWithPermissions,
+)
 from app.services.system.access_cache import clear_user_access_cache, get_role_user_ids
+from app.services.system.batch_delete import build_batch_delete_result, normalize_batch_ids
 from app.services.system.role_serializers import (
     build_role_menu_items,
     build_role_out,
     build_role_update_fields,
     build_role_with_permissions,
 )
+
+PROTECTED_ROLE_IDENTIFIERS = frozenset(
+    {
+        "admin",
+        "superadmin",
+        "administrator",
+        "超级管理员",
+        "系统管理员",
+    }
+)
+
+
+class _ProtectedRoleError(Exception):
+    """内部控制流异常：锁定后发现角色已变为受保护角色。"""
 
 
 class RoleService:
@@ -196,20 +222,158 @@ class RoleService:
         if not role:
             raise NotFound("角色不存在")
 
+        if self._is_protected_role(role):
+            raise ValidationError("系统角色不可删除")
+
         await role.delete()
 
         # 清除缓存
         await self._clear_role_cache(role_id)
 
-    async def batch_delete(self, ids: list[int]) -> None:
-        """
-        批量删除角色
-        """
-        await Roles.filter(id__in=ids).delete()
+    async def batch_delete(
+        self,
+        ids: list[int],
+        current_user=None,
+    ) -> BatchDeleteResult:
+        """批量删除角色并返回逐条结果。"""
+        unique_ids = normalize_batch_ids(ids, resource_name="角色")
+        roles = await Roles.filter(id__in=unique_ids).all()
+        if len(roles) != len(unique_ids):
+            raise NotFound("角色不存在")
 
-        # 清除所有角色缓存
-        for role_id in ids:
+        roles_by_id = {role.id: role for role in roles}
+        success_items: list[BatchDeleteSuccessItem] = []
+        failures: list[BatchDeleteFailure] = []
+        for role_id in unique_ids:
+            role = roles_by_id[role_id]
+            object_name = role.name
+            if self._is_protected_role(role):
+                failures.append(self._protected_failure(role_id, object_name))
+                continue
+
+            outcome = await self._delete_one_for_batch(role_id, object_name)
+            if isinstance(outcome, BatchDeleteFailure):
+                failures.append(outcome)
+            else:
+                success_items.append(outcome)
+
+        return build_batch_delete_result(unique_ids, success_items, failures)
+
+    async def retry_batch_delete(
+        self,
+        ids: list[int],
+        current_user=None,
+    ) -> BatchDeleteResult:
+        """逐条重新校验并重试角色删除。"""
+        unique_ids = normalize_batch_ids(ids, resource_name="角色")
+        success_items: list[BatchDeleteSuccessItem] = []
+        failures: list[BatchDeleteFailure] = []
+        for role_id in unique_ids:
+            role = await Roles.get_or_none(id=role_id)
+            if role is None:
+                failures.append(
+                    BatchDeleteFailure(
+                        object_id=str(role_id),
+                        error_code="ALREADY_DELETED",
+                        message="角色已不存在",
+                        retryable=False,
+                    )
+                )
+                continue
+
+            object_name = role.name
+            if self._is_protected_role(role):
+                failures.append(self._protected_failure(role_id, object_name))
+                continue
+
+            outcome = await self._delete_one_for_batch(
+                role_id,
+                object_name,
+                missing_code="ALREADY_DELETED",
+                missing_message="角色已不存在",
+            )
+            if isinstance(outcome, BatchDeleteFailure):
+                failures.append(outcome)
+            else:
+                success_items.append(outcome)
+
+        return build_batch_delete_result(unique_ids, success_items, failures)
+
+    @staticmethod
+    def _is_protected_role(role: Roles) -> bool:
+        """按名称和编码识别内置系统角色。"""
+        return any(
+            isinstance(value, str)
+            and value.strip().casefold() in PROTECTED_ROLE_IDENTIFIERS
+            for value in (role.name, role.code)
+        )
+
+    @staticmethod
+    def _protected_failure(role_id: int, object_name: str) -> BatchDeleteFailure:
+        return BatchDeleteFailure(
+            object_id=str(role_id),
+            object_name=object_name,
+            error_code="PROTECTED_OBJECT",
+            message="系统角色不可删除",
+            retryable=False,
+        )
+
+    async def _delete_one_for_batch(
+        self,
+        role_id: int,
+        object_name: str,
+        *,
+        missing_code: str = "NOT_FOUND",
+        missing_message: str = "角色不存在",
+    ) -> BatchDeleteSuccessItem | BatchDeleteFailure:
+        """在独立事务中删除单个角色并清理关联用户缓存。"""
+        try:
+            async with in_transaction() as connection:
+                locked_role = await (
+                    Roles.filter(id=role_id).using_db(connection).select_for_update().first()
+                )
+                if locked_role is None:
+                    raise NotFound(missing_message)
+                if self._is_protected_role(locked_role):
+                    raise _ProtectedRoleError
+                # 角色行锁定后再读取关联用户，确保缓存清理集合与本次删除事务一致。
+                affected_user_ids = await get_role_user_ids(
+                    role_id,
+                    using_db=connection,
+                )
+                await locked_role.delete(using_db=connection)
+        except _ProtectedRoleError:
+            return self._protected_failure(role_id, object_name)
+        except NotFound:
+            return BatchDeleteFailure(
+                object_id=str(role_id),
+                object_name=object_name,
+                error_code=missing_code,
+                message=missing_message,
+                retryable=False,
+            )
+        except Exception:  # noqa: BLE001 - 单条失败不能阻塞其余项目
+            return BatchDeleteFailure(
+                object_id=str(role_id),
+                object_name=object_name,
+                error_code="DELETE_FAILED",
+                message="删除角色失败",
+                retryable=True,
+            )
+
+        # 数据库提交后，缓存只是后处理；其故障不能把已删除对象报告成失败。
+        try:
             await self._clear_role_cache(role_id)
+        except Exception as exc:  # noqa: BLE001 - 记录后继续处理用户缓存
+            logger.warning("角色 {} 删除后清理角色缓存失败: {}", role_id, exc)
+        try:
+            await clear_user_access_cache(affected_user_ids)
+        except Exception as exc:  # noqa: BLE001 - 记录后保留删除结果
+            logger.warning("角色 {} 删除后清理用户权限缓存失败: {}", role_id, exc)
+        return BatchDeleteSuccessItem(
+            object_id=str(role_id),
+            object_name=object_name,
+        )
 
     async def get_options(self) -> list[dict[str, Any]]:
         """

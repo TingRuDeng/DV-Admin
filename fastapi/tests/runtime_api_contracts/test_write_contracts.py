@@ -118,10 +118,16 @@ def assert_user_update_contract(context: UserWriteContext, user_id: int) -> None
 
 
 def assert_user_delete_contract(context: UserWriteContext, user_id: int) -> None:
-    """验证用户批量删除接口接受共享契约声明的 ids 请求体。"""
+    """验证用户批量删除和逐条重试接口返回共享结果结构。"""
     contract = context.contracts["users_delete"]
     response = context.client.request("DELETE", contract.path, json={"ids": [user_id]})
-    assert_success_payload(response, contract)
+    data = assert_success_payload(response, contract)
+    assert data["status"] == "succeeded"
+    assert data["totalCount"] == 1
+    assert data["successCount"] == 1
+    assert data["failedCount"] == 0
+    assert data["processedCount"] == 1
+    assert data["successItems"][0]["objectId"] == str(user_id)
 
     users_data = assert_success_payload(
         context.client.get(context.contracts["users_page"].path, params={"pageNum": 1, "pageSize": 100}),
@@ -129,6 +135,12 @@ def assert_user_delete_contract(context: UserWriteContext, user_id: int) -> None
     )
     usernames = {user["username"] for user in users_data["list"]}
     assert "runtime-fastapi-writer" not in usernames
+
+    retry_contract = context.contracts["users_delete_retry"]
+    retry_response = context.client.post(retry_contract.path, json={"ids": [user_id]})
+    retry_data = assert_success_payload(retry_response, retry_contract)
+    assert retry_data["status"] == "failed"
+    assert retry_data["failures"][0]["errorCode"] == "ALREADY_DELETED"
 
 
 def assert_role_create_contract(context: RoleWriteContext) -> int:
@@ -181,10 +193,22 @@ def assert_role_menu_assign_contract(context: RoleWriteContext, role_id: int) ->
 
 
 def assert_role_delete_contract(context: RoleWriteContext, role_id: int) -> None:
-    """验证角色批量删除接口接受共享契约声明的 ids 请求体。"""
+    """验证角色批量删除和逐条重试接口返回共享结果结构。"""
     contract = context.contracts["roles_delete"]
     response = context.client.request("DELETE", contract.path, json={"ids": [role_id]})
-    assert_success_payload(response, contract)
+    data = assert_success_payload(response, contract)
+    assert data["status"] == "succeeded"
+    assert data["totalCount"] == 1
+    assert data["successCount"] == 1
+    assert data["failedCount"] == 0
+    assert data["processedCount"] == 1
+    assert data["successItems"][0]["objectId"] == str(role_id)
+
+    retry_contract = context.contracts["roles_delete_retry"]
+    retry_response = context.client.post(retry_contract.path, json={"ids": [role_id]})
+    retry_data = assert_success_payload(retry_response, retry_contract)
+    assert retry_data["status"] == "failed"
+    assert retry_data["failures"][0]["errorCode"] == "ALREADY_DELETED"
 
 
 def assert_dept_create_contract(context: SimpleWriteContext) -> int:

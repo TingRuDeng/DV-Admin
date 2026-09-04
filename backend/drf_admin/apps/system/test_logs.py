@@ -2,6 +2,7 @@
 """
 系统管理 - 操作日志接口与落库中间件测试
 """
+import uuid
 from datetime import timedelta
 
 from django.core.cache import cache
@@ -13,22 +14,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from drf_admin.apps.system.models import Departments, OperationLog, Permissions, Roles, Users
-from drf_admin.apps.system.test_helpers import create_admin_user
-
-
-def grant_log_permissions(user):
-    """给测试用户授予操作日志权限码。"""
-    role = user.roles.first()
-    if role is None:
-        role, _ = Roles.objects.get_or_create(name="日志角色", code="log", defaults={"status": 1})
-        user.roles.add(role)
-    for code in ("system:logs:query", "system:logs:delete"):
-        permission, _ = Permissions.objects.get_or_create(
-            perm=code, defaults={"name": code, "type": "BUTTON"}
-        )
-        role.permissions.add(permission)
-    # RBAC 权限有进程级缓存，授权后需清除，避免跨用例脏读
-    cache.delete(f"user_info_{user.id}_perms")
+from drf_admin.apps.system.test_helpers import create_admin_user, grant_log_permissions
 
 
 def create_scoped_log_permission_role(data_scope, permission_codes=()):
@@ -154,6 +140,26 @@ class OperationLogPersistenceTestCase(TestCase):
         self.assertTrue(log.error_msg)
         self.assertTrue(log.response_body)
         self.assertNotIn("must-not-leak", log.response_body)
+
+    def test_query_params_are_masked_before_persistence(self):
+        """旧查询参数字段也必须脱敏，不能绕过结构化上下文的安全规则。"""
+        request_id = f"django-query-params-{uuid.uuid4().hex[:8]}"
+        response = self.client.post(
+            "/api/v1/system/dicts/?token=django-query-secret&search=visible-term",
+            {
+                "name": f"查询参数字典{uuid.uuid4().hex[:8]}",
+                "dictCode": f"query_params_{uuid.uuid4().hex[:8]}",
+                "status": 1,
+            },
+            format="json",
+            HTTP_X_REQUEST_ID=request_id,
+        )
+
+        self.assertLess(response.status_code, 400)
+        log = OperationLog.objects.get(request_id=request_id)
+        self.assertNotIn("django-query-secret", log.query_params)
+        self.assertIn("******", log.query_params)
+        self.assertIn("visible-term", log.query_params)
 
     def test_get_request_is_not_persisted(self):
         """GET 读请求不落库，避免审计表被轮询淹没。"""
@@ -331,6 +337,16 @@ class OperationLogPageTestCase(TestCase):
             path="/api/sensitive",
             request_body='{"password":"secret","mobile":"13800138000"}',
             response_body='{"token":"secret-token","ok":true}',
+            request_context={
+                "body": {"email": "secret@example.com"},
+                "query": {"search": "private-term"},
+                "pathParams": {"userId": "7"},
+                "selectedHeaders": {
+                    "content-type": "application/json",
+                    "referer": "https://example.test/private",
+                },
+                "bodyHash": "a" * 64,
+            },
             ip="192.168.1.20",
             status=1,
         )
@@ -342,10 +358,17 @@ class OperationLogPageTestCase(TestCase):
         self.assertEqual(item["request_body"], "[已脱敏]")
         self.assertEqual(item["response_body"], "[已脱敏]")
         self.assertEqual(item["ip"], "192.168.1.*")
+        context = item["request_context"]
+        self.assertEqual(context["body"], "[已脱敏]")
+        self.assertEqual(context["query"], "[已脱敏]")
+        self.assertEqual(context["pathParams"], "[已脱敏]")
+        self.assertEqual(context["selectedHeaders"]["content-type"], "application/json")
+        self.assertEqual(context["selectedHeaders"]["referer"], "[已脱敏]")
         detail = self.client.get(f"/api/v1/system/logs/{log.id}").data["data"]
         self.assertEqual(detail["request_body"], "[已脱敏]")
         self.assertEqual(detail["response_body"], "[已脱敏]")
         self.assertEqual(detail["ip"], "192.168.1.*")
+        self.assertEqual(detail["request_context"]["body"], "[已脱敏]")
 
     def test_sensitive_log_fields_keep_plain_with_permission(self):
         """拥有字段原文权限时，日志敏感字段返回原文。"""
@@ -364,6 +387,12 @@ class OperationLogPageTestCase(TestCase):
             path="/api/plain",
             request_body='{"password":"secret"}',
             response_body='{"token":"secret-token"}',
+            request_context={
+                "body": {"email": "plain@example.com"},
+                "query": {"search": "plain-term"},
+                "pathParams": {"userId": "7"},
+                "selectedHeaders": {"referer": "https://example.test/plain"},
+            },
             ip="10.0.0.8",
             status=1,
         )
@@ -375,6 +404,9 @@ class OperationLogPageTestCase(TestCase):
         self.assertEqual(item["request_body"], '{"password":"secret"}')
         self.assertEqual(item["response_body"], '{"token":"secret-token"}')
         self.assertEqual(item["ip"], "10.0.0.8")
+        self.assertEqual(item["request_context"]["body"]["email"], "plain@example.com")
+        self.assertEqual(item["request_context"]["query"]["search"], "plain-term")
+        self.assertEqual(item["request_context"]["selectedHeaders"]["referer"], "https://example.test/plain")
 
     def test_visit_stats_shape(self):
         """访问统计返回汇总字段。"""

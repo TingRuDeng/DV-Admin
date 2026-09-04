@@ -123,6 +123,15 @@ class RolesDetailTestCase(TestCase):
         
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
+    def test_delete_protected_role_is_rejected(self):
+        """单条删除不能绕过系统角色保护。"""
+        protected = Roles.objects.get(name="超级管理员")
+
+        response = self.client.delete(f"/api/v1/system/roles/{protected.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(Roles.objects.filter(id=protected.id).exists())
+
 
 class RolesMenuTestCase(TestCase):
     """角色菜单接口测试"""

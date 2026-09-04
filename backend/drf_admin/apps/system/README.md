@@ -101,7 +101,11 @@ system/
 |------|------|------|
 | `/api/v1/system/users/` | GET, POST | 用户列表/创建 |
 | `/api/v1/system/users/{id}/` | GET, PUT, DELETE | 用户详情/更新/删除 |
+| `/api/v1/system/users/` | DELETE | 用户批量删除，JSON 请求体 `ids` |
+| `/api/v1/system/users/batch-delete/retry/` | POST | 逐条重试可重试的用户删除失败项 |
 | `/api/v1/system/roles/` | GET, POST | 角色列表/创建 |
+| `/api/v1/system/roles/` | DELETE | 角色批量删除，JSON 请求体 `ids` |
+| `/api/v1/system/roles/batch-delete/retry/` | POST | 逐条重试可重试的角色删除失败项 |
 | `/api/v1/system/roles/{id}/menus/` | PUT | 分配角色菜单权限 |
 | `/api/v1/system/menus/` | GET, POST | 菜单列表/创建 |
 | `/api/v1/system/departments/` | GET, POST | 部门树/创建 |
@@ -112,9 +116,13 @@ system/
 | `/api/v1/system/notices/{id}` | PUT | 更新通知公告 |
 | `/api/v1/system/notices/{id}/publish` | PUT | 发布通知公告 |
 | `/api/v1/system/notices/{id}/revoke` | PUT | 撤回通知公告 |
+| `/api/v1/system/notices/` | DELETE | 通知批量删除，JSON 请求体 `ids` |
+| `/api/v1/system/notices/batch-delete/retry/` | POST | 逐条重试可重试的通知删除失败项 |
 | `/api/v1/system/notices/{ids}` | DELETE | 删除通知公告 |
 
-> 操作日志管理路由当前由 FastAPI 实现提供；Django `system` 应用当前未注册日志管理路由。
+> 通知的 JSON body 路径是 canonical 入口；`/{ids}` 仅作为旧逗号分隔路径兼容。三类批量删除均返回统一的逐条结果结构。
+
+> Django 与 FastAPI 均提供操作日志分页、详情、统计、删除和历史清理路由，并共享权限、字段和数据范围契约。
 
 ---
 

@@ -78,7 +78,19 @@ def assert_notice_revoke_contract(context: SimpleWriteContext, notice_id: int) -
 
 
 def assert_notice_delete_contract(context: SimpleWriteContext, notice_id: int) -> None:
-    """验证通知删除接口使用共享路径中的逗号分隔 ID。"""
+    """验证通知 JSON body 删除和逐条重试接口返回共享结果结构。"""
     contract = context.contracts["notices_delete"]
-    response = context.client.delete(contract.path.replace("{ids}", str(notice_id)))
-    assert_success_payload(response, contract)
+    response = context.client.request("DELETE", contract.path, json={"ids": [notice_id]})
+    data = assert_success_payload(response, contract)
+    assert data["status"] == "succeeded"
+    assert data["totalCount"] == 1
+    assert data["successCount"] == 1
+    assert data["failedCount"] == 0
+    assert data["processedCount"] == 1
+    assert data["successItems"][0]["objectId"] == str(notice_id)
+
+    retry_contract = context.contracts["notices_delete_retry"]
+    retry_response = context.client.post(retry_contract.path, json={"ids": [notice_id]})
+    retry_data = assert_success_payload(retry_response, retry_contract)
+    assert retry_data["status"] == "failed"
+    assert retry_data["failures"][0]["errorCode"] == "ALREADY_DELETED"

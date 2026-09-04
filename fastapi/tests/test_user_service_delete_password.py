@@ -91,7 +91,11 @@ class TestUserServiceBatchDelete:
             user_ids.append(user.id)
 
         # 批量删除
-        await user_service.batch_delete(user_ids)
+        result = await user_service.batch_delete(user_ids)
+
+        assert result.status == "succeeded"
+        assert result.success_count == 3
+        assert result.failed_count == 0
 
         # 验证用户已删除
         for user_id in user_ids:
@@ -101,13 +105,15 @@ class TestUserServiceBatchDelete:
     @pytest.mark.asyncio
     async def test_batch_delete_includes_self(self, db, test_user_for_service):
         """测试批量删除包含当前用户"""
-        with pytest.raises(BusinessError) as exc_info:
-            await user_service.batch_delete(
-                [test_user_for_service.id, 99999],
-                current_user=test_user_for_service,
-            )
+        test_user_for_service.is_superuser = True
+        result = await user_service.batch_delete(
+            [test_user_for_service.id],
+            current_user=test_user_for_service,
+        )
 
-        assert "不能删除当前登录用户" in str(exc_info.value)
+        assert result.status == "failed"
+        assert result.failures[0].error_code == "PROTECTED_OBJECT"
+        assert "当前登录用户" in result.failures[0].message
 
     @pytest.mark.asyncio
     async def test_batch_delete_is_atomic_across_data_scope(self, db, scoped_user_context):

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import os
 import sqlite3
 import subprocess
@@ -19,7 +20,7 @@ MIGRATIONS_DIR = PROJECT_ROOT / "app" / "db" / "migrations"
 MIGRATION_CONFIG = "app.db.migration_config.TORTOISE_ORM"
 TEST_SECRET_KEY = "migration-validation-key-at-least-sixty-four-characters-long-123456"
 BASELINE_MIGRATION = "0001_initial"
-LATEST_MIGRATION = "0002_auto_20260725_2230"
+LATEST_MIGRATION = "0003_operationlog_audit_context"
 OPERATION_LOG_TABLE = "system_operation_log"
 MIGRATION_ROW_USERNAME = "__migration_validation_0001__"
 MIGRATION_REQUEST_ID = "migration-validation-request-id"
@@ -261,8 +262,17 @@ async def seed_legacy_operation_log(database_url: str) -> None:
     )
     try:
         actual_columns = await operation_log_columns(connection, backend)
-        if "request_id" in actual_columns:
-            raise RuntimeError("0001_initial 阶段不应存在 request_id 列")
+        unexpected_columns = actual_columns & {
+            "request_id",
+            "object_type",
+            "object_id",
+            "request_context",
+        }
+        if unexpected_columns:
+            raise RuntimeError(
+                "0001_initial 阶段不应存在后续审计字段: "
+                f"{sorted(unexpected_columns)}"
+            )
 
         placeholders = ", ".join([placeholder] * len(values))
         await connection.execute_query(
@@ -296,8 +306,15 @@ async def assert_upgraded_operation_log(
     placeholder = "?" if backend == "sqlite" else "%s"
     try:
         actual_columns = await operation_log_columns(connection, backend)
-        if "request_id" not in actual_columns:
-            raise RuntimeError("增量迁移后缺少 request_id 列")
+        required_columns = {
+            "request_id",
+            "object_type",
+            "object_id",
+            "request_context",
+        }
+        missing_columns = required_columns - actual_columns
+        if missing_columns:
+            raise RuntimeError(f"增量迁移后缺少审计列: {sorted(missing_columns)}")
 
         index_names = await request_id_index_names(connection, backend)
         if len(index_names) != 1:
@@ -307,7 +324,7 @@ async def assert_upgraded_operation_log(
 
         _, rows = await connection.execute_query(
             f"""
-            SELECT operation, request_id
+            SELECT operation, request_id, object_type, object_id, request_context
             FROM {OPERATION_LOG_TABLE}
             WHERE username = {placeholder}
             """,
@@ -321,6 +338,25 @@ async def assert_upgraded_operation_log(
             raise RuntimeError(
                 "request_id 默认值或幂等校验失败: "
                 f"expected={expected_request_id!r}, actual={rows[0]['request_id']!r}"
+            )
+        if rows[0]["object_type"] != "" or rows[0]["object_id"] != "":
+            raise RuntimeError(
+                "对象关联字段默认值异常: "
+                f"object_type={rows[0]['object_type']!r}, "
+                f"object_id={rows[0]['object_id']!r}"
+            )
+
+        request_context = rows[0]["request_context"]
+        if isinstance(request_context, bytes):
+            request_context = request_context.decode()
+        if isinstance(request_context, str):
+            try:
+                request_context = json.loads(request_context)
+            except json.JSONDecodeError as exc:
+                raise RuntimeError("request_context 默认值不是有效 JSON") from exc
+        if request_context != {}:
+            raise RuntimeError(
+                "request_context 默认值异常: " f"actual={request_context!r}"
             )
 
         if update_request_id:
