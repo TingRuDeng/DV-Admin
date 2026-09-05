@@ -8,7 +8,12 @@
           <AppLogo :collapse="isLogoCollapsed" />
         </div>
 
-        <Hamburger v-if="isMobile" :is-active="isSidebarOpen" @toggle-click="toggleSidebar" />
+        <Hamburger
+          v-if="isMobile"
+          :is-active="isSidebarOpen"
+          controls="layout-sidebar"
+          @toggle-click="toggleSidebar"
+        />
 
         <!-- 顶部菜单区域 -->
         <div v-if="!isMobile" class="layout__header-menu">
@@ -26,7 +31,11 @@
     <div class="layout__container">
       <!-- 左侧菜单栏 -->
       <div
+        id="layout-sidebar"
         class="layout__sidebar--left"
+        role="navigation"
+        aria-label="主导航"
+        tabindex="-1"
         :class="{ 'layout__sidebar--collapsed': !isSidebarOpen }"
         :aria-hidden="isMobile && !isSidebarOpen ? 'true' : undefined"
         :inert="isMobile && !isSidebarOpen"
@@ -51,7 +60,12 @@
         </el-scrollbar>
         <!-- 侧边栏切换按钮 -->
         <div class="layout__sidebar-toggle">
-          <Hamburger :is-active="isSidebarOpen" @toggle-click="toggleSidebar" />
+          <Hamburger
+            :is-active="isSidebarOpen"
+            controls="layout-sidebar"
+            :label="isSidebarOpen ? '收起侧边导航' : '展开侧边导航'"
+            @toggle-click="toggleSidebar"
+          />
         </div>
       </div>
 
@@ -217,7 +231,7 @@ const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
 }
 
 /* 移动端样式 */
-:deep(.mobile) {
+:global(.mobile) {
   .layout__container {
     .layout__sidebar--left {
       position: fixed;
@@ -225,6 +239,8 @@ const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
       bottom: 0;
       left: 0;
       z-index: 1000;
+      width: $sidebar-width !important;
+      height: auto;
       box-shadow: var(--ff-shadow-shell-raised);
       transition: transform 0.28s;
     }
@@ -232,8 +248,13 @@ const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
 
   &.hideSidebar {
     .layout__sidebar--left {
-      width: $sidebar-width !important;
       transform: translateX(-$sidebar-width);
+    }
+  }
+
+  &.openSidebar {
+    .layout__sidebar--left {
+      transform: translateX(0);
     }
   }
 }

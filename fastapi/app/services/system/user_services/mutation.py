@@ -20,6 +20,7 @@ from app.services.system.field_permission import (
 )
 from app.services.system.user_services.cache import UserCacheMixin
 from app.services.system.user_services.serializers import UserSerializerMixin
+from app.services.token_blacklist import token_blacklist_service
 
 
 class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
@@ -45,6 +46,10 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         )
         await self._validate_department_write(current_user, user_in.dept_id)
         roles = await self._resolve_roles(user_in.role_ids)
+        if not roles:
+            default_role = await Roles.filter(is_default=1).first()
+            if default_role:
+                roles = [default_role]
 
         # 检查手机号是否已存在
         if user_in.mobile:
@@ -233,6 +238,13 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         重置用户密码
         """
         user = await self._get_scoped_user(user_id, current_user)
+
+        revoked = await token_blacklist_service.revoke_all_user_tokens(
+            user.id,
+            reason="password_reset",
+        )
+        if not revoked:
+            raise BusinessError("旧令牌撤销失败，密码未更新")
 
         user.password = get_password_hash(password or settings.default_password)
         await user.save()

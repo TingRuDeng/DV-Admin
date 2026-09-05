@@ -31,10 +31,15 @@
     <!-- 用户菜单 -->
     <div class="navbar-actions__item">
       <el-dropdown trigger="click">
-        <div class="user-profile">
-          <img class="user-profile__avatar" :src="userStore.userInfo.avatar" />
+        <button type="button" class="user-profile" :aria-label="t('navbar.userMenu')">
+          <img
+            class="user-profile__avatar"
+            :src="userStore.userInfo.avatar"
+            alt=""
+            aria-hidden="true"
+          />
           <span class="user-profile__name">{{ userStore.userInfo.username }}</span>
-        </div>
+        </button>
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item @click="handleProfileClick">
@@ -49,13 +54,15 @@
     </div>
 
     <!-- 系统设置 -->
-    <div
+    <button
       v-if="defaultSettings.showSettings"
-      class="navbar-actions__item"
+      type="button"
+      class="navbar-actions__item navbar-actions__button"
+      :aria-label="t('navbar.settings')"
       @click="handleSettingsClick"
     >
-      <div class="i-svg:setting" />
-    </div>
+      <div class="i-svg:setting" aria-hidden="true" />
+    </button>
   </div>
 </template>
 

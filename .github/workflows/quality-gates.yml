@@ -40,7 +40,7 @@ jobs:
           python3 scripts/validate_model_contracts.py .
           python3 scripts/validate_route_components.py .
           python3 scripts/validate_django_migrations.py .
-          python3 -m unittest discover -s tests -p "test_dependency_audit.py"
+          python3 -m unittest discover -s tests -p "test_*.py"
       - name: Install dependencies
         working-directory: frontend
         run: pnpm install --frozen-lockfile
@@ -59,6 +59,16 @@ jobs:
       - name: Run E2E smoke tests
         working-directory: frontend
         run: pnpm run test:e2e:smoke
+      - name: Upload frontend Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-playwright-${{ github.run_id }}
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
 
   backend:
     name: Django Backend Quality
@@ -244,3 +254,13 @@ jobs:
         env:
           RUN_REAL_BACKEND_PLAYWRIGHT: "1"
         run: .venv/bin/pytest '${{ matrix.test_target }}'
+      - name: Upload real backend Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-backend-playwright-${{ matrix.backend }}-${{ github.run_id }}
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          if-no-files-found: ignore
+          retention-days: 7

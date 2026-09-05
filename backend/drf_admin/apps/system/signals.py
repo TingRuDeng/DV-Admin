@@ -50,6 +50,34 @@ def user_roles_changed(sender, instance, **kwargs):
     clear_user_permission_cache(instance.id)
 
 
+@receiver(pre_delete, sender=Roles)
+def role_deleting(sender, instance, **kwargs):
+    """角色删除前清除关联用户缓存，避免级联删除绕过 m2m_changed。"""
+    try:
+        user_ids = Users.objects.filter(roles=instance).values_list('id', flat=True)
+        for user_id in user_ids:
+            clear_user_permission_cache(user_id)
+    except Exception as e:
+        logger.error(f"处理角色删除信号时出错: {str(e)}")
+
+
+@receiver(post_save, sender=Permissions)
+def permission_saved(sender, instance, created, **kwargs):
+    """权限码变更后清除所有关联用户缓存。"""
+    if created:
+        return
+    try:
+        user_ids = (
+            Users.objects.filter(roles__permissions=instance)
+            .values_list('id', flat=True)
+            .distinct()
+        )
+        for user_id in user_ids:
+            clear_user_permission_cache(user_id)
+    except Exception as e:
+        logger.error(f"处理权限更新信号时出错: {str(e)}")
+
+
 @receiver(pre_delete, sender=Permissions)
 def permission_deleting(sender, instance, **kwargs):
     """权限对象删除前清除关联用户缓存，避免级联删除绕过 m2m_changed。"""

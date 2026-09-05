@@ -1,5 +1,5 @@
 import vue from "@vitejs/plugin-vue";
-import { type ConfigEnv, type UserConfig, loadEnv, defineConfig, PluginOption } from "vite";
+import { type ConfigEnv, type UserConfig, loadEnv, defineConfig } from "vite";
 
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
@@ -9,7 +9,9 @@ import { mockDevServerPlugin } from "vite-plugin-mock-dev-server";
 
 import UnoCSS from "unocss/vite";
 import { resolve } from "path";
-import { name, version, engines, dependencies, devDependencies } from "./package.json";
+import packageJson from "./package.json" with { type: "json" };
+
+const { name, version, engines, dependencies, devDependencies } = packageJson;
 
 // 平台的名称、版本、运行所需的 node 版本、依赖、构建时间的类型提示
 const __APP_INFO__ = {
@@ -17,7 +19,7 @@ const __APP_INFO__ = {
   buildTimestamp: Date.now(),
 };
 
-const pathSrc = resolve(__dirname, "src");
+const pathSrc = resolve(import.meta.dirname, "src");
 
 // Vite配置  https://cn.vitejs.dev/config
 export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
@@ -88,7 +90,7 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
         dts: false,
         // dts: "src/types/components.d.ts",
       }),
-    ] as PluginOption[],
+    ],
     // 预加载项目必需的组件
     optimizeDeps: {
       include: [

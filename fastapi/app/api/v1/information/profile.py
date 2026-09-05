@@ -11,11 +11,12 @@ from fastapi import APIRouter, File, Request, UploadFile
 
 from app.api.deps import CurrentUser
 from app.core.config import settings
-from app.core.exceptions import ValidationError
+from app.core.exceptions import BusinessError, ValidationError
 from app.core.security import get_password_hash, verify_password
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
 from app.schemas.oauth import AvatarInfo, ChangePassword, UpdateProfile, UserInfo, UserProfile
+from app.services.token_blacklist import token_blacklist_service
 from app.utils.file import MAX_AVATAR_UPLOAD_SIZE, allowed_file, save_upload_file
 
 router = APIRouter()
@@ -134,6 +135,13 @@ async def change_password(
     """修改密码"""
     if not verify_password(data.old_password, current_user.password):
         raise ValidationError("旧密码错误")
+
+    revoked = await token_blacklist_service.revoke_all_user_tokens(
+        current_user.id,
+        reason="password_change",
+    )
+    if not revoked:
+        raise BusinessError("旧令牌撤销失败，密码未更新")
 
     current_user.password = get_password_hash(data.new_password)
     await current_user.save()
