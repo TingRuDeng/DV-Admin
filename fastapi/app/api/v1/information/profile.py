@@ -11,12 +11,12 @@ from fastapi import APIRouter, File, Request, UploadFile
 
 from app.api.deps import CurrentUser
 from app.core.config import settings
-from app.core.exceptions import BusinessError, ValidationError
+from app.core.exceptions import ValidationError
 from app.core.security import get_password_hash, verify_password
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
 from app.schemas.oauth import AvatarInfo, ChangePassword, UpdateProfile, UserInfo, UserProfile
-from app.services.token_blacklist import token_blacklist_service
+from app.utils.audit import set_audit_object
 from app.utils.file import MAX_AVATAR_UPLOAD_SIZE, allowed_file, save_upload_file
 
 router = APIRouter()
@@ -109,6 +109,12 @@ async def update_profile(
     current_user: Users = CurrentUser,
 ) -> ResponseModel[UserInfo]:
     """修改个人信息"""
+    set_audit_object(
+        request,
+        "system.users",
+        current_user.id,
+        changed_fields=list(data.model_dump(exclude_unset=True)),
+    )
     if data.name is not None:
         current_user.name = data.name
     if data.email is not None:
@@ -133,15 +139,14 @@ async def change_password(
     current_user: Users = CurrentUser,
 ) -> ResponseModel[None]:
     """修改密码"""
+    set_audit_object(
+        request,
+        "system.users",
+        current_user.id,
+        changed_fields=["oldPassword", "newPassword", "confirmPassword"],
+    )
     if not verify_password(data.old_password, current_user.password):
         raise ValidationError("旧密码错误")
-
-    revoked = await token_blacklist_service.revoke_all_user_tokens(
-        current_user.id,
-        reason="password_change",
-    )
-    if not revoked:
-        raise BusinessError("旧令牌撤销失败，密码未更新")
 
     current_user.password = get_password_hash(data.new_password)
     await current_user.save()
@@ -156,6 +161,7 @@ async def upload_avatar(
     current_user: Users = CurrentUser,
 ) -> ResponseModel[AvatarInfo]:
     """上传头像"""
+    set_audit_object(request, "system.users", current_user.id, changed_fields=["file"])
     if not file.filename:
         raise ValidationError("文件名不能为空")
 

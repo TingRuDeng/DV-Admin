@@ -316,7 +316,10 @@ ai_summary:
 | method | varchar(10) | 请求方法 | |
 | path | varchar(500) | 请求路径 | |
 | request_id | varchar(64) | 请求链路标识 | |
+| object_type | varchar(100) | 业务对象类型，使用稳定业务命名 | |
+| object_id | varchar(255) | 业务对象 ID，兼容整数/UUID/外部 ID | |
 | query_params | text | 查询参数 | |
+| request_context | json | 脱敏后的结构化请求上下文 | |
 | request_body | text | 请求体 | |
 | response_status | int | 响应状态码 | |
 | response_body | text | 响应体 | |
@@ -335,6 +338,7 @@ ai_summary:
 - `status`
 - `method`
 - `request_id`
+- `(object_type, object_id)`
 - `(user_id, created_at)`
 - `(status, created_at)`
 

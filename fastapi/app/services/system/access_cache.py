@@ -3,6 +3,8 @@
 from collections.abc import Iterable
 from typing import cast
 
+from tortoise.backends.base.client import BaseDBAsyncClient
+
 from app.core.cache import CacheKeys, cache_service
 from app.db.models.oauth import Users
 
@@ -18,29 +20,27 @@ async def clear_user_access_cache(user_ids: Iterable[int]) -> None:
         )
 
 
-async def get_role_user_ids(role_id: int) -> list[int]:
+async def get_role_user_ids(
+    role_id: int,
+    using_db: BaseDBAsyncClient | None = None,
+) -> list[int]:
     """返回被指定角色影响的用户 ID。"""
-    user_ids = await Users.filter(roles__id=role_id).values_list("id", flat=True)
-    return cast(list[int], user_ids)
-
-
-async def get_roles_user_ids(role_ids: Iterable[int]) -> list[int]:
-    """返回被多个角色影响的去重用户 ID。"""
-    normalized_ids = set(role_ids)
-    if not normalized_ids:
-        return []
     user_ids = (
-        await Users.filter(roles__id__in=normalized_ids)
-        .distinct()
+        await Users.filter(roles__id=role_id)
+        .using_db(using_db)
         .values_list("id", flat=True)
     )
     return cast(list[int], user_ids)
 
 
-async def get_permission_user_ids(permission_id: int) -> list[int]:
+async def get_permission_user_ids(
+    permission_id: int,
+    using_db: BaseDBAsyncClient | None = None,
+) -> list[int]:
     """返回通过任一角色持有指定权限的用户 ID。"""
     user_ids = (
         await Users.filter(roles__permissions__id=permission_id)
+        .using_db(using_db)
         .distinct()
         .values_list("id", flat=True)
     )

@@ -7,6 +7,8 @@ from rest_framework.test import APIRequestFactory
 from scripts.api_endpoint_contracts import iter_critical_endpoint_contracts
 
 from drf_admin.apps.system.models import Permissions, Roles, Users
+from drf_admin.apps.system.views.notices import NoticesViewSet
+from drf_admin.apps.system.views.roles import RolesViewSet
 from drf_admin.apps.system.views.users import (
     UserExportAPIView,
     UserImportAPIView,
@@ -159,6 +161,20 @@ class RBACPermissionContractTestCase(TestCase):
         assert view.required_permissions["create"] == list(contracts["users_create"].permissions)
         assert view.required_permissions["update"] == list(contracts["users_update"].permissions)
         assert view.required_permissions["multiple_delete"] == list(contracts["users_delete"].permissions)
+        assert view.required_permissions["retry_batch_delete"] == list(
+            contracts["users_delete_retry"].permissions
+        )
+
+    def test_role_and_notice_retry_permissions_match_endpoint_catalog(self):
+        """角色和通知逐条重试必须复用各自批量删除权限。"""
+        contracts = endpoint_contracts_by_key()
+
+        assert RolesViewSet().required_permissions["retry_batch_delete"] == list(
+            contracts["roles_delete_retry"].permissions
+        )
+        assert NoticesViewSet().required_permissions["retry_batch_delete"] == list(
+            contracts["notices_delete_retry"].permissions
+        )
 
     def test_user_import_export_permissions_match_endpoint_catalog(self):
         """Django 特殊入口必须使用导入导出专用权限。"""

@@ -73,7 +73,8 @@ class DictTypeService(DictCacheMixin):
             name=dict_data.name,
             dict_code=dict_data.dict_code,
             status=dict_data.status,
-            remark=dict_data.remark,
+            # Django 的同名字段以空字符串表示缺省备注；保持替代实现可互换。
+            remark=dict_data.remark or "",
         )
         return serialize_dict_data(created)
 

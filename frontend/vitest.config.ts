@@ -7,6 +7,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "happy-dom",
+    // Node 24 的实验性 Web Storage 会抢占 happy-dom 注入的 localStorage。
+    execArgv: ["--no-experimental-webstorage"],
     setupFiles: ["./vitest.setup.ts"],
     include: ["src/**/*.{test,spec}.{js,ts}"],
     exclude: ["node_modules", "dist", "e2e"],

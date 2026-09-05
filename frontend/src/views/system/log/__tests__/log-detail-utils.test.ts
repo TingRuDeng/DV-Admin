@@ -10,4 +10,10 @@ describe("formatLogPayload", () => {
     expect(formatLogPayload("request failed")).toBe("request failed");
     expect(formatLogPayload("   ")).toBe("-");
   });
+
+  it("formats structured request context without requiring a JSON string", () => {
+    expect(formatLogPayload({ pathParams: { userId: "7" }, truncated: false })).toBe(
+      '{\n  "pathParams": {\n    "userId": "7"\n  },\n  "truncated": false\n}'
+    );
+  });
 });

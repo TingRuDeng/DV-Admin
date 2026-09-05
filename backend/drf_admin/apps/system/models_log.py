@@ -19,7 +19,12 @@ class OperationLog(models.Model):
     method = models.CharField(max_length=10, blank=True, default="", verbose_name="请求方法")
     path = models.CharField(max_length=500, blank=True, default="", verbose_name="请求路径")
     request_id = models.CharField(max_length=64, blank=True, default="", verbose_name="请求ID")
+    # 对象类型使用稳定的业务命名（例如 system.users），不绑定具体 ORM 表名。
+    object_type = models.CharField(max_length=100, blank=True, default="", verbose_name="业务对象类型")
+    # 对象 ID 可能来自整数、UUID 或外部系统，因此统一按字符串保存。
+    object_id = models.CharField(max_length=255, blank=True, default="", verbose_name="业务对象ID")
     query_params = models.TextField(blank=True, default="", verbose_name="查询参数")
+    request_context = models.JSONField(default=dict, blank=True, verbose_name="结构化请求上下文")
 
     request_body = models.TextField(blank=True, default="", verbose_name="请求体")
     response_status = models.IntegerField(default=0, verbose_name="响应状态码")
@@ -52,6 +57,10 @@ class OperationLog(models.Model):
             models.Index(fields=["status"]),
             models.Index(fields=["method"]),
             models.Index(fields=["request_id"]),
+            models.Index(
+                fields=["object_type", "object_id"],
+                name="system_oper_object__audit_idx",
+            ),
             models.Index(fields=["user_id", "created_at"]),
             models.Index(fields=["status", "created_at"]),
         ]

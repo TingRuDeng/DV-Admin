@@ -69,6 +69,33 @@ def test_mutating_request_persists_request_id(auth_client, test_user):
     assert row["responseBody"] == ""
 
 
+def test_query_params_are_masked_before_persistence(auth_client, test_user):
+    """旧查询参数字段也必须脱敏，不能绕过结构化上下文的安全规则。"""
+    suffix = uuid.uuid4().hex[:6]
+    request_id = f"fastapi-query-params-{suffix}"
+    response = auth_client.post(
+        "/api/v1/system/dicts/?token=fastapi-query-secret&search=visible-term",
+        json={
+            "name": f"查询参数字典{suffix}",
+            "dictCode": f"query_params_{suffix}",
+            "remark": "查询参数脱敏测试",
+            "status": 1,
+        },
+        headers={"X-Request-ID": request_id},
+    )
+
+    assert response.status_code in (200, 201)
+    page = auth_client.get(
+        "/api/v1/system/logs/page",
+        params={"pageNum": 1, "pageSize": 50, "requestId": request_id},
+    ).json()["data"]
+    assert len(page["list"]) == 1
+    query_params = page["list"][0]["queryParams"]
+    assert "fastapi-query-secret" not in query_params
+    assert "******" in query_params
+    assert "visible-term" in query_params
+
+
 def test_long_request_id_is_trimmed_consistently(auth_client, test_user):
     """响应头和持久化字段必须使用同一个有界 request id。"""
     request_id = "x" * (MAX_REQUEST_ID_LENGTH + 16)

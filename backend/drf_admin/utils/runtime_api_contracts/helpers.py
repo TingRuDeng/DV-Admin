@@ -27,8 +27,14 @@ READ_SAMPLE_KEYS = (
     "dicts_page",
     "dict_items_page",
 )
-USER_WRITE_SAMPLE_KEYS = ("users_create", "users_update", "users_delete")
-ROLE_WRITE_SAMPLE_KEYS = ("roles_create", "roles_update", "roles_delete", "roles_menu_assign")
+USER_WRITE_SAMPLE_KEYS = ("users_create", "users_update", "users_delete", "users_delete_retry")
+ROLE_WRITE_SAMPLE_KEYS = (
+    "roles_create",
+    "roles_update",
+    "roles_delete",
+    "roles_delete_retry",
+    "roles_menu_assign",
+)
 DEPT_WRITE_SAMPLE_KEYS = ("depts_create", "depts_update", "depts_delete")
 MENU_WRITE_SAMPLE_KEYS = ("menus_create", "menus_update", "menus_delete")
 DICT_WRITE_SAMPLE_KEYS = ("dicts_create", "dicts_update", "dicts_delete")
@@ -37,6 +43,7 @@ NOTICE_WRITE_SAMPLE_KEYS = (
     "notices_create",
     "notices_update",
     "notices_delete",
+    "notices_delete_retry",
     "notices_publish",
     "notices_revoke",
 )

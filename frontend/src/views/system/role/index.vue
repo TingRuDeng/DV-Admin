@@ -38,7 +38,8 @@
             v-hasPerm="['system:roles:delete']"
             type="danger"
             plain
-            :disabled="ids.length === 0"
+            :loading="loading"
+            :disabled="ids.length === 0 || loading"
             icon="delete"
             class="ff-button-danger"
             @click="handleDelete()"
@@ -108,6 +109,8 @@
               type="danger"
               link
               icon="delete"
+              :loading="loading"
+              :disabled="loading"
               size="small"
               @click="handleDelete(scope.row.id)"
             >
@@ -121,20 +124,31 @@
     <RoleFormDrawer ref="roleFormDrawerRef" @success="handleQuery" />
 
     <RolePermissionDrawer ref="rolePermissionDrawerRef" @success="handleQuery" />
+
+    <BatchDeleteResultDialog
+      ref="batchDeleteResultDialogRef"
+      :retry-action="RoleAPI.retryBatchDelete"
+      @changed="handleQuery"
+    />
   </PageShell>
 </template>
 
 <script setup lang="ts">
+import BatchDeleteResultDialog from "@/components/BatchDeleteResultDialog/index.vue";
 import PageShell from "@/components/PageShell/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
+import { runExclusive } from "@/utils/exclusive-action";
+import { createLogger } from "@/utils/logger";
 
 import RoleAPI, { RolePageQuery, RolePageVO } from "@/api/system/role-api";
+import type { BatchDeleteResult } from "@/api/system/batch-delete";
 import RoleFormDrawer from "./components/RoleFormDrawer.vue";
 import RolePermissionDrawer from "./components/RolePermissionDrawer.vue";
 
+const roleBatchDeleteLogger = createLogger("RoleBatchDelete");
 defineOptions({
   name: "Role",
   inheritAttrs: false,
@@ -143,6 +157,7 @@ defineOptions({
 const queryFormRef = ref<InstanceType<typeof ProSearch> | null>(null);
 const roleFormDrawerRef = ref<InstanceType<typeof RoleFormDrawer> | null>(null);
 const rolePermissionDrawerRef = ref<InstanceType<typeof RolePermissionDrawer> | null>(null);
+const batchDeleteResultDialogRef = ref<InstanceType<typeof BatchDeleteResultDialog> | null>(null);
 const tableRef = ref<ProTableExpose | null>(null);
 
 const loading = ref(false);
@@ -178,32 +193,52 @@ async function handleOpenDialog(roleId?: string) {
   await roleFormDrawerRef.value?.openCreate();
 }
 
+function presentBatchDeleteResult(result: BatchDeleteResult) {
+  if (result.successCount > 0) {
+    tableRef.value?.reload(true);
+  }
+
+  if (result.failedCount === 0) {
+    ElMessage.success(`删除成功，共 ${result.successCount} 条`);
+    return;
+  }
+
+  const message = `删除完成：成功 ${result.successCount} 条，失败 ${result.failedCount} 条`;
+  if (result.successCount > 0) {
+    ElMessage.warning(message);
+  } else {
+    ElMessage.error(message);
+  }
+  batchDeleteResultDialogRef.value?.open(result);
+}
+
 // 删除角色
 function handleDelete(roleId?: number) {
   const roleIds = roleId !== undefined ? [roleId] : ids.value;
-  if (!roleIds) {
+  if (roleIds.length === 0) {
     ElMessage.warning("请勾选删除项");
     return;
   }
 
-  ElMessageBox.confirm("确认删除已选中的数据项?", "警告", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
-  }).then(
-    () => {
-      loading.value = true;
-      RoleAPI.deleteByIds(roleIds)
-        .then(() => {
-          ElMessage.success("删除成功");
-          tableRef.value?.reload(true);
-        })
-        .finally(() => (loading.value = false));
-    },
-    () => {
+  void runExclusive(loading, async () => {
+    try {
+      await ElMessageBox.confirm("确认删除已选中的数据项?", "警告", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      });
+    } catch {
       ElMessage.info("已取消删除");
+      return;
     }
-  );
+
+    try {
+      presentBatchDeleteResult(await RoleAPI.deleteByIds(roleIds));
+    } catch (error: unknown) {
+      // 请求拦截器负责用户提示，这里保留页面侧错误上下文并消费拒绝。
+      roleBatchDeleteLogger.error("批量删除失败:", error);
+    }
+  });
 }
 
 async function handleOpenAssignPermDialog(row: RolePageVO) {

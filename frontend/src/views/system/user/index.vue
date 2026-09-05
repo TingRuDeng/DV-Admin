@@ -78,7 +78,8 @@
                 plain
                 icon="delete"
                 class="ff-button-danger"
-                :disabled="selectIds.length === 0"
+                :loading="loading"
+                :disabled="selectIds.length === 0 || loading"
                 @click="handleDelete()"
               >
                 批量删除
@@ -125,6 +126,8 @@
                   type="danger"
                   icon="delete"
                   link
+                  :loading="loading"
+                  :disabled="loading"
                   size="small"
                   @click="handleDelete(scope.row.id)"
                 >
@@ -144,18 +147,28 @@
       :dept-id="queryParams.deptId"
       @import-success="handleQuery()"
     />
+
+    <BatchDeleteResultDialog
+      ref="batchDeleteResultDialogRef"
+      :retry-action="UserAPI.retryBatchDelete"
+      @changed="handleQuery"
+    />
   </PageShell>
 </template>
 
 <script setup lang="ts">
+import BatchDeleteResultDialog from "@/components/BatchDeleteResultDialog/index.vue";
 import PageShell from "@/components/PageShell/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
+import { runExclusive } from "@/utils/exclusive-action";
 import { downloadEncodedFile } from "@/utils/file-download";
+import { createLogger } from "@/utils/logger";
 
 import type { UserInfo } from "@/api/auth-api";
+import type { BatchDeleteResult } from "@/api/system/batch-delete";
 import UserAPI, { UserPageQuery, UserPageVO } from "@/api/system/user-api";
 
 import DeptTree from "./components/DeptTree.vue";
@@ -163,6 +176,7 @@ import UserImport from "./components/UserImport.vue";
 import UserFormDrawer from "./components/UserFormDrawer.vue";
 import UserStatusTag from "./components/UserStatusTag.vue";
 import { useUserStore } from "@/store";
+const userBatchDeleteLogger = createLogger("UserBatchDelete");
 const userStore = useUserStore();
 defineOptions({
   name: "User",
@@ -171,6 +185,7 @@ defineOptions({
 
 const queryFormRef = ref<InstanceType<typeof ProSearch> | null>(null);
 const userFormDrawerRef = ref<InstanceType<typeof UserFormDrawer> | null>(null);
+const batchDeleteResultDialogRef = ref<InstanceType<typeof BatchDeleteResultDialog> | null>(null);
 const tableRef = ref<ProTableExpose | null>(null);
 
 const queryParams = reactive<Omit<UserPageQuery, "pageNum" | "pageSize">>({});
@@ -275,6 +290,25 @@ function isDeletingCurrentUser(
   return false;
 }
 
+function presentBatchDeleteResult(result: BatchDeleteResult) {
+  if (result.successCount > 0) {
+    tableRef.value?.reload(true);
+  }
+
+  if (result.failedCount === 0) {
+    ElMessage.success(`删除成功，共 ${result.successCount} 条`);
+    return;
+  }
+
+  const message = `删除完成：成功 ${result.successCount} 条，失败 ${result.failedCount} 条`;
+  if (result.successCount > 0) {
+    ElMessage.warning(message);
+  } else {
+    ElMessage.error(message);
+  }
+  batchDeleteResultDialogRef.value?.open(result);
+}
+
 /**
  * 删除用户
  *
@@ -282,7 +316,7 @@ function isDeletingCurrentUser(
  */
 function handleDelete(id?: string) {
   const userIds = id !== undefined ? [id] : selectIds.value;
-  if (!userIds) {
+  if (userIds.length === 0) {
     ElMessage.warning("请勾选删除项");
     return;
   }
@@ -294,23 +328,24 @@ function handleDelete(id?: string) {
     return;
   }
 
-  ElMessageBox.confirm("确认删除用户?", "警告", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
-  }).then(
-    () => {
-      loading.value = true;
-      UserAPI.deleteByIds(userIds)
-        .then(() => {
-          ElMessage.success("删除成功");
-          tableRef.value?.reload(true);
-        })
-        .finally(() => (loading.value = false));
-    },
-    () => {
+  void runExclusive(loading, async () => {
+    try {
+      await ElMessageBox.confirm("确认删除用户?", "警告", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      });
+    } catch {
       ElMessage.info("已取消删除");
+      return;
     }
-  );
+
+    try {
+      presentBatchDeleteResult(await UserAPI.deleteByIds(userIds));
+    } catch (error: unknown) {
+      // 请求拦截器负责用户提示，这里保留页面侧错误上下文并消费拒绝。
+      userBatchDeleteLogger.error("批量删除失败:", error);
+    }
+  });
 }
 </script>
