@@ -460,7 +460,7 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
 
     const searchResponse = waitForApiResponse(page, "/api/v1/system/logs/page", "GET");
     await page.getByLabel("请求 ID").fill(logDeleteRequestId);
-    await page.getByRole("button", { name: "搜索" }).click();
+    await page.getByRole("button", { name: "搜索", exact: true }).click();
     await searchResponse;
 
     const deleteRow = page.locator(".ff-log-page .el-table__row", {
