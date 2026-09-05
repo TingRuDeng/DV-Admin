@@ -1,10 +1,17 @@
 <template>
   <el-dropdown trigger="click">
-    <el-badge v-if="noticeList.length > 0" :value="noticeList.length" :max="99">
-      <div class="i-svg:bell" />
-    </el-badge>
+    <button
+      type="button"
+      class="navbar-icon-button"
+      :aria-label="notificationAriaLabel"
+      aria-haspopup="menu"
+    >
+      <el-badge v-if="noticeList.length > 0" :value="noticeList.length" :max="99">
+        <div class="i-svg:bell" aria-hidden="true" />
+      </el-badge>
 
-    <div v-else class="i-svg:bell" />
+      <div v-else class="i-svg:bell" aria-hidden="true" />
+    </button>
 
     <template #dropdown>
       <div class="p-5">
@@ -98,6 +105,13 @@ interface NotificationMessagePayload {
 const noticeList = ref<NoticePageVO[]>([]);
 const noticeDialogVisible = ref(false);
 const noticeDetail = ref<NoticeDetailVO | null>(null);
+const { t } = useI18n();
+
+const notificationAriaLabel = computed(() =>
+  noticeList.value.length > 0
+    ? t("navbar.notificationsUnread", { count: noticeList.value.length })
+    : t("navbar.notifications")
+);
 
 const { subscribe, unsubscribe, isConnected } = useStomp();
 

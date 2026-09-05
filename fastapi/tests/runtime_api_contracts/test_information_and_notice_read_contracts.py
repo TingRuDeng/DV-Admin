@@ -85,6 +85,20 @@ def test_fastapi_information_runtime_samples_match_endpoint_catalog(
         password_contract,
     )
 
+    assert auth_client.get(profile_contract.path).status_code == 401
+    login_contract = contracts["auth_login"]
+    login = assert_success_payload(
+        auth_client.post(
+            login_contract.path,
+            json={
+                "username": test_user_with_role["username"],
+                "password": "runtime456",
+            },
+        ),
+        login_contract,
+    )
+    auth_client.headers["Authorization"] = f"Bearer {login['accessToken']}"
+
     avatar_contract = contracts["information_avatar"]
     avatar = assert_success_payload(
         auth_client.post(

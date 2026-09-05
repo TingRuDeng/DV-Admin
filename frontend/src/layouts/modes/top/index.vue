@@ -5,7 +5,12 @@
       <div class="layout__header-left">
         <!-- Logo -->
         <AppLogo v-if="isShowLogo" :collapse="isLogoCollapsed" />
-        <Hamburger v-if="isMobile" :is-active="isSidebarOpen" @toggle-click="toggleSidebar" />
+        <Hamburger
+          v-if="isMobile"
+          :is-active="isSidebarOpen"
+          controls="layout-sidebar"
+          @toggle-click="toggleSidebar"
+        />
         <!-- 菜单 -->
         <BasicMenu v-if="!isMobile" :data="routes" menu-mode="horizontal" base-path="" />
       </div>
@@ -17,7 +22,9 @@
 
     <aside
       v-if="isMobile"
+      id="layout-sidebar"
       class="layout__mobile-menu"
+      tabindex="-1"
       :class="{ 'layout__mobile-menu--collapsed': !isSidebarOpen }"
       aria-label="主导航"
       :aria-hidden="!isSidebarOpen ? 'true' : undefined"
