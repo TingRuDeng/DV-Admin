@@ -1,4 +1,4 @@
-import { expect, test, type Page, type Route } from "@playwright/test";
+import { expect, test, type Locator, type Page, type Route } from "@playwright/test";
 
 const API_PREFIX = "/dev-api";
 const USER_PERMS = ["system:users:query"];
@@ -70,6 +70,15 @@ async function installShellMocks(page: Page) {
                   perms: USER_PERMS,
                   keepAlive: true,
                   cacheKey: "User",
+                },
+              },
+              {
+                path: "roles",
+                component: "system/role/index",
+                name: "Role",
+                meta: {
+                  title: "角色管理",
+                  icon: "role",
                 },
               },
             ],
@@ -151,6 +160,23 @@ async function switchLayout(page: Page, layout: "left" | "top" | "mix") {
   await expect(page.getByText("用户数据")).toBeVisible();
 }
 
+async function focusWithKeyboard(page: Page, target: Locator) {
+  await page.evaluate(() => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  });
+
+  for (let index = 0; index < 30; index += 1) {
+    await page.keyboard.press("Tab");
+    if (await target.evaluate((element) => document.activeElement === element)) {
+      return;
+    }
+  }
+
+  throw new Error("无法通过键盘 Tab 顺序聚焦目标元素");
+}
+
 test.describe("现代化壳层 smoke", () => {
   test("桌面端保持三种布局、TagsView、动态路由和暗色主题", async ({ page }) => {
     await installShellMocks(page);
@@ -167,6 +193,27 @@ test.describe("现代化壳层 smoke", () => {
     const tags = page.locator(".tags-container");
     const userTag = tags.getByRole("link", { name: "用户管理" });
     await expect(userTag).toHaveAttribute("aria-current", "page");
+    await expect(userTag).toHaveCSS("height", "30px");
+    await expect(userTag).toHaveCSS("border-style", "solid");
+    await expect(tags).toHaveCSS("border-bottom-style", "solid");
+    expect(await tags.evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe(
+      "rgba(0, 0, 0, 0)"
+    );
+    await focusWithKeyboard(page, userTag);
+    await expect(userTag).toBeFocused();
+    await expect(userTag).toHaveCSS("outline-style", "solid");
+
+    for (const accessibleName of [
+      "搜索菜单",
+      "进入全屏",
+      "布局大小",
+      "切换语言",
+      "通知消息",
+      "用户菜单",
+      "系统设置",
+    ]) {
+      await expect(page.getByRole("button", { name: accessibleName })).toBeVisible();
+    }
 
     const keywordInput = page.getByPlaceholder("用户名/昵称/手机号");
     await keywordInput.fill("缓存探针");
@@ -189,6 +236,13 @@ test.describe("现代化壳层 smoke", () => {
 
     await switchLayout(page, "top");
     await expect(page.locator(".layout-top .el-menu--horizontal")).toBeVisible();
+    await page.locator(".layout-top .el-sub-menu__title", { hasText: "系统管理" }).hover();
+    const topMenuPopup = page.locator(".el-menu--popup:visible");
+    await expect(topMenuPopup).toBeVisible();
+    await expect(topMenuPopup).toHaveCSS("min-width", "160px");
+    expect(
+      await topMenuPopup.evaluate((element) => getComputedStyle(element).backgroundColor)
+    ).not.toBe("rgba(0, 0, 0, 0)");
 
     await switchLayout(page, "mix");
     await expect(page.locator(".layout-mix .layout__sidebar--left")).toBeVisible();
@@ -197,6 +251,11 @@ test.describe("现代化壳层 smoke", () => {
     await page.reload();
     await expect(page.locator("html")).toHaveClass(/dark/);
     await expect(page.locator("main.app-main")).toBeVisible();
+    const sidebarTitle = page.locator(".layout-mix .sidebar-title");
+    await expect(sidebarTitle).toBeVisible();
+    expect(
+      await sidebarTitle.evaluate((element) => getComputedStyle(element).webkitTextFillColor)
+    ).not.toBe("rgba(0, 0, 0, 0)");
   });
 
   test("移动端三种布局提供可访问的抽屉导航", async ({ page }) => {
@@ -225,18 +284,64 @@ test.describe("现代化壳层 smoke", () => {
     await expect(page.locator(".layout-top .layout__mobile-menu")).toHaveClass(/collapsed/);
 
     await switchLayout(page, "mix");
-    await expect(page.locator(".layout-mix .layout__sidebar--left")).toHaveAttribute(
-      "aria-hidden",
-      "true"
-    );
-    const mixToggle = page
-      .locator(".layout-mix .layout__header")
-      .getByRole("button", { name: "展开导航" });
-    await mixToggle.click();
-    await expect(page.locator(".layout-mix .layout__sidebar--left")).toBeVisible();
-    await expect(page.locator(".layout-mix .layout__overlay")).toBeVisible();
+    const mixSidebar = page.locator(".layout-mix .layout__sidebar--left");
+    const mixOverlay = page.locator(".layout-mix .layout__overlay");
 
-    await page.locator(".layout-mix .layout__overlay").click();
+    await expect(mixSidebar).toHaveAttribute("aria-hidden", "true");
+    await expect(mixSidebar).toHaveCSS("position", "fixed");
+    await expect.poll(async () => (await mixSidebar.boundingBox())?.x ?? 0).toBeLessThan(0);
+
+    const mixToggle = page.locator(".layout-mix .layout__header .hamburger-wrapper");
+    await expect(mixToggle).toHaveAttribute("aria-label", "展开导航");
+    await mixToggle.click();
+    await expect(mixToggle).toHaveAttribute("aria-controls", "layout-sidebar");
+    await expect(mixSidebar).toHaveAttribute("id", "layout-sidebar");
+    await expect(mixSidebar).toBeVisible();
+    await expect(mixSidebar).not.toHaveAttribute("aria-hidden");
+    await expect(mixSidebar).toHaveCSS("position", "fixed");
+    await expect(mixSidebar).toHaveCSS("z-index", "1000");
+    await expect.poll(async () => page.evaluate(() => document.body.style.overflow)).toBe("hidden");
+    await expect
+      .poll(async () => (await mixSidebar.boundingBox())?.x ?? -1)
+      .toBeGreaterThanOrEqual(0);
+    const sidebarToggle = mixSidebar.locator(".layout__sidebar-toggle button");
+    await expect(sidebarToggle).toHaveAttribute("aria-label", "收起侧边导航");
+    await expect
+      .poll(async () =>
+        page.evaluate(() => document.activeElement?.closest("#layout-sidebar") !== null)
+      )
+      .toBe(true);
+    await page.keyboard.press("Shift+Tab");
+    await expect
+      .poll(async () =>
+        page.evaluate(() => document.activeElement?.closest("#layout-sidebar") !== null)
+      )
+      .toBe(true);
+    await page.keyboard.press("Tab");
+    await expect
+      .poll(async () =>
+        page.evaluate(() => document.activeElement?.closest("#layout-sidebar") !== null)
+      )
+      .toBe(true);
+
+    await page.keyboard.press("Escape");
+    await expect(mixSidebar).toHaveAttribute("aria-hidden", "true");
+    await expect(mixToggle).toBeFocused();
+    await expect
+      .poll(async () => page.evaluate(() => document.body.style.overflow))
+      .not.toBe("hidden");
+
+    await mixToggle.click();
+    await sidebarToggle.click();
+    await expect(mixSidebar).toHaveAttribute("aria-hidden", "true");
+    await expect.poll(async () => (await mixSidebar.boundingBox())?.x ?? 0).toBeLessThan(0);
+
+    await mixToggle.click();
+    await expect(mixOverlay).toBeVisible();
+    await mixOverlay.click();
+    await expect(mixSidebar).toHaveAttribute("aria-hidden", "true");
+    await expect.poll(async () => (await mixSidebar.boundingBox())?.x ?? 0).toBeLessThan(0);
+
     await switchLayout(page, "left");
     await expect(page.locator(".layout-left .layout__sidebar")).toHaveAttribute(
       "aria-hidden",

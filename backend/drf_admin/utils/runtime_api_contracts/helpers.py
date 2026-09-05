@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
 from typing import Any, Mapping
 
 from django.core.cache import cache
+from django.utils import timezone
 from rest_framework import status
 from scripts.api_contracts import (
     assert_page_payload,
@@ -38,6 +40,9 @@ NOTICE_WRITE_SAMPLE_KEYS = (
     "notices_publish",
     "notices_revoke",
 )
+LOG_DELETE_REQUEST_ID = "real-backend-log-delete"
+LOG_KEEP_REQUEST_ID = "real-backend-log-keep"
+LOG_CLEAR_REQUEST_ID = "real-backend-log-clear"
 
 
 def contracts_by_key() -> dict[str, Any]:
@@ -136,6 +141,8 @@ def create_runtime_contract_permissions() -> list[Permissions]:
         "system:notices:delete",
         "system:notices:publish",
         "system:notices:revoke",
+        "system:logs:query",
+        "system:logs:delete",
     ]
     buttons = [
         Permissions.objects.create(name=code, perm=code, type="BUTTON", sort=index)
@@ -170,6 +177,16 @@ def create_runtime_contract_permissions() -> list[Permissions]:
         parent=catalog,
         sort=3,
     )
+    log_menu = Permissions.objects.create(
+        name="日志管理",
+        perm="system:logs:query",
+        type="MENU",
+        route_name="RuntimeContractLog",
+        route_path="log",
+        component="system/log/index",
+        parent=catalog,
+        sort=4,
+    )
     menu_management = Permissions.objects.create(
         name="菜单管理",
         perm="system:permissions:query",
@@ -178,7 +195,7 @@ def create_runtime_contract_permissions() -> list[Permissions]:
         route_path="menus",
         component="system/menu/index",
         parent=catalog,
-        sort=4,
+        sort=5,
     )
     upload_menu = Permissions.objects.create(
         name="文件上传",
@@ -188,9 +205,9 @@ def create_runtime_contract_permissions() -> list[Permissions]:
         route_path="upload",
         component="demo/upload",
         parent=catalog,
-        sort=5,
+        sort=6,
     )
-    return [catalog, user_menu, notice_menu, menu_management, upload_menu, *buttons]
+    return [catalog, user_menu, notice_menu, log_menu, menu_management, upload_menu, *buttons]
 
 
 def create_runtime_contract_dicts() -> None:
@@ -207,3 +224,66 @@ def create_runtime_contract_departments() -> Departments:
     visible = Departments.objects.create(name="运行时契约部门", status=1, sort=1)
     Departments.objects.create(name="运行时过滤部门", status=0, sort=2)
     return visible
+
+
+def create_runtime_contract_logs(user_id: int, username: str, name: str) -> None:
+    """创建日志页真实烟雾所需的最近、保留和待清理样本。"""
+    from drf_admin.apps.system.models import OperationLog
+
+    OperationLog.objects.create(
+        user_id=user_id,
+        username=username,
+        name=name,
+        operation="真实浏览器日志删除目标",
+        method="DELETE",
+        path="/api/v1/runtime-contract/logs/delete-target",
+        request_id=LOG_DELETE_REQUEST_ID,
+        request_body='{"password":"delete-secret"}',
+        response_status=200,
+        response_body='{"token":"delete-response-secret"}',
+        ip="10.0.0.10",
+        browser="Chromium",
+        os="macOS",
+        execution_time=18,
+        status=1,
+    )
+    OperationLog.objects.create(
+        user_id=user_id,
+        username=username,
+        name=name,
+        operation="真实浏览器日志保留目标",
+        method="POST",
+        path="/api/v1/runtime-contract/logs/keep-target",
+        request_id=LOG_KEEP_REQUEST_ID,
+        request_body='{"status":"keep"}',
+        response_status=200,
+        response_body='{"ok":true}',
+        ip="10.0.0.11",
+        browser="Chromium",
+        os="macOS",
+        execution_time=12,
+        status=1,
+    )
+    old_log = OperationLog.objects.create(
+        user_id=user_id,
+        username=username,
+        name=name,
+        operation="真实浏览器日志清理目标",
+        method="POST",
+        path="/api/v1/runtime-contract/logs/clear-target",
+        request_id=LOG_CLEAR_REQUEST_ID,
+        request_body='{"password":"clear-secret"}',
+        response_status=500,
+        response_body='{"token":"clear-response-secret"}',
+        ip="10.0.0.12",
+        browser="Chromium",
+        os="macOS",
+        execution_time=21,
+        status=0,
+        error_msg="清理前历史样本",
+    )
+    old_created_at = timezone.now() - timedelta(days=10)
+    OperationLog.objects.filter(id=old_log.id).update(
+        created_at=old_created_at,
+        updated_at=old_created_at,
+    )

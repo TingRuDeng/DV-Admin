@@ -15,6 +15,7 @@ from scripts.real_backend_playwright import run_real_backend_playwright
 from drf_admin.apps.system.models import NoticeReads, Notices, Permissions, Roles, Users
 from drf_admin.utils.runtime_api_contracts.helpers import (
     create_runtime_contract_departments,
+    create_runtime_contract_logs,
     create_runtime_contract_user,
 )
 
@@ -38,6 +39,7 @@ class DjangoLiveHttpContractTestCase(LiveServerTestCase):
     def setUp(self):
         self.user = create_runtime_contract_user()
         self.lifecycle_dept = create_runtime_contract_departments()
+        create_runtime_contract_logs(self.user.id, self.user.username, self.user.name)
         self.lifecycle_role = self.user.roles.get()
         self.rbac_role = Roles.objects.create(
             name="运行时 RBAC 角色",

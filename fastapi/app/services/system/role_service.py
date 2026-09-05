@@ -8,7 +8,11 @@ from app.core.exceptions import NotFound, ValidationError
 from app.db.models.system import Departments, Permissions, Roles
 from app.schemas.base import PageResult
 from app.schemas.system import RoleCreate, RoleOut, RoleUpdate, RoleWithPermissions
-from app.services.system.access_cache import clear_user_access_cache, get_role_user_ids
+from app.services.system.access_cache import (
+    clear_user_access_cache,
+    get_role_user_ids,
+    get_roles_user_ids,
+)
 from app.services.system.role_serializers import (
     build_role_menu_items,
     build_role_out,
@@ -196,7 +200,9 @@ class RoleService:
         if not role:
             raise NotFound("角色不存在")
 
+        assigned_user_ids = await get_role_user_ids(role_id)
         await role.delete()
+        await clear_user_access_cache(assigned_user_ids)
 
         # 清除缓存
         await self._clear_role_cache(role_id)
@@ -205,7 +211,10 @@ class RoleService:
         """
         批量删除角色
         """
+        assigned_user_ids = await get_roles_user_ids(ids)
         await Roles.filter(id__in=ids).delete()
+
+        await clear_user_access_cache(assigned_user_ids)
 
         # 清除所有角色缓存
         for role_id in ids:

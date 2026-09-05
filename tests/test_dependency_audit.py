@@ -88,8 +88,11 @@ class DependencyAuditTests(unittest.TestCase):
         self.assertIn("version: 11.21.0", workflow)
         self.assertIn("node-version: 24.20.0", workflow)
         self.assertEqual(workspace_overrides, lock_overrides)
-        for dependency in ('"@parcel/watcher"', "es5-ext", "esbuild", "msw", "vue-demi"):
+        for dependency in ('"@parcel/watcher"', "es5-ext", "esbuild", "vue-demi"):
             self.assertIn(f"  {dependency}: true", workspace)
+        self.assertNotIn("  msw: true", workspace)
+        self.assertNotIn("msw", package_json.get("dependencies", {}))
+        self.assertNotIn("msw", package_json.get("devDependencies", {}))
         self.assertEqual(workspace_overrides["brace-expansion@1.1.12"], "1.1.18")
         self.assertEqual(workspace_overrides["brace-expansion@2.0.2"], "2.1.4")
         self.assertEqual(workspace_overrides["nanoid@3.3.11"], "3.3.18")
