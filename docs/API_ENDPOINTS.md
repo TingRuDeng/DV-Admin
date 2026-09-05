@@ -338,6 +338,8 @@ POST   /api/v1/system/users/          # 创建
 GET    /api/v1/system/users/{id}/     # 详情
 PUT    /api/v1/system/users/{id}/     # 更新
 DELETE /api/v1/system/users/{id}/     # 删除
+DELETE /api/v1/system/users/          # 批量删除，请求体 ids
+POST   /api/v1/system/users/batch-delete/retry/ # 逐条重试失败项，请求体 ids
 ```
 
 #### 其他用户端点
@@ -359,7 +361,7 @@ POST /api/v1/system/users/export/               # 导出用户
 > 两套后端的共享 `PUT` 密码重置端点都要求请求体提供 `password` 与 `confirm_password`；两次密码必须一致，且至少 6 位并同时包含字母和数字。敏感字段不得放入 URL query。FastAPI 额外保留已标记废弃的 `POST /api/v1/system/users/{id}/password/reset/` 兼容入口，并按 `DEFAULT_PASSWORD` 重置；共享前端不使用该兼容入口。
 > 用户输出中的 `mobile/email` 默认保留字段但返回脱敏值；拥有 `system:users:field:plain` 或 `is_superuser` 时返回原文。
 > 后台用户创建/更新请求中显式写入非空 `mobile/email` 时，需要 `system:users:field:write` 或 `is_superuser`。
-> 用户列表、详情、下拉选项、权限查询、状态更新、密码重置和删除均受角色数据范围约束；范围外 ID 按不存在处理。批量删除采用全有或全无语义，任一 ID 不存在或不可见时不删除任何目标。
+> 用户列表、详情、下拉选项、权限查询、状态更新、密码重置和删除均受角色数据范围约束；范围外 ID 按不存在处理。批量删除初次请求会先预检全部 ID，任一 ID 不存在或不可见时整批拒绝且不删除目标；预检通过后，当前用户等保护对象或单条执行异常会作为失败项返回，不阻塞其他目标。
 > 创建用户或显式变更用户部门时，目标部门必须处于操作者的数据范围；仅本人（`SELF`）范围不能创建用户。提交角色 ID 时必须全部有效，不存在的角色不会被静默忽略。
 > 模板和导出响应统一返回 `{ filename, content, contentType }`，其中 `content` 是 Base64 编码；模板为 `.xlsx`，导出文件为带 UTF-8 BOM 的 CSV。前端不得把该 JSON 响应当作 Blob。
 > 用户导出仅包含当前操作者范围内的用户，并复用 `mobile/email` 脱敏规则；用户导入仅接受 `.xlsx`，逐行校验目标部门、敏感字段写入权限和全部角色 ID，失败行不会创建用户。
@@ -376,12 +378,15 @@ GET    /api/v1/system/roles/{id}/     # 详情
 PUT    /api/v1/system/roles/{id}/     # 更新
 DELETE /api/v1/system/roles/{id}/     # 删除
 DELETE /api/v1/system/roles/          # 批量删除，请求体 ids
+POST   /api/v1/system/roles/batch-delete/retry/ # 逐条重试失败项，请求体 ids
 GET    /api/v1/system/roles/options/  # 角色下拉选项
 GET    /api/v1/system/roles/{id}/menu-ids/ # 角色菜单ID列表
 PUT    /api/v1/system/roles/{id}/menus/    # 分配角色菜单权限，请求体 menuIds
 ```
 
 角色创建/更新请求体支持 `dataScope` 与 `deptIds`。`dataScope` 枚举：1 全部数据、2 本人数据、3 本部门数据、4 本部门及以下数据、5 自定义部门数据；仅自定义部门范围需要提交 `deptIds`。
+
+> 内置系统角色不可删除：单条删除返回 `400`；批量删除中对应项目返回 `PROTECTED_OBJECT` 且 `retryable=false`，不阻塞同批普通角色。
 
 ---
 
@@ -446,7 +451,9 @@ GET    /api/v1/system/notices/page           # 通知列表
 GET    /api/v1/system/notices/{id}/form      # 后台通知表单
 POST   /api/v1/system/notices                # 创建通知
 PUT    /api/v1/system/notices/{id}           # 更新通知
-DELETE /api/v1/system/notices/{ids}          # 删除通知
+DELETE /api/v1/system/notices/               # 批量删除通知，请求体 ids
+DELETE /api/v1/system/notices/{ids}          # 兼容旧逗号分隔路径
+POST   /api/v1/system/notices/batch-delete/retry/ # 逐条重试失败项，请求体 ids
 PUT    /api/v1/system/notices/{id}/publish   # 发布通知
 PUT    /api/v1/system/notices/{id}/revoke    # 撤回通知
 GET    /api/v1/system/notices/my-page/       # 我的通知
@@ -458,6 +465,42 @@ PUT    /api/v1/system/notices/read-all       # 当前用户可见通知全部已
 > 通知输出中的 `targetUserIds` 默认保留字段但返回空数组；拥有 `system:notices:target:plain` 或 `is_superuser` 时返回原始目标用户 ID。
 > 后台通知管理输出中的 `content` 默认保留字段但返回 `[已脱敏]`；拥有 `system:notices:content:plain` 或 `is_superuser` 时返回原文。“我的通知”接口仍返回正文原文。
 > 后台通知管理列表、更新、删除、发布和撤回会按通知 `publisherId` 套用当前用户角色数据范围；FastAPI 表单查询也使用同一规则。不在范围内的通知按不存在处理。
+
+### 结果化批量删除
+
+用户、角色和通知的批量删除均使用 JSON 请求体，并返回 `200` 的逐条处理结果。请求体为：
+
+```json
+{
+  "ids": [123, 456]
+}
+```
+
+响应位于统一包裹的 `data` 字段中：
+
+```json
+{
+  "status": "partial_failed",
+  "totalCount": 2,
+  "successCount": 1,
+  "failedCount": 1,
+  "processedCount": 2,
+  "successItems": [
+    {"objectId": "123", "objectName": "对象名称"}
+  ],
+  "failures": [
+    {
+      "objectId": "456",
+      "objectName": "对象名称",
+      "errorCode": "PUBLISHED_OBJECT",
+      "message": "失败原因",
+      "retryable": true
+    }
+  ]
+}
+```
+
+`status` 取 `succeeded`、`partial_failed` 或 `failed`；请求 ID 去重后计入 `totalCount`。初次请求对不存在或越权 ID 进行整批预检，预检失败不会删除任何目标；保护对象、已发布通知和单条删除异常在预检通过后逐条返回。`failures[].retryable=true` 的 ID 可单独或合并提交到对应的 `batch-delete/retry/` 端点，`false` 表示无需再次尝试。当前稳定错误码为 `PROTECTED_OBJECT`、`PUBLISHED_OBJECT`、`NOT_FOUND`、`ALREADY_DELETED` 和 `DELETE_FAILED`。
 
 **我的通知接口（Django & FastAPI）：**
 ```
@@ -472,7 +515,7 @@ GET    /api/v1/system/notices/my-page/       # 我的通知，支持 pageNum/pag
 
 **Django & FastAPI 与前端管理页：**
 ```
-GET    /api/v1/system/logs/page                    # 日志分页，支持 pageNum/pageSize/operation/username/requestId/method/status/startTime/endTime
+GET    /api/v1/system/logs/page                    # 日志分页，支持 pageNum/pageSize/operation/username/requestId/objectType/objectId/method/status/startTime/endTime
 GET    /api/v1/system/logs/{id}                    # 日志详情
 GET    /api/v1/system/logs/visit-trend             # 访问趋势，支持 startDate/endDate，最多 366 个自然日
 GET    /api/v1/system/logs/visit-stats             # 访问统计
@@ -487,10 +530,13 @@ DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
 - 两端均将响应头对应的 `requestId` 持久化；客户端传入值会去除首尾空白、限制为 64 字符，并只接受字母、数字、点、下划线、冒号和连字符，非法值由服务端重新生成。失败写请求额外保存脱敏、截断后的 `responseBody`，并从脱敏后的统一错误响应提取 `errorMsg`。成功写请求不保存响应体和错误摘要。
 - Django 权限码 `system:logs:query` / `system:logs:delete` 与 FastAPI 一致；`/logs/page` 和 `/logs/{id}` 字段集合由双后端字段契约 `logs_out` 锁定。
 - `/logs/page` 与 `/logs/{id}` 输出中的 `requestBody/responseBody/ip` 默认保留字段但返回脱敏值；拥有 `system:logs:field:plain` 或 `is_superuser` 时返回原文。
+- 日志通过稳定业务命名关联对象：`objectType`（如 `system.users`、`system.roles`）与 `objectId` 均为精确匹配字段；非标准动作由业务入口显式登记，不从 URL 或 ORM 表名推断。
+- `requestContext` 保存脱敏后的结构化上下文，包括路径参数、查询参数、请求体摘要、白名单 Header、文件元数据、变更字段、请求体哈希及批量元数据；上下文超过大小上限时保留 `truncated=true`。白名单中的 Referer 仅保留 URL 结构和参数名，查询与片段参数值统一掩码。FastAPI 审计中间件对可能携带请求体的请求设置采集上限：超过上限或缺少合法 `Content-Length` 时不读取整包请求体，改为记录 `bodyCapture.status/reason/maxBytes` 并保留 `truncated=true`，不影响业务端点继续消费上传流；无体方法在没有 body 信号时仍按空 body 处理。
 - `/logs/page`、`/logs/{id}`、`/logs/visit-trend`、`/logs/visit-stats`、删除和历史清理统一复用日志数据范围；不在当前用户可见范围内的 ID 按不存在处理。
 - `/logs/visit-trend` 两端均在数据库按日聚合并为缺失日期补 0；反向区间或超过 366 个自然日的查询返回 400。FastAPI 以 `startDate/endDate` 为公开参数，并在过渡期兼容 `start_date/end_date`。
 - 批量删除日志采用全有或全无语义，任一 ID 不存在或不可见时不删除任何目标；历史清理只清理当前用户范围内的日志。
 - `/logs/page` 与 `/logs/{id}` 返回 `requestId`；分页接口支持通过 `requestId` 精确筛选，详情页可据此关联响应头和结构化运行日志。
+- `/logs/page` 支持通过 `objectType` 与 `objectId` 精确筛选；详情与列表返回 `objectType/objectId/requestContext`。
 - Django 对非法 `status/pageNum/pageSize/startTime/endTime/startDate/endDate/ids` 会返回 400，避免把外部输入解析错误暴露为 500；FastAPI 侧通过 Query/Path 类型约束处理同类入参。
 
 ---

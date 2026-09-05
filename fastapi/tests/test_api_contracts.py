@@ -106,7 +106,9 @@ def test_fastapi_critical_endpoint_contract_catalog_matches_route_contracts():
     assert contracts["notices_page"].permissions == ("system:notices:query",)
     assert contracts["notices_create"].permissions == ("system:notices:add",)
     assert contracts["notices_update"].permissions == ("system:notices:edit",)
-    assert contracts["notices_delete"].path == "/api/v1/system/notices/{ids}"
+    assert contracts["notices_delete"].path == "/api/v1/system/notices/"
+    assert contracts["notices_delete"].request_fields == ("ids",)
+    assert contracts["notices_delete_retry"].path == "/api/v1/system/notices/batch-delete/retry/"
     assert contracts["notices_publish"].permissions == ("system:notices:publish",)
     assert contracts["notices_revoke"].permissions == ("system:notices:revoke",)
     assert contracts["notices_form"].permissions == ("system:notices:query",)
@@ -115,6 +117,9 @@ def test_fastapi_critical_endpoint_contract_catalog_matches_route_contracts():
     assert contracts["notices_my_page"].paginated is True
     assert contracts["logs_page"].path == "/api/v1/system/logs/page"
     assert contracts["logs_page"].permissions == ("system:logs:query",)
+    assert "objectType" in contracts["logs_page"].query_params
+    assert "objectId" in contracts["logs_page"].query_params
+    assert "requestContext" in contracts["logs_detail"].response_fields
     assert contracts["files_upload"].response_fields == ("name", "url", "path")
 
 

@@ -2,6 +2,8 @@
 系统操作日志模型
 """
 
+from typing import Any
+
 from tortoise import fields
 from tortoise.indexes import Index
 
@@ -28,7 +30,23 @@ class OperationLog(BaseModel):
         db_default="",
         description="请求ID",
     )
+    object_type = fields.CharField(
+        max_length=100,
+        default="",
+        db_default="",
+        description="业务对象类型",
+    )
+    object_id = fields.CharField(
+        max_length=255,
+        default="",
+        db_default="",
+        description="业务对象ID",
+    )
     query_params = fields.TextField(default="", description="查询参数")
+    request_context: fields.Field[dict[str, Any]] = fields.JSONField(
+        default=dict,
+        description="结构化请求上下文",
+    )
 
     request_body = fields.TextField(default="", description="请求体")
     response_status = fields.IntField(default=0, description="响应状态码")
@@ -51,6 +69,7 @@ class OperationLog(BaseModel):
             Index(fields=("status",)),
             Index(fields=("method",)),
             Index(fields=("request_id",)),
+            Index(fields=("object_type", "object_id")),
             Index(fields=("user_id", "created_at")),
             Index(fields=("status", "created_at")),
         )

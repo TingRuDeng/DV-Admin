@@ -51,7 +51,8 @@
             v-hasPerm="['system:notices:delete']"
             type="danger"
             plain
-            :disabled="selectIds.length === 0"
+            :loading="loading"
+            :disabled="selectIds.length === 0 || loading"
             icon="delete"
             class="ff-button-danger"
             @click="handleDelete()"
@@ -139,6 +140,8 @@
               type="danger"
               link
               icon="delete"
+              :loading="loading"
+              :disabled="loading"
               @click="handleDelete(scope.row.id)"
             >
               删除
@@ -151,6 +154,12 @@
     <NoticeFormDrawer ref="noticeFormDrawerRef" @success="handleQuery" />
 
     <NoticeDetailDialog ref="noticeDetailDialogRef" />
+
+    <BatchDeleteResultDialog
+      ref="batchDeleteResultDialogRef"
+      :retry-action="NoticeAPI.retryBatchDelete"
+      @changed="handleQuery"
+    />
   </PageShell>
 </template>
 
@@ -160,16 +169,22 @@ defineOptions({
   inheritAttrs: false,
 });
 
+import BatchDeleteResultDialog from "@/components/BatchDeleteResultDialog/index.vue";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
+import { runExclusive } from "@/utils/exclusive-action";
+import { createLogger } from "@/utils/logger";
+import type { BatchDeleteResult } from "@/api/system/batch-delete";
 import NoticeAPI, { NoticePageQuery, NoticePageVO } from "@/api/system/notice-api";
 import NoticeDetailDialog from "./components/NoticeDetailDialog.vue";
 import NoticeFormDrawer from "./components/NoticeFormDrawer.vue";
 import NoticeStatusTag from "./components/NoticeStatusTag.vue";
 
+const noticeBatchDeleteLogger = createLogger("NoticeBatchDelete");
 const queryFormRef = ref<{ resetFields: () => void } | null>(null);
 const noticeDetailDialogRef = ref<InstanceType<typeof NoticeDetailDialog> | null>(null);
 const noticeFormDrawerRef = ref<InstanceType<typeof NoticeFormDrawer> | null>(null);
+const batchDeleteResultDialogRef = ref<InstanceType<typeof BatchDeleteResultDialog> | null>(null);
 const tableRef = ref<ProTableExpose | null>(null);
 
 const loading = ref(false);
@@ -220,32 +235,52 @@ function handleRevoke(id: string) {
   });
 }
 
+function presentBatchDeleteResult(result: BatchDeleteResult) {
+  if (result.successCount > 0) {
+    tableRef.value?.reload(true);
+  }
+
+  if (result.failedCount === 0) {
+    ElMessage.success(`删除成功，共 ${result.successCount} 条`);
+    return;
+  }
+
+  const message = `删除完成：成功 ${result.successCount} 条，失败 ${result.failedCount} 条`;
+  if (result.successCount > 0) {
+    ElMessage.warning(message);
+  } else {
+    ElMessage.error(message);
+  }
+  batchDeleteResultDialogRef.value?.open(result);
+}
+
 // 删除通知公告
 function handleDelete(id?: string) {
-  const deleteIds = [id || selectIds.value].join(",");
-  if (!deleteIds) {
+  const deleteIds = id !== undefined ? [id] : selectIds.value;
+  if (deleteIds.length === 0) {
     ElMessage.warning("请勾选删除项");
     return;
   }
 
-  ElMessageBox.confirm("确认删除已选中的数据项?", "警告", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
-  }).then(
-    () => {
-      loading.value = true;
-      NoticeAPI.deleteByIds(deleteIds)
-        .then(() => {
-          ElMessage.success("删除成功");
-          tableRef.value?.reload(true);
-        })
-        .finally(() => (loading.value = false));
-    },
-    () => {
+  void runExclusive(loading, async () => {
+    try {
+      await ElMessageBox.confirm("确认删除已选中的数据项?", "警告", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      });
+    } catch {
       ElMessage.info("已取消删除");
+      return;
     }
-  );
+
+    try {
+      presentBatchDeleteResult(await NoticeAPI.deleteByIds(deleteIds));
+    } catch (error: unknown) {
+      // 请求拦截器负责用户提示，这里保留页面侧错误上下文并消费拒绝。
+      noticeBatchDeleteLogger.error("批量删除失败:", error);
+    }
+  });
 }
 
 const openDetailDialog = async (id: string) => {

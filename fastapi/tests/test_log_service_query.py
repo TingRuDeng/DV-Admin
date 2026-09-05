@@ -198,6 +198,16 @@ class TestLogServiceGetPage:
             path="/api/sensitive",
             request_body='{"password":"secret","mobile":"13800138000"}',
             response_body='{"token":"secret-token","ok":true}',
+            request_context={
+                "body": {"email": "secret@example.com"},
+                "query": {"search": "private-term"},
+                "pathParams": {"userId": "7"},
+                "selectedHeaders": {
+                    "content-type": "application/json",
+                    "referer": "https://example.test/private",
+                },
+                "bodyHash": "a" * 64,
+            },
             ip="192.168.1.20",
             status=1,
         )
@@ -213,10 +223,16 @@ class TestLogServiceGetPage:
         assert item.request_body == "[已脱敏]"
         assert item.response_body == "[已脱敏]"
         assert item.ip == "192.168.1.*"
+        assert item.request_context["body"] == "[已脱敏]"
+        assert item.request_context["query"] == "[已脱敏]"
+        assert item.request_context["pathParams"] == "[已脱敏]"
+        assert item.request_context["selectedHeaders"]["content-type"] == "application/json"
+        assert item.request_context["selectedHeaders"]["referer"] == "[已脱敏]"
         detail = await log_service.get_detail(log.id, current_user=current_user)
         assert detail.request_body == "[已脱敏]"
         assert detail.response_body == "[已脱敏]"
         assert detail.ip == "192.168.1.*"
+        assert detail.request_context["body"] == "[已脱敏]"
 
     @pytest.mark.asyncio
     async def test_get_page_keeps_sensitive_fields_with_plain_permission(self, db):
@@ -247,6 +263,12 @@ class TestLogServiceGetPage:
             path="/api/plain",
             request_body='{"password":"secret"}',
             response_body='{"token":"secret-token"}',
+            request_context={
+                "body": {"email": "plain@example.com"},
+                "query": {"search": "plain-term"},
+                "pathParams": {"userId": "7"},
+                "selectedHeaders": {"referer": "https://example.test/plain"},
+            },
             ip="10.0.0.8",
             status=1,
         )
@@ -262,3 +284,6 @@ class TestLogServiceGetPage:
         assert item.request_body == '{"password":"secret"}'
         assert item.response_body == '{"token":"secret-token"}'
         assert item.ip == "10.0.0.8"
+        assert item.request_context["body"]["email"] == "plain@example.com"
+        assert item.request_context["query"]["search"] == "plain-term"
+        assert item.request_context["selectedHeaders"]["referer"] == "https://example.test/plain"

@@ -1,7 +1,8 @@
 """用户写操作服务。"""
 
-from typing import Any
+from typing import Any, cast
 
+from loguru import logger
 from tortoise.transactions import in_transaction
 
 from app.core.config import settings
@@ -9,7 +10,16 @@ from app.core.exceptions import BusinessError, NotFound, ValidationError
 from app.core.security import get_password_hash
 from app.db.models.oauth import Users
 from app.db.models.system import Roles
-from app.schemas.system import UserCreate, UserOut, UserPartialUpdate, UserUpdate
+from app.schemas.system import (
+    BatchDeleteFailure,
+    BatchDeleteResult,
+    BatchDeleteSuccessItem,
+    UserCreate,
+    UserOut,
+    UserPartialUpdate,
+    UserUpdate,
+)
+from app.services.system.batch_delete import build_batch_delete_result, normalize_batch_ids
 from app.services.system.data_scope import (
     apply_user_data_scope,
     can_manage_user_department,
@@ -202,30 +212,187 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         self,
         ids: list[int],
         current_user: Users | None = None,
-    ) -> None:
-        """
-        批量删除用户
-        """
-        unique_ids = list(dict.fromkeys(ids))
-        if not unique_ids:
-            raise ValidationError("用户 ID 列表不能为空")
-        if current_user is not None and current_user.id in unique_ids:
-            raise BusinessError("不能删除当前登录用户")
+    ) -> BatchDeleteResult:
+        """批量删除用户并返回逐条结果。"""
+        unique_ids = normalize_batch_ids(ids, resource_name="用户")
+        users = await Users.filter(id__in=unique_ids).all()
+        if len(users) != len(unique_ids):
+            raise NotFound("用户不存在")
 
-        async with in_transaction() as connection:
-            query = await apply_user_data_scope(
-                Users.all().using_db(connection),
-                current_user,
+        # 预检必须覆盖整批对象；当前操作者需要得到“不能删除自己”的
+        # 稳定逐条结果，即使其角色范围没有声明 SELF。
+        scoped_query = await apply_user_data_scope(Users.all(), current_user)
+        visible_ids: set[int] = set(
+            cast(
+                list[int],
+                await scoped_query.filter(id__in=unique_ids).values_list("id", flat=True),
             )
-            users = await query.filter(id__in=unique_ids).select_for_update().all()
-            if len(users) != len(unique_ids):
-                raise NotFound("用户不存在")
+        )
+        if current_user is not None and current_user.id in unique_ids:
+            visible_ids.add(current_user.id)
+        if len(visible_ids) != len(unique_ids):
+            raise NotFound("用户不存在")
 
-            await query.filter(id__in=unique_ids).delete()
-
-        # 清除所有被删除用户的缓存
+        users_by_id = {user.id: user for user in users}
+        success_items: list[BatchDeleteSuccessItem] = []
+        failures: list[BatchDeleteFailure] = []
         for user_id in unique_ids:
-            await self._clear_user_cache(user_id)
+            user = users_by_id[user_id]
+            object_name = user.name or user.username
+            if current_user is not None and user_id == current_user.id:
+                failures.append(
+                    BatchDeleteFailure(
+                        object_id=str(user_id),
+                        object_name=object_name,
+                        error_code="PROTECTED_OBJECT",
+                        message="不能删除当前登录用户",
+                        retryable=False,
+                    )
+                )
+                continue
+
+            try:
+                async with in_transaction() as connection:
+                    scoped_query = await apply_user_data_scope(
+                        Users.all().using_db(connection),
+                        current_user,
+                    )
+                    locked_user = await (
+                        scoped_query.filter(id=user_id).select_for_update().first()
+                    )
+                    if locked_user is None:
+                        raise NotFound("用户不存在")
+                    await locked_user.delete(using_db=connection)
+            except NotFound:
+                failures.append(
+                    BatchDeleteFailure(
+                        object_id=str(user_id),
+                        object_name=object_name,
+                        error_code="NOT_FOUND",
+                        message="用户不存在",
+                        retryable=False,
+                    )
+                )
+                continue
+            except Exception:  # noqa: BLE001 - 单条失败不能阻塞其余项目
+                failures.append(
+                    BatchDeleteFailure(
+                        object_id=str(user_id),
+                        object_name=object_name,
+                        error_code="DELETE_FAILED",
+                        message="删除用户失败",
+                        retryable=True,
+                    )
+                )
+                continue
+
+            # 数据库提交后，缓存只是后处理；其故障不能把已删除对象报告成失败。
+            try:
+                await self._clear_user_cache(user_id)
+            except Exception as exc:  # noqa: BLE001 - 记录后保留删除结果
+                logger.warning("用户 {} 删除后清理缓存失败: {}", user_id, exc)
+
+            success_items.append(
+                BatchDeleteSuccessItem(object_id=str(user_id), object_name=object_name)
+            )
+
+        return build_batch_delete_result(unique_ids, success_items, failures)
+
+    async def retry_batch_delete(
+        self,
+        ids: list[int],
+        current_user: Users | None = None,
+    ) -> BatchDeleteResult:
+        """逐条重新校验并重试用户删除。"""
+        unique_ids = normalize_batch_ids(ids, resource_name="用户")
+        success_items: list[BatchDeleteSuccessItem] = []
+        failures: list[BatchDeleteFailure] = []
+
+        for user_id in unique_ids:
+            unrestricted_user = await Users.get_or_none(id=user_id)
+            if unrestricted_user is None:
+                failures.append(
+                    BatchDeleteFailure(
+                        object_id=str(user_id),
+                        error_code="ALREADY_DELETED",
+                        message="用户已不存在",
+                        retryable=False,
+                    )
+                )
+                continue
+
+            scoped_query = await apply_user_data_scope(Users.all(), current_user)
+            visible = await scoped_query.filter(id=user_id).first()
+            if visible is None:
+                failures.append(
+                    BatchDeleteFailure(
+                        object_id=str(user_id),
+                        error_code="NOT_FOUND",
+                        message="用户不存在",
+                        retryable=False,
+                    )
+                )
+                continue
+
+            object_name = visible.name or visible.username
+            if current_user is not None and user_id == current_user.id:
+                failures.append(
+                    BatchDeleteFailure(
+                        object_id=str(user_id),
+                        object_name=object_name,
+                        error_code="PROTECTED_OBJECT",
+                        message="不能删除当前登录用户",
+                        retryable=False,
+                    )
+                )
+                continue
+
+            try:
+                async with in_transaction() as connection:
+                    scoped_query = await apply_user_data_scope(
+                        Users.all().using_db(connection),
+                        current_user,
+                    )
+                    locked_user = await (
+                        scoped_query.filter(id=user_id).select_for_update().first()
+                    )
+                    if locked_user is None:
+                        raise NotFound("用户不存在")
+                    await locked_user.delete(using_db=connection)
+            except NotFound:
+                failures.append(
+                    BatchDeleteFailure(
+                        object_id=str(user_id),
+                        object_name=object_name,
+                        error_code="ALREADY_DELETED",
+                        message="用户已不存在",
+                        retryable=False,
+                    )
+                )
+                continue
+            except Exception:  # noqa: BLE001 - 单条重试失败仍需可观察
+                failures.append(
+                    BatchDeleteFailure(
+                        object_id=str(user_id),
+                        object_name=object_name,
+                        error_code="DELETE_FAILED",
+                        message="删除用户失败",
+                        retryable=True,
+                    )
+                )
+                continue
+
+            # 数据库提交后，缓存只是后处理；其故障不能把已删除对象报告成失败。
+            try:
+                await self._clear_user_cache(user_id)
+            except Exception as exc:  # noqa: BLE001 - 记录后保留删除结果
+                logger.warning("用户 {} 重试删除后清理缓存失败: {}", user_id, exc)
+
+            success_items.append(
+                BatchDeleteSuccessItem(object_id=str(user_id), object_name=object_name)
+            )
+
+        return build_batch_delete_result(unique_ids, success_items, failures)
 
 
     async def reset_password(

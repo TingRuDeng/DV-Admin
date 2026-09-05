@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from django.db import transaction
 from django.db.models import Exists, OuterRef
 from django.utils import timezone
 from rest_framework.exceptions import NotFound, ValidationError
@@ -7,8 +8,17 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
 from drf_admin.apps.system.models import NoticeReads, Notices
+from drf_admin.apps.system.serializers.batch_delete import BatchDeleteResultSerializer
 from drf_admin.apps.system.serializers.notices import NoticeMyPageSerializer, NoticesSerializer
+from drf_admin.apps.system.services.batch_delete import (
+    build_batch_delete_result,
+    failure_item,
+    normalize_batch_ids,
+    preflight_batch_ids,
+    success_item,
+)
 from drf_admin.apps.system.services.data_scope import apply_notice_admin_data_scope
+from drf_admin.utils.audit import set_audit_context, set_audit_object
 from drf_admin.utils.views import AdminViewSet, AutoPermissionAPIView
 
 
@@ -41,6 +51,7 @@ class NoticesViewSet(AdminViewSet):
             **mapping,
             "update_by_id": "edit",
             "delete_by_ids": "delete",
+            "retry_batch_delete": "delete",
             "publish": "publish",
             "revoke": "revoke",
         }
@@ -90,22 +101,164 @@ class NoticesViewSet(AdminViewSet):
 
     def update_by_id(self, request, ids: str):
         """从共享路径中解析单个 ID，并转交标准更新流程。"""
-        self.kwargs[self.lookup_url_kwarg or self.lookup_field] = parse_single_notice_id(ids)
+        notice_id = parse_single_notice_id(ids)
+        self.kwargs[self.lookup_url_kwarg or self.lookup_field] = notice_id
+        set_audit_object(
+            request,
+            "system.notices",
+            notice_id,
+            changed_fields=list(request.data.keys()) if hasattr(request.data, "keys") else [],
+        )
         return self.update(request)
 
+    def multiple_delete(self, request, *args, **kwargs):
+        """使用 JSON body 批量删除通知并返回逐条结果。"""
+        return self._run_batch_delete(request, retry=False)
+
+    def retry_batch_delete(self, request, *args, **kwargs):
+        """逐条重新校验并重试通知删除。"""
+        return self._run_batch_delete(request, retry=True)
+
     def delete_by_ids(self, request, ids: str):
-        """按前端路径中的逗号分隔 ID 删除未发布通知。"""
-        notice_ids = parse_notice_ids(ids)
-        queryset = self.get_queryset().filter(id__in=notice_ids)
-        if queryset.count() != len(set(notice_ids)):
-            raise NotFound("通知不存在")
-        if queryset.filter(publish_status=1).exists():
-            raise ValidationError("已发布通知不允许删除")
-        queryset.delete()
-        return Response(data={})
+        """按历史逗号分隔路径删除通知，并复用结果化处理。"""
+        return self._run_batch_delete(request, retry=False, ids=parse_notice_ids(ids))
+
+    def _run_batch_delete(self, request, *, retry: bool, ids=None):
+        """执行一次批量删除或重试，单个通知失败不影响其他通知。"""
+        unique_ids = normalize_batch_ids(
+            request.data.get("ids") if ids is None else ids,
+            resource_name="通知",
+        )
+        notices_by_id = {}
+        if not retry:
+            preflight_batch_ids(
+                self.get_queryset(),
+                unique_ids,
+                resource_name="通知",
+            )
+            notices_by_id = {
+                notice.id: notice
+                for notice in self.get_queryset().filter(id__in=unique_ids)
+            }
+
+        success_items = []
+        failures = []
+        for notice_id in unique_ids:
+            notice = (
+                Notices.objects.filter(id=notice_id).first()
+                if retry
+                else notices_by_id.get(notice_id)
+            )
+            if notice is None:
+                failures.append(
+                    failure_item(
+                        notice_id,
+                        error_code="ALREADY_DELETED" if retry else "NOT_FOUND",
+                        message="通知已不存在" if retry else "通知不存在",
+                    )
+                )
+                continue
+
+            object_name = notice.title or ""
+            if retry and not self.get_queryset().filter(id=notice_id).exists():
+                failures.append(
+                    failure_item(
+                        notice_id,
+                        object_name=object_name,
+                        error_code="NOT_FOUND",
+                        message="通知不存在",
+                    )
+                )
+                continue
+
+            outcome = self._delete_one_for_batch(
+                notice_id,
+                object_name,
+                missing_code="ALREADY_DELETED" if retry else "NOT_FOUND",
+                missing_message="通知已不存在" if retry else "通知不存在",
+            )
+            if outcome.get("success"):
+                success_items.append(success_item(notice_id, object_name))
+            else:
+                failures.append(outcome["failure"])
+
+        result = build_batch_delete_result(unique_ids, success_items, failures)
+        set_audit_object(request, "system.notices", "", changed_fields=["ids"])
+        set_audit_context(
+            request,
+            batch_count=result["total_count"],
+            batch_ids=[str(item) for item in unique_ids[:100]],
+            success_count=result["success_count"],
+            failed_count=result["failed_count"],
+            failure_codes=sorted({item["error_code"] for item in failures}),
+            retry=retry,
+        )
+        return Response(data=BatchDeleteResultSerializer(result).data)
+
+    def _delete_one_for_batch(
+        self,
+        notice_id: int,
+        object_name: str,
+        *,
+        missing_code: str,
+        missing_message: str,
+    ) -> dict:
+        """在独立事务中复核状态并删除单个通知。"""
+        try:
+            with transaction.atomic():
+                notice = self.get_queryset().filter(id=notice_id).select_for_update().first()
+                if notice is None:
+                    # 先锁定无范围对象以区分“已删除”和“当前操作者无权访问”。
+                    unscoped_notice = (
+                        Notices.objects.filter(id=notice_id).select_for_update().first()
+                    )
+                    if unscoped_notice is not None:
+                        return {
+                            "success": False,
+                            "failure": failure_item(
+                                notice_id,
+                                object_name=object_name,
+                                error_code="NOT_FOUND",
+                                message="通知不存在",
+                            ),
+                        }
+                    return {
+                        "success": False,
+                        "failure": failure_item(
+                            notice_id,
+                            object_name=object_name,
+                            error_code=missing_code,
+                            message=missing_message,
+                        ),
+                    }
+                if notice.publish_status == 1:
+                    return {
+                        "success": False,
+                        "failure": failure_item(
+                            notice_id,
+                            object_name=object_name,
+                            error_code="PUBLISHED_OBJECT",
+                            message="已发布通知不允许删除",
+                            retryable=True,
+                        ),
+                    }
+                notice.delete()
+            return {"success": True}
+        except Exception:  # noqa: BLE001 - 单条失败不能阻塞其余项目
+            return {
+                "success": False,
+                "failure": failure_item(
+                    notice_id,
+                    object_name=object_name,
+                    error_code="DELETE_FAILED",
+                    message="删除通知失败",
+                    retryable=True,
+                ),
+            }
 
     def publish(self, request, pk: int):
         """发布通知并记录发布时间。"""
+        set_audit_object(request, "system.notices", pk, changed_fields=["publishStatus"])
         notice = self.get_object()
         notice.publish_status = 1
         notice.publish_time = timezone.now()
@@ -115,6 +268,7 @@ class NoticesViewSet(AdminViewSet):
 
     def revoke(self, request, pk: int):
         """撤回已发布通知并记录撤回时间。"""
+        set_audit_object(request, "system.notices", pk, changed_fields=["publishStatus"])
         notice = self.get_object()
         notice.publish_status = -1
         notice.revoke_time = timezone.now()
@@ -125,12 +279,10 @@ class NoticesViewSet(AdminViewSet):
 def parse_notice_ids(ids: str) -> list[int]:
     """解析路径中的通知 ID 列表，非法输入直接暴露为校验错误。"""
     try:
-        notice_ids = [int(item) for item in ids.split(",") if item.strip()]
+        notice_ids = [int(item.strip()) for item in ids.split(",") if item.strip()]
     except ValueError as exc:
         raise ValidationError("通知 ID 格式错误") from exc
-    if not notice_ids:
-        raise ValidationError("通知 ID 不能为空")
-    return notice_ids
+    return normalize_batch_ids(notice_ids, resource_name="通知")
 
 
 def parse_single_notice_id(ids: str) -> int:

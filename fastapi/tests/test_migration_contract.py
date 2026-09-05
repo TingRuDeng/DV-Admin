@@ -5,6 +5,7 @@ from importlib.metadata import version
 from pathlib import Path
 
 from tortoise.indexes import Index
+from tortoise.migrations import operations as ops
 
 from app.core.config import Settings
 from app.db.migration_config import TORTOISE_ORM
@@ -23,6 +24,9 @@ from app.db.models.system import (
 Migration = import_module("app.db.migrations.0001_initial").Migration
 RequestIdMigration = import_module(
     "app.db.migrations.0002_auto_20260725_2230"
+).Migration
+AuditContextMigration = import_module(
+    "app.db.migrations.0003_operationlog_audit_context"
 ).Migration
 
 MODELS = (
@@ -73,6 +77,59 @@ def test_request_id_migration_keeps_database_default_for_existing_rows():
     assert RequestIdMigration.dependencies == [("models", "0001_initial")]
     assert add_field.field.default == ""
     assert add_field.field.db_default == ""
+
+
+def test_audit_context_migration_backfills_without_json_database_default():
+    add_fields = {
+        operation.name: operation
+        for operation in AuditContextMigration.operations
+        if isinstance(operation, ops.AddField)
+    }
+    run_sql = [
+        operation
+        for operation in AuditContextMigration.operations
+        if isinstance(operation, ops.RunSQL)
+    ]
+    alter_fields = [
+        operation
+        for operation in AuditContextMigration.operations
+        if isinstance(operation, ops.AlterField)
+    ]
+    run_python = [
+        operation
+        for operation in AuditContextMigration.operations
+        if isinstance(operation, ops.RunPython)
+    ]
+    add_field = add_fields["request_context"]
+    backfill = run_sql[0]
+    alter_field = alter_fields[0]
+
+    assert AuditContextMigration.dependencies == [
+        ("models", "0002_auto_20260725_2230")
+    ]
+    assert add_field.field.null is True
+    assert not add_field.field.has_db_default()
+    assert backfill.sql == (
+        "UPDATE system_operation_log "
+        "SET request_context = '{}' "
+        "WHERE request_context IS NULL"
+    )
+    assert isinstance(alter_field, ops.AlterField)
+    assert alter_field.field.null is False
+    assert alter_field.field.default is None
+    assert not alter_field.field.has_db_default()
+    assert len(run_python) == 2
+    assert run_python[0].code is ops.RunPython.noop
+    assert run_python[0].reverse_code is run_python[1].code
+    assert run_python[1].reverse_code is ops.RunPython.noop
+
+
+def test_audit_context_model_keeps_application_default_only():
+    request_context_field = OperationLog._meta.fields_map["request_context"]
+
+    assert request_context_field.default is dict
+    assert request_context_field.null is False
+    assert not request_context_field.has_db_default()
 
 
 def test_compose_waits_for_single_migration_service_before_fastapi_start():

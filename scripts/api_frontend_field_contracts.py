@@ -286,10 +286,13 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
                 "name",
                 "operation",
                 "os",
+                "objectId",
+                "objectType",
                 "path",
                 "queryParams",
                 "requestBody",
                 "requestId",
+                "requestContext",
                 "responseBody",
                 "responseStatus",
                 "status",
@@ -299,6 +302,26 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
             }
         ),
         tracked_backend_contract="logs_out",
+    ),
+    FrontendFieldContract(
+        key="batch_delete_result_type",
+        frontend_source="frontend/src/api/system/batch-delete.ts",
+        required_fields=frozenset(
+            {
+                "failedCount",
+                "failures",
+                "message",
+                "objectId",
+                "objectName",
+                "processedCount",
+                "retryable",
+                "status",
+                "successCount",
+                "successItems",
+                "totalCount",
+            }
+        ),
+        tracked_backend_contract="batch_delete_result",
     ),
 )
 

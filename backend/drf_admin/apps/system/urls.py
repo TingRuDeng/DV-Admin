@@ -13,6 +13,7 @@ router.register(r'dict-items', dicts.DictItemsViewSet, basename="dict-items")  #
 router.register(r'departments', departments.DepartmentsViewSet, basename="departments")  # 部门管理
 
 urlpatterns = [
+    path('users/batch-delete/retry/', users.UsersViewSet.as_view({'post': 'retry_batch_delete'})),
     path('users/template', users.UserImportTemplateAPIView.as_view()),  # 用户导入模板
     path('users/export/', users.UserExportAPIView.as_view()),  # 导出用户
     path('users/import', users.UserImportAPIView.as_view()),  # 导入用户
@@ -22,12 +23,15 @@ urlpatterns = [
 
     path('users/<int:pk>/password/reset/', users.ResetPasswordAPIView.as_view()),  # 重置密码
     path('users/<int:pk>/permissions/', users.PermissionsAPIView.as_view()),  # 用户权限ID列表
+    path('roles/batch-delete/retry/', roles.RolesViewSet.as_view({'post': 'retry_batch_delete'})),
     path('notices/my-page/', notices.NoticesAPIView.as_view()),  # 通知列表
     path('notices/read-all', notices.NoticeReadAllAPIView.as_view()),  # 全部已读
     path('notices/<int:pk>/detail', notices.NoticeDetailAPIView.as_view()),  # 通知详情
     path('notices/<int:pk>/form', notices.NoticesViewSet.as_view({'get': 'retrieve'})),  # 通知表单
     path('notices/page', notices.NoticesViewSet.as_view({'get': 'list'})),  # 通知公告分页
-    path('notices', notices.NoticesViewSet.as_view({'post': 'create'})),  # 创建通知公告
+    path('notices/batch-delete/retry/', notices.NoticesViewSet.as_view({'post': 'retry_batch_delete'})),
+    path('notices/', notices.NoticesViewSet.as_view({'delete': 'multiple_delete'})),  # JSON 批量删除通知
+    path('notices', notices.NoticesViewSet.as_view({'post': 'create', 'delete': 'multiple_delete'})),  # 创建或批量删除通知
     path('notices/<int:pk>/publish', notices.NoticesViewSet.as_view({'put': 'publish'})),  # 发布通知公告
     path('notices/<int:pk>/revoke', notices.NoticesViewSet.as_view({'put': 'revoke'})),  # 撤回通知公告
     path('notices/<str:ids>', notices.NoticesViewSet.as_view({
