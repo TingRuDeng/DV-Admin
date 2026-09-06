@@ -175,7 +175,7 @@
   text-align: center;
 
   /* 爆改主标题文字：重金属/深邃蓝渐变 */
-  :deep(.el-badge) {
+  .el-badge {
     font-size: 34px; /* 字号再放大，撑起气场 */
     font-weight: 900; /* 字重拉到极限 */
     letter-spacing: 1px;
@@ -186,7 +186,7 @@
   }
 
   /* 爆改版本号：从"未读消息点"变成"极客悬浮标签" */
-  :deep(.el-badge__content) {
+  .el-badge__content {
     /* 完美对齐：推到右上角 */
     top: 0 !important;
     right: 0 !important;
@@ -211,7 +211,6 @@
 // ============================================
 // 4. 登录表单深度穿透与净化
 // ============================================
-:deep(.login-form),
 .login-form {
   width: 100%;
 
@@ -322,7 +321,7 @@
   gap: 12px;
 
   .action-button,
-  :deep(.el-icon) {
+  .el-icon {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -398,12 +397,12 @@ html.dark {
     color: #f8fafc;
 
     /* 深色模式下的标题与版本号发光效果 */
-    :deep(.el-badge) {
+    .el-badge {
       /* 亮银色到亮蓝色的赛博渐变 */
       background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 40%, #60a5fa 100%);
       -webkit-background-clip: text;
     }
-    :deep(.el-badge__content) {
+    .el-badge__content {
       color: #60a5fa !important;
       background: rgba(96, 165, 250, 0.15) !important;
       border-color: rgba(96, 165, 250, 0.4) !important;
@@ -411,7 +410,6 @@ html.dark {
     }
   }
 
-  :deep(.login-form),
   .login-form {
     .el-input__wrapper {
       background: rgba(15, 23, 42, 0.6) !important;
@@ -433,7 +431,7 @@ html.dark {
   }
 
   .action-bar .action-button,
-  .action-bar :deep(.el-icon) {
+  .action-bar .el-icon {
     color: #cbd5e1;
     background: rgba(30, 41, 59, 0.6);
     border-color: rgba(255, 255, 255, 0.05);

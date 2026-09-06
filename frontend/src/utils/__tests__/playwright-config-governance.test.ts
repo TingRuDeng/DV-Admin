@@ -14,6 +14,13 @@ describe("playwright local server governance", () => {
     expect(config).toContain("reuseExistingServer: false");
   });
 
+  it("keeps environment-bound real backend specs out of the default config", () => {
+    const config = readProjectFile("../../../playwright.config.ts");
+
+    expect(config).toContain("testIgnore");
+    expect(config).toContain("real-backend-smoke.spec.ts");
+  });
+
   it("keeps local html reports out of git status", () => {
     const gitignore = readProjectFile("../../../../.gitignore");
 
@@ -39,6 +46,7 @@ describe("playwright local server governance", () => {
     expect(packageJson).toContain("e2e/dict-item-management.spec.ts");
     expect(packageJson).toContain("e2e/notice-management.spec.ts");
     expect(packageJson).toContain("e2e/log-management.spec.ts");
+    expect(packageJson).toContain("e2e/shell-layout.spec.ts");
   });
 
   it("runs smoke E2E serially to avoid login mock races", () => {
@@ -60,14 +68,18 @@ describe("playwright local server governance", () => {
     const packageJson = readProjectFile("../../../package.json");
     const realBackendConfig = readProjectFile("../../../playwright.real-backend.config.ts");
     const realBackendSpec = readProjectFile("../../../e2e/real-backend-smoke.spec.ts");
+    const workflow = readProjectFile("../../../../.github/workflows/quality-gates.yml");
 
     expect(packageJson).toContain("test:e2e:real-backend");
     expect(realBackendConfig).toContain("REAL_BACKEND_URL");
     expect(realBackendConfig).toContain("reuseExistingServer: false");
+    expect(realBackendConfig).toContain("playwright-report");
     expect(realBackendSpec).not.toContain("page.route(");
     expect(realBackendSpec).toContain("/api/v1/information/change-avatar/");
     expect(realBackendSpec).toContain("/api/v1/system/users/");
     expect(realBackendSpec).toContain("/api/v1/system/notices/page");
     expect(realBackendSpec).toContain("/my-notice");
+    expect(workflow).toContain("actions/upload-artifact@v4");
+    expect(workflow).toContain("frontend/test-results/");
   });
 });

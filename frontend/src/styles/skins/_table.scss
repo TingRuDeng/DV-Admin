@@ -64,6 +64,12 @@ html.dark .ff-table-wrap {
   align-items: center;
 }
 
+@media (max-width: 767px) {
+  .ff-page-shell .ff-table .el-table-fixed-column--right {
+    position: static !important;
+  }
+}
+
 html.dark {
   .ff-table {
     --el-table-bg-color: transparent;

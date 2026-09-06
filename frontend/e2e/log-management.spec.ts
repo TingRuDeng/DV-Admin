@@ -223,7 +223,7 @@ test.describe("日志管理链路 smoke", () => {
     await expect(page.locator("tbody").getByText("失败", { exact: true })).toBeVisible();
 
     await page.getByLabel("请求 ID").fill("audit-request-901");
-    await page.getByRole("button", { name: "搜索" }).click();
+    await page.getByRole("button", { name: "搜索", exact: true }).click();
     await expect.poll(() => state.seenRequestIds).toContain("audit-request-901");
     await expect(page.locator("tbody").getByText("删除用户失败")).toBeVisible();
 

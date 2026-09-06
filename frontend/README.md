@@ -1,6 +1,6 @@
 ## 项目简介
 
-基于 Vue3、Vite7、TypeScript 和 Element-Plus 搭建的极简开箱即用企业级后台管理前端模板。 
+基于 Vue3、Vite8、TypeScript 和 Element-Plus 搭建的极简开箱即用企业级后台管理前端模板。
 
 ## 项目启动
 

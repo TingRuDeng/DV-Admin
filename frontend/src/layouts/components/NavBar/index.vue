@@ -2,7 +2,11 @@
   <div class="navbar">
     <div class="navbar__primary">
       <!-- 菜单折叠按钮 -->
-      <Hamburger :is-active="isSidebarOpened" @toggle-click="toggleSideBar" />
+      <Hamburger
+        :is-active="isSidebarOpened"
+        controls="layout-sidebar"
+        @toggle-click="toggleSideBar"
+      />
       <!-- 面包屑导航 -->
       <Breadcrumb />
     </div>

@@ -258,7 +258,7 @@ test.describe("用户管理核心业务 smoke", () => {
     await expect(page.getByText("admin_mock")).toBeVisible();
 
     await page.getByPlaceholder("用户名/昵称/手机号").fill("admin_mock");
-    await page.getByRole("button", { name: "搜索" }).click();
+    await page.getByRole("button", { name: "搜索", exact: true }).click();
     await expect.poll(() => state.pageQueries.at(-1)?.search).toBe("admin_mock");
     await page.getByRole("button", { name: "重置" }).click();
     await expect.poll(() => state.pageQueries.at(-1)?.search).toBeUndefined();

@@ -55,6 +55,27 @@ class TestUserServiceCreate:
         assert result.is_active == 1
 
     @pytest.mark.asyncio
+    async def test_create_user_without_roles_gets_default_role(self, db):
+        """未显式指定角色时应沿用两套后端一致的默认角色语义。"""
+        default_role = await Roles.create(
+            name=f"默认角色_{uuid.uuid4().hex[:8]}",
+            code=f"default_{uuid.uuid4().hex[:8]}",
+            status=1,
+            is_default=1,
+        )
+        user_data = UserCreate(
+            username=f"default_role_user_{uuid.uuid4().hex[:8]}",
+            name="默认角色用户",
+            password="test123",
+        )
+
+        result = await user_service.create(user_data)
+
+        created = await Users.get(id=result.id)
+        await created.fetch_related("roles")
+        assert [role.id for role in created.roles] == [default_role.id]
+
+    @pytest.mark.asyncio
     async def test_create_user_with_roles(self, db, test_dept_for_service, test_role_for_service):
         """测试创建用户并关联角色"""
         unique_username = f"newuser_{uuid.uuid4().hex[:8]}"

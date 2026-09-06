@@ -14,9 +14,6 @@ export default defineConfig({
     exclude: ["node_modules", "dist", "e2e"],
     pool: "forks",
     fileParallelism: false,
-    deps: {
-      inline: ["msw"],
-    },
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
@@ -33,7 +30,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": resolve(__dirname, "src"),
+      "@": resolve(import.meta.dirname, "src"),
     },
   },
 });

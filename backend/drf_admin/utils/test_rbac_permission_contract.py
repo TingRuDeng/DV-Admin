@@ -102,6 +102,34 @@ class RBACPermissionContractTestCase(TestCase):
 
         assert permission_code not in RBACPermission.get_user_permissions(user)
 
+    def test_role_delete_invalidates_assigned_user_cache(self):
+        """角色删除后必须清除关联用户缓存，避免级联删除绕过 m2m_changed。"""
+        permission_code = "system:roles:delete-cache"
+        user = self.create_user_with_permissions(permission_code)
+        role = user.roles.get()
+
+        assert permission_code in RBACPermission.get_user_permissions(user)
+
+        role.delete()
+
+        assert permission_code not in RBACPermission.get_user_permissions(user)
+
+    def test_permission_update_invalidates_assigned_user_cache(self):
+        """权限码修改后必须清除关联用户缓存。"""
+        old_code = "system:permission:old-code"
+        new_code = "system:permission:new-code"
+        user = self.create_user_with_permissions(old_code)
+        permission = Permissions.objects.get(perm=old_code)
+
+        assert old_code in RBACPermission.get_user_permissions(user)
+
+        permission.perm = new_code
+        permission.save(update_fields=["perm"])
+
+        permissions = RBACPermission.get_user_permissions(user)
+        assert old_code not in permissions
+        assert new_code in permissions
+
     def test_operation_without_required_permissions_is_denied(self):
         """非白名单接口没有权限声明时必须拒绝，避免新增接口默认裸奔。"""
         user = self.create_user_with_permissions("system:users:add")

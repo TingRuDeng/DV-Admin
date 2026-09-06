@@ -33,6 +33,7 @@ class ImportContext:
     all_roles: dict[int, Roles]
     existing_usernames: set[str]
     existing_mobiles: set[str]
+    default_role: Roles | None
 
 
 @dataclass
@@ -84,6 +85,7 @@ class UserImportParserMixin:
             all_roles={role.id: role for role in await Roles.filter(status=1).all()},
             existing_usernames={str(username) for username in username_values},
             existing_mobiles={str(mobile) for mobile in mobile_values if mobile},
+            default_role=await Roles.filter(is_default=1).first(),
         )
 
     def _parse_import_row(
@@ -238,13 +240,16 @@ class UserImportParserMixin:
         self,
         rows: list[ImportRowResult],
         all_roles: dict[int, Roles],
+        default_role: Roles | None = None,
     ) -> None:
         """在单一事务内保存导入用户及角色关联。"""
         async with in_transaction() as connection:
             for row in rows:
                 await row.user.save(using_db=connection)
-                if row.role_ids:
-                    roles = [all_roles[role_id] for role_id in row.role_ids]
+                roles = [all_roles[role_id] for role_id in row.role_ids]
+                if not roles and default_role is not None:
+                    roles = [default_role]
+                if roles:
                     await row.user.roles.add(*roles, using_db=connection)
 
     def _remember_imported_user(

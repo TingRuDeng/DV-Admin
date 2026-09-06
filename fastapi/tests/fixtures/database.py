@@ -77,6 +77,8 @@ async def reset_test_db_state() -> None:
 
     from app.core.cache import cache_service
     from app.core.redis import redis_manager
+    from app.services.token_blacklist import token_blacklist_service
+    from app.services.token_blacklist_memory import TokenBlacklistMemoryStore
 
     await cache_service._memory_cache.clear()
     cache_service._redis_cache._redis = None
@@ -84,6 +86,8 @@ async def reset_test_db_state() -> None:
     cache_service._use_redis = False
     redis_manager._client = None
     redis_manager._pool = None
+    token_blacklist_service._redis = None
+    token_blacklist_service._memory_store = TokenBlacklistMemoryStore()
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
