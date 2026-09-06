@@ -234,8 +234,8 @@ make quality           # 聚合质量检查 (ruff + mypy + migration-check + pyt
 
 2. **认证机制**
    - 使用 JWT 双 token 机制（access + refresh）
-   - Access Token 默认 30 分钟过期
-   - Refresh Token 默认 7 天过期
+   - FastAPI 默认 Access Token 30 分钟、Refresh Token 7 天过期（均可配置）
+   - Django 默认 Access Token 30 分钟、Refresh Token 1 天过期（均可配置）
    - Token 存储在前端 `AuthStorage` 中
 
 3. **RBAC 权限模型**
@@ -333,5 +333,5 @@ uv run python manage.py migrate --env dev
 - Django/FastAPI 会自动降级到内存缓存
 - 检查 Redis 服务状态：`redis-cli ping`
 
-**最后更新：** 2026-07-04
+**最后更新：** 2026-09-06
 **维护者：** DV-Admin Team
