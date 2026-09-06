@@ -55,6 +55,16 @@
   line-height: 38px !important;
 }
 
+// 水平菜单的子菜单会 Teleport 到 body，必须使用全局选择器提供独立表面。
+.el-menu--popup-container .el-menu--popup,
+.el-menu--popup {
+  min-width: 160px;
+  background: var(--ff-shell-surface) !important;
+  border: 1px solid var(--ff-shell-border) !important;
+  border-radius: var(--ff-radius-panel) !important;
+  box-shadow: var(--ff-shadow-shell-raised) !important;
+}
+
 .el-menu--horizontal {
   display: flex;
   align-items: center;

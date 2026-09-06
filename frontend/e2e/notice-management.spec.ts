@@ -293,7 +293,7 @@ test.describe("通知公告权限链路 smoke", () => {
     await expect(page.getByRole("button", { name: "删除", exact: true })).toBeVisible();
 
     await page.getByPlaceholder("标题").fill("系统维护");
-    await page.getByRole("button", { name: "搜索" }).click();
+    await page.getByRole("button", { name: "搜索", exact: true }).click();
     await expect.poll(() => state.pageQueries.at(-1)?.title).toBe("系统维护");
     await expect(page.locator("tbody").getByText("安全提醒")).toHaveCount(0);
     await page.getByRole("button", { name: "重置" }).click();

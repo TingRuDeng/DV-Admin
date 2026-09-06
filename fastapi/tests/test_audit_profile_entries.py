@@ -58,6 +58,13 @@ def test_password_change_audit_masks_password_values(
     )
 
     assert response.status_code == 200
+    assert auth_client.get("/api/v1/information/profile/").status_code == 401
+    login = auth_client.post(
+        "/api/v1/oauth/login/",
+        json={"username": test_user_with_role["username"], "password": payload["newPassword"]},
+    )
+    assert login.status_code == 200
+    auth_client.headers["Authorization"] = f"Bearer {login.json()['data']['accessToken']}"
     log = _find_log(auth_client, request_id)
     context = log["requestContext"]
     assert log["objectType"] == "system.users"

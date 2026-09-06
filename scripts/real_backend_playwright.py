@@ -3,12 +3,56 @@
 from __future__ import annotations
 
 import os
+import signal
 import subprocess
 from pathlib import Path
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 FRONTEND_ROOT = PROJECT_ROOT / "frontend"
+DEFAULT_FRONTEND_PORTS = {
+    "Django": 9530,
+    "FastAPI": 9531,
+}
+PLAYWRIGHT_TIMEOUT_SECONDS = 900
+PROCESS_TERMINATION_TIMEOUT_SECONDS = 10
+
+
+def _frontend_port(backend_name: str, environment: dict[str, str]) -> str:
+    """为每套后端分配独立端口，同时允许调用方显式覆盖。"""
+    configured_port = environment.get("REAL_FRONTEND_PORT")
+    if configured_port:
+        return configured_port
+    try:
+        return str(DEFAULT_FRONTEND_PORTS[backend_name])
+    except KeyError as exc:
+        supported = ", ".join(DEFAULT_FRONTEND_PORTS)
+        raise ValueError(
+            f"Unsupported backend_name {backend_name!r}; expected one of: {supported}"
+        ) from exc
+
+
+def _terminate_process_group(process: subprocess.Popen[object]) -> None:
+    """超时时终止 pnpm、Vite 和 Chromium 所在的整个进程组。"""
+    if os.name == "nt":
+        process.terminate()
+    else:
+        try:
+            os.killpg(process.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            return
+
+    try:
+        process.wait(timeout=PROCESS_TERMINATION_TIMEOUT_SECONDS)
+    except subprocess.TimeoutExpired:
+        if os.name == "nt":
+            process.kill()
+        else:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                return
+        process.wait(timeout=PROCESS_TERMINATION_TIMEOUT_SECONDS)
 
 
 def run_real_backend_playwright(
@@ -50,14 +94,18 @@ def run_real_backend_playwright(
             "REAL_BACKEND_LIFECYCLE_DEPT_NAME": lifecycle_dept_name,
         }
     )
-    subprocess.run(
-        [
-            "pnpm",
-            "run",
-            "test:e2e:real-backend",
-        ],
+    env["REAL_FRONTEND_PORT"] = _frontend_port(backend_name, env)
+    command = ["pnpm", "run", "test:e2e:real-backend"]
+    process = subprocess.Popen(
+        command,
         cwd=FRONTEND_ROOT,
         env=env,
-        check=True,
-        timeout=300,
+        start_new_session=os.name != "nt",
     )
+    try:
+        return_code = process.wait(timeout=PLAYWRIGHT_TIMEOUT_SECONDS)
+    except subprocess.TimeoutExpired:
+        _terminate_process_group(process)
+        raise
+    if return_code:
+        raise subprocess.CalledProcessError(return_code, command)

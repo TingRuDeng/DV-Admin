@@ -51,7 +51,14 @@
     "logout": "Logout",
     "document": "Document",
     "gitee": "Gitee",
-    "profile": "User Profile"
+    "profile": "User Profile",
+    "search": "Search menu",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen",
+    "notifications": "Notifications",
+    "notificationsUnread": "Notifications, {count} unread",
+    "userMenu": "User menu",
+    "settings": "System settings"
   },
   "sizeSelect": {
     "tooltip": "Layout Size",
@@ -63,6 +70,7 @@
     }
   },
   "langSelect": {
+    "tooltip": "Change language",
     "message": {
       "success": "Switch Language Successful!"
     }

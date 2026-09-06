@@ -1,6 +1,7 @@
 """用户服务删除和密码测试。"""
 
 import uuid
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -194,6 +195,46 @@ class TestUserServiceResetPassword:
         from app.db.models.oauth import Users
         user = await Users.get(id=test_user_for_service.id)
         assert user is not None
+
+    @pytest.mark.asyncio
+    async def test_reset_password_revokes_existing_tokens(self, db, test_user_for_service):
+        """重置密码前必须撤销该用户已有的 access/refresh token。"""
+        with patch(
+            "app.services.system.user_services.mutation.token_blacklist_service"
+            ".revoke_all_user_tokens",
+            new_callable=AsyncMock,
+            return_value=True,
+        ) as revoke_all:
+            await user_service.reset_password(test_user_for_service.id)
+
+        revoke_all.assert_awaited_once_with(
+            test_user_for_service.id,
+            reason="password_reset",
+        )
+
+    @pytest.mark.asyncio
+    async def test_reset_password_stops_when_token_revocation_fails(
+        self,
+        db,
+        test_user_for_service,
+    ):
+        """令牌撤销失败时不得继续写入新密码。"""
+        from app.core.security import verify_password
+        from app.db.models.oauth import Users
+
+        original_password = (await Users.get(id=test_user_for_service.id)).password
+        with patch(
+            "app.services.system.user_services.mutation.token_blacklist_service"
+            ".revoke_all_user_tokens",
+            new_callable=AsyncMock,
+            return_value=False,
+        ):
+            with pytest.raises(BusinessError, match="令牌"):
+                await user_service.reset_password(test_user_for_service.id)
+
+        user = await Users.get(id=test_user_for_service.id)
+        assert user.password == original_password
+        assert verify_password("test123", user.password)
 
     @pytest.mark.asyncio
     async def test_reset_password_nonexistent_user(self, db):

@@ -24,7 +24,7 @@ services:
       - frontend-node-modules:/workspace/frontend/node_modules
 
   django:
-    image: ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+    image: ghcr.io/astral-sh/uv:python3.11-bookworm-slim
     profiles: ["django"]
     working_dir: /workspace/backend
     command: >

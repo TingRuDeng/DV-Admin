@@ -1,5 +1,5 @@
 <template>
-  <div class="layout" :class="layoutClass">
+  <div ref="layoutRef" class="layout" :class="layoutClass">
     <!-- 移动端遮罩层 - 当侧边栏打开时显示 -->
     <button
       v-if="isMobile && isSidebarOpen"
@@ -15,6 +15,8 @@
 </template>
 
 <script setup lang="ts">
+import { nextTick, ref, watch } from "vue";
+import { useEventListener, useScrollLock } from "@vueuse/core";
 import { useRoute } from "vue-router";
 import { useLayout, useDeviceDetection } from "@/composables";
 
@@ -24,6 +26,106 @@ const { layoutClass, isSidebarOpen, closeSidebar } = useLayout();
 /// Device detection for responsive layout
 const { isMobile } = useDeviceDetection();
 const route = useRoute();
+const layoutRef = ref<HTMLElement | null>(null);
+const bodyScrollLock = useScrollLock(typeof document === "undefined" ? null : document.body);
+const restoreFocusTarget = ref<HTMLElement | null>(null);
+const mobileSidebarWasOpen = ref(false);
+
+const FOCUSABLE_SELECTOR = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled]):not([type='hidden'])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  "[contenteditable='true']",
+  "[tabindex]:not([tabindex='-1'])",
+].join(",");
+
+function getMobileSidebar() {
+  return layoutRef.value?.querySelector<HTMLElement>("#layout-sidebar") ?? null;
+}
+
+function getFocusableElements(sidebar: HTMLElement) {
+  return Array.from(sidebar.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+    (element) => element.getAttribute("aria-hidden") !== "true" && !element.hasAttribute("inert")
+  );
+}
+
+function focusMobileSidebar() {
+  nextTick(() => {
+    if (!isMobile.value || !isSidebarOpen.value) return;
+
+    const sidebar = getMobileSidebar();
+    if (!sidebar) return;
+
+    const firstFocusable = getFocusableElements(sidebar)[0];
+    (firstFocusable ?? sidebar).focus({ preventScroll: true });
+  });
+}
+
+function restoreFocus() {
+  const target = restoreFocusTarget.value;
+  restoreFocusTarget.value = null;
+  if (target?.isConnected) {
+    target.focus({ preventScroll: true });
+  }
+}
+
+watch(
+  [isMobile, isSidebarOpen],
+  ([mobile, open]) => {
+    const shouldManageMobileSidebar = mobile && open;
+    bodyScrollLock.value = shouldManageMobileSidebar;
+
+    if (shouldManageMobileSidebar && !mobileSidebarWasOpen.value) {
+      restoreFocusTarget.value =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      focusMobileSidebar();
+    } else if (!shouldManageMobileSidebar && mobileSidebarWasOpen.value) {
+      restoreFocus();
+    }
+
+    mobileSidebarWasOpen.value = shouldManageMobileSidebar;
+  },
+  { immediate: true }
+);
+
+useEventListener("keydown", (event) => {
+  if (event.key !== "Escape" || event.defaultPrevented) return;
+  if (!isMobile.value || !isSidebarOpen.value) return;
+
+  event.preventDefault();
+  closeSidebar();
+});
+
+useEventListener("keydown", (event) => {
+  if (event.key !== "Tab" || !isMobile.value || !isSidebarOpen.value) return;
+
+  const sidebar = getMobileSidebar();
+  if (!sidebar) return;
+
+  const focusableElements = getFocusableElements(sidebar);
+  if (focusableElements.length === 0) {
+    event.preventDefault();
+    sidebar.focus({ preventScroll: true });
+    return;
+  }
+
+  const firstFocusable = focusableElements[0];
+  const lastFocusable = focusableElements[focusableElements.length - 1];
+  const activeElement = document.activeElement;
+
+  if (event.shiftKey && (activeElement === firstFocusable || !sidebar.contains(activeElement))) {
+    event.preventDefault();
+    lastFocusable.focus({ preventScroll: true });
+  } else if (
+    !event.shiftKey &&
+    (activeElement === lastFocusable || !sidebar.contains(activeElement))
+  ) {
+    event.preventDefault();
+    firstFocusable.focus({ preventScroll: true });
+  }
+});
 
 watch(
   () => route.fullPath,

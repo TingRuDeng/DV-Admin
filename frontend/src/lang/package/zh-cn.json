@@ -51,7 +51,14 @@
     "logout": "退出登录",
     "document": "项目文档",
     "gitee": "项目地址",
-    "profile": "个人中心"
+    "profile": "个人中心",
+    "search": "搜索菜单",
+    "enterFullscreen": "进入全屏",
+    "exitFullscreen": "退出全屏",
+    "notifications": "通知消息",
+    "notificationsUnread": "通知消息，{count} 条未读",
+    "userMenu": "用户菜单",
+    "settings": "系统设置"
   },
   "sizeSelect": {
     "tooltip": "布局大小",
@@ -63,6 +70,7 @@
     }
   },
   "langSelect": {
+    "tooltip": "切换语言",
     "message": {
       "success": "切换语言成功！"
     }

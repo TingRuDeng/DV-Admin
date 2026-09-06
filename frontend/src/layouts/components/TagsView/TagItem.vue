@@ -1,5 +1,6 @@
 <template>
   <el-tag
+    class="tags-view-item"
     cursor-pointer
     :closable="!tag.affix"
     :effect="isActive ? 'dark' : 'light'"
@@ -34,7 +35,7 @@ const emit = defineEmits<{
 </script>
 
 <style lang="scss" scoped>
-:deep(.el-tag) {
+.tags-view-item {
   height: 30px;
   padding: 0 11px;
   margin: 0 3px;
@@ -76,7 +77,7 @@ const emit = defineEmits<{
     outline-offset: 1px;
   }
 
-  .el-tag__close {
+  :deep(.el-tag__close) {
     margin-left: 6px;
     font-size: 12px;
     color: inherit;

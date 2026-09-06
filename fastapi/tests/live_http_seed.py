@@ -4,13 +4,18 @@ from __future__ import annotations
 
 import asyncio
 import json
+from datetime import datetime, timedelta, timezone
 
 from tortoise import Tortoise
 
 from app.core.config import settings
 from app.core.security import get_password_hash
 from app.db.models.oauth import Users
-from app.db.models.system import Departments, Notices, Permissions, Roles
+from app.db.models.system import Departments, Notices, OperationLog, Permissions, Roles
+
+LOG_DELETE_REQUEST_ID = "real-backend-log-delete"
+LOG_KEEP_REQUEST_ID = "real-backend-log-keep"
+LOG_CLEAR_REQUEST_ID = "real-backend-log-clear"
 
 
 async def seed() -> dict[str, int | str | list[int]]:
@@ -42,6 +47,8 @@ async def seed() -> dict[str, int | str | list[int]]:
             "system:notices:delete",
             "system:notices:publish",
             "system:notices:revoke",
+            "system:logs:query",
+            "system:logs:delete",
         )
     ]
     catalog = await Permissions.create(
@@ -72,13 +79,23 @@ async def seed() -> dict[str, int | str | list[int]]:
         parent=catalog,
         perm="system:notices:query",
     )
+    log_menu = await Permissions.create(
+        name="日志管理",
+        type="MENU",
+        route_name="RuntimeContractLog",
+        route_path="log",
+        component="system/log/index",
+        sort=4,
+        parent=catalog,
+        perm="system:logs:query",
+    )
     menu_management = await Permissions.create(
         name="菜单管理",
         type="MENU",
         route_name="RuntimeContractMenus",
         route_path="menus",
         component="system/menu/index",
-        sort=4,
+        sort=5,
         parent=catalog,
         perm="system:permissions:query",
     )
@@ -88,7 +105,7 @@ async def seed() -> dict[str, int | str | list[int]]:
         route_name="RuntimeContractUpload",
         route_path="upload",
         component="demo/upload",
-        sort=5,
+        sort=6,
         parent=catalog,
         perm="demo:upload:query",
     )
@@ -107,6 +124,7 @@ async def seed() -> dict[str, int | str | list[int]]:
         catalog,
         user_menu,
         notice_menu,
+        log_menu,
         menu_management,
         upload_menu,
         *button_permissions,
@@ -118,6 +136,60 @@ async def seed() -> dict[str, int | str | list[int]]:
         is_active=1,
     )
     await user.roles.add(role)
+    await OperationLog.create(
+        user_id=user.id,
+        username=user.username,
+        name=user.name,
+        operation="真实浏览器日志删除目标",
+        method="DELETE",
+        path="/api/v1/runtime-contract/logs/delete-target",
+        request_id=LOG_DELETE_REQUEST_ID,
+        request_body='{"password":"delete-secret"}',
+        response_status=200,
+        response_body='{"token":"delete-response-secret"}',
+        ip="10.0.0.10",
+        browser="Chromium",
+        os="macOS",
+        execution_time=18,
+        status=1,
+    )
+    await OperationLog.create(
+        user_id=user.id,
+        username=user.username,
+        name=user.name,
+        operation="真实浏览器日志保留目标",
+        method="POST",
+        path="/api/v1/runtime-contract/logs/keep-target",
+        request_id=LOG_KEEP_REQUEST_ID,
+        request_body='{"status":"keep"}',
+        response_status=200,
+        response_body='{"ok":true}',
+        ip="10.0.0.11",
+        browser="Chromium",
+        os="macOS",
+        execution_time=12,
+        status=1,
+    )
+    old_log = await OperationLog.create(
+        user_id=user.id,
+        username=user.username,
+        name=user.name,
+        operation="真实浏览器日志清理目标",
+        method="POST",
+        path="/api/v1/runtime-contract/logs/clear-target",
+        request_id=LOG_CLEAR_REQUEST_ID,
+        request_body='{"password":"clear-secret"}',
+        response_status=500,
+        response_body='{"token":"clear-response-secret"}',
+        ip="10.0.0.12",
+        browser="Chromium",
+        os="macOS",
+        execution_time=21,
+        status=0,
+        error_msg="清理前历史样本",
+    )
+    old_created_at = datetime.now(timezone.utc) - timedelta(days=10)
+    await OperationLog.filter(id=old_log.id).update(created_at=old_created_at, updated_at=old_created_at)
     rbac_role = await Roles.create(
         name="HTTP Smoke RBAC 角色",
         code="http-smoke-rbac",

@@ -22,7 +22,9 @@ export default defineConfig({
   retries: 0,
   workers: 1,
   timeout: 60_000,
-  reporter: process.env.CI ? "line" : "list",
+  reporter: process.env.CI
+    ? [["line"], ["html", { outputFolder: "playwright-report", open: "never" }]]
+    : "list",
   use: {
     baseURL: appBaseUrl,
     trace: "retain-on-failure",

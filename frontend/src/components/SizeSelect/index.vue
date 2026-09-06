@@ -2,7 +2,9 @@
   <!-- 布局大小 -->
   <el-tooltip :content="t('sizeSelect.tooltip')" effect="dark" placement="bottom">
     <el-dropdown trigger="click" @command="handleSizeChange">
-      <div class="i-svg:size" />
+      <button type="button" class="navbar-icon-button" :aria-label="t('sizeSelect.tooltip')">
+        <div class="i-svg:size" aria-hidden="true" />
+      </button>
       <template #dropdown>
         <el-dropdown-menu>
           <el-dropdown-item

@@ -54,6 +54,8 @@ def build_simple_jwt_config(access_minutes: int, refresh_days: int) -> dict[str,
         "REFRESH_TOKEN_LIFETIME": timedelta(days=refresh_days),
         "ROTATE_REFRESH_TOKENS": True,
         "BLACKLIST_AFTER_ROTATION": True,
+        # 密码哈希变化后，SimpleJWT 自动拒绝旧 access/refresh token。
+        "CHECK_REVOKE_TOKEN": True,
     }
 
 
