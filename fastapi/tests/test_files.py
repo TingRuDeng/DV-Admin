@@ -3,6 +3,7 @@
 """
 from io import BytesIO
 
+import pytest
 from fastapi.testclient import TestClient
 
 
@@ -74,6 +75,68 @@ class TestFileDelete:
     def test_delete_file_unauthorized(self, client: TestClient):
         response = client.delete("/api/v1/files/?filePath=test.jpg")
         assert response.status_code == 401
+
+    @pytest.mark.parametrize(
+        "wire_path",
+        [
+            pytest.param("files/{user_id}/../protected.txt", id="parent-directory"),
+            pytest.param("files/{user_id}/../../../protected.txt", id="outside-upload-root"),
+            pytest.param("files/{user_id}/%2e%2e/protected.txt", id="encoded-dots"),
+            pytest.param("files%2F{user_id}%2F%2E%2E%2Fprotected.txt", id="encoded-separators"),
+            pytest.param("files/{user_id}/..%2fprotected.txt", id="mixed-encoding"),
+            pytest.param("files/{user_id}%5c..%5cprotected.txt", id="encoded-backslashes"),
+        ],
+    )
+    def test_delete_rejects_path_traversal_over_http(
+        self, client: TestClient, test_user: dict, tmp_path, monkeypatch, wire_path
+    ):
+        """删除接口不能通过原始或 URL 编码的父目录路径越过用户目录。"""
+        from app.core.config import settings
+
+        upload_root = tmp_path / "uploads"
+        (upload_root / "files" / str(test_user["id"])).mkdir(parents=True)
+        protected_file = upload_root / "files" / "protected.txt"
+        outside_file = tmp_path / "protected.txt"
+        protected_file.write_bytes(b"protected upload")
+        outside_file.write_bytes(b"outside upload root")
+        monkeypatch.setattr(settings, "upload_dir", str(upload_root))
+
+        # 直接发送编码后的查询串，避免 params 再编码 % 而绕过预期的解码路径。
+        response = client.delete(
+            f"/api/v1/files/?filePath={wire_path.format(user_id=test_user['id'])}",
+            headers=login_headers(client, test_user),
+        )
+
+        assert response.status_code == 400
+        assert response.json()["code"] != 20000
+        assert protected_file.read_bytes() == b"protected upload"
+        assert outside_file.read_bytes() == b"outside upload root"
+
+    def test_delete_rejects_symlink_outside_upload_root(
+        self, client: TestClient, test_user: dict, tmp_path, monkeypatch
+    ):
+        """合法用户路径中的符号链接也不能删除上传根目录外的文件。"""
+        from app.core.config import settings
+
+        upload_root = tmp_path / "uploads"
+        user_dir = upload_root / "files" / str(test_user["id"])
+        user_dir.mkdir(parents=True)
+        outside_file = tmp_path / "protected.txt"
+        outside_file.write_bytes(b"outside upload root")
+        link = user_dir / "linked.txt"
+        link.symlink_to(outside_file)
+        monkeypatch.setattr(settings, "upload_dir", str(upload_root))
+
+        response = client.delete(
+            "/api/v1/files/",
+            params={"filePath": f"files/{test_user['id']}/linked.txt"},
+            headers=login_headers(client, test_user),
+        )
+
+        assert response.status_code == 400
+        assert response.json()["code"] != 20000
+        assert outside_file.read_bytes() == b"outside upload root"
+        assert link.is_symlink()
 
     def test_delete_uploaded_file_by_path(self, auth_client: TestClient, tmp_path, monkeypatch):
         """删除接口只接收上传返回的相对路径。"""
