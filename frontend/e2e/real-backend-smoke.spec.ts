@@ -32,6 +32,9 @@ const menuWriteRoutePath = "menu-write-contract";
 const menuWriteInitialName = `${backendName} 菜单写入`;
 const menuWriteUpdatedName = `${backendName} 菜单已更新`;
 const menuWritePermissionName = `${backendName} 用户查询权限`;
+const logDeleteRequestId = "real-backend-log-delete";
+const logKeepRequestId = "real-backend-log-keep";
+const logClearRequestId = "real-backend-log-clear";
 
 interface MenuTreeItem {
   id: number | string;
@@ -61,6 +64,37 @@ interface UserPageItem {
 interface UserPageResult {
   list: UserPageItem[];
   total: number;
+}
+
+interface LogPageItem {
+  id: number | string;
+  requestId: string;
+  requestBody: string;
+  responseBody: string;
+  operation: string;
+  createdAt: string;
+}
+
+interface LogPageResult {
+  list: LogPageItem[];
+  total: number;
+}
+
+interface LogTrendItem {
+  date: string;
+  count: number;
+}
+
+interface LogStatsResult {
+  totalCount: number;
+  todayCount: number;
+  weekCount: number;
+  monthCount: number;
+  successCount: number;
+  failCount: number;
+  avgExecutionTime: number;
+  topUsers: Array<{ username: string; name: string; count: number }>;
+  topPaths: Array<{ path: string; method: string; count: number }>;
 }
 
 test.describe(`前端连接真实 ${backendName} 后端`, () => {
@@ -407,6 +441,110 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     expect(failedApiResponses).toEqual([]);
   });
 
+  test("日志管理与维护能力形成真实闭环", async ({ page }) => {
+    const failedApiResponses = collectFailedApiResponses(page);
+    const apiRequest = page.request;
+
+    await loginWithRoutes(page, username, password, "/runtime-contract/log");
+    await expect(page).toHaveURL(/\/runtime-contract\/log$/);
+    await expect(
+      page.locator(".layout__sidebar .el-menu-item", { hasText: "日志管理" })
+    ).toBeVisible();
+
+    const accessToken = await readAccessToken(page);
+    const authHeaders = { Authorization: `Bearer ${accessToken}` };
+
+    const deleteTarget = await fetchLogByRequestId(apiRequest, authHeaders, logDeleteRequestId);
+    const keepTarget = await fetchLogByRequestId(apiRequest, authHeaders, logKeepRequestId);
+    const clearTarget = await fetchLogByRequestId(apiRequest, authHeaders, logClearRequestId);
+
+    const searchResponse = waitForApiResponse(page, "/api/v1/system/logs/page", "GET");
+    await page.getByLabel("请求 ID").fill(logDeleteRequestId);
+    await page.getByRole("button", { name: "搜索", exact: true }).click();
+    await searchResponse;
+
+    const deleteRow = page.locator(".ff-log-page .el-table__row", {
+      hasText: "真实浏览器日志删除目标",
+    });
+    await expect(deleteRow).toBeVisible();
+    await deleteRow.getByRole("button", { name: "查看" }).click();
+    const detailDialog = page.locator(".ff-log-detail-dialog");
+    await expect(detailDialog).toBeVisible();
+    await expect(detailDialog).toContainText(logDeleteRequestId);
+    await expect(detailDialog).toContainText("[已脱敏]");
+    await expect(detailDialog).not.toContainText("delete-secret");
+    await expect(detailDialog).not.toContainText("delete-response-secret");
+    await page.keyboard.press("Escape");
+
+    const trendResponse = await apiRequest.get(`${apiBasePath}/system/logs/visit-trend`, {
+      headers: authHeaders,
+    });
+    const trend = await expectApiSuccess<LogTrendItem[]>(trendResponse);
+    expect(trend.length).toBeGreaterThan(0);
+
+    const statsResponse = await apiRequest.get(`${apiBasePath}/system/logs/visit-stats`, {
+      headers: authHeaders,
+    });
+    const stats = await expectApiSuccess<LogStatsResult>(statsResponse);
+    expect(stats.totalCount).toBeGreaterThan(0);
+    expect(stats.successCount + stats.failCount).toBe(stats.totalCount);
+    expect(stats.topUsers.length).toBeGreaterThan(0);
+    expect(stats.topPaths.length).toBeGreaterThan(0);
+
+    const deleteResponse = await apiRequest.delete(
+      `${apiBasePath}/system/logs/${deleteTarget.id}`,
+      {
+        headers: authHeaders,
+      }
+    );
+    await expectApiSuccess(deleteResponse);
+
+    const deletedDetailResponse = await apiRequest.get(
+      `${apiBasePath}/system/logs/${deleteTarget.id}`,
+      {
+        headers: authHeaders,
+      }
+    );
+    expect(deletedDetailResponse.status()).toBe(404);
+
+    const deletePageResponse = await apiRequest.get(`${apiBasePath}/system/logs/page`, {
+      headers: authHeaders,
+      params: { pageNum: 1, pageSize: 20, requestId: logDeleteRequestId },
+    });
+    const deletePage = await expectApiSuccess<LogPageResult>(deletePageResponse);
+    expect(deletePage.total).toBe(0);
+
+    const clearResponse = await apiRequest.delete(`${apiBasePath}/system/logs/clear/7`, {
+      headers: authHeaders,
+    });
+    await expectApiSuccess(clearResponse);
+
+    const clearedDetailResponse = await apiRequest.get(
+      `${apiBasePath}/system/logs/${clearTarget.id}`,
+      {
+        headers: authHeaders,
+      }
+    );
+    expect(clearedDetailResponse.status()).toBe(404);
+
+    const clearPageResponse = await apiRequest.get(`${apiBasePath}/system/logs/page`, {
+      headers: authHeaders,
+      params: { pageNum: 1, pageSize: 20, requestId: logClearRequestId },
+    });
+    const clearPage = await expectApiSuccess<LogPageResult>(clearPageResponse);
+    expect(clearPage.total).toBe(0);
+
+    const keepPageResponse = await apiRequest.get(`${apiBasePath}/system/logs/page`, {
+      headers: authHeaders,
+      params: { pageNum: 1, pageSize: 20, requestId: logKeepRequestId },
+    });
+    const keepPage = await expectApiSuccess<LogPageResult>(keepPageResponse);
+    expect(keepPage.total).toBe(1);
+    expect(keepPage.list[0].requestId).toBe(logKeepRequestId);
+
+    expect(failedApiResponses).toEqual([]);
+  });
+
   test("菜单创建、编辑、授权和删除同步动态路由", async ({ browser, page }) => {
     const failedApiResponses = collectFailedApiResponses(page);
     const apiRequest = page.request;
@@ -730,4 +868,24 @@ function collectFailedApiResponses(page: Page): string[] {
     }
   });
   return failures;
+}
+
+async function fetchLogByRequestId(
+  apiRequest: APIRequestContext,
+  authHeaders: { Authorization: string },
+  requestId: string
+): Promise<LogPageItem> {
+  const response = await apiRequest.get(`${apiBasePath}/system/logs/page`, {
+    headers: authHeaders,
+    params: {
+      pageNum: 1,
+      pageSize: 20,
+      requestId,
+    },
+  });
+  const pageData = await expectApiSuccess<LogPageResult>(response);
+  expect(pageData.total).toBe(1);
+  expect(pageData.list).toHaveLength(1);
+  expect(pageData.list[0].requestId).toBe(requestId);
+  return pageData.list[0];
 }

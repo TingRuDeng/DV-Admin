@@ -225,10 +225,12 @@ class RoleService:
         if self._is_protected_role(role):
             raise ValidationError("系统角色不可删除")
 
+        affected_user_ids = await get_role_user_ids(role_id)
         await role.delete()
 
         # 清除缓存
         await self._clear_role_cache(role_id)
+        await clear_user_access_cache(affected_user_ids)
 
     async def batch_delete(
         self,

@@ -1,6 +1,8 @@
 <template>
   <el-dropdown trigger="click" @command="handleLanguageChange">
-    <div class="i-svg:language" :class="size" />
+    <button type="button" class="navbar-icon-button" :aria-label="t('langSelect.tooltip')">
+      <div class="i-svg:language" :class="size" aria-hidden="true" />
+    </button>
     <template #dropdown>
       <el-dropdown-menu>
         <el-dropdown-item

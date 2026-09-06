@@ -2,18 +2,34 @@
 安全模块扩展测试
 测试 security 模块的更多功能
 """
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 
 from app.core.security import (
     create_access_token,
     create_refresh_token,
     decode_token,
     get_token_expiration,
+    get_token_issued_at,
 )
+from app.services.token_blacklist_records import is_token_revoked_by_time
 
 
 class TestSecurityToken:
     """测试令牌功能"""
+
+    def test_same_second_tokens_preserve_revocation_order(self):
+        revoked_at = datetime(2026, 1, 1, microsecond=500000, tzinfo=timezone.utc)
+        for create_token in (create_access_token, create_refresh_token):
+            for delta, expected in ((-100000, True), (100000, False)):
+                issued_at = revoked_at + timedelta(microseconds=delta)
+                with patch("app.core.security.datetime") as clock:
+                    clock.now.return_value = issued_at
+                    payload = decode_token(create_token("1", expires_delta=timedelta(days=3650)))
+                assert payload is not None
+                decoded_time = get_token_issued_at(payload)
+                assert decoded_time == issued_at
+                assert is_token_revoked_by_time(decoded_time, revoked_at.isoformat()) is expected
 
     def test_create_access_token(self):
         """测试创建访问令牌"""

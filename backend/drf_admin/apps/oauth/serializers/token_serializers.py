@@ -14,7 +14,7 @@ from rest_framework_simplejwt.token_blacklist.models import (
     OutstandingToken,
 )
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.utils import datetime_from_epoch
+from rest_framework_simplejwt.utils import datetime_from_epoch, get_md5_hash_password
 
 from drf_admin.apps.system.models import Users
 
@@ -70,6 +70,14 @@ class SingleUseTokenRefreshSerializer(serializers.Serializer):
                 self.error_messages["no_active_account"],
                 "no_active_account",
             )
+
+        if api_settings.CHECK_REVOKE_TOKEN:
+            revoke_claim = api_settings.REVOKE_TOKEN_CLAIM
+            if refresh.payload.get(revoke_claim) != get_md5_hash_password(user.password):
+                raise AuthenticationFailed(
+                    "The user's password has been changed.",
+                    code="password_changed",
+                )
 
         jti = refresh.payload[api_settings.JTI_CLAIM]
         expires_at = datetime_from_epoch(refresh.payload["exp"])

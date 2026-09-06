@@ -5,7 +5,7 @@
   border-radius: 12px;
 }
 
-.ff-role-page .permission-tree :deep(.el-tree-node__content) {
+.ff-role-page .permission-tree .el-tree-node__content {
   height: 36px;
   padding: 0 8px;
   margin-bottom: 4px;
@@ -13,11 +13,11 @@
   transition: all 0.2s ease;
 }
 
-.ff-role-page .permission-tree :deep(.el-tree-node__content:hover) {
+.ff-role-page .permission-tree .el-tree-node__content:hover {
   background-color: #e2e8f0;
 }
 
-.ff-role-page .permission-tree :deep(.el-tree-node.is-current > .el-tree-node__content) {
+.ff-role-page .permission-tree .el-tree-node.is-current > .el-tree-node__content {
   color: #6366f1;
   background-color: rgba(99, 102, 241, 0.1);
 }
@@ -27,11 +27,11 @@ html.dark .ff-role-page .permission-tree {
   border-color: #334155;
 }
 
-html.dark .ff-role-page .permission-tree :deep(.el-tree-node__content:hover) {
+html.dark .ff-role-page .permission-tree .el-tree-node__content:hover {
   background-color: #334155;
 }
 
-html.dark .ff-role-page .permission-tree :deep(.el-tree-node.is-current > .el-tree-node__content) {
+html.dark .ff-role-page .permission-tree .el-tree-node.is-current > .el-tree-node__content {
   color: #818cf8;
   background-color: rgba(129, 140, 248, 0.15);
 }

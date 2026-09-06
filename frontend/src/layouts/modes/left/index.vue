@@ -2,7 +2,11 @@
   <BaseLayout>
     <!-- 左侧菜单栏 -->
     <div
+      id="layout-sidebar"
       class="layout__sidebar"
+      role="navigation"
+      aria-label="主导航"
+      tabindex="-1"
       :class="{ 'layout__sidebar--collapsed': !isSidebarOpen }"
       :aria-hidden="isMobile && !isSidebarOpen ? 'true' : undefined"
       :inert="isMobile && !isSidebarOpen"

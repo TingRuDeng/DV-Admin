@@ -91,11 +91,39 @@
   transition: color var(--ff-duration-fast) ease !important;
 }
 
-.user-profile,
 .navbar-actions__item .el-dropdown,
 .navbar-actions__item .el-dropdown:focus-visible {
   outline: none !important;
   border: 0 !important;
+}
+
+.navbar-icon-button,
+.navbar-actions__button,
+.user-profile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  appearance: none;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: var(--ff-radius-nav);
+}
+
+.navbar-icon-button,
+.user-profile {
+  width: 100%;
+}
+
+.navbar-icon-button:focus-visible,
+.navbar-actions__button:focus-visible,
+.user-profile:focus-visible {
+  outline: 2px solid var(--el-color-primary-light-5);
+  outline-offset: -2px;
 }
 
 .user-profile__name {

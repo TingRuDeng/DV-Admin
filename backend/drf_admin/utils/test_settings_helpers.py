@@ -41,6 +41,7 @@ def test_build_simple_jwt_config_keeps_lifetime_and_rotation_policy():
     assert simple_jwt["REFRESH_TOKEN_LIFETIME"].days == 1
     assert simple_jwt["ROTATE_REFRESH_TOKENS"] is True
     assert simple_jwt["BLACKLIST_AFTER_ROTATION"] is True
+    assert simple_jwt["CHECK_REVOKE_TOKEN"] is True
 
 
 def test_build_base_api_keeps_versioned_and_unversioned_prefix():

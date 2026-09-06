@@ -1,61 +1,67 @@
 <template>
-  <div @click="openSearchModal">
-    <div class="i-svg:search" />
-    <ProDialog
-      v-model="isModalVisible"
-      width="30%"
-      :append-to-body="true"
-      :show-close="false"
-      :show-confirm-button="false"
-      cancel-text="关闭"
-      @close="closeSearchModal"
-    >
-      <template #header>
-        <el-input
-          ref="searchInputRef"
-          v-model="searchKeyword"
-          size="large"
-          placeholder="输入菜单名称关键字搜索"
-          clearable
-          @keyup.enter="selectActiveResult"
-          @input="updateSearchResults"
-          @keydown.up.prevent="navigateResults('up')"
-          @keydown.down.prevent="navigateResults('down')"
-          @keydown.esc="closeSearchModal"
-        >
-          <template #prepend>
-            <el-button icon="Search" />
-          </template>
-        </el-input>
-      </template>
+  <button
+    type="button"
+    class="navbar-icon-button"
+    :aria-label="t('navbar.search')"
+    @click="openSearchModal"
+  >
+    <div class="i-svg:search" aria-hidden="true" />
+  </button>
 
-      <div class="search-result">
-        <MenuSearchHistory
-          v-if="searchKeyword === '' && searchHistory.length > 0"
-          :items="searchHistory"
-          @clear="clearHistory"
-          @remove="removeHistoryItem"
-          @select="navigateToRoute"
-        />
+  <ProDialog
+    v-model="isModalVisible"
+    width="30%"
+    :append-to-body="true"
+    :show-close="false"
+    :show-confirm-button="false"
+    cancel-text="关闭"
+    @close="closeSearchModal"
+  >
+    <template #header>
+      <el-input
+        ref="searchInputRef"
+        v-model="searchKeyword"
+        size="large"
+        placeholder="输入菜单名称关键字搜索"
+        clearable
+        @keyup.enter="selectActiveResult"
+        @input="updateSearchResults"
+        @keydown.up.prevent="navigateResults('up')"
+        @keydown.down.prevent="navigateResults('down')"
+        @keydown.esc="closeSearchModal"
+      >
+        <template #prepend>
+          <el-button icon="Search" :aria-label="t('navbar.search')" />
+        </template>
+      </el-input>
+    </template>
 
-        <MenuSearchResultList
-          v-else
-          :active-index="activeIndex"
-          :items="displayResults"
-          @select="navigateToRoute"
-        />
+    <div class="search-result">
+      <MenuSearchHistory
+        v-if="searchKeyword === '' && searchHistory.length > 0"
+        :items="searchHistory"
+        @clear="clearHistory"
+        @remove="removeHistoryItem"
+        @select="navigateToRoute"
+      />
 
-        <!-- 无搜索历史显示 -->
-        <div v-if="searchKeyword === '' && searchHistory.length === 0" class="no-history">
-          <p class="no-history__text">没有搜索历史</p>
-        </div>
+      <MenuSearchResultList
+        v-else
+        :active-index="activeIndex"
+        :items="displayResults"
+        @select="navigateToRoute"
+      />
+
+      <!-- 无搜索历史显示 -->
+      <div v-if="searchKeyword === '' && searchHistory.length === 0" class="no-history">
+        <p class="no-history__text">没有搜索历史</p>
       </div>
+    </div>
 
-      <template #footer>
-        <MenuSearchFooter />
-      </template>
-    </ProDialog>
-  </div>
+    <template #footer>
+      <MenuSearchFooter />
+    </template>
+  </ProDialog>
 </template>
 
 <script setup lang="ts">
@@ -71,6 +77,7 @@ import type { SearchDirection, SearchItem } from "./types";
 import { useMenuSearchHistory } from "./useMenuSearchHistory";
 
 const permissionStore = usePermissionStore();
+const { t } = useI18n();
 const isModalVisible = ref(false);
 const searchKeyword = ref("");
 const searchInputRef = ref();

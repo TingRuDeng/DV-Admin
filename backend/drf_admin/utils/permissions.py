@@ -58,6 +58,7 @@ class RBACPermission(BasePermission):
         if settings.REDIS_HOST and settings.REDIS_PORT:
             try:
                 conn.hset(f'user_info_{user.id}', 'perms', json.dumps(user_perms_list))
+                conn.expire(f'user_info_{user.id}', 60 * 60)
             except Exception as e:
                 logger.error(f"Redis cache error: {str(e)}")
         else:

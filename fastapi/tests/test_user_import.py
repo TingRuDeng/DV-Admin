@@ -99,6 +99,36 @@ async def test_user_import(test_import_setup):
     assert len(result.message_list) == 3, f"应该有 3 条错误信息，实际: {len(result.message_list)}"
 
 
+async def test_user_import_without_roles_gets_default_role(db):
+    """导入用户未提供角色时应自动关联默认角色。"""
+    from app.db.models.oauth import Users
+    from app.db.models.system import Roles
+    from app.services.system.user_service import user_service
+
+    default_role = await Roles.create(
+        name=f"导入默认角色_{uuid.uuid4().hex[:8]}",
+        code=f"import_default_{uuid.uuid4().hex[:8]}",
+        status=1,
+        is_default=1,
+    )
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.append(["用户名*", "姓名", "角色ID(多个用逗号分隔)"])
+    username = f"import_default_user_{uuid.uuid4().hex[:8]}"
+    worksheet.append([username, "导入默认角色用户", ""])
+    buffer = io.BytesIO()
+    workbook.save(buffer)
+    workbook.close()
+    buffer.seek(0)
+
+    result = await user_service.import_users(buffer)
+
+    assert result.valid_count == 1
+    created = await Users.get(username=username)
+    await created.fetch_related("roles")
+    assert [role.id for role in created.roles] == [default_role.id]
+
+
 async def test_import_template():
     """
     测试导入模板生成

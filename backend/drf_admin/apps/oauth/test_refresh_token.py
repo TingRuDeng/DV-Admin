@@ -3,6 +3,7 @@
 OAuth 刷新 Token 接口测试
 """
 
+from django.core.cache import cache
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -14,6 +15,8 @@ class OAuthRefreshTokenAPITestCase(TestCase):
     """刷新 Token 接口测试，保持 FastAPI 兼容格式"""
 
     def setUp(self):
+        cache.clear()
+        self.addCleanup(cache.clear)
         self.client = APIClient()
         self.user = create_oauth_user()
         response = self.client.post(
@@ -104,3 +107,28 @@ class OAuthRefreshTokenAPITestCase(TestCase):
             format="json",
         )
         self.assertEqual(rotated_response.status_code, status.HTTP_200_OK)
+
+    def test_password_change_invalidates_existing_access_token(self):
+        """密码变更后旧 access token 必须立即失效。"""
+        self.user.set_password("Newpass123")
+        self.user.save(update_fields=["password"])
+
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access_token}")
+        response = client.get("/api/v1/oauth/info/")
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_password_change_invalidates_existing_refresh_token(self):
+        """密码变更后旧 refresh token 不得继续轮换。"""
+        self.user.set_password("Newpass123")
+        self.user.save(update_fields=["password"])
+
+        response = self.client.post(
+            "/api/v1/oauth/refresh-token/",
+            {"refreshToken": self.refresh_token},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data["code"], 40002)

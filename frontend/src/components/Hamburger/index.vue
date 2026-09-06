@@ -2,8 +2,9 @@
   <button
     type="button"
     class="hamburger-wrapper"
-    :aria-label="isActive ? '收起导航' : '展开导航'"
+    :aria-label="label || (isActive ? '收起导航' : '展开导航')"
     :aria-expanded="isActive"
+    :aria-controls="controls"
     @click="toggleClick"
   >
     <div :class="['i-svg:collapse', { hamburger: true, 'is-active': isActive }, hamburgerClass]" />
@@ -17,6 +18,8 @@ import { LayoutMode } from "@/enums/settings/layout-enum";
 
 defineProps({
   isActive: { type: Boolean, required: true },
+  controls: { type: String, default: undefined },
+  label: { type: String, default: undefined },
 });
 
 const emit = defineEmits<{

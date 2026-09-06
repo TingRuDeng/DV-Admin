@@ -57,7 +57,11 @@ class UserImportExportMixin(UserImportParserMixin):
                 else:
                     invalid_count += 1
 
-            await self._save_import_users(users_to_create, context.all_roles)
+            await self._save_import_users(
+                users_to_create,
+                context.all_roles,
+                context.default_role,
+            )
             return UserImportResult(
                 valid_count=len(users_to_create),
                 invalid_count=invalid_count,

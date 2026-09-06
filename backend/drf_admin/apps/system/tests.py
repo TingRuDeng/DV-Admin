@@ -225,6 +225,24 @@ class UsersCreateTestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_create_user_without_roles_gets_default_role(self):
+        """未显式指定角色时应自动关联默认角色。"""
+        default_role = Roles.objects.create(
+            name="创建用户默认角色",
+            code="create-user-default",
+            status=1,
+            is_default=1,
+        )
+
+        user = Users.objects.create_user(
+            username="default_role_user",
+            password="testpass123",
+            name="默认角色用户",
+            is_active=1,
+        )
+
+        self.assertTrue(user.roles.filter(pk=default_role.pk).exists())
+
     def test_create_user_rejects_sensitive_fields_without_write_permission(self):
         """无字段写入权限时，创建用户不得写入手机号和邮箱。"""
         response = self.client.post(
