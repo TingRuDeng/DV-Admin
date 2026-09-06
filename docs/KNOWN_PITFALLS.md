@@ -594,14 +594,21 @@ async def test_async_function():
 - Django/FastAPI 的资料与头像接口可能返回绝对 URL，也可能返回 `/media/...` 相对路径
 - 前端通过 `resolveStaticAssetUrl` 使用 `VITE_APP_STATIC_URL` 解析相对路径，绝对 URL 保持不变
 - 双后端真实 Playwright smoke 会校验上传后的头像 `naturalWidth > 0`，不仅检查接口成功或 `src` 文本
+- Django 的 `static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)` 仅在 `DEBUG=True` 时注册媒体路由；生产环境不能依赖把 `/media/` 代理给 Django 来提供文件
+- FastAPI 在 `app/main.py` 中通过 `StaticFiles` 挂载 `/media`，目录来自 `settings.upload_dir`（`UPLOAD_DIR`）；可以代理给 FastAPI，也可以由 Nginx 读取同一上传目录
 
 **解决方案：**
 1. 执行前端构建：`pnpm run build`
 2. 将 `dist/` 目录部署到 Nginx
-3. 开发环境配置 `VITE_APP_STATIC_URL` 指向当前后端；生产同源部署时为 `/media/` 配置反向代理
+3. 开发环境配置 `VITE_APP_STATIC_URL` 指向当前后端；生产同源部署时，Django 使用 Nginx `alias` 读取媒体目录，FastAPI 可使用反向代理或同样的共享目录方案
 4. 新增头像或文件展示入口时复用 `frontend/src/utils/static-asset-url.ts`，不要直接拼接后端地址
 
-**Nginx 配置示例：**
+**Django 生产 Nginx 配置示例：**
+
+下例假定 Django 的 `MEDIA_ROOT`（当前为 `backend/drf_admin/media`）在 Nginx 中只读挂载为
+`/srv/dv-admin/media/`。这是挂载路径示例，不是现有 Compose 已配置的路径；后端写入目录
+和 Nginx 读取目录必须指向同一持久化卷，且 Nginx 进程具有目录遍历和文件读取权限。
+
 ```nginx
 server {
     location / {
@@ -613,11 +620,29 @@ server {
         proxy_pass http://backend:8769/;
     }
 
-    location /media/ {
-        proxy_pass http://backend:8769/media/;
+    location ^~ /media/ {
+        alias /srv/dv-admin/media/;
     }
 }
 ```
+
+`location` 和 `alias` 的末尾都保留 `/`，例如 `/media/files/1/a.txt` 应映射为
+`/srv/dv-admin/media/files/1/a.txt`。不要将项目根目录或配置目录作为媒体目录公开。
+
+若选择 FastAPI 且由应用提供媒体文件，可将上述媒体 `location` 替换为：
+
+```nginx
+location /media/ {
+    proxy_pass http://backend:8769/media/;
+}
+```
+
+这里的 `backend:8769` 必须指向选中的 FastAPI 服务；若改用 `alias`，则共享该服务
+实际的 `UPLOAD_DIR`，不能直接套用 Django 的 `MEDIA_ROOT` 路径。以上示例沿用现有公开
+媒体 URL 行为，不提供私有文件下载鉴权。
+
+验证时使用生产设置（Django 为 `DEBUG=False`）：上传文件后从前端域名访问返回的媒体 URL，
+确认响应内容与上传内容一致、头像能够解码显示；通过 API 删除文件后，同一 URL 应返回 404。
 
 ---
 
