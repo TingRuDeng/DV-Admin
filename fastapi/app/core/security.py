@@ -71,7 +71,7 @@ def create_access_token(
         "exp": expire,
         "sub": str(subject),
         "type": "access",
-        "iat": datetime.now(timezone.utc),
+        "iat": datetime.now(timezone.utc).timestamp(),
     }
 
     if extra_claims:
@@ -110,7 +110,7 @@ def create_refresh_token(
         "exp": expire,
         "sub": str(subject),
         "type": "refresh",
-        "iat": datetime.now(timezone.utc),
+        "iat": datetime.now(timezone.utc).timestamp(),
         # 防止同一用户在同一秒内签发出完全相同的刷新令牌。
         "jti": uuid4().hex,
     }

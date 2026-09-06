@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { compile } from "sass";
+import { compile, compileString } from "sass";
+import { compileStyle, parse } from "vue/compiler-sfc";
 import { describe, expect, it } from "vitest";
 
 const readProjectFile = (relativePath: string) =>
@@ -94,8 +95,20 @@ describe("壳层审计回归约束", () => {
   });
 
   it("让 mix 移动端抽屉样式命中布局根节点", () => {
-    expect(MIX_LAYOUT_SOURCE).toContain(":global(.mobile)");
-    expect(MIX_LAYOUT_SOURCE).toContain("transform: translateX(-$sidebar-width)");
+    const { descriptor } = parse(MIX_LAYOUT_SOURCE);
+    const source = compileString(
+      `$navbar-height: 50px; $sidebar-width: 216px; $sidebar-width-collapsed: 64px; $tags-view-height: 40px; ${descriptor.styles[0].content}`
+    ).css;
+    const result = compileStyle({
+      source,
+      filename: "mix/index.vue",
+      id: "data-v-shell",
+      scoped: true,
+    });
+    expect(result.errors).toEqual([]);
+    expect(result.code).toMatch(
+      /\.mobile \.layout__container \.layout__sidebar--left\[data-v-shell\]\s*\{\s*position: fixed/
+    );
   });
 
   it("让测试与构建共用 Vite 8，并移除未启用的 MSW", () => {
