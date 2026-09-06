@@ -5,8 +5,35 @@ import uuid
 
 import pytest
 
+from app.core.cache import CacheKeys, cache_service
 from app.core.exceptions import NotFound, ValidationError
+from app.db.models.oauth import Users
+from app.db.models.system import Roles
 from app.services.system.role_service import role_service
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("delete_method", ["delete", "batch_delete", "retry_batch_delete"])
+async def test_role_deletion_clears_assigned_user_access_cache(db, delete_method):
+    role = await Roles.create(name=f"缓存角色_{uuid.uuid4().hex[:8]}", status=1, sort=1)
+    user = await Users.create(
+        username=f"cache_role_{uuid.uuid4().hex[:8]}",
+        password="not-used",
+        name="缓存用户",
+        is_active=1,
+    )
+    await user.roles.add(role)
+    permission_key = CacheKeys.format_key(CacheKeys.USER_PERMISSIONS, user_id=user.id)
+    menu_key = CacheKeys.format_key(CacheKeys.USER_MENUS, user_id=user.id)
+    await cache_service.set(permission_key, ["stale:permission"])
+    await cache_service.set(menu_key, [{"path": "/stale"}])
+
+    argument = role.id if delete_method == "delete" else [role.id]
+    await getattr(role_service, delete_method)(argument)
+
+    assert await Roles.get_or_none(id=role.id) is None
+    assert await cache_service.get(permission_key) is None
+    assert await cache_service.get(menu_key) is None
 
 
 class TestRoleServiceDelete:

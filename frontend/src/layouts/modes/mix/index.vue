@@ -231,7 +231,7 @@ const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
 }
 
 /* 移动端样式 */
-:global(.mobile) {
+.mobile {
   .layout__container {
     .layout__sidebar--left {
       position: fixed;
