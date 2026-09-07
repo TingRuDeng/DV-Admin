@@ -49,6 +49,8 @@ class RedisManager:
                 password=settings.redis_password,
                 decode_responses=True,
                 max_connections=10,
+                socket_connect_timeout=2,
+                socket_timeout=2,
             )
             self._client = Redis(connection_pool=self._pool)
             # 测试连接
@@ -56,8 +58,9 @@ class RedisManager:
             logger.info("Redis 连接池初始化成功")
         except RedisError as e:
             logger.error(f"Redis 连接池初始化失败: {e}")
-            self._pool = None
-            self._client = None
+            # 已创建的客户端能够在 Redis 恢复后重连；不能让探针恢复而认证永久 503。
+            if not settings.is_production:
+                await self.close()
             raise
 
     async def close(self) -> None:

@@ -14,7 +14,7 @@ from app.api.deps_tokens import (
     require_token_user_id,
 )
 from app.core.exceptions import AuthenticationError, PermissionDenied
-from app.core.security import get_token_issued_at
+from app.core.security import get_token_session_started_at
 from app.db.models.oauth import Users
 from app.services.token_blacklist import token_blacklist_service
 
@@ -56,7 +56,7 @@ async def get_current_user(
     user_id = require_token_user_id(payload)
 
     # 检查用户的 Token 是否已被批量撤销
-    token_issued_at = get_token_issued_at(payload)
+    token_issued_at = get_token_session_started_at(payload)
     if token_issued_at:
         is_revoked = await token_blacklist_service.is_user_tokens_revoked(
             int(user_id), token_issued_at
