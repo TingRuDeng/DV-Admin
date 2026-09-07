@@ -21,6 +21,29 @@ pytest_plugins = [
 ]
 
 
+@pytest.fixture(scope="session")
+def login_redis_server():
+    from scripts.redis_test_server import RedisTestServer
+
+    with RedisTestServer() as server:
+        yield server
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def isolated_login_counters(monkeypatch, login_redis_server):
+    from redis.asyncio import Redis
+
+    from app.services import login_throttle
+
+    client = Redis.from_url(login_redis_server.url, decode_responses=True)
+    await client.flushdb()
+    monkeypatch.setattr(login_throttle, "get_login_redis", lambda: client)
+    try:
+        yield client
+    finally:
+        await client.aclose()
+
+
 @pytest.fixture(scope="function")
 def anyio_backend():
     return "asyncio"

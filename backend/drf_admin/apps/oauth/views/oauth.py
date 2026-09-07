@@ -7,17 +7,18 @@ from django.conf import settings
 from django.core.cache import cache
 from django_redis import get_redis_connection
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import AuthenticationFailed, ValidationError
 from rest_framework.response import Response
-from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from drf_admin.apps.oauth.login_throttle import enforce_login_limit
 from drf_admin.apps.oauth.serializers.token_serializers import (
     CustomTokenObtainPairSerializer,
     SingleUseTokenRefreshSerializer,
 )
+from drf_admin.apps.oauth.utils import get_request_ip
 from drf_admin.apps.system.models import Users
 
 logger = logging.getLogger("info")
@@ -31,12 +32,20 @@ class UserLoginView(TokenObtainPairView):
     用户登录, status: 200(成功), return: Token信息
     """
 
-    throttle_classes = [AnonRateThrottle]
+    throttle_classes = []
     serializer_class = CustomTokenObtainPairSerializer
 
     def post(self, request, *args, **kwargs):
         # 重写父类方法, 定义响应字段内容
-        response = super().post(request, *args, **kwargs)
+        username = str(request.data.get("username", ""))
+        client_ip = get_request_ip(request)
+        enforce_login_limit("check", username, client_ip)
+        try:
+            response = super().post(request, *args, **kwargs)
+        except (ValidationError, AuthenticationFailed):
+            enforce_login_limit("failure", username, client_ip)
+            raise
+        enforce_login_limit("success", username, client_ip)
         if response.status_code == 200:
             data = {
                 "accessToken": response.data["access"],

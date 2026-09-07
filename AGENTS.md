@@ -330,7 +330,7 @@ uv run python manage.py migrate --env dev
 
 ### Redis 连接失败
 
-- Django/FastAPI 会自动降级到内存缓存
+- 非安全缓存可使用内存后备；登录限速必须使用 Redis，不可用返回 503。FastAPI 生产令牌撤销不允许内存后备。
 - 检查 Redis 服务状态：`redis-cli ping`
 
 **最后更新：** 2026-09-06

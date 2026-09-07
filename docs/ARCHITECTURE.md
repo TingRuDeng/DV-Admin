@@ -349,6 +349,13 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 - Django：Access Token 30 分钟、Refresh Token 1 天（均可配置）
 - 存储位置：前端 localStorage（支持"记住我"持久化）
 
+**登录防刷：**
+- Django 登录及 FastAPI JSON/OAuth2 表单登录共用规则：账号 5 分钟内失败 5 次，冷却 5 分钟；同一 IP 每分钟最多 60 次尝试。
+- Redis Lua 使用 Redis 服务端时间和滑动窗口原子计数，账号键经标准化及哈希后存储；被拒请求不延长冷却，成功只清空账号失败计数，不清空 IP 计数。第 5 次失败及冷却期间请求返回 HTTP 429，`Retry-After` 为向上取整的剩余秒数。窗口交界处的失败仍计入最近 5 分钟。
+- 登录保护在所有环境均要求 Redis，不可用返回 HTTP 503，不启用不受限登录。开发启动前也需要启动 Redis；单元/HTTP/浏览器测试使用临时独立 Redis，无关闭限速的运行时开关。
+- `TRUSTED_PROXY_IPS` 为逗号分隔的受信代理 IP/CIDR，默认空值忽略 `X-Forwarded-For`；从连接对端向左剥离受信代理。不要配置全网信任。Uvicorn 必须使用 `--no-proxy-headers`，避免框架预先覆盖连接对端；项目 Docker、开发脚本和 Python 入口已对齐。
+- 两端分别打包同一份 `login_throttle_policy.py`，字节一致性测试防止部署独立性导致规则漂移；Redis 不可达时不返回认证成功。验证码既有交互保持不变，账号不会永久锁定。
+
 **Token 刷新策略：**
 - 前端自动检测 401 错误
 - 使用 Refresh Token 无感刷新，每次成功刷新都轮换令牌并立即撤销旧令牌
@@ -546,6 +553,7 @@ CHANNEL_LAYERS = {
 
 当 Redis 不可用时：
 - 非安全缓存可以使用进程内存后备；Django 未配置 Redis 时使用 `LocMemCache` 和 `InMemoryChannelLayer`
+- 登录限速没有内存后备；必须恢复 Redis 后再登录
 - FastAPI 生产认证撤销状态不允许降级；不能把通用缓存的可用性策略用于安全状态
 - 两端生产 `/health/ready` 要求数据库和 Redis 正常，缺失或故障返回 HTTP 503；`/health/live` 不访问这些依赖
 - Nginx 原样转发后端探针状态，独立 `/nginx-health` 只代表代理本身存活；不得用其替代应用就绪检查
