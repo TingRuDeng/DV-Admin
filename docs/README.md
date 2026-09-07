@@ -94,6 +94,7 @@ DV-Admin/
 ├── scripts/
 │   ├── validate_docs.py        # [校验] 文档结构与链接校验
 │   ├── validate_api_contracts.py # [校验] API 契约入口
+│   ├── api_runtime_route_contracts.py # [契约] 实际业务路由全量登记及比较
 │   ├── api_route_coverage_validation.py # [校验] 关键端点 method/path 路由覆盖
 │   ├── validate_dependency_audit.py # [校验] 前端生产依赖公告与临时豁免到期
 │   ├── validate_model_contracts.py # [校验] 共享模型契约
