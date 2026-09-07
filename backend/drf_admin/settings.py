@@ -203,7 +203,7 @@ USE_TZ = True
 STATIC_URL = "/static/"
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = Path(env.str("MEDIA_ROOT", default=str(BASE_DIR / "media")))
 
 # 指定自定义的用户模型
 AUTH_USER_MODEL = "system.Users"

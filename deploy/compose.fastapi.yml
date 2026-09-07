@@ -1,0 +1,22 @@
+x-build: &build
+  context: ../fastapi
+  dockerfile: docker/Dockerfile
+x-environment: &environment
+  APP_ENV: production
+  DEBUG: "false"
+  UPLOAD_DIR: /data/media
+  SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY}
+  DEFAULT_PASSWORD: ${DEFAULT_PASSWORD:?set a compliant DEFAULT_PASSWORD}
+  DATABASE_URL: ${DATABASE_URL:?set the FastAPI database URL}
+  ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:9527}
+  REDIS_URL: redis://redis:6379/0
+  TRUSTED_PROXY_IPS: ${TRUSTED_PROXY_IPS:-}
+services:
+  api:
+    build: *build
+    environment: *environment
+  migrate:
+    build: *build
+    restart: "no"
+    environment: *environment
+    command: python -m tortoise -c app.db.migration_config.TORTOISE_ORM migrate
