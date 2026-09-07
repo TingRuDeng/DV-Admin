@@ -64,11 +64,14 @@ function retryPendingRequests(requests: PendingRequest[]) {
   });
 }
 
-function rejectPendingRequests(requests: PendingRequest[]) {
+function rejectPendingRequests(requests: PendingRequest[], cause: unknown) {
+  const temporarilyUnavailable =
+    cause instanceof Error && "status" in cause && cause.status === 503;
   // 先结束所有等待请求；导航失败或挂起不能阻塞调用方 Promise。
   requests.forEach(({ reject }) => {
-    reject(new Error("Token refresh failed"));
+    reject(temporarilyUnavailable ? cause : new Error("Token refresh failed"));
   });
+  if (temporarilyUnavailable) return;
   void redirectToLogin("登录状态已失效，请重新登录").catch((error) => {
     tokenRefreshLogger.error("跳转登录页失败:", error);
   });
@@ -87,7 +90,7 @@ function startTokenRefresh(state: TokenRefreshState) {
       tokenRefreshLogger.error("刷新 Token 失败:", error);
       const requests = drainPendingRequests(state);
       state.isRefreshingToken = false;
-      rejectPendingRequests(requests);
+      rejectPendingRequests(requests, error);
     });
 }
 

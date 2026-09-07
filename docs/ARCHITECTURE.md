@@ -352,9 +352,10 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 **Token 刷新策略：**
 - 前端自动检测 401 错误
 - 使用 Refresh Token 无感刷新，每次成功刷新都轮换令牌并立即撤销旧令牌
-- FastAPI 通过 Redis 原子 `SET NX` 保证多实例部署下的单次消费；内存降级仅用于非生产单进程，生产环境 Redis 不可用时刷新失败关闭
+- FastAPI 通过 Redis 原子 `SET NX` 保证多实例部署下的单次消费；生产环境撤销状态的读写和刷新消费依赖 Redis，存储不可用时返回 HTTP 503，内存模式仅用于非生产单进程
+- FastAPI 刷新时校验用户级撤销标记，并把原会话时间 `session_iat` 传递到新令牌，避免旧会话通过轮换绕过改密撤销；旧令牌兼容使用 `iat`
 - 原请求最多自动重试一次，重试后仍为 `40001` 时终止刷新链并跳转登录页
-- 刷新失败则跳转登录页
+- 令牌失效时跳转登录页；刷新遇到 HTTP 503 时结束等待请求但保留本地登录信息，恢复后可重试。用户主动退出无论服务端成功与否都会清理本地状态，并在撤销未确认时提示
 
 ---
 
@@ -544,9 +545,10 @@ CHANNEL_LAYERS = {
 ### 降级策略
 
 当 Redis 不可用时：
-- Django：自动降级到 `LocMemCache`
-- FastAPI：自动降级到内存缓存
-- WebSocket：降级到 `InMemoryChannelLayer`
+- 非安全缓存可以使用进程内存后备；Django 未配置 Redis 时使用 `LocMemCache` 和 `InMemoryChannelLayer`
+- FastAPI 生产认证撤销状态不允许降级；不能把通用缓存的可用性策略用于安全状态
+- 两端生产 `/health/ready` 要求数据库和 Redis 正常，缺失或故障返回 HTTP 503；`/health/live` 不访问这些依赖
+- Nginx 原样转发后端探针状态，独立 `/nginx-health` 只代表代理本身存活；不得用其替代应用就绪检查
 
 ---
 

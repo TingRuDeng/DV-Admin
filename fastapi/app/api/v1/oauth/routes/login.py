@@ -1,6 +1,6 @@
 """OAuth 登录相关 API 路由。"""
 
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
@@ -80,6 +80,7 @@ async def login_access_token(
     request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> ResponseModel[Token]:
+    session_started_at = datetime.now(timezone.utc)
     # 查询用户
     user = await Users.get_or_none(username=form_data.username)
     if not user:
@@ -94,8 +95,6 @@ async def login_access_token(
         raise AuthenticationError("用户已被禁用", code=ERROR_CODE)
 
     # 更新最后登录时间
-    from datetime import datetime, timezone
-
     user.last_login = datetime.now(timezone.utc)
     await user.save()
 
@@ -106,11 +105,13 @@ async def login_access_token(
     access_token = create_access_token(
         subject=str(user.id),
         expires_delta=access_token_expires,
-        extra_claims={"username": user.username, "name": user.name},
+        extra_claims={"username": user.username, "name": user.name,
+                      "session_iat": session_started_at.timestamp()},
     )
     refresh_token = create_refresh_token(
         subject=str(user.id),
         expires_delta=refresh_token_expires,
+        session_started_at=session_started_at,
     )
 
     return ResponseModel.success(
@@ -194,6 +195,7 @@ async def login(
 ) -> ResponseModel[Token]:
     from app.services.captcha_service import verify_captcha
 
+    session_started_at = datetime.now(timezone.utc)
     # 验证码验证（如果提供了验证码）
     if login_data.captcha_key and login_data.captcha_code:
         is_valid = await verify_captcha(
@@ -218,8 +220,6 @@ async def login(
         raise AuthenticationError("用户已被禁用", code=ERROR_CODE)
 
     # 更新最后登录时间
-    from datetime import datetime, timezone
-
     user.last_login = datetime.now(timezone.utc)
     await user.save()
 
@@ -230,11 +230,13 @@ async def login(
     access_token = create_access_token(
         subject=str(user.id),
         expires_delta=access_token_expires,
-        extra_claims={"username": user.username, "name": user.name},
+        extra_claims={"username": user.username, "name": user.name,
+                      "session_iat": session_started_at.timestamp()},
     )
     refresh_token = create_refresh_token(
         subject=str(user.id),
         expires_delta=refresh_token_expires,
+        session_started_at=session_started_at,
     )
 
     return ResponseModel.success(
@@ -246,4 +248,3 @@ async def login(
             refresh_expires_in=settings.refresh_token_expire_days * 24 * 60 * 60,
         )
     )
-

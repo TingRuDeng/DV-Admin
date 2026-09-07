@@ -11,8 +11,9 @@ from redis.asyncio import Redis
 from redis.exceptions import RedisError
 
 from app.core.config import settings
+from app.core.exceptions import ServiceUnavailable
 from app.core.redis import redis_manager
-from app.core.security import decode_token, get_token_expiration
+from app.core.security import decode_token, get_token_expiration, get_token_session_started_at
 from app.services.token_blacklist_compat import TokenBlacklistCompatibilityMixin
 from app.services.token_blacklist_keys import (
     BLACKLIST_PREFIX,
@@ -30,7 +31,7 @@ from app.services.token_blacklist_records import (
 
 
 class TokenBlacklistService(TokenBlacklistCompatibilityMixin):
-    """Token 黑名单服务，优先使用 Redis，Redis 不可用时降级到内存。"""
+    """生产依赖 Redis 的撤销状态；仅非生产允许进程内存模式。"""
 
     BLACKLIST_PREFIX = BLACKLIST_PREFIX
     USER_TOKENS_PREFIX = USER_TOKENS_PREFIX
@@ -50,8 +51,14 @@ class TokenBlacklistService(TokenBlacklistCompatibilityMixin):
         try:
             return self.redis
         except RuntimeError as exc:
-            logger.warning(f"Redis 不可用，Token 黑名单降级到内存模式: {exc}")
+            self._require_storage_available(exc)
+            logger.warning("Redis 未初始化，非生产 Token 黑名单使用进程内存")
             return None
+
+    @staticmethod
+    def _require_storage_available(error: Exception) -> None:
+        if settings.is_production:
+            raise ServiceUnavailable("认证状态存储暂不可用，请稍后重试") from error
 
     def _get_blacklist_key(self, token: str) -> str:
         """生成黑名单 Key。"""
@@ -117,9 +124,11 @@ class TokenBlacklistService(TokenBlacklistCompatibilityMixin):
             return True
 
         except RedisError as e:
+            self._require_storage_available(e)
             logger.error(f"添加 Token 到黑名单失败: {e}")
             return False
         except Exception as e:
+            self._require_storage_available(e)
             logger.error(f"添加 Token 到黑名单时发生错误: {e}")
             return False
 
@@ -153,13 +162,14 @@ class TokenBlacklistService(TokenBlacklistCompatibilityMixin):
             if record is None:
                 return False
 
+            issued_at = get_token_session_started_at(payload)
+            if issued_at and await self.is_user_tokens_revoked(user_id, issued_at):
+                return False
+
             redis = self._get_redis_or_none()
             if redis is None:
                 if settings.is_production:
-                    logger.error(
-                        "生产环境 Redis 不可用，拒绝刷新令牌以避免跨进程重放"
-                    )
-                    return False
+                    raise ServiceUnavailable("认证状态存储暂不可用，请稍后重试")
                 return self._memory_store.consume_token_once(record.key, record.expires_at)
 
             consumed = await redis.set(
@@ -173,9 +183,11 @@ class TokenBlacklistService(TokenBlacklistCompatibilityMixin):
             return bool(consumed)
         except RedisError as e:
             # 轮换是认证边界，存储异常时必须失败关闭，不能继续签发新令牌。
+            self._require_storage_available(e)
             logger.error(f"原子消费 Refresh Token 失败: {e}")
             return False
         except Exception as e:
+            self._require_storage_available(e)
             logger.error(f"消费 Refresh Token 时发生错误: {e}")
             return False
 
@@ -198,10 +210,11 @@ class TokenBlacklistService(TokenBlacklistCompatibilityMixin):
             exists = await redis.exists(key)
             return exists > 0
         except RedisError as e:
+            self._require_storage_available(e)
             logger.error(f"检查 Token 黑名单失败: {e}")
-            # Redis 出错时，为了安全起见，不阻止访问
             return False
         except Exception as e:
+            self._require_storage_available(e)
             logger.error(f"检查 Token 黑名单时发生错误: {e}")
             return False
 
@@ -241,8 +254,12 @@ class TokenBlacklistService(TokenBlacklistCompatibilityMixin):
             return True
 
         except RedisError as e:
+            self._require_storage_available(e)
             logger.error(f"撤销用户所有 Token 失败: {e}")
             return False
+        except Exception as e:
+            self._require_storage_available(e)
+            raise
 
     async def is_user_tokens_revoked(self, user_id: int, token_issued_at: datetime) -> bool:
         """
@@ -269,9 +286,11 @@ class TokenBlacklistService(TokenBlacklistCompatibilityMixin):
             return is_token_revoked_by_time(token_issued_at, revoked_at_str)
 
         except RedisError as e:
+            self._require_storage_available(e)
             logger.error(f"检查用户 Token 撤销状态失败: {e}")
             return False
         except Exception as e:
+            self._require_storage_available(e)
             logger.error(f"检查用户 Token 撤销状态时发生错误: {e}")
             return False
 

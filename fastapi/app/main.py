@@ -80,7 +80,7 @@ async def lifespan(app: FastAPI):
         logger.info("Redis 连接初始化成功")
     except Exception as e:
         fallback = (
-            "Refresh Token 轮换将失败关闭"
+            "认证撤销状态与刷新轮换将返回 503，就绪探针拒绝接流量"
             if settings.is_production
             else "Token 撤销降级为当前进程内存存储"
         )
