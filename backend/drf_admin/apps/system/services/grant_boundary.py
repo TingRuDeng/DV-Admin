@@ -10,16 +10,16 @@ _UNSET = object()
 
 
 def role_fact(role):
+    # Relation reads must also be current reads after waiting on the actor lock.
     return Role(
-        role.id, frozenset(role.permissions.values_list("id", flat=True)), role.data_scope,
-        frozenset(role.data_depts.values_list("id", flat=True)), role.name or "", role.code or "",
+        role.id, frozenset(role.permissions.order_by("id").select_for_update().values_list("id", flat=True)), role.data_scope,
+        frozenset(role.data_depts.order_by("id").select_for_update().values_list("id", flat=True)), role.name or "", role.code or "",
         bool(role.is_default), role.status == 1,
     )
 
 
 def subject_fact(user):
-    role_ids = list(user.roles.values_list("id", flat=True))
-    roles = Roles.objects.filter(id__in=role_ids).order_by("id").select_for_update()
+    roles = user.roles.order_by("id").select_for_update()
     return Subject(user.id, user.dept_id, tuple(role_fact(r) for r in roles), user.is_superuser)
 
 
