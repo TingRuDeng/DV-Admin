@@ -28,11 +28,13 @@ class RBACPermission(BasePermission):
         return request.method.lower()  # APIView 使用 HTTP 方法
 
     @staticmethod
-    def get_user_permissions(user):
+    def get_user_permissions(user, *, fresh=False):
         """获取用户拥有的所有权限（带缓存）"""
         # 匿名用户没有权限
         if not user.is_authenticated:
             return []
+        if fresh:
+            return list(user.roles.filter(status=1).values_list("permissions__perm", flat=True).distinct())
         
         conn = None
         user_perms = set()
@@ -50,7 +52,7 @@ class RBACPermission(BasePermission):
             if cached_perms:
                 return cached_perms
 
-        for role in user.roles.all():
+        for role in user.roles.filter(status=1):
             user_perms.update(role.permissions.values_list("perm", flat=True))
 
         user_perms_list = list(user_perms)
@@ -85,5 +87,7 @@ class RBACPermission(BasePermission):
             return False
 
         # 检查用户是否拥有所有必需权限
-        user_perms = self.get_user_permissions(request.user)
+        if request.user.is_superuser and request.user.is_active == 1:
+            return True
+        user_perms = self.get_user_permissions(request.user, fresh=True)
         return all(perm in user_perms for perm in required_perms)

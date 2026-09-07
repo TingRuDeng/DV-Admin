@@ -2,6 +2,9 @@
 
 from typing import Any, BinaryIO
 
+from tortoise.transactions import atomic
+
+from app.core.exceptions import PermissionDenied
 from app.db.models.oauth import Users
 from app.schemas.system import UserImportResult
 from app.services.system.data_scope import (
@@ -15,12 +18,14 @@ from app.services.system.field_permission import (
     mask_email,
     mask_mobile,
 )
+from app.services.system.grant_boundary import GrantBoundary
 from app.services.system.user_services.import_parser import ImportRowResult, UserImportParserMixin
 
 
 class UserImportExportMixin(UserImportParserMixin):
     """承载用户 Excel 导入、模板下载和 CSV 导出。"""
 
+    @atomic()
     async def import_users(
         self,
         file: BinaryIO,
@@ -28,6 +33,9 @@ class UserImportExportMixin(UserImportParserMixin):
         current_user: Users | None = None,
     ) -> UserImportResult:
         """导入 Excel 用户数据，并返回成功和失败明细。"""
+        boundary = await GrantBoundary.load(current_user, "system:users:import")
+        if boundary:
+            current_user = boundary.actor
         worksheet = self._load_import_worksheet(file)
         try:
             columns = self._parse_import_columns(worksheet)
@@ -52,6 +60,15 @@ class UserImportExportMixin(UserImportParserMixin):
                     visible_dept_ids=visible_dept_ids,
                     can_write_sensitive=can_write_sensitive,
                 )
+                if row_result and boundary:
+                    roles = [context.all_roles[rid] for rid in row_result.role_ids]
+                    if not roles and context.default_role:
+                        roles = [context.default_role]
+                    try:
+                        await boundary.user(row_result.user, roles, creating=True)
+                    except PermissionDenied as exc:
+                        messages.append(f"第{row_idx}行: {exc.message}")
+                        row_result = None
                 if row_result:
                     users_to_create.append(row_result)
                 else:

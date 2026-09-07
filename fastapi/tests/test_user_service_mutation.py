@@ -22,7 +22,7 @@ class TestUserServiceCreate:
             code=f"field_write_{uuid.uuid4().hex[:8]}",
             status=1,
         )
-        for code in permission_codes:
+        for code in (*permission_codes, "system:users:add", "system:users:edit"):
             permission = await Permissions.create(name=code, type="BUTTON", perm=code)
             await role.permissions.add(permission)
         operator = await Users.create(
@@ -229,7 +229,7 @@ class TestUserServiceUpdate:
             code=f"field_write_{uuid.uuid4().hex[:8]}",
             status=1,
         )
-        for code in permission_codes:
+        for code in (*permission_codes, "system:users:edit"):
             permission = await Permissions.create(name=code, type="BUTTON", perm=code)
             await role.permissions.add(permission)
         operator = await Users.create(

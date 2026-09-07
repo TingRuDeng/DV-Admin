@@ -41,6 +41,11 @@ class DjangoLiveHttpContractTestCase(LiveServerTestCase):
         self.lifecycle_dept = create_runtime_contract_departments()
         create_runtime_contract_logs(self.user.id, self.user.username, self.user.name)
         self.lifecycle_role = self.user.roles.get()
+        bootstrap = Users.objects.create_user(
+            username="rbac-bootstrap", password="Bootstrap test passphrase",
+            name="权限初始化超管", is_superuser=True, is_active=1,
+        )
+        bootstrap.roles.add(self.lifecycle_role)
         self.rbac_role = Roles.objects.create(
             name="运行时 RBAC 角色",
             code="runtime-rbac",

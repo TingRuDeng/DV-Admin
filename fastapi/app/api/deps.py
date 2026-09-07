@@ -132,7 +132,7 @@ class PermissionChecker:
             return user
 
         # 获取用户权限
-        user_perms = await user.get_permissions()
+        user_perms = await user.get_permissions(fresh=True)
         user_perms_set = set(user_perms)
 
         # 检查是否有所需权限
@@ -178,7 +178,7 @@ class RoleChecker:
 
         # 获取用户角色
         await user.fetch_related("roles")
-        user_roles = {role.code for role in user.roles if role.code}
+        user_roles = {role.code for role in user.roles if role.code and role.status == 1}
 
         # 检查是否有所需角色
         if not self.required_roles.issubset(user_roles):
