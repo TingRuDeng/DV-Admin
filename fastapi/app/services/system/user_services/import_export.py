@@ -39,7 +39,7 @@ class UserImportExportMixin(UserImportParserMixin):
         worksheet = self._load_import_worksheet(file)
         try:
             columns = self._parse_import_columns(worksheet)
-            context = await self._build_import_context()
+            context = await self._build_import_context(worksheet, columns, dept_id)
             visible_dept_ids = await get_visible_department_ids(current_user)
             can_write_sensitive = await can_write_sensitive_user_fields(current_user)
             users_to_create: list[ImportRowResult] = []

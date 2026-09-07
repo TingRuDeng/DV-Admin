@@ -1,12 +1,13 @@
 """用户导入 Excel 解析 helper。"""
 
 from dataclasses import dataclass
-from typing import Any, BinaryIO
+from typing import Any, BinaryIO, cast
 
 from tortoise.transactions import in_transaction
 
 from app.core.config import settings
 from app.core.exceptions import ValidationError
+from app.core.import_lookup import collect_import_keys, query_batches
 from app.core.security import hash_new_password
 from app.db.models.oauth import Users
 from app.db.models.system import Departments, Roles
@@ -76,17 +77,29 @@ class UserImportParserMixin:
             role=headers.index("角色ID(多个用逗号分隔)") if "角色ID(多个用逗号分隔)" in headers else None,
         )
 
-    async def _build_import_context(self) -> ImportContext:
-        """预加载导入校验需要的部门、角色和唯一字段集合。"""
-        username_values = await Users.all().values_list("username", flat=True)
-        mobile_values = await Users.filter(mobile__isnull=False).values_list("mobile", flat=True)
-        return ImportContext(
-            all_depts={dept.id: dept for dept in await Departments.all()},
-            all_roles={role.id: role for role in await Roles.filter(status=1).order_by("id").select_for_update()},
-            existing_usernames={str(username) for username in username_values},
-            existing_mobiles={str(mobile) for mobile in mobile_values if mobile},
+    async def _build_import_context(
+        self, worksheet: Any, columns: ImportColumns, dept_id: int | None,
+    ) -> ImportContext:
+        """两遍流式读取：先提取本文件引用，再分块查询，不扫描全库用户。"""
+        keys = collect_import_keys(
+            worksheet.iter_rows(min_row=2, values_only=True),
+            username=columns.username, mobile=columns.mobile, dept=columns.dept,
+            role=columns.role, default_dept=dept_id,
+        )
+        context = ImportContext(
+            all_depts={}, all_roles={}, existing_usernames=set(), existing_mobiles=set(),
             default_role=await Roles.filter(is_default=1, status=1).select_for_update().first(),
         )
+        for batch in query_batches(keys.usernames):
+            context.existing_usernames.update(cast(list[str], await Users.filter(username__in=batch).values_list("username", flat=True)))
+        for batch in query_batches(keys.mobiles):
+            context.existing_mobiles.update(cast(list[str], await Users.filter(mobile__in=batch).values_list("mobile", flat=True)))
+        for dept_batch in query_batches(keys.departments):
+            context.all_depts.update({dept.id: dept for dept in await Departments.filter(id__in=dept_batch)})
+        for role_batch in query_batches(keys.roles):
+            roles = await Roles.filter(id__in=role_batch, status=1).order_by("id").select_for_update()
+            context.all_roles.update({role.id: role for role in roles})
+        return context
 
     def _parse_import_row(
         self,

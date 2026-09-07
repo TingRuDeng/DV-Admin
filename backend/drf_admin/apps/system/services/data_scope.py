@@ -3,39 +3,39 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
-
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet, Subquery
 
 from drf_admin.apps.system.models import Departments, Roles, Users
 
 
 def apply_user_data_scope(queryset: QuerySet, user: Users) -> QuerySet:
     """按当前用户角色数据范围过滤用户查询集。"""
-    visible_user_ids = get_visible_user_ids(user)
-    if visible_user_ids is None:
+    scope = _get_user_scope(user)
+    if scope is None:
         return queryset
-    return queryset.filter(id__in=visible_user_ids)
+    return queryset.filter(scope)
 
 
 def apply_log_data_scope(queryset: QuerySet, user: Users) -> QuerySet:
     """按当前用户角色数据范围过滤操作日志查询集。"""
-    visible_user_ids = get_visible_user_ids(user)
-    if visible_user_ids is None:
+    scope = _get_user_scope(user)
+    if scope is None:
         return queryset
-    return queryset.filter(user_id__in=visible_user_ids)
+    users = Users.objects.filter(scope).order_by().values("id")
+    return queryset.filter(user_id__in=Subquery(users))
 
 
 def apply_notice_admin_data_scope(queryset: QuerySet, user: Users) -> QuerySet:
     """按发布人数据范围过滤后台通知管理查询集。"""
-    visible_user_ids = get_visible_user_ids(user)
-    if visible_user_ids is None:
+    scope = _get_user_scope(user)
+    if scope is None:
         return queryset
-    return queryset.filter(publisher_id__in=visible_user_ids)
+    users = Users.objects.filter(scope).order_by().values("id")
+    return queryset.filter(publisher_id__in=Subquery(users))
 
 
-def get_visible_user_ids(user: Users) -> set[int] | None:
-    """计算当前用户可见的用户 ID；返回 None 表示无需过滤。"""
+def _get_user_scope(user: Users) -> Q | None:
+    """构造角色范围并集，用户集合留在数据库；None 表示不受限制。"""
     if user.is_superuser:
         return None
 
@@ -49,10 +49,10 @@ def get_visible_user_ids(user: Users) -> set[int] | None:
         if role.data_scope == Roles.DATA_SCOPE_SELF:
             include_self = True
 
-    visible_user_ids = set(_user_ids_in_depts(dept_ids))
+    scope = Q(dept_id__in=dept_ids) if dept_ids else Q(id__in=[])
     if include_self and user.id:
-        visible_user_ids.add(user.id)
-    return visible_user_ids
+        scope |= Q(id=user.id)
+    return scope
 
 
 def get_visible_department_ids(user: Users) -> set[int] | None:
@@ -82,7 +82,7 @@ def _visible_department_ids(user: Users, roles: list[Roles]) -> set[int]:
         elif role.data_scope == Roles.DATA_SCOPE_DEPT_AND_CHILDREN:
             _add_current_dept_with_children(dept_ids, user.dept_id)
         elif role.data_scope == Roles.DATA_SCOPE_CUSTOM:
-            dept_ids.update(role.data_depts.values_list("id", flat=True))
+            dept_ids.update(dept.id for dept in role.data_depts.all())
     return dept_ids
 
 
@@ -108,11 +108,3 @@ def _dept_with_descendant_ids(root_id: int) -> set[int]:
         frontier = child_ids - collected
         collected.update(child_ids)
     return collected
-
-
-def _user_ids_in_depts(dept_ids: Iterable[int]) -> set[int]:
-    """查询指定部门内的用户 ID。"""
-    dept_id_set = set(dept_ids)
-    if not dept_id_set:
-        return set()
-    return set(Users.objects.filter(dept_id__in=dept_id_set).values_list("id", flat=True))
