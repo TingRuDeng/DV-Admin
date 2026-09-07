@@ -139,6 +139,25 @@
 - 浏览器观察：FastAPI 六流程虽通过，但字典标签存在 `dictItems.find is not a function` 未处理异常。已核实 API 类型/筛选参数与分页对象冲突的相关文件相对本轮基线无变更，登记 TECH_DEBT；不把流程通过视为前端无错误，不在本性能 PR 改字典契约。
 - Review：无索引、队列或数据库迁移，没有优化掉事务内权限重读。授权图所需组织元数据仍会读取；MySQL 真实执行计划/并发锁、逐行哈希/授权/写入和完整列表序列化成本不由本基线覆盖。
 
+## 交付索引
+
+下列 PR 逐项叠加，只有第一项以 `master` 为基线，其余以前一项分支为基线；本轮不自动合并或部署。
+
+| 项目 | PR |
+| --- | --- |
+| 令牌撤销与就绪 | [#365](https://github.com/TingRuDeng/DV-Admin/pull/365) |
+| 登录防刷 | [#366](https://github.com/TingRuDeng/DV-Admin/pull/366) |
+| 密码策略 | [#367](https://github.com/TingRuDeng/DV-Admin/pull/367) |
+| 角色边界 | [#368](https://github.com/TingRuDeng/DV-Admin/pull/368) |
+| 生产镜像 | [#369](https://github.com/TingRuDeng/DV-Admin/pull/369) |
+| 媒体持久化 | [#370](https://github.com/TingRuDeng/DV-Admin/pull/370) |
+| 头像校验 | [#371](https://github.com/TingRuDeng/DV-Admin/pull/371) |
+| 路由完整性 | [#372](https://github.com/TingRuDeng/DV-Admin/pull/372) |
+| 认证示例 | [#373](https://github.com/TingRuDeng/DV-Admin/pull/373) |
+| 数据范围与导入 | [#374](https://github.com/TingRuDeng/DV-Admin/pull/374) |
+
+最后一项主体提交 `6e7b047`。前端生产依赖审计 high/critical 为 0、moderate 为 3，未使用豁免。最终复核整个提交范围发现第七项两份新增头像校验器末尾空行，追加纯格式清理；此前工作区 `git diff --check` 不包含已提交的新文件，交付补充检查 `git diff master --check`，不改头像逻辑或降低校验。
+
 ## 剩余风险
 
 旧弱密码不追溯修改；共享初始密码仍需受控分发；媒体 URL 保持公开；普通附件深度检查和 iframe 隔离未纳入本轮。
