@@ -40,8 +40,8 @@ router = APIRouter()
 - `accessToken`: 新的访问令牌
 - `refreshToken`: 新的刷新令牌
 - `tokenType`: 令牌类型，固定为 `bearer`
-- `expiresIn`: 访问令牌过期时间（秒）
-- `refreshExpiresIn`: 刷新令牌过期时间（秒）
+- `expiresIn`: 访问令牌有效期，默认 1800 秒（30 分钟），可由 ACCESS_TOKEN_EXPIRE_MINUTES 覆盖
+- `refreshExpiresIn`: 刷新令牌有效期，默认 604800 秒（7 天），可由 REFRESH_TOKEN_EXPIRE_DAYS 覆盖
 
 ### 使用说明
 1. 当 `accessToken` 过期时，使用此接口获取新令牌
@@ -66,7 +66,7 @@ router = APIRouter()
                             "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                             "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                             "tokenType": "bearer",
-                            "expiresIn": 7200,
+                            "expiresIn": 1800,
                             "refreshExpiresIn": 604800
                         }
                     }
