@@ -245,6 +245,64 @@ jobs:
           --database-url
           mysql://root:migration-test-password@127.0.0.1:3306/dv_admin_migration_incremental
 
+  mysql-grant-concurrency:
+    name: MySQL Grant Concurrency (${{ matrix.backend }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - backend: django
+            project_dir: backend
+            python_pattern: 3.11.*
+          - backend: fastapi
+            project_dir: fastapi
+            python_pattern: 3.10.*
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: mysql-grant-ci-only-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pmysql-grant-ci-only-password"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init .
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          git fetch --no-tags --depth=1 origin "${{ github.sha }}"
+          git checkout --detach FETCH_HEAD
+      - name: Use backend Python from runner toolcache
+        run: |
+          PY_DIR=$(find /opt/hostedtoolcache/Python -maxdepth 1 -type d -name '${{ matrix.python_pattern }}' | sort -V | tail -n 1)
+          test -n "$PY_DIR"
+          echo "$PY_DIR/x64/bin" >> "$GITHUB_PATH"
+          "$PY_DIR/x64/bin/python" --version
+      - name: Install uv
+        run: python -m pip install "uv==${UV_VERSION}"
+      - name: Install frozen dependencies
+        working-directory: ${{ matrix.project_dir }}
+        run: uv sync --frozen --group dev
+      - name: Create Django test configuration
+        if: matrix.backend == 'django'
+        working-directory: backend
+        run: |
+          echo 'SECRET_KEY=mysql-grant-ci-only-key-not-for-production' > .env.test
+          echo 'EXTRA_INSTALLED_APPS=' >> .env.test
+      - name: Verify grant races and rollback in both isolation levels
+        env:
+          GRANT_MYSQL_PASSWORD: mysql-grant-ci-only-password
+        run: ${{ matrix.project_dir }}/.venv/bin/python scripts/verify_mysql_grants.py --backend ${{ matrix.backend }}
+
   real-backend-browser:
     name: Real Backend Browser Smoke (${{ matrix.backend }})
     runs-on: ubuntu-latest

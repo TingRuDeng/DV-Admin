@@ -9,17 +9,19 @@ from app.db.models.system import Departments, Permissions, Roles
 
 
 async def role_fact(role: Roles) -> Role:
-    await role.fetch_related("permissions", "data_depts")
+    # Locking reads must include relations: RR snapshots can predate the actor lock.
+    # Keep model queries here; Tortoise values_list() drops SELECT FOR UPDATE.
+    permissions = await role.permissions.all().order_by("id").select_for_update().only("id")
+    departments = await role.data_depts.all().order_by("id").select_for_update().only("id")
     return Role(
-        role.id, frozenset(p.id for p in role.permissions), role.data_scope,
-        frozenset(d.id for d in role.data_depts), role.name or "", role.code or "",
+        role.id, frozenset(p.id for p in permissions), role.data_scope,
+        frozenset(d.id for d in departments), role.name or "", role.code or "",
         bool(role.is_default), role.status == 1,
     )
 
 
 async def subject_fact(user: Users) -> Subject:
-    role_ids = await user.roles.all().values_list("id", flat=True)
-    roles = await Roles.filter(id__in=role_ids).order_by("id").select_for_update()
+    roles = await user.roles.all().order_by("id").select_for_update()
     return Subject(user.id, user.dept_id, tuple([await role_fact(r) for r in roles]), user.is_superuser)
 
 
