@@ -218,11 +218,11 @@ async def test_notice_scope_resolution_uses_transaction_connection(db, monkeypat
     """通知删除事务内计算数据范围时必须使用同一数据库连接。"""
     seen_connections = []
 
-    async def capture_visible_user_ids(_current_user, *, using_db=None):
+    async def capture_user_scope(_current_user, *, using_db=None):
         seen_connections.append(using_db)
         return None
 
-    monkeypatch.setattr(data_scope_module, "get_visible_user_ids", capture_visible_user_ids)
+    monkeypatch.setattr(data_scope_module, "_get_user_scope", capture_user_scope)
 
     async with in_transaction() as connection:
         query = Notices.all().using_db(connection)
