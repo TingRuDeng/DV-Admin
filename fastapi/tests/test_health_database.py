@@ -67,4 +67,4 @@ async def test_check_database_error():
         result = await check_database()
 
         assert result["status"] == "unhealthy"
-        assert "Connection failed" in result["message"]
+        assert result["message"] == "数据库连接不可用"
