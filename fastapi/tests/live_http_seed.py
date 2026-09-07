@@ -136,6 +136,11 @@ async def seed() -> dict[str, int | str | list[int]]:
         is_active=1,
     )
     await user.roles.add(role)
+    bootstrap = await Users.create(
+        username="rbac-bootstrap", password=get_password_hash("Bootstrap test passphrase"),
+        name="权限初始化超管", is_superuser=True, is_active=1,
+    )
+    await bootstrap.roles.add(role)
     await OperationLog.create(
         user_id=user.id,
         username=user.username,

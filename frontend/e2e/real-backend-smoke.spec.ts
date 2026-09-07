@@ -14,6 +14,8 @@ const noticeTitle = requireEnv("REAL_BACKEND_NOTICE_TITLE");
 const noticeContent = requireEnv("REAL_BACKEND_NOTICE_CONTENT");
 const rbacUsername = requireEnv("REAL_BACKEND_RBAC_USERNAME");
 const rbacPassword = requireEnv("REAL_BACKEND_RBAC_PASSWORD");
+const bootstrapUsername = requireEnv("REAL_BACKEND_BOOTSTRAP_USERNAME");
+const bootstrapPassword = requireEnv("REAL_BACKEND_BOOTSTRAP_PASSWORD");
 const rbacRoleId = requireIntegerEnv("REAL_BACKEND_RBAC_ROLE_ID");
 const rbacBasePermissionIds = requireIntegerListEnv("REAL_BACKEND_RBAC_BASE_PERMISSION_IDS");
 const rbacGrantedPermissionIds = requireIntegerListEnv("REAL_BACKEND_RBAC_GRANTED_PERMISSION_IDS");
@@ -622,16 +624,26 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     }
     expect(Number(createdPermission.parentId)).toBe(Number(createdMenu.id));
 
-    const grantResponse = await apiRequest.put(`${apiBasePath}/system/roles/${rbacRoleId}/menus/`, {
+    const grantData = {
+      menuIds: [
+        ...rbacBasePermissionIds,
+        Number(catalog.id),
+        Number(createdMenu.id),
+        Number(createdPermission.id),
+      ],
+    };
+    const deniedGrant = await apiRequest.put(`${apiBasePath}/system/roles/${rbacRoleId}/menus/`, {
       headers: { Authorization: `Bearer ${adminToken}` },
-      data: {
-        menuIds: [
-          ...rbacBasePermissionIds,
-          Number(catalog.id),
-          Number(createdMenu.id),
-          Number(createdPermission.id),
-        ],
-      },
+      data: grantData,
+    });
+    expect(deniedGrant.status()).toBe(403);
+    const bootstrapLogin = await apiRequest.post(`${apiBasePath}/oauth/login/`, {
+      data: { username: bootstrapUsername, password: bootstrapPassword },
+    });
+    const bootstrap = await expectApiSuccess<{ accessToken: string }>(bootstrapLogin);
+    const grantResponse = await apiRequest.put(`${apiBasePath}/system/roles/${rbacRoleId}/menus/`, {
+      headers: { Authorization: `Bearer ${bootstrap.accessToken}` },
+      data: grantData,
     });
     await expectApiSuccess(grantResponse);
 
@@ -654,6 +666,7 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     await initialRow.getByRole("button", { name: "编辑", exact: true }).click();
     const editDrawer = page.locator(".el-drawer", { hasText: "编辑菜单" });
     await expect(editDrawer).toBeVisible();
+    await expect(editDrawer.getByPlaceholder("请输入菜单名称")).toHaveValue(menuWriteInitialName);
     await editDrawer.getByPlaceholder("请输入菜单名称").fill(menuWriteUpdatedName);
     const updateResponse = waitForApiResponse(
       page,
