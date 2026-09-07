@@ -173,6 +173,9 @@ ai_summary:
 - `scripts/api_frontend_field_contracts.py` 定义前端 API 类型字段契约目录和非普通对象响应豁免，锁定前端已声明的高价值字段必须挂靠后端字段契约。
 - `scripts/api_error_codes.py` 定义共享错误码契约目录，锁定前端刷新逻辑和双后端错误语义。
 - `scripts/api_route_coverage_validation.py` 校验关键端点契约能对应到 Django URLConf/AdminRouter 和 FastAPI 具体 `method + path` 路由；通知公告的 `{ids}` 到 `{id}` 兼容只限其共用路由场景。
+- `scripts/api_runtime_route_contracts.py` 在关键契约外显式登记所有共享、单后端和兼容业务路由。两端 `test_runtime_route_inventory.py` 分别递归枚举实际 URLConf / ASGI 路由树，对比 `method + 规范化路径`，新增、移除或改方法都会失败；不是扫描预设源码文件列表。
+- 规范化统一参数占位符和尾斜杠，不等同于字段/行为兼容承诺。只排除明确的健康、API 文档、开发静态媒体入口及隐式 HEAD/OPTIONS；独立 HEAD/OPTIONS、未知路由类型或新嵌套模块不会静默跳过。根校验器仅检查登记自洽与两端测试入口存在，不同时导入 Django/FastAPI。
+- 原有单后端和兼容入口被登记不代表推荐新调用，也不代表补齐功能差异；例如 Django 的旧个人信息别名、DRF PATCH，FastAPI 的嵌套字典项和 OAuth 表单登录仍是兼容边界。
 - `backend/drf_admin/utils/test_response_contract.py` 覆盖 Django 响应中间件的成功、错误和幂等包裹。
 - `backend/drf_admin/utils/test_api_capability_contracts.py` 覆盖操作日志不再登记为单后端独占能力。
 - `backend/drf_admin/utils/test_api_field_contracts.py` 覆盖 Django serializer 对外字段集合。
