@@ -120,11 +120,12 @@ class DuplicateError(APIException):
 class RateLimitError(APIException):
     """请求频率限制"""
 
-    def __init__(self, message: str = "请求过于频繁，请稍后重试"):
+    def __init__(self, message: str = "请求过于频繁，请稍后重试", retry_after: int | None = None):
         super().__init__(
             code=RATE_LIMIT_ERROR_CODE,
             message=message,
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            headers={"Retry-After": str(retry_after)} if retry_after is not None else None,
         )
 
 

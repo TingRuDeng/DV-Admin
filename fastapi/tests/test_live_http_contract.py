@@ -16,6 +16,7 @@ import httpx
 import pytest
 
 from scripts.real_backend_playwright import run_real_backend_playwright
+from scripts.redis_test_server import RedisTestServer
 
 SeedPayload = dict[str, int | str | list[int]]
 
@@ -59,7 +60,8 @@ def running_seeded_server(tmp_path: Path) -> Iterator[tuple[str, SeedPayload]]:
     env = build_server_env(tmp_path)
     log_path = tmp_path / "uvicorn.log"
 
-    with log_path.open("w", encoding="utf-8") as log_file:
+    with log_path.open("w", encoding="utf-8") as log_file, RedisTestServer() as redis:
+        env["REDIS_URL"] = redis.url
         server = subprocess.Popen(
             [
                 sys.executable,
@@ -70,6 +72,7 @@ def running_seeded_server(tmp_path: Path) -> Iterator[tuple[str, SeedPayload]]:
                 "127.0.0.1",
                 "--port",
                 str(port),
+                "--no-proxy-headers",
             ],
             cwd=Path(__file__).resolve().parents[1],
             env=env,
