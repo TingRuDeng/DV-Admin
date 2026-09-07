@@ -7,11 +7,12 @@ from fastapi import APIRouter, Request
 from app.api.deps import CurrentUser
 from app.core.config import settings
 from app.core.error_codes import REFRESH_TOKEN_INVALID_CODE
-from app.core.exceptions import AuthenticationError
+from app.core.exceptions import AuthenticationError, ServiceUnavailable
 from app.core.security import (
     create_access_token,
     create_refresh_token,
     decode_token,
+    get_token_session_started_at,
     get_token_subject,
     verify_token_type,
 )
@@ -120,6 +121,10 @@ async def refresh_token(
     if not user.is_active:
         raise AuthenticationError(message="用户已被禁用", code=REFRESH_TOKEN_INVALID_CODE)
 
+    session_started_at = get_token_session_started_at(payload)
+    if session_started_at is None:
+        raise AuthenticationError(message="刷新令牌缺少签发时间", code=REFRESH_TOKEN_INVALID_CODE)
+
     if not await token_blacklist_service.consume_refresh_token(
         token_data.refresh_token,
         user.id,
@@ -136,11 +141,16 @@ async def refresh_token(
     new_access_token = create_access_token(
         subject=str(user.id),
         expires_delta=access_token_expires,
-        extra_claims={"username": user.username, "name": user.name},
+        extra_claims={
+            "username": user.username,
+            "name": user.name,
+            "session_iat": session_started_at.timestamp(),
+        },
     )
     new_refresh_token = create_refresh_token(
         subject=str(user.id),
         expires_delta=refresh_token_expires,
+        session_started_at=session_started_at,
     )
 
     return ResponseModel.success(
@@ -216,10 +226,12 @@ async def logout(
         scheme, _, token = authorization.partition(" ")
         if scheme.lower() == "bearer" and token:
             # 将访问令牌加入黑名单
-            await token_blacklist_service.add_token_to_blacklist(
+            revoked = await token_blacklist_service.add_token_to_blacklist(
                 token=token,
                 user_id=current_user.id,
                 reason="logout",
             )
+            if not revoked:
+                raise ServiceUnavailable("退出的服务端令牌撤销尚未完成，请稍后重试")
 
     return ResponseModel.success(message="登出成功")

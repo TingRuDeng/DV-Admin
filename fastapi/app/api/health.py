@@ -8,7 +8,7 @@ import inspect
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Response, status
 from loguru import logger
 from pydantic import BaseModel
 from tortoise import Tortoise
@@ -69,7 +69,7 @@ async def check_database() -> dict[str, Any]:
         return {
             "status": "unhealthy",
             "type": "sqlite" if settings.is_sqlite else "mysql",
-            "message": f"数据库连接失败: {str(e)}",
+            "message": "数据库连接不可用",
         }
 
 
@@ -80,14 +80,13 @@ async def check_redis() -> dict[str, Any] | None:
     Returns:
         包含 Redis 状态信息的字典，如果未配置则返回 None
     """
-    # 检查是否配置了 Redis（非默认值）
-    if not settings.redis_url or settings.redis_url == "redis://localhost:6379/0":
-        # 如果是默认配置且没有实际使用，返回未配置状态
+    if not settings.redis_url:
         return {
             "status": "not_configured",
-            "message": "Redis 未配置或使用默认配置",
+            "message": "Redis 未配置",
         }
 
+    client = None
     try:
         # 尝试导入 Redis 客户端
         import redis.asyncio as redis
@@ -98,13 +97,14 @@ async def check_redis() -> dict[str, Any] | None:
             password=settings.redis_password,
             encoding="utf-8",
             decode_responses=True,
+            socket_connect_timeout=2,
+            socket_timeout=2,
         )
 
         # Redis 新旧类型标注存在差异，运行时只等待真正的异步结果。
         ping_result = client.ping()
         if inspect.isawaitable(ping_result):
             await ping_result
-        await client.close()
 
         return {
             "status": "healthy",
@@ -119,8 +119,11 @@ async def check_redis() -> dict[str, Any] | None:
         logger.error(f"Redis 连接检查失败: {e}")
         return {
             "status": "unhealthy",
-            "message": f"Redis 连接失败: {str(e)}",
+            "message": "Redis 连接不可用",
         }
+    finally:
+        if client is not None:
+            await client.aclose()
 
 
 @router.get(
@@ -153,7 +156,7 @@ async def health_check() -> HealthResponse:
     summary="就绪检查",
     description="检查服务是否已准备好接收请求（包括数据库、Redis 等依赖）",
 )
-async def readiness_check() -> ReadyResponse:
+async def readiness_check(response: Response) -> ReadyResponse:
     """
     就绪检查端点
 
@@ -179,11 +182,13 @@ async def readiness_check() -> ReadyResponse:
     # 数据库是关键依赖，必须健康
     all_healthy = db_status["status"] == "healthy"
 
-    # Redis 如果配置了，也应该是健康的（但不影响整体状态，除非是 unhealthy）
-    if redis_status and redis_status["status"] == "unhealthy":
+    if settings.is_production:
+        all_healthy = all_healthy and bool(redis_status and redis_status["status"] == "healthy")
+    elif redis_status and redis_status["status"] == "unhealthy":
         all_healthy = False
 
     overall_status = "ready" if all_healthy else "not_ready"
+    response.status_code = status.HTTP_200_OK if all_healthy else status.HTTP_503_SERVICE_UNAVAILABLE
 
     return ReadyResponse(
         status=overall_status,

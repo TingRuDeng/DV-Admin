@@ -293,6 +293,8 @@ class IpBlackListMiddleware(MiddlewareMixin):
     """
 
     def process_request(self, request):
+        if request.path in {"/health", "/health/live", "/health/ready"}:
+            return None
         request_ip = get_request_ip(request)
         from django.conf import settings
         from django.core.cache import cache
