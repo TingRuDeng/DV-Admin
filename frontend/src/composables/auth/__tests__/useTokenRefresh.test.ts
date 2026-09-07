@@ -80,6 +80,30 @@ describe("useTokenRefresh", () => {
     );
   });
 
+  it("settles all requests without logging out when refresh returns 503", async () => {
+    const unavailable = Object.assign(new Error("Service unavailable"), { status: 503 });
+    mocks.refreshToken.mockRejectedValue(unavailable);
+    const { refreshTokenAndRetry, getRefreshStatus } = useTokenRefresh();
+    const request = vi.fn();
+
+    const results = await Promise.allSettled([
+      refreshTokenAndRetry(createRequestConfig(), request),
+      refreshTokenAndRetry(createRequestConfig(), request),
+    ]);
+
+    expect(results).toEqual([
+      { status: "rejected", reason: unavailable },
+      { status: "rejected", reason: unavailable },
+    ]);
+    expect(mocks.redirectToLogin).not.toHaveBeenCalled();
+    expect(request).not.toHaveBeenCalled();
+    expect(getRefreshStatus()).toEqual({ isRefreshing: false, pendingCount: 0 });
+
+    mocks.refreshToken.mockResolvedValue();
+    request.mockResolvedValue("recovered");
+    await expect(refreshTokenAndRetry(createRequestConfig(), request)).resolves.toBe("recovered");
+  });
+
   it("stops after one retry when the access token is still invalid", async () => {
     const { refreshTokenAndRetry } = useTokenRefresh();
     const config = createRequestConfig() as InternalAxiosRequestConfig & {

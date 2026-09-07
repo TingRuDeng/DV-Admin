@@ -88,6 +88,8 @@ def create_access_token(
 def create_refresh_token(
     subject: str | Any,
     expires_delta: timedelta | None = None,
+    *,
+    session_started_at: datetime | None = None,
 ) -> str:
     """
     创建刷新令牌
@@ -114,6 +116,9 @@ def create_refresh_token(
         # 防止同一用户在同一秒内签发出完全相同的刷新令牌。
         "jti": uuid4().hex,
     }
+    to_encode["session_iat"] = (
+        session_started_at.timestamp() if session_started_at else to_encode["iat"]
+    )
 
     encoded_jwt = jwt.encode(
         to_encode,
@@ -202,3 +207,8 @@ def get_token_issued_at(payload: dict[str, Any]) -> datetime | None:
     if iat:
         return datetime.fromtimestamp(iat, tz=timezone.utc)
     return None
+
+
+def get_token_session_started_at(payload: dict[str, Any]) -> datetime | None:
+    """刷新后保留原会话时间，兼容旧令牌的 iat，防止绕过用户级撤销。"""
+    return get_token_issued_at({"iat": payload.get("session_iat", payload.get("iat"))})

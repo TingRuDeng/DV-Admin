@@ -115,11 +115,21 @@ function logout() {
     cancelButtonText: "取消",
     type: "warning",
     lockScroll: false,
-  }).then(() => {
-    userStore.logout().then(() => {
-      router.push(`/login?redirect=${route.fullPath}`);
+  })
+    .then(async () => {
+      try {
+        await userStore.logout();
+      } catch {
+        ElMessage.warning("当前设备已退出，服务端令牌撤销未确认");
+      } finally {
+        await router.push({ path: "/login", query: { redirect: route.fullPath } });
+      }
+    })
+    .catch((reason) => {
+      if (reason !== "cancel" && reason !== "close") {
+        ElMessage.error("退出操作未完成，请重试");
+      }
     });
-  });
 }
 
 /**

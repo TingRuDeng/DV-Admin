@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from redis.exceptions import RedisError
 
+from app.core.exceptions import ServiceUnavailable
 from app.services.token_blacklist import TokenBlacklistService
 
 pytest_plugins = ["token_blacklist_fixtures"]
@@ -204,9 +205,9 @@ class TestTokenBlacklistTokens:
                  return_value=expiration,
              ):
             mock_settings.is_production = True
-            result = await service.consume_refresh_token("refresh_token", user_id=1)
+            with pytest.raises(ServiceUnavailable):
+                await service.consume_refresh_token("refresh_token", user_id=1)
 
-        assert result is False
         assert service._memory_store.blacklist == {}
 
     @pytest.mark.asyncio

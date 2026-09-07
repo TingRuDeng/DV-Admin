@@ -106,4 +106,15 @@ describe("useUserStore", () => {
     expect(AuthAPI.refreshToken).toHaveBeenCalledWith("old-refresh-token");
     expect(setTokensSpy).toHaveBeenCalledWith("new-access-token", "new-refresh-token", true);
   });
+
+  it("clears local credentials on explicit logout even when revocation fails", async () => {
+    const unavailable = Object.assign(new Error("Service unavailable"), { status: 503 });
+    vi.mocked(AuthAPI.logout).mockRejectedValue(unavailable);
+    const clearAuthSpy = vi.spyOn(AuthStorage, "clearAuth");
+    const userStore = useUserStore();
+    await expect(userStore.logout()).rejects.toBe(unavailable);
+    expect(clearAuthSpy).toHaveBeenCalled();
+    expect(cleanupWebSocket).toHaveBeenCalled();
+    expect(userStore.userInfo).toEqual({ roles: [], perms: [] });
+  });
 });
