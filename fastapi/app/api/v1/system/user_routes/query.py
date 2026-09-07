@@ -109,8 +109,9 @@ async def get_users(
         current_user=current_user,
     )
     return ResponseModel.success(data=result)
+@router.get("/options", response_model=ResponseModel[list[dict]], include_in_schema=False)
 @router.get(
-    "/options",
+    "/options/",
     response_model=ResponseModel[list[dict]],
     summary="获取用户下拉选项",
     description="""

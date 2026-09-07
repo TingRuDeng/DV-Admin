@@ -100,6 +100,16 @@ interface LogStatsResult {
 }
 
 test.describe(`前端连接真实 ${backendName} 后端`, () => {
+  const pageErrors = new WeakMap<Page, string[]>();
+  test.beforeEach(({ page }) => {
+    const errors: string[] = [];
+    pageErrors.set(page, errors);
+    page.on("pageerror", (error) => errors.push(error.message));
+  });
+  test.afterEach(({ page }) => {
+    expect(pageErrors.get(page), "页面不应包含未处理的脚本错误").toEqual([]);
+  });
+
   test("完成个人中心、用户管理和通知公告代表页闭环", async ({ page }) => {
     const failedApiResponses = collectFailedApiResponses(page);
 
@@ -145,6 +155,9 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     await page.goto("/my-notice");
     const noticeRow = page.locator(".el-table__row", { hasText: noticeTitle });
     await expect(noticeRow).toBeVisible();
+    await expect(noticeRow.locator(".el-tag--success")).toHaveText("浏览器测试类型");
+    await expect(noticeRow.locator(".el-tag--warning")).toHaveText("浏览器测试级别");
+    await expect(noticeRow).not.toContainText("不应显示");
     await noticeRow.getByRole("button", { name: "查看" }).click();
     const noticeDialog = page.getByRole("dialog", { name: noticeTitle });
     await expect(noticeDialog).toContainText(noticeContent);
@@ -182,7 +195,9 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     await expect(managementDialog).toContainText(noticeContent);
     await managementDialog.getByRole("button", { name: "关闭通知详情" }).click();
 
+    const userOptionsResponse = waitForApiResponse(page, "/api/v1/system/users/options/", "GET");
     await page.getByRole("button", { name: "新增通知" }).click();
+    expect(Array.isArray(await expectPageApiSuccess(await userOptionsResponse))).toBe(true);
     const noticeDrawer = page.locator(".el-drawer", { hasText: "新增公告" });
     await expect(noticeDrawer).toBeVisible();
     await noticeDrawer.getByRole("button", { name: /取\s*消/ }).click();
