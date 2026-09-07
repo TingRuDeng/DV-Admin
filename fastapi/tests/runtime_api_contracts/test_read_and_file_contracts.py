@@ -20,6 +20,14 @@ from runtime_api_contracts.helpers import (
 from app.db.models.system import Departments, OperationLog, Roles
 
 
+def test_user_options_paths_do_not_redirect(auth_client):
+    for path in ("/api/v1/system/users/options/", "/api/v1/system/users/options"):
+        response = auth_client.get(path, follow_redirects=False)
+        assert response.status_code == 200
+        assert response.json()["code"] == 20000
+        assert isinstance(response.json()["data"], list)
+
+
 @pytest_asyncio.fixture
 async def runtime_contract_logs(db):
     """创建运行时日志样本，用于证明日志分页参数真实生效。"""

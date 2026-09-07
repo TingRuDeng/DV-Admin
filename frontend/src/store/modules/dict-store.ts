@@ -23,10 +23,10 @@ export const useDictStore = defineStore("dict", () => {
    * @param dictCode 字典编码
    */
   const loadDictItems = async (dictCode: string) => {
-    if (dictCache.value[dictCode]) return;
+    if (Array.isArray(dictCache.value[dictCode])) return;
     // 防止重复请求
     if (!requestQueue[dictCode]) {
-      requestQueue[dictCode] = DictItemAPI.getDictItems({ dict__dict_code: dictCode })
+      requestQueue[dictCode] = DictItemAPI.getDictItems({ dictCode })
         .then((data) => {
           cacheDictItems(dictCode, data);
         })
@@ -43,7 +43,8 @@ export const useDictStore = defineStore("dict", () => {
    * @returns 字典项列表
    */
   const getDictItems = (dictCode: string): DictItemOption[] => {
-    return dictCache.value[dictCode] || [];
+    const cached = dictCache.value[dictCode];
+    return Array.isArray(cached) ? cached : [];
   };
 
   /**

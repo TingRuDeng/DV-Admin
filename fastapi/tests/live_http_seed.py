@@ -11,7 +11,15 @@ from tortoise import Tortoise
 from app.core.config import settings
 from app.core.security import get_password_hash
 from app.db.models.oauth import Users
-from app.db.models.system import Departments, Notices, OperationLog, Permissions, Roles
+from app.db.models.system import (
+    Departments,
+    DictData,
+    DictItems,
+    Notices,
+    OperationLog,
+    Permissions,
+    Roles,
+)
 
 LOG_DELETE_REQUEST_ID = "real-backend-log-delete"
 LOG_KEEP_REQUEST_ID = "real-backend-log-keep"
@@ -208,9 +216,18 @@ async def seed() -> dict[str, int | str | list[int]]:
         is_active=1,
     )
     await rbac_user.roles.add(rbac_role)
+    for code, label, tag_type in (
+        ("unrelated", "不应显示", "danger"),
+        ("notice_type", "浏览器测试类型", "success"),
+        ("notice_level", "浏览器测试级别", "warning"),
+    ):
+        dictionary = await DictData.create(dict_code=code, name=code)
+        await DictItems.create(dict_data=dictionary, value="1", label=label, tag_type=tag_type)
     notice = await Notices.create(
         title="FastAPI 真实 HTTP 通知",
         content="FastAPI 真实 HTTP 正文",
+        type=1,
+        level=1,
         target_type=1,
         publish_status=1,
         publisher_id=user.id,
