@@ -12,7 +12,7 @@
 - [x] 账号/IP 限速、短时冷却、Retry-After（原 #3）
 - [x] 15-128 字符长口令、兼容哈希、统一密码策略端点（原 #6）
 - [x] 角色授权、数据范围及受影响用户边界（原 #2）
-- [ ] 冻结锁文件构建生产镜像、产物测试（原 #11）
+- [x] 冻结锁文件构建生产镜像、产物测试（原 #11）
 - [ ] 持久媒体卷、Nginx 只读挂载与迁移说明（原 #4）
 - [ ] 双后端头像真实格式、解码及资源预算（原 #7）
 - [ ] 实际注册路由完整性守卫（原 #10）
@@ -81,6 +81,16 @@
 - 前端 quality 99 files/308 tests、build 通过；根规则代数/字节一致性 5 tests、原根 unittest 24 tests、文档/API/模型/动态路由/迁移目录校验及 diff 检查通过。文档校验曾与 Playwright 清理 test-results 竞态，串行重跑通过，未修改 canonical validator。
 - Review：最终授权不依赖展示缓存；系统 ROOT 身份标识不可被普通管理员授予。SQLite 不证明 MySQL 并发锁行为，不能据此宣称生产并发验收已完成。菜单对象本身的全局治理仍是明确边界。
 - 第三项 PR #367 修正后五个远端门禁全部通过，未合并。
+
+### 第五项：生产镜像锁定
+
+- 分支：`codex/audit-production-images`，基于第四项；第四项提交 `01e5bd8` / PR #368 五个远端门禁全部通过，未合并。
+- RED：新增镜像契约测试因缺少版本目录失败；实际 ARM64 构建暴露 asyncmy 需要 builder 编译器；实际 Django 镜像发现 `pro` 环境名未纳入 Redis 就绪检查，新增失败测试后修复。
+- 两端 Python 3.11/uv 摘要固定，CI 同为 uv 0.8.13；完整 wheel 构建元数据、包数据、锁文件冻结，非开发/非 editable、UID/GID 10001。Django uv.lock 仅改项目安装类型，没有依赖升级。
+- 实际镜像验证：两端 wheel/许可证资源、非 root/无开发工具、Redis 离线迁移、默认多 Worker 启动、Docker readiness 命令、Redis 故障 503/liveness 200 与恢复通过。脚本只创建并清理自己的临时容器/卷/网络。
+- 本机产物：FastAPI `sha256:37f9d0219347e0937bba90d497330bf476f8410997edc25f1dca8a5e7978415d`；Django `sha256:d469e988a617d32dc476da1cb902794cd4fa92156f2e627016a28ae2fe4067c2`。这是本机 ARM64 镜像 ID，不是远端发布摘要。
+- FastAPI quality 832 passed/1 skipped、88.76%；Django全量 282 passed/1 skipped，随后新增生产环境名的健康测试 7 passed；根测试 30 passed，文档/API/模型/迁移目录校验及 diff 通过。
+- Review：实际 Django 使用既有 WSGI 入口，不宣称已验收 ASGI/WebSocket；Debian 编译依赖尚未快照锁定，不宣称逐字节重现。生产凭据、数据库及媒体未修改；媒体卷在下一子项处理。
 
 ## 剩余风险
 
