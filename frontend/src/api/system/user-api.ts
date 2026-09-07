@@ -138,7 +138,7 @@ const UserAPI = {
    */
   getOptions() {
     return request<unknown, OptionType[]>({
-      url: `${USER_BASE_URL}/options`,
+      url: `${USER_BASE_URL}/options/`,
       method: "get",
     });
   },

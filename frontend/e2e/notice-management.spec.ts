@@ -184,7 +184,7 @@ async function handleNoticeRequest(context: MockRouteContext) {
     return true;
   }
 
-  if (context.method === "GET" && context.path === "/api/v1/system/users/options") {
+  if (context.method === "GET" && context.path === "/api/v1/system/users/options/") {
     await fulfillJson(context.route, success([{ id: "1", label: "管理员", value: "1" }]));
     return true;
   }
@@ -245,9 +245,15 @@ async function handleNoticeRequest(context: MockRouteContext) {
 
 async function handleDictRequest(context: MockRouteContext) {
   if (context.method !== "GET" || context.path !== DICT_ITEMS_PATH) return false;
-  const dictCode = context.query.get("dict__dict_code") ?? "";
-
-  await fulfillJson(context.route, success(context.state.dictItemsByCode[dictCode] ?? []));
+  const dictCode = context.query.get("dictCode") ?? "";
+  const items = context.state.dictItemsByCode[dictCode] ?? [];
+  const pageNum = Number(context.query.get("pageNum") ?? 1);
+  const pageSize = Number(context.query.get("pageSize") ?? 10);
+  const start = (pageNum - 1) * pageSize;
+  await fulfillJson(
+    context.route,
+    success({ list: items.slice(start, start + pageSize), total: items.length })
+  );
   return true;
 }
 

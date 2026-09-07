@@ -12,12 +12,27 @@ const DictItemAPI = {
     });
   },
   /** 根据字典编码获取字典项列表 */
-  getDictItems(queryParams: DictItemQuery) {
-    return request<unknown, DictItemOption[]>({
-      url: `${DICT_BASE_URL}/`,
-      method: "get",
-      params: queryParams,
-    });
+  async getDictItems(queryParams: DictItemQuery): Promise<DictItemOption[]> {
+    const items: DictItemOption[] = [];
+    let total = 0;
+    let pageNum = 1;
+    do {
+      const page = await request<unknown, PageResult<DictItemOption[]>>({
+        url: `${DICT_BASE_URL}/`,
+        method: "get",
+        params: { ...queryParams, pageNum, pageSize: 100 },
+      });
+      if (!Array.isArray(page?.list) || !Number.isSafeInteger(page.total) || page.total < 0) {
+        throw new Error("字典项分页响应格式错误");
+      }
+      total = page.total;
+      if (page.list.length === 0 && items.length < total) {
+        throw new Error("字典项分页数据不完整，请重试");
+      }
+      items.push(...page.list);
+      pageNum += 1;
+    } while (items.length < total);
+    return items;
   },
   /** 新增字典项 */
   createDictItem(data: DictItemForm) {
@@ -48,12 +63,12 @@ export interface DictItemOption {
   /** 标签 */
   label: string;
   /** 标签类型 */
-  tagType?: "" | "success" | "info" | "warning" | "danger";
+  tagType?: "" | "primary" | "success" | "info" | "warning" | "danger";
   [key: string]: unknown;
 }
 
 export interface DictItemQuery {
-  dict__dict_code: string;
+  dictCode: string;
 }
 
 export interface DictItemPageQuery extends PageQuery {

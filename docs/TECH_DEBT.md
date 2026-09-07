@@ -193,7 +193,7 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 - FastAPI 后端：80%+ 覆盖率
 - Django 后端：已有系统模块、响应/request id/health 契约测试、关键读端点与用户写端点运行时契约抽样、RBAC 权限边界直接契约测试，但整体覆盖率仍偏低
 - 前端：已补 store/router、WebSocket、API 契约、可访问性和性能 smoke，以及核心管理业务 Mock E2E；另有一份无 API Mock 的 Playwright 流程在 CI 中分别连接 Django/FastAPI，覆盖登录、资料、头像、通知、角色授权/撤权、用户创建/编辑/密码重置/禁用/删除、菜单与子权限写入，以及通用文件上传、所有权校验和删除闭环。日志清理等跨业务真实栈 E2E 仍不充分
-- 2026-09-07 实际 FastAPI 浏览器流程六项断言通过，但控制台仍出现 `DictLabel.vue` 的 `dictItems.find is not a function`。当前 `dict-items-api.ts:getDictItems` 声明数组并传 `dict__dict_code`，FastAPI 对应路径返回分页对象且筛选别名为 `dictCode`；这些文件相对本轮基线 `master` 无差异。需单独修复字典选项契约/缓存并加入标签渲染及 pageerror 守卫，不把本轮 E2E 通过解释为无运行时错误；不混入数据范围性能 PR。
+- 2026-09-07 字典选项契约后续修复：`getDictItems` 改用共享 `dictCode/pageNum/pageSize` 分页取齐后返回数组，缓存键升级到 v2，旧错误缓存不再复用。新增 API/缓存/真实标签组件回归，以及两端浏览器标签文本、颜色和 `pageerror` 守卫。执行证据见 `tasks/fix-dict-option-contract-2026-09-07.md`；这不代表其他端点的字段/能力漂移已清零。
 
 **影响范围：**
 - 重构风险增加
