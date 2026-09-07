@@ -133,7 +133,7 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     await page.locator('.ff-profile-user input[type="file"]').setInputFiles({
       name: "playwright-avatar.gif",
       mimeType: "image/gif",
-      buffer: Buffer.from("R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=", "base64"),
+      buffer: Buffer.from("R0lGODdhAQABAIEAAP8AAAAAAAAAAAAAACwAAAAAAQABAAAIBAABBAQAOw==", "base64"),
     });
     await avatarResponse;
     const avatarImage = page.locator(".ff-profile-user__avatar img");
