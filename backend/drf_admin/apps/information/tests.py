@@ -114,7 +114,7 @@ class AvatarTestCase(TestCase):
         """共享 file 字段必须上传头像并返回可展示 URL。"""
         image = SimpleUploadedFile(
             "avatar.gif",
-            base64.b64decode("R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="),
+            base64.b64decode("R0lGODdhAQABAIEAAP8AAAAAAAAAAAAAACwAAAAAAQABAAAIBAABBAQAOw=="),
             content_type="image/gif",
         )
 

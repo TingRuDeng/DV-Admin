@@ -6,6 +6,7 @@ import json
 from io import BytesIO
 
 from fastapi.testclient import TestClient
+from fixtures.images import GIF_BYTES
 
 
 def _find_log(auth_client: TestClient, request_id: str) -> dict:
@@ -88,7 +89,7 @@ def test_avatar_upload_audit_records_file_metadata(
     request_id = "fastapi-avatar-audit"
     response = auth_client.post(
         "/api/v1/information/change-avatar/",
-        files={"file": ("audit-avatar.gif", BytesIO(b"avatar-bytes"), "image/gif")},
+        files={"file": ("audit-avatar.gif", BytesIO(GIF_BYTES), "image/gif")},
         headers={"X-Request-ID": request_id},
     )
 
@@ -100,5 +101,5 @@ def test_avatar_upload_audit_records_file_metadata(
     assert context["changedFields"] == ["file"]
     assert context["fileMeta"][0]["fieldName"] == "file"
     assert context["fileMeta"][0]["fileName"] == "audit-avatar.gif"
-    assert context["fileMeta"][0]["size"] == len(b"avatar-bytes")
-    assert "avatar-bytes" not in json.dumps(context)
+    assert context["fileMeta"][0]["size"] == len(GIF_BYTES)
+    assert "GIF87a" not in json.dumps(context)

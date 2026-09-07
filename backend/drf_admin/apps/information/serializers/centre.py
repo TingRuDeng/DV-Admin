@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from django.db import transaction
 from rest_framework import serializers
 
 from drf_admin.apps.system.models import Users
+from drf_admin.utils.avatar_validation import MAX_AVATAR_BYTES, validate_avatar_content
 from drf_admin.utils.password_validation import validate_password
 
 
@@ -109,10 +111,31 @@ class ChangeAvatarSerializer(serializers.ModelSerializer):
     """
     个人中心修改个人头像序列化器
     """
+    image = serializers.FileField()
 
     class Meta:
         model = Users
         fields = ['image']
+
+    def validate_image(self, image):
+        try:
+            validate_avatar_content(image.read(MAX_AVATAR_BYTES + 1), image.name)
+        except ValueError as exc:
+            raise serializers.ValidationError(str(exc)) from exc
+        finally:
+            image.seek(0)
+        return image
+
+    def update(self, instance, validated_data):
+        old_name = instance.image.name
+        try:
+            with transaction.atomic():
+                return super().update(instance, validated_data)
+        except Exception:
+            if instance.image.name != old_name and instance.image._committed:
+                instance.image.storage.delete(instance.image.name)
+            instance.image = old_name
+            raise
 
 
 class AvatarInfoSerializer(serializers.Serializer):

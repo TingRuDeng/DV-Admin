@@ -5,11 +5,15 @@
 """
 
 import json
+from io import BytesIO
 from pathlib import Path
 
 from fastapi import APIRouter, File, Request, UploadFile
+from starlette.concurrency import run_in_threadpool
+from tortoise.transactions import in_transaction
 
 from app.api.deps import CurrentUser
+from app.core.avatar_validation import validate_avatar_content
 from app.core.config import settings
 from app.core.exceptions import BusinessError, ValidationError
 from app.core.security import hash_new_password, verify_password_async
@@ -25,7 +29,7 @@ from app.schemas.oauth import (
 )
 from app.services.token_blacklist import token_blacklist_service
 from app.utils.audit import set_audit_object
-from app.utils.file import MAX_AVATAR_UPLOAD_SIZE, allowed_file, save_upload_file
+from app.utils.file import MAX_AVATAR_UPLOAD_SIZE, allowed_file, copy_upload_file, save_upload_file
 
 router = APIRouter()
 
@@ -195,6 +199,14 @@ async def upload_avatar(
     if not allowed_file(file.filename):
         raise ValidationError("不支持的图片格式")
 
+    with BytesIO() as content:
+        await copy_upload_file(file, content, max_size=MAX_AVATAR_UPLOAD_SIZE)
+        try:
+            await run_in_threadpool(validate_avatar_content, content.getvalue(), file.filename)
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
+    await file.seek(0)
+
     relative_path = await save_upload_file(
         file,
         subdir="avatar",
@@ -207,10 +219,12 @@ async def upload_avatar(
     old_avatar = current_user.avatar
 
     try:
-        current_user.avatar = unique_filename
-        await current_user.save()
+        async with in_transaction() as connection:
+            current_user.avatar = unique_filename
+            await current_user.save(using_db=connection)
     except Exception:
         new_avatar_path.unlink(missing_ok=True)
+        current_user.avatar = old_avatar
         raise
 
     if old_avatar and old_avatar.startswith("avatar_") and old_avatar != unique_filename:

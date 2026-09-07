@@ -14,6 +14,7 @@ from typing import Iterator
 
 import httpx
 import pytest
+from fixtures.images import PNG_BYTES
 
 from scripts.real_backend_playwright import run_real_backend_playwright
 from scripts.redis_test_server import RedisTestServer
@@ -172,7 +173,7 @@ def run_http_flow(base_url: str, seed: SeedPayload) -> None:
         avatar = assert_success(
             client.post(
                 "/api/v1/information/change-avatar/",
-                files={"file": ("avatar.png", b"\x89PNG\r\n\x1a\nhttp-smoke", "image/png")},
+                files={"file": ("avatar.png", PNG_BYTES, "image/png")},
             )
         )
         assert avatar["url"].startswith("/media/avatar/")

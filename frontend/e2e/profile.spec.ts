@@ -17,7 +17,10 @@ interface ProfileState {
 }
 
 const API_PREFIX = "/dev-api";
-const ONE_PIXEL_GIF = Buffer.from("R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=", "base64");
+const ONE_PIXEL_GIF = Buffer.from(
+  "R0lGODdhAQABAIEAAP8AAAAAAAAAAAAAACwAAAAAAQABAAAIBAABBAQAOw==",
+  "base64"
+);
 
 function success(data: unknown) {
   return { code: 20000, message: "成功", data };
