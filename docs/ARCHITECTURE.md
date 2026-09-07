@@ -346,8 +346,9 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 ```
 
 **Token 配置：**
-- FastAPI：Access Token 30 分钟、Refresh Token 7 天（均可配置）
-- Django：Access Token 30 分钟、Refresh Token 1 天（均可配置）
+- FastAPI 默认：Access Token 1800 秒（30 分钟）、Refresh Token 604800 秒（7 天）；分别由 `ACCESS_TOKEN_EXPIRE_MINUTES` / `REFRESH_TOKEN_EXPIRE_DAYS` 覆盖。
+- Django 默认：Access Token 1800 秒（30 分钟）、Refresh Token 86400 秒（1 天）；分别由 `JWT_ACCESS_TOKEN_LIFETIME`（分钟）/ `JWT_REFRESH_TOKEN_LIFETIME`（天）覆盖。
+- 文档与 OpenAPI 示例仅展示默认值，不改变运行时签发有效期；两端刷新令牌默认差异仍然保留。
 - 存储位置：前端 localStorage（支持"记住我"持久化）
 
 **登录防刷：**
