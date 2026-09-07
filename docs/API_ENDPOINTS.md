@@ -259,6 +259,8 @@ POST /api/v1/oauth/refresh-token/
 
 两套后端都执行 Refresh Token 轮换：刷新成功后返回新的 `refreshToken`，旧令牌立即失效且再次使用返回 `40002`。前端只允许原请求在刷新成功后重试一次；若重试仍返回 `40001`，立即结束刷新链并跳转登录页。
 
+FastAPI 生产环境无法读取或写入令牌撤销状态时返回 HTTP 503（业务 `code=503`），不冒充令牌失效。刷新遇到 503 时前端结束请求但保留登录信息；用户主动退出仍清理本地状态，服务端撤销未确认则提示。刷新后的令牌保留原会话时间，仍受用户级撤销约束。
+
 ---
 
 ### 获取用户信息
@@ -581,6 +583,8 @@ GET /health/live   # 存活检查
 **实现说明：**
 - Django：`backend/drf_admin/apps/system/views/health.py`，响应头会携带 `X-Request-ID`。
 - FastAPI：`fastapi/app/api/health.py`，响应中包含结构化依赖检查，响应头同样携带 `X-Request-ID`。
+
+两端生产就绪探针要求数据库和 Redis 正常，依赖缺失或故障真实返回 HTTP 503；存活探针不访问数据库或 Redis。默认 localhost Redis URL 也是有效配置，必须实际探活。Nginx 直接转发 `/health/ready`、`/health/live`，`/nginx-health` 的固定 200 仅表示代理本身存活。
 
 ---
 

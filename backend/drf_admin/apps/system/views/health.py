@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from django.conf import settings
 from django.db import connection
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
@@ -31,13 +32,28 @@ def readiness_check(request):
     payload = _base_payload("ready")
     try:
         connection.ensure_connection()
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
         payload["checks"] = {"database": "ok"}
-        return JsonResponse(payload, status=STATUS_OK)
-    except Exception as exc:
+    except Exception:
         payload["status"] = "unavailable"
         payload["checks"] = {"database": "error"}
-        payload["error"] = str(exc)
         return JsonResponse(payload, status=STATUS_UNAVAILABLE)
+
+    if settings.ENVIRONMENT in {"prod", "production"}:
+        from django_redis import get_redis_connection
+
+        try:
+            if not settings.REDIS_HOST or not settings.REDIS_PORT:
+                raise ConnectionError("Redis not configured")
+            if not get_redis_connection("default").ping():
+                raise ConnectionError("Redis did not respond")
+            payload["checks"]["redis"] = "ok"
+        except Exception:
+            payload["status"] = "unavailable"
+            payload["checks"]["redis"] = "error"
+            return JsonResponse(payload, status=STATUS_UNAVAILABLE)
+    return JsonResponse(payload, status=STATUS_OK)
 
 
 @require_GET

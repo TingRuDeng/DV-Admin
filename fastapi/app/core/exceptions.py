@@ -51,6 +51,17 @@ class AuthenticationError(APIException):
         )
 
 
+class ServiceUnavailable(APIException):
+    """基础依赖不可用，不应当被客户端当作凭据失效。"""
+
+    def __init__(self, message: str = "服务暂不可用，请稍后重试"):
+        super().__init__(
+            code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            message=message,
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+
 class PermissionDenied(APIException):
     """权限不足"""
 
@@ -122,6 +133,7 @@ async def api_exception_handler(request: Request, exc: APIException) -> JSONResp
     """处理 API 异常"""
     return JSONResponse(
         status_code=exc.status_code,
+        headers=exc.headers,
         content={
             "code": exc.code,
             "message": exc.message,
@@ -154,6 +166,7 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     """处理 HTTP 异常"""
     return JSONResponse(
         status_code=exc.status_code,
+        headers=exc.headers,
         content={
             "code": exc.status_code,
             "message": exc.detail,

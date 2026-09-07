@@ -10,17 +10,19 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_check_redis_not_configured():
-    """默认 Redis URL 且无密码时应视为未配置。"""
+async def test_check_redis_default_url():
+    """localhost 也是实际配置，不能跳过探活。"""
     from app.api.health import check_redis
 
     with patch("app.api.health.settings") as mock_settings:
         mock_settings.redis_url = "redis://localhost:6379/0"
         mock_settings.redis_password = None
 
-        result = await check_redis()
-
-        assert result["status"] == "not_configured"
+        client = AsyncMock()
+        with patch("redis.asyncio.from_url", return_value=client):
+            result = await check_redis()
+        assert result["status"] == "healthy"
+        client.ping.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -58,7 +60,7 @@ async def test_check_redis_success():
             assert result["status"] == "healthy"
             assert result["message"] == "Redis 连接正常"
             mock_client.ping.assert_called_once()
-            mock_client.close.assert_called_once()
+            mock_client.aclose.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -95,4 +97,5 @@ async def test_check_redis_connection_error():
             result = await check_redis()
 
             assert result["status"] == "unhealthy"
-            assert "Connection refused" in result["message"]
+            assert result["message"] == "Redis 连接不可用"
+            mock_client.aclose.assert_awaited_once()

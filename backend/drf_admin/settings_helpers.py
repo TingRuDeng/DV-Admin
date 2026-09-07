@@ -142,6 +142,8 @@ def _build_redis_cache(
         "LOCATION": f"redis://{redis_auth}{redis_host}:{redis_port}/{db_index}",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SOCKET_CONNECT_TIMEOUT": 2,
+            "SOCKET_TIMEOUT": 2,
         },
     }
 

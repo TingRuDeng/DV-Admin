@@ -7,6 +7,7 @@
 from unittest.mock import patch
 
 import pytest
+from fastapi import Response
 
 
 @pytest.mark.asyncio
@@ -27,7 +28,7 @@ async def test_readiness_check_all_healthy():
             "message": "Redis 连接正常",
         }
 
-        result = await readiness_check()
+        result = await readiness_check(Response())
 
         assert result.status == "ready"
         assert "database" in result.checks
@@ -52,7 +53,7 @@ async def test_readiness_check_database_unhealthy():
             "message": "Redis 连接正常",
         }
 
-        result = await readiness_check()
+        result = await readiness_check(Response())
 
         assert result.status == "not_ready"
 
@@ -75,7 +76,7 @@ async def test_readiness_check_redis_unhealthy():
             "message": "Redis 连接失败",
         }
 
-        result = await readiness_check()
+        result = await readiness_check(Response())
 
         assert result.status == "not_ready"
 
@@ -95,7 +96,7 @@ async def test_readiness_check_redis_none():
         }
         mock_redis.return_value = None
 
-        result = await readiness_check()
+        result = await readiness_check(Response())
 
         assert result.status == "ready"
         assert "redis" not in result.checks
@@ -119,6 +120,6 @@ async def test_readiness_check_redis_not_configured():
             "message": "Redis 未配置",
         }
 
-        result = await readiness_check()
+        result = await readiness_check(Response())
 
         assert result.status == "ready"
