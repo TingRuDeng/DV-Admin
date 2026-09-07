@@ -1,0 +1,25 @@
+x-build: &build
+  context: ../backend
+  dockerfile: docker/Dockerfile
+x-environment: &environment
+  ENVIRONMENT: pro
+  DEBUG: "false"
+  ENABLE_SWAGGER: "false"
+  MEDIA_ROOT: /data/media
+  SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY}
+  DEFAULT_PWD: ${DEFAULT_PWD:?set a compliant DEFAULT_PWD}
+  DATABASE_URL: ${DATABASE_URL:?set the Django database URL}
+  ALLOWED_HOSTS: ${ALLOWED_HOSTS:-127.0.0.1,localhost}
+  CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:9527}
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  TRUSTED_PROXY_IPS: ${TRUSTED_PROXY_IPS:-}
+services:
+  api:
+    build: *build
+    environment: *environment
+  migrate:
+    build: *build
+    restart: "no"
+    environment: *environment
+    command: python /app/manage.py migrate --env pro --noinput

@@ -8,7 +8,7 @@ COPY drf_admin ./drf_admin
 RUN uv sync --frozen --no-dev --no-editable
 
 FROM ${PYTHON_IMAGE}
-ENV PATH="/opt/venv/bin:$PATH" VIRTUAL_ENV=/opt/venv ENVIRONMENT=pro \
+ENV PATH="/opt/venv/bin:$PATH" VIRTUAL_ENV=/opt/venv ENVIRONMENT=pro MEDIA_ROOT=/data/media \
     PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 TZ=Asia/Shanghai
 WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
@@ -16,8 +16,8 @@ COPY --from=builder /usr/local/bin/uv /usr/local/bin/uv
 COPY manage.py ./manage.py
 COPY docker/production.env /opt/venv/lib/python3.11/site-packages/.env.pro
 RUN groupadd -g 10001 appgroup && useradd -u 10001 -g appgroup appuser \
-    && mkdir -p /opt/venv/lib/python3.11/site-packages/logs /data/db \
-    && chown 10001:10001 /opt/venv/lib/python3.11/site-packages/logs /data/db
+    && mkdir -p /opt/venv/lib/python3.11/site-packages/logs /data/db /data/media \
+    && chown 10001:10001 /opt/venv/lib/python3.11/site-packages/logs /data/db /data/media
 USER 10001:10001
 EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=6s --start-period=10s --retries=3 \
