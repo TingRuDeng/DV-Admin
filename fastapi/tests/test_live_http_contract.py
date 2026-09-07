@@ -101,7 +101,8 @@ def build_server_env(tmp_path: Path) -> dict[str, str]:
         {
             "APP_ENV": "development",
             "DATABASE_URL": f"sqlite://{tmp_path / 'http-smoke.sqlite3'}",
-            "DEFAULT_PASSWORD": "HttpDefault123!",
+            "DEFAULT_PASSWORD": "a test HTTP initial passphrase",
+            "PASSWORD_MIN_LENGTH": "15",
             "SECRET_KEY": "http-smoke-secret-key",
             "UPLOAD_DIR": str(tmp_path / "uploads"),
             "REDIS_URL": "redis://127.0.0.1:1/0",
@@ -194,15 +195,15 @@ def run_http_flow(base_url: str, seed: SeedPayload) -> None:
                 "/api/v1/information/password",
                 json={
                     "oldPassword": "httpPass123",
-                    "newPassword": "httpPass456",
-                    "confirmPassword": "httpPass456",
+                    "newPassword": " a new HTTP passphrase ",
+                    "confirmPassword": " a new HTTP passphrase ",
                 },
             )
         )
         relogin = assert_success(
             client.post(
                 "/api/v1/oauth/login/",
-                json={"username": seed["username"], "password": "httpPass456"},
+                json={"username": seed["username"], "password": " a new HTTP passphrase "},
             )
         )
         assert "accessToken" in relogin

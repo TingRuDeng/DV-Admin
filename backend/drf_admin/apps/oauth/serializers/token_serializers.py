@@ -24,6 +24,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     自定义Token获取序列化器
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["password"].trim_whitespace = False
+
     def validate(self, attrs):
         # 提取用户名和密码
         username = attrs.get('username')

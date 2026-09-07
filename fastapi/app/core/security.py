@@ -10,11 +10,18 @@ from uuid import uuid4
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from starlette.concurrency import run_in_threadpool
 
 from app.core.config import settings
+from app.core.exceptions import ValidationError
+from app.core.password_policy import validate_new_password
 
 # 密码加密上下文
-pwd_context = CryptContext(schemes=["bcrypt", "django_pbkdf2_sha256"], deprecated="auto")
+pwd_context = CryptContext(
+    schemes=["django_pbkdf2_sha256", "bcrypt"],
+    django_pbkdf2_sha256__default_rounds=600_000,
+    deprecated="auto",
+)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -42,6 +49,22 @@ def get_password_hash(password: str) -> str:
         哈希后的密码
     """
     return pwd_context.hash(password)
+
+
+async def hash_password(password: str) -> str:
+    return await run_in_threadpool(get_password_hash, password)
+
+
+async def hash_new_password(password: str) -> str:
+    try:
+        validate_new_password(password, settings.password_min_length, settings.password_max_length)
+    except ValueError as exc:
+        raise ValidationError(str(exc)) from exc
+    return await hash_password(password)
+
+
+async def verify_password_async(password: str, hashed_password: str) -> bool:
+    return await run_in_threadpool(verify_password, password, hashed_password)
 
 
 def create_access_token(

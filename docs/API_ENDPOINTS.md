@@ -366,7 +366,7 @@ POST /api/v1/system/users/import                # 导入用户
 POST /api/v1/system/users/export/               # 导出用户
 ```
 
-> 两套后端的共享 `PUT` 密码重置端点都要求请求体提供 `password` 与 `confirm_password`；两次密码必须一致，且至少 6 位并同时包含字母和数字。敏感字段不得放入 URL query。FastAPI 额外保留已标记废弃的 `POST /api/v1/system/users/{id}/password/reset/` 兼容入口，并按 `DEFAULT_PASSWORD` 重置；共享前端不使用该兼容入口。
+> 两套后端的共享 `PUT` 密码重置端点都要求请求体提供 `password` 与 `confirm_password`；两次密码必须一致，默认 15-128 个 Unicode 字符，不得使用常见密码，不要求字符类型组合，首尾空格参与密码。敏感字段不得放入 URL query，成功响应不回显明文。FastAPI 额外保留已标记废弃的 `POST /api/v1/system/users/{id}/password/reset/` 兼容入口，并按 `DEFAULT_PASSWORD` 重置，该配置也必须满足新策略；共享前端不使用该兼容入口。
 > 用户输出中的 `mobile/email` 默认保留字段但返回脱敏值；拥有 `system:users:field:plain` 或 `is_superuser` 时返回原文。
 > 后台用户创建/更新请求中显式写入非空 `mobile/email` 时，需要 `system:users:field:write` 或 `is_superuser`。
 > 用户列表、详情、下拉选项、权限查询、状态更新、密码重置和删除均受角色数据范围约束；范围外 ID 按不存在处理。批量删除初次请求会先预检全部 ID，任一 ID 不存在或不可见时整批拒绝且不删除目标；预检通过后，当前用户等保护对象或单条执行异常会作为失败项返回，不阻塞其他目标。
@@ -555,12 +555,15 @@ DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
 
 ```text
 GET  /api/v1/information/profile/       # 获取个人信息
+GET  /api/v1/information/password-policy # 获取新密码长度规则，要求登录
 PUT  /api/v1/information/profile/       # 更新 name/email/mobile/gender
 PUT  /api/v1/information/password       # 修改密码
 POST /api/v1/information/change-avatar/ # 上传头像，multipart 字段为 file
 ```
 
 修改密码请求字段统一为 `oldPassword/newPassword/confirmPassword`，头像响应统一包含 `avatar/url`，头像文件上限为 2 MiB。Django 暂时保留 `change-information/`、`change-password/` 以及旧密码字段作为兼容入口，但共享前端不再依赖这些旧接口。
+
+密码规则响应为 `{ "minLength": 15, "maxLength": 128 }`（包在标准 `data` 内），读取实际配置，不是前端硬编码。`PASSWORD_MIN_LENGTH/PASSWORD_MAX_LENGTH` 只允许在 15-128 范围内收紧；两端新密码还需通过固定版本 SecLists 常见密码清单。已有密码登录不追溯新规则，允许原有空格。FastAPI 参数校验失败返回 HTTP 422、`code=422`，只含字段/错误类型/说明，不含输入密码；Django 密码校验沿用 HTTP 400、`code=40000`。
 
 ---
 

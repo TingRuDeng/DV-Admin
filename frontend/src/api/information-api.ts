@@ -3,6 +3,12 @@ import request from "@/utils/request";
 const INFO_BASE_URL = "/api/information";
 
 const InformationApi = {
+  getPasswordPolicy() {
+    return request<unknown, PasswordPolicy>({
+      url: `${INFO_BASE_URL}/password-policy`,
+      method: "get",
+    });
+  },
   /** 获取个人中心用户信息 */
   getProfile() {
     return request<unknown, UserProfile>({
@@ -61,6 +67,11 @@ const InformationApi = {
 };
 
 export default InformationApi;
+
+export interface PasswordPolicy {
+  minLength: number;
+  maxLength: number;
+}
 
 /**
  * 用户个人信息

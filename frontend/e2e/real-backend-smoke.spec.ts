@@ -250,6 +250,7 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
       .getByRole("button", { name: "重置密码", exact: true })
       .click();
     const resetDialog = page.getByRole("dialog", { name: "重置密码" });
+    await expect(resetDialog.locator("input")).toHaveAttribute("type", "password");
     await resetDialog.locator("input").fill(lifecyclePassword);
     const resetResponse = waitForApiResponse(
       page,
@@ -259,6 +260,7 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     await resetDialog.getByRole("button", { name: "确定", exact: true }).click();
     await resetResponse;
     await expect(page.getByText(/密码重置成功/).last()).toBeVisible();
+    await expect(page.getByText(lifecyclePassword, { exact: true })).toHaveCount(0);
 
     const frontendBaseUrl = new URL(page.url()).origin;
     const lifecycleContext = await browser.newContext({ baseURL: frontendBaseUrl });
@@ -281,6 +283,9 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
       .getByRole("button", { name: "编辑", exact: true })
       .click();
     const disableDrawer = page.locator(".el-drawer", { hasText: "修改用户" });
+    await expect(disableDrawer.getByPlaceholder("请输入用户昵称")).toHaveValue(
+      lifecycleUpdatedName
+    );
     const statusSwitch = disableDrawer.getByRole("switch");
     const statusSwitchControl = disableDrawer
       .locator(".el-form-item", { hasText: "状态" })

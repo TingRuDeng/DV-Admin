@@ -2,6 +2,7 @@
 
 import logging
 
+from django.conf import settings
 from rest_framework import mixins, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView
@@ -15,10 +16,22 @@ from drf_admin.apps.information.serializers.centre import (
     ChangeInformationSerializer,
     ChangePasswordSerializer,
     InformationSerializer,
+    PasswordPolicySerializer,
 )
 from drf_admin.utils.audit import set_audit_object
 
 logger = logging.getLogger(__name__)
+
+
+class PasswordPolicyAPIView(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = PasswordPolicySerializer
+
+    def get(self, request):
+        return Response(self.get_serializer({
+            "min_length": settings.PASSWORD_MIN_LENGTH,
+            "max_length": settings.PASSWORD_MAX_LENGTH,
+        }).data)
 
 
 class _CurrentUserAuditMixin:

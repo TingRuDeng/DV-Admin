@@ -7,7 +7,7 @@ from tortoise.transactions import in_transaction
 
 from app.core.config import settings
 from app.core.exceptions import ValidationError
-from app.core.security import get_password_hash
+from app.core.security import hash_new_password
 from app.db.models.oauth import Users
 from app.db.models.system import Departments, Roles
 
@@ -151,7 +151,7 @@ class UserImportParserMixin:
             return None
         user = Users(
             username=username,
-            password=get_password_hash(settings.default_password),
+            password="!",
             name=self._read_optional_text(row, columns.name) or username,
             email=email,
             mobile=mobile,
@@ -245,6 +245,7 @@ class UserImportParserMixin:
         """在单一事务内保存导入用户及角色关联。"""
         async with in_transaction() as connection:
             for row in rows:
+                row.user.password = await hash_new_password(settings.default_password)
                 await row.user.save(using_db=connection)
                 roles = [all_roles[role_id] for role_id in row.role_ids]
                 if not roles and default_role is not None:

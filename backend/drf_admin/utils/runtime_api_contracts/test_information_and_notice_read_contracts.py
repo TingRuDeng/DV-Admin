@@ -65,15 +65,15 @@ class DjangoRuntimeInformationApiContractTestCase(TestCase):
                 password_contract.path,
                 {
                     "oldPassword": "testpass123",
-                    "newPassword": "runtime456",
-                    "confirmPassword": "runtime456",
+                    "newPassword": "a new runtime passphrase",
+                    "confirmPassword": "a new runtime passphrase",
                 },
                 format="json",
             ),
             password_contract,
         )
         self.user.refresh_from_db()
-        assert self.user.check_password("runtime456")
+        assert self.user.check_password("a new runtime passphrase")
 
         avatar_contract = contracts["information_avatar"]
         image = SimpleUploadedFile(
