@@ -10,6 +10,7 @@ from typing import Any
 from pydantic import Field, field_validator
 
 from app.schemas.base import BaseSchema, TimestampSchema
+from app.schemas.password import NewPassword, Password
 
 
 class Token(BaseSchema):
@@ -47,7 +48,7 @@ class UserLogin(BaseSchema):
     """
 
     username: str = Field(description="用户名")
-    password: str = Field(description="密码")
+    password: Password = Field(description="密码")
     captcha_key: str | None = Field(default=None, description="验证码key")
     captcha_code: str | None = Field(default=None, description="验证码")
 
@@ -104,9 +105,9 @@ class ChangePassword(BaseSchema):
     修改密码请求模型
     """
 
-    old_password: str = Field(description="旧密码")
-    new_password: str = Field(min_length=6, max_length=20, description="新密码")
-    confirm_password: str = Field(min_length=6, max_length=20, description="确认新密码")
+    old_password: Password = Field(description="旧密码")
+    new_password: NewPassword = Field(description="新密码")
+    confirm_password: Password = Field(description="确认新密码")
 
     @field_validator("confirm_password")
     @classmethod
@@ -114,6 +115,11 @@ class ChangePassword(BaseSchema):
         if "new_password" in info.data and v != info.data["new_password"]:
             raise ValueError("两次输入的密码不一致")
         return v
+
+
+class PasswordPolicy(BaseSchema):
+    min_length: int = Field(description="新密码最少 Unicode 字符数")
+    max_length: int = Field(description="新密码最多 Unicode 字符数")
 
 
 class UpdateProfile(BaseSchema):

@@ -3,27 +3,33 @@
 from rest_framework import serializers
 
 from drf_admin.apps.system.models import Users
+from drf_admin.utils.password_validation import validate_password
+
+
+class PasswordPolicySerializer(serializers.Serializer):
+    min_length = serializers.IntegerField(read_only=True)
+    max_length = serializers.IntegerField(read_only=True)
 
 
 class ChangePasswordSerializer(serializers.Serializer):
     """
     个人中心修改密码序列化器
     """
-    old_password = serializers.CharField(write_only=True, help_text="当前密码", required=False)
+    old_password = serializers.CharField(write_only=True, help_text="当前密码", required=False, trim_whitespace=False)
     new_password = serializers.CharField(
         write_only=True,
         help_text="新密码",
         required=False,
-        max_length=20,
-        min_length=6,
+        trim_whitespace=False,
+        validators=[validate_password],
     )
-    confirm_password = serializers.CharField(write_only=True, help_text="确认新密码", required=True)
-    current_password = serializers.CharField(write_only=True, required=False)
+    confirm_password = serializers.CharField(write_only=True, help_text="确认新密码", required=True, trim_whitespace=False)
+    current_password = serializers.CharField(write_only=True, required=False, trim_whitespace=False)
     password = serializers.CharField(
         write_only=True,
         required=False,
-        max_length=20,
-        min_length=6,
+        trim_whitespace=False,
+        validators=[validate_password],
     )
 
     def validate(self, attrs):
@@ -37,12 +43,6 @@ class ChangePasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError('原密码错误')
         if attrs.get('confirm_password') != new_password:
             raise serializers.ValidationError('两次输入密码不一致')
-        if len(new_password) < 6:
-            raise serializers.ValidationError('密码长度不能少于6位')
-        if not any(c.isdigit() for c in new_password):
-            raise serializers.ValidationError('密码必须包含数字')
-        if not any(c.isalpha() for c in new_password):
-            raise serializers.ValidationError('密码必须包含字母')
         attrs["new_password"] = new_password
         return attrs
 

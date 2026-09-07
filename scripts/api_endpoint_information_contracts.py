@@ -5,6 +5,27 @@ from scripts.api_endpoint_contract_types import ContractEvidence, EndpointContra
 
 INFORMATION_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
     EndpointContract(
+        key="information_password_policy",
+        method="GET",
+        path="/api/v1/information/password-policy",
+        auth_required=True,
+        response_fields=("minLength", "maxLength"),
+        evidence=(
+            ContractEvidence(
+                "backend/drf_admin/apps/information/urls.py",
+                ("password-policy", "PasswordPolicyAPIView"),
+            ),
+            ContractEvidence(
+                "fastapi/app/api/v1/information/profile.py",
+                ('@router.get("/password-policy"', "PasswordPolicy"),
+            ),
+            ContractEvidence(
+                "frontend/src/api/information-api.ts",
+                ("getPasswordPolicy", "/password-policy", "minLength", "maxLength"),
+            ),
+        ),
+    ),
+    EndpointContract(
         key="information_profile",
         method="GET",
         path="/api/v1/information/profile/",

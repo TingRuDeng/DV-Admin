@@ -12,6 +12,7 @@ from drf_admin.apps.system.services.field_permission import (
     can_write_sensitive_user_fields,
     has_sensitive_user_write,
 )
+from drf_admin.utils.password_validation import validate_password
 from drf_admin.utils.views import OptionsSerializer
 
 
@@ -71,9 +72,10 @@ class UsersSerializer(serializers.ModelSerializer):
         return apply_user_field_permissions(data, request.user)
 
     def create(self, validated_data):
+        password = validate_password(settings.DEFAULT_PWD)
         user = super().create(validated_data)
         # 添加默认密码
-        user.set_password(settings.DEFAULT_PWD)
+        user.set_password(password)
         user.save()
         return user
 
@@ -92,7 +94,8 @@ class ResetPasswordSerializer(serializers.ModelSerializer):
     """
     重置密码序列化器
     """
-    confirm_password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, trim_whitespace=False, validators=[validate_password])
+    confirm_password = serializers.CharField(write_only=True, trim_whitespace=False)
 
     class Meta:
         model = Users
@@ -112,12 +115,6 @@ class ResetPasswordSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('字段confirm_password为必填项')
         if password != confirm_password:
             raise serializers.ValidationError('两次密码不一致')
-        if len(password) < 6:
-            raise serializers.ValidationError('密码长度不能少于6位')
-        if not any(c.isdigit() for c in password):
-            raise serializers.ValidationError('密码必须包含数字')
-        if not any(c.isalpha() for c in password):
-            raise serializers.ValidationError('密码必须包含字母')
         return attrs
 
     def save(self, **kwargs):
@@ -131,9 +128,9 @@ class UpdateUserProfileSerializer(serializers.ModelSerializer):
     """
     更新个人信息序列化器（包含基本信息和密码）
     """
-    current_password = serializers.CharField(write_only=True, help_text="当前密码", required=False)
-    new_password = serializers.CharField(write_only=True, help_text="新密码", required=False)
-    confirm_password = serializers.CharField(write_only=True, help_text="确认新密码", required=False)
+    current_password = serializers.CharField(write_only=True, help_text="当前密码", required=False, trim_whitespace=False)
+    new_password = serializers.CharField(write_only=True, help_text="新密码", required=False, trim_whitespace=False, validators=[validate_password])
+    confirm_password = serializers.CharField(write_only=True, help_text="确认新密码", required=False, trim_whitespace=False)
 
     class Meta:
         model = Users
@@ -175,9 +172,6 @@ class UpdateUserProfileSerializer(serializers.ModelSerializer):
             if new_password != confirm_password:
                 raise serializers.ValidationError('两次输入的新密码不一致')
             
-            # 密码强度验证
-            if len(new_password) < 6:
-                raise serializers.ValidationError('密码长度不能少于6位')
         
         return attrs
 

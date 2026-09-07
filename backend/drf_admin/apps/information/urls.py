@@ -5,6 +5,7 @@ from django.urls import path
 from drf_admin.apps.information.views import centre
 
 urlpatterns = [
+    path('password-policy', centre.PasswordPolicyAPIView.as_view()),
     path('profile/', centre.CentreAPIView.as_view()),  # 获取个人信息
     path('password', centre.ChangePasswordAPIView.as_view()),  # 修改个人密码（共享契约）
     path('change-password/', centre.ChangePasswordAPIView.as_view()),  # 修改个人密码

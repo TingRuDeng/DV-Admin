@@ -47,8 +47,8 @@ def test_password_change_audit_masks_password_values(
     request_id = "fastapi-password-audit"
     payload = {
         "oldPassword": test_user_with_role["password"],
-        "newPassword": "Newpass123",
-        "confirmPassword": "Newpass123",
+        "newPassword": "a new audit passphrase",
+        "confirmPassword": "a new audit passphrase",
     }
 
     response = auth_client.put(
@@ -73,7 +73,7 @@ def test_password_change_audit_masks_password_values(
     assert context["body"]["oldPassword"] == "******"
     assert context["body"]["newPassword"] == "******"
     assert test_user_with_role["password"] not in json.dumps(context)
-    assert "Newpass123" not in json.dumps(context)
+    assert "a new audit passphrase" not in json.dumps(context)
 
 
 def test_avatar_upload_audit_records_file_metadata(

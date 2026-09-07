@@ -43,7 +43,7 @@ class TestUserServiceCreate:
             name="新用户",
             email=f"newuser_{uuid.uuid4().hex[:8]}@example.com",
             mobile=f"139{uuid.uuid4().hex[:8]}",
-            password="test123",
+            password="a new user passphrase",
             is_active=1,
             dept_id=test_dept_for_service.id,
         )
@@ -66,7 +66,7 @@ class TestUserServiceCreate:
         user_data = UserCreate(
             username=f"default_role_user_{uuid.uuid4().hex[:8]}",
             name="默认角色用户",
-            password="test123",
+            password="a new user passphrase",
         )
 
         result = await user_service.create(user_data)
@@ -84,7 +84,7 @@ class TestUserServiceCreate:
             name="新用户",
             email=f"newuser_{uuid.uuid4().hex[:8]}@example.com",
             mobile=f"139{uuid.uuid4().hex[:8]}",
-            password="test123",
+            password="a new user passphrase",
             is_active=1,
             dept_id=test_dept_for_service.id,
             role_ids=[test_role_for_service.id],
@@ -107,7 +107,7 @@ class TestUserServiceCreate:
             name="重复用户",
             email=f"dup_{uuid.uuid4().hex[:8]}@example.com",
             mobile=f"137{uuid.uuid4().hex[:8]}",
-            password="test123",
+            password="a new user passphrase",
             is_active=1,
         )
 
@@ -124,7 +124,7 @@ class TestUserServiceCreate:
             name="重复手机号",
             email=f"dup_{uuid.uuid4().hex[:8]}@example.com",
             mobile=test_user_for_service.mobile,
-            password="test123",
+            password="a new user passphrase",
             is_active=1,
         )
 
@@ -142,7 +142,7 @@ class TestUserServiceCreate:
             name="敏感创建",
             email=f"sensitive_{uuid.uuid4().hex[:8]}@example.com",
             mobile=f"139{uuid.uuid4().hex[:8]}",
-            password="test123",
+            password="a new user passphrase",
             is_active=1,
         )
 
@@ -162,7 +162,7 @@ class TestUserServiceCreate:
             name="允许创建",
             email=email,
             mobile=mobile,
-            password="test123",
+            password="a new user passphrase",
             is_active=1,
         )
 
@@ -183,7 +183,7 @@ class TestUserServiceCreate:
         user_data = UserCreate(
             username=username,
             name="范围外创建",
-            password="test123",
+            password="a new user passphrase",
             dept_id=scoped_user_context["hidden_dept"].id,
         )
 
@@ -207,7 +207,7 @@ class TestUserServiceCreate:
         user_data = UserCreate(
             username=username,
             name="无效角色创建",
-            password="test123",
+            password="a new user passphrase",
             dept_id=test_dept_for_service.id,
             role_ids=[999999],
         )

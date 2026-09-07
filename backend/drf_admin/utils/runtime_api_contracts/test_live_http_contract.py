@@ -135,8 +135,8 @@ class DjangoLiveHttpContractTestCase(LiveServerTestCase):
             f"{self.live_server_url}/api/v1/information/password",
             json={
                 "oldPassword": "testpass123",
-                "newPassword": "httpPass456",
-                "confirmPassword": "httpPass456",
+                "newPassword": " a new HTTP passphrase ",
+                "confirmPassword": " a new HTTP passphrase ",
             },
             timeout=10,
         )
@@ -144,7 +144,7 @@ class DjangoLiveHttpContractTestCase(LiveServerTestCase):
 
         relogin = requests.post(
             f"{self.live_server_url}/api/v1/oauth/login/",
-            json={"username": self.user.username, "password": "httpPass456"},
+            json={"username": self.user.username, "password": " a new HTTP passphrase "},
             timeout=10,
         )
         self.assertIn("accessToken", self.assert_success(relogin))

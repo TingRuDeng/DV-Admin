@@ -471,7 +471,7 @@ class UsersPasswordTestCase(TestCase):
         """测试重置密码"""
         response = self.client.put(
             f"/api/v1/system/users/{self.user.id}/password/reset/",
-            {"password": "Newpass123", "confirm_password": "Newpass123"},
+            {"password": "a new account passphrase", "confirm_password": "a new account passphrase"},
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -498,7 +498,7 @@ class UsersPasswordTestCase(TestCase):
 
         response = self.client.put(
             f"/api/v1/system/users/{context['hidden_user'].id}/password/reset/",
-            {"password": "Newpass123", "confirm_password": "Newpass123"},
+            {"password": "a new account passphrase", "confirm_password": "a new account passphrase"},
             format="json",
         )
 

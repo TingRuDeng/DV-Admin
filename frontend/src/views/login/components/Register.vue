@@ -15,7 +15,7 @@
       <el-tooltip :visible="isCapsLock" :content="t('login.capsLock')" placement="right">
         <el-form-item prop="password">
           <el-input
-            v-model.trim="model.password"
+            v-model="model.password"
             :placeholder="t('login.password')"
             type="password"
             show-password
@@ -32,7 +32,7 @@
       <el-tooltip :visible="isCapsLock" :content="t('login.capsLock')" placement="right">
         <el-form-item prop="confirmPassword">
           <el-input
-            v-model.trim="model.confirmPassword"
+            v-model="model.confirmPassword"
             :placeholder="t('login.message.password.confirm')"
             type="password"
             show-password
@@ -153,22 +153,12 @@ const rules = computed(() => {
         trigger: "blur",
         message: t("login.message.password.required"),
       },
-      {
-        min: 6,
-        message: t("login.message.password.min"),
-        trigger: "blur",
-      },
     ],
     confirmPassword: [
       {
         required: true,
         trigger: "blur",
         message: t("login.message.password.required"),
-      },
-      {
-        min: 6,
-        message: t("login.message.password.min"),
-        trigger: "blur",
       },
       {
         validator: (_rule, value: unknown) => {

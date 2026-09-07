@@ -15,6 +15,12 @@ class FrontendFieldContract:
 
 API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
     FrontendFieldContract(
+        key="information_password_policy_type",
+        frontend_source="frontend/src/api/information-api.ts",
+        required_fields=frozenset({"minLength", "maxLength"}),
+        tracked_backend_contract="information_password_policy",
+    ),
+    FrontendFieldContract(
         key="auth_info_type",
         frontend_source="frontend/src/api/auth-api.ts",
         required_fields=frozenset(

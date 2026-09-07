@@ -1,6 +1,6 @@
 {
-  "authenticated_count": 55,
-  "endpoint_count": 56,
+  "authenticated_count": 56,
+  "endpoint_count": 57,
   "endpoints": [
     {
       "auth_required": false,
@@ -66,6 +66,25 @@
         "component",
         "meta",
         "path"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/information/urls.py",
+        "fastapi/app/api/v1/information/profile.py",
+        "frontend/src/api/information-api.ts"
+      ],
+      "key": "information_password_policy",
+      "method": "GET",
+      "paginated": false,
+      "path": "/api/v1/information/password-policy",
+      "permissions": [],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "minLength",
+        "maxLength"
       ]
     },
     {

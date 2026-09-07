@@ -12,6 +12,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from tortoise.backends.base.config_generator import expand_db_url
 
+from app.core.password_policy import validate_bounds
 from app.core.security_validator import SecurityValidator
 
 
@@ -60,8 +61,8 @@ class Settings(BaseSettings):
     refresh_token_expire_days: int = Field(default=7, alias="REFRESH_TOKEN_EXPIRE_DAYS")
 
     # 密码配置
-    password_min_length: int = Field(default=8, alias="PASSWORD_MIN_LENGTH")  # 提高最小长度
-    password_max_length: int = Field(default=128, alias="PASSWORD_MAX_LENGTH")  # 提高最大长度
+    password_min_length: int = Field(default=15, alias="PASSWORD_MIN_LENGTH", ge=15, le=128)
+    password_max_length: int = Field(default=128, alias="PASSWORD_MAX_LENGTH", ge=15, le=128)
     default_password: str = Field(alias="DEFAULT_PASSWORD")  # 新增/重置用户使用的显式默认密码
 
     # 分页配置
@@ -99,6 +100,7 @@ class Settings(BaseSettings):
 
     def model_post_init(self, __context) -> None:
         """模型初始化后的验证"""
+        validate_bounds(self.password_min_length, self.password_max_length)
         # 处理密钥
         if self.secret_key:
             # 使用环境变量设置的密钥
