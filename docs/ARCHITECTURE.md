@@ -58,6 +58,7 @@ ai_summary:
 - 共享 API 或数据契约变化时，需要同时考虑两套后端兼容性。
 - Django 与 FastAPI 都提供健康检查能力；Django 请求链路会通过 `X-Request-ID` 串联响应和操作日志。
 - 关键 API 端点不仅校验契约目录，还会静态校验 Django/FastAPI 路由中是否存在对应 `method + path`。
+- 所有实际业务路由再由两端独立的运行时枚举门禁核对 `scripts/api_runtime_route_contracts.py`：关键端点共享目录加显式共享/单端/兼容补充登记。递归进入新增路由模块，未登记、删除和方法漂移均失败；根静态校验不导入后端框架。
 - FastAPI 数据库结构使用 Tortoise ORM 版本化迁移；开发期 schema 自动创建不承担生产演进职责。
 - ADR-0001 的七个阶段已完成；当前技术栈是 Vite 8 和 Vue Router 5，统一壳层与三个代表页验收已保留，最终决定停止批量页面迁移。
 
