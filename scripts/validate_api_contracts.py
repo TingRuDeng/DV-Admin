@@ -22,6 +22,7 @@ from scripts.api_contract_validation_rules import (
 )
 from scripts.api_field_contract_validation import validate_field_contracts, validate_frontend_field_contracts
 from scripts.api_route_coverage_validation import validate_route_coverage
+from scripts.api_runtime_route_contracts import assert_runtime_route_registry
 from scripts.field_permission_contract_validation import validate_field_permission_contracts
 
 
@@ -70,6 +71,13 @@ def validate(root: Path) -> list[str]:
     issues.extend(validate_error_code_contract(root))
     issues.extend(validate_route_coverage(root))
     issues.extend(validate_runtime_contract_test_size(root))
+    try:
+        assert_runtime_route_registry()
+    except AssertionError as exc:
+        issues.append(f"scripts/api_runtime_route_contracts.py: 路由登记无效：{exc}")
+    for path in ("fastapi/tests/test_runtime_route_inventory.py", "backend/drf_admin/utils/test_runtime_route_inventory.py"):
+        if not (root / path).is_file():
+            issues.append(f"{path}: 缺少实际注册路由枚举测试")
     return issues
 
 

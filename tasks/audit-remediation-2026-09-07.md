@@ -15,7 +15,7 @@
 - [x] 冻结锁文件构建生产镜像、产物测试（原 #11）
 - [x] 持久媒体卷、Nginx 只读挂载与迁移说明（原 #4）
 - [x] 双后端头像真实格式、解码及资源预算（原 #7）
-- [ ] 实际注册路由完整性守卫（原 #10）
+- [x] 实际注册路由完整性守卫（原 #10）
 - [ ] 认证有效期文档事实修正（原 #13）
 - [ ] 万级数据基线、数据范围子查询、分块导入查询（原 #12）
 
@@ -110,6 +110,15 @@
 - FastAPI quality 846 passed/1 skipped，覆盖率 89.06%、mypy 150 文件；Django Ruff/全量 285 passed/1 skipped；前端 quality 99 files/308 tests、build 通过。首次前端格式检查发现新长 GIF 常量需换行，Prettier 修正后通过。
 - 真实浏览器两端各六流程通过（FastAPI pytest 1 passed/50.17s；Django HTTP/浏览器 2 passed/42.64s），头像上传后检查实际图片宽度。边界测试覆盖合法六种常见格式、100 帧、4096 单边、3200 万像素、2 MiB 和事务后置失败。
 - 根测试 31 passed；文档/API/模型/组件路由/迁移目录与 diff 检查通过。Review：不做图片重编码、不删除元数据/附加内容、不扫描普通附件病毒、不更改公开媒体访问策略；未声称全面上传安全治理完成。
+
+### 第八项：实际路由完整性
+
+- 分支：`codex/audit-runtime-route-inventory`，基于第七项 `71ccc11` / PR #371；第七项七个远端门禁全部通过，未合并。
+- RED：两端递归枚举实际注册路由，各发现 31 个尚未登记的入口；逐个审查后把业务入口登记为共享、后端独占或兼容，框架文档入口明确排除，没有自动接受快照。
+- Django URLResolver/DRF actions 与 FastAPI routes/Mount 分别在自己的测试环境枚举；规范化后 Django 88、FastAPI 87 个业务 method/path。根校验器只检查纯目录自洽和测试入口，不导入框架。
+- 新增子模块未登记路由、删除登记路由、方法变化及单独 HEAD/OPTIONS 均有失败守卫；仅排除明确健康/文档路径和伴随业务方法生成的 HEAD/OPTIONS。
+- FastAPI 完整 quality：848 passed/1 skipped，覆盖率 89.06%，mypy 150 文件、Ruff/isort/迁移通过；Django Ruff/全量 287 passed/1 skipped；根 unittest 35 passed。文档/API/模型契约与 diff 检查通过。
+- Review：登记不等于新增共享能力，也不代表所有补充路由已经具备字段/行为契约；保留既有静态证据检查作为快速校验。没有业务行为修改，第三批结束再运行前端全量门禁。
 
 ## 剩余风险
 
