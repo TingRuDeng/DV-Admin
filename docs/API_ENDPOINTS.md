@@ -223,11 +223,13 @@ POST /api/v1/oauth/login/
     "accessToken": "eyJ...",
     "refreshToken": "eyJ...",
     "tokenType": "bearer",
-    "expiresIn": 7200,
+    "expiresIn": 1800,
     "refreshExpiresIn": 604800
   }
 }
 ```
+
+以上为 FastAPI 默认有效期示例，不是不可配置的常量。两端 Access Token 默认均为 1800 秒（30 分钟）；FastAPI Refresh Token 默认 604800 秒（7 天），Django 默认 86400 秒（1 天）。FastAPI 使用 `ACCESS_TOKEN_EXPIRE_MINUTES` / `REFRESH_TOKEN_EXPIRE_DAYS`，Django 使用 `JWT_ACCESS_TOKEN_LIFETIME`（分钟）/ `JWT_REFRESH_TOKEN_LIFETIME`（天）覆盖；以实际响应和运行配置为准。
 
 ---
 
@@ -260,7 +262,7 @@ POST /api/v1/oauth/refresh-token/
     "accessToken": "eyJ...",
     "refreshToken": "eyJ...",
     "tokenType": "bearer",
-    "expiresIn": 3600
+    "expiresIn": 1800
   }
 }
 ```
