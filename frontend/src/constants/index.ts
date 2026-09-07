@@ -12,7 +12,7 @@ export const STORAGE_KEYS = {
   REMEMBER_ME: `${APP_PREFIX}:auth:remember_me`, // 记住登录状态
 
   // 系统核心相关
-  DICT_CACHE: `${APP_PREFIX}:system:dict_cache`, // 字典数据缓存
+  DICT_CACHE: `${APP_PREFIX}:system:dict_cache:v2`, // 仅缓存按 dictCode 取齐的字典项
 
   // UI设置相关
   SHOW_TAGS_VIEW: `${APP_PREFIX}:ui:show_tags_view`, // 显示标签页视图
