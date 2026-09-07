@@ -92,6 +92,15 @@
 - FastAPI quality 832 passed/1 skipped、88.76%；Django全量 282 passed/1 skipped，随后新增生产环境名的健康测试 7 passed；根测试 30 passed，文档/API/模型/迁移目录校验及 diff 通过。
 - Review：实际 Django 使用既有 WSGI 入口，不宣称已验收 ASGI/WebSocket；Debian 编译依赖尚未快照锁定，不宣称逐字节重现。生产凭据、数据库及媒体未修改；媒体卷在下一子项处理。
 
+### 第六项：媒体持久化
+
+- 分支：`codex/audit-media-persistence`，基于第五项 `874d6af` / PR #369；第五项七个远端门禁（含两端 Linux 实际镜像）全部通过。
+- RED：媒体配置守卫发现 Django 不支持 MEDIA_ROOT 环境覆盖、镜像目录与 Nginx 不一致、无只读持久卷。
+- 两端生产镜像使用 `/data/media`，非 root UID/GID 10001；新生产 Compose 以一个后端覆盖文件选择实现、单例迁移先行、API 读写、Nginx 只读。开发默认不变，现有 FastAPI Compose 同步挂载。未搬动真实文件或修改数据库标识。
+- 根测试 31 passed；Django 健康/头像/媒体 URL 13 passed、Ruff 通过；文档/API/模型校验通过。新增实际产物脚本经生产 Nginx 上传头像、检查只读卷、替换 API 容器后比较内容，并检查 503 透传。
+- 本机 Docker 在本项验证中所有新容器均停于 Created（连仅输出 Python 版本的容器也无法启动，沙箱外同样失败）；已终止本次客户端并删除自身测试容器，没有重启 Docker/现有开发服务。本机实际媒体验收未完成，交由新增独立 Linux CI 产物门禁复验，结果另记，不以静态绿灯替代。
+- Review：目录外链接不得迁入公开媒体卷；旧文件迁移和权限修复由维护者在维护窗口按 MEDIA_DEPLOYMENT.md 执行；不可直接互换两端数据库。只读 Nginx 配置在测试中用 docker cp 载入，媒体仍真实只读卷，避免宿主 Desktop 文件共享依赖。
+
 ## 剩余风险
 
 旧弱密码不追溯修改；共享初始密码仍需受控分发；媒体 URL 保持公开；普通附件深度检查和 iframe 隔离未纳入本轮。

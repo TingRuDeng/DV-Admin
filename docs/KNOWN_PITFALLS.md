@@ -605,8 +605,8 @@ async def test_async_function():
 
 **Django 生产 Nginx 配置示例：**
 
-下例假定 Django 的 `MEDIA_ROOT`（当前为 `backend/drf_admin/media`）在 Nginx 中只读挂载为
-`/srv/dv-admin/media/`。这是挂载路径示例，不是现有 Compose 已配置的路径；后端写入目录
+下例假定 Django 的 `MEDIA_ROOT`（开发默认 `backend/drf_admin/media`）在 Nginx 中只读挂载为
+`/data/media/`。生产 Compose 已按此路径配置，迁移旧文件见 [媒体部署与回退](MEDIA_DEPLOYMENT.md)；后端写入目录
 和 Nginx 读取目录必须指向同一持久化卷，且 Nginx 进程具有目录遍历和文件读取权限。
 
 ```nginx
@@ -621,13 +621,13 @@ server {
     }
 
     location ^~ /media/ {
-        alias /srv/dv-admin/media/;
+        alias /data/media/;
     }
 }
 ```
 
 `location` 和 `alias` 的末尾都保留 `/`，例如 `/media/files/1/a.txt` 应映射为
-`/srv/dv-admin/media/files/1/a.txt`。不要将项目根目录或配置目录作为媒体目录公开。
+`/data/media/files/1/a.txt`。不要将项目根目录或配置目录作为媒体目录公开。
 
 若选择 FastAPI 且由应用提供媒体文件，可将上述媒体 `location` 替换为：
 

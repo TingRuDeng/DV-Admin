@@ -10,14 +10,14 @@ COPY app ./app
 RUN uv sync --frozen --no-dev --no-editable
 
 FROM ${PYTHON_IMAGE}
-ENV PATH="/opt/venv/bin:$PATH" VIRTUAL_ENV=/opt/venv \
+ENV PATH="/opt/venv/bin:$PATH" VIRTUAL_ENV=/opt/venv UPLOAD_DIR=/data/media \
     PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 TZ=Asia/Shanghai
 WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 COPY --from=builder /usr/local/bin/uv /usr/local/bin/uv
 RUN groupadd -g 10001 appgroup && useradd -u 10001 -g appgroup appuser \
-    && mkdir -p /app/uploads /app/logs /data/db \
-    && chown 10001:10001 /app/uploads /app/logs /data/db
+    && mkdir -p /app/uploads /app/logs /data/db /data/media \
+    && chown 10001:10001 /app/uploads /app/logs /data/db /data/media
 USER 10001:10001
 EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=6s --start-period=10s --retries=3 \
