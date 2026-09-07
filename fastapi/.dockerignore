@@ -1,0 +1,17 @@
+.env*
+.venv
+.git
+.agents
+.codex
+**/__pycache__
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage*
+logs
+uploads
+**/*.sqlite3
+**/*.db
+build
+dist
+*.egg-info

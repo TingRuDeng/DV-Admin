@@ -67,6 +67,10 @@ ai_summary:
 
 ## 当前技术债务
 
+生产构建边界：两端 Python/uv 镜像摘要、应用依赖锁及非 editable 安装已统一；实际产物门禁独立于源码测试。
+FastAPI ARM64 的 asyncmy 仍需在 builder 中编译，系统编译依赖来自 Debian 仓库，尚不宣称逐字节可复现构建。
+Django 当前镜像为 WSGI，Channels/WebSocket 的 ASGI 部署需要独立验证；媒体卷持久化由本轮下一子项处理。
+
 ### 1. Django 和 FastAPI 模型差异
 
 **级别：** 🟡 中

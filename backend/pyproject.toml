@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools==80.9.0", "wheel==0.45.1"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "backend"
 version = "0.1.0"
@@ -42,6 +46,12 @@ dev = [
     "pytest-django>=4.8.0",
     "ruff>=0.6.0",
 ]
+
+[tool.setuptools.packages.find]
+include = ["drf_admin*"]
+
+[tool.setuptools.package-data]
+"drf_admin.utils" = ["data/*"]
 
 [tool.ruff]
 line-length = 100
