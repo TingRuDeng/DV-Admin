@@ -155,6 +155,11 @@ frontend/src/
 - **认证模块**：`store/modules/user-store.ts`, `api/auth-api.ts`
 - **权限模块**：`store/modules/permission-store.ts`, `directives/permission/`
 - **字典模块**：`store/modules/dict-store.ts`, `components/Dict/`
+
+字典标签和选择器通过 `dict-items-api.ts:getDictItems` 消费两端共享的分页接口：使用
+`dictCode/pageNum/pageSize` 取齐结果后才缓存数组，保留 `label/value/tagType`。字典缓存键升级为
+`vea:system:dict_cache:v2`，不复用旧版本可能未筛选或把分页对象当数组写入的持久化数据；有效空数组
+仍可缓存，格式异常的缓存条目会重新请求。真实浏览器门禁同时断言通知字典标签、颜色及无 `pageerror`。
 - **布局模块**：`layouts/` (支持 left/top/mix 三种布局模式)
 
 **前端样式治理：**

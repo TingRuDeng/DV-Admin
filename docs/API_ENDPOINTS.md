@@ -450,12 +450,20 @@ POST   /api/v1/system/dicts/          # 创建字典类型
 GET    /api/v1/system/dicts/{id}/     # 字典类型详情
 PUT    /api/v1/system/dicts/{id}/     # 更新字典类型
 DELETE /api/v1/system/dicts/          # 批量删除字典类型，请求体 ids
-GET    /api/v1/system/dict-items/     # 字典项列表
+GET    /api/v1/system/dict-items/     # 字典项分页，dictCode/pageNum/pageSize
 POST   /api/v1/system/dict-items/     # 创建字典项
 GET    /api/v1/system/dict-items/{id}/ # 字典项详情
 PUT    /api/v1/system/dict-items/{id}/ # 更新字典项
 DELETE /api/v1/system/dict-items/     # 批量删除字典项，请求体 ids
 ```
+
+两端字典项列表均返回 `data: {list, total}`，按字典编码筛选使用 `dictCode`，不使用旧的
+`dict__dict_code`。前端标签/选择器的 `getDictItems` 按 `pageSize=100` 逐页取齐，再向调用方
+返回数组；不是另一个数组型后端接口。加载失败或分页响应不完整时不写入部分缓存。
+
+通知表单使用的用户选项地址为 `GET /api/v1/system/users/options/`，前端直接请求尾斜杠路径，
+避免 Django 301 跳转丢失开发代理前缀。FastAPI 同时保留旧的无尾斜杠入口，两个地址直接返回
+同一数组响应，不依赖重定向；权限要求不变。
 
 ---
 
