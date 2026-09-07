@@ -53,7 +53,7 @@ async def test_user_for_service(db, test_dept_for_service):
 async def scoped_user_context(db):
     """创建部门数据范围操作人与可见/不可见用户。"""
     from app.db.models.oauth import Users
-    from app.db.models.system import Departments, Roles
+    from app.db.models.system import Departments, Permissions, Roles
 
     visible_dept = await Departments.create(
         name=f"范围内部门_{uuid.uuid4().hex[:6]}",
@@ -79,6 +79,9 @@ async def scoped_user_context(db):
         is_active=1,
     )
     await operator.roles.add(role)
+    for action in ("add", "edit", "delete", "import", "password:reset"):
+        permission = await Permissions.create(name=action, type="BUTTON", perm=f"system:users:{action}")
+        await role.permissions.add(permission)
     visible_user = await Users.create(
         username=f"visible_user_{uuid.uuid4().hex[:8]}",
         password="admin123",

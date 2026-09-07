@@ -4,7 +4,7 @@ import logging
 
 from django.db import transaction
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
@@ -24,6 +24,7 @@ from drf_admin.apps.system.services.batch_delete import (
     preflight_batch_ids,
     success_item,
 )
+from drf_admin.apps.system.services.grant_boundary import check_role_write
 from drf_admin.apps.system.signals import clear_user_permission_cache
 from drf_admin.utils.audit import set_audit_context, set_audit_object
 from drf_admin.utils.views import AdminViewSet, AutoPermissionAPIView
@@ -32,6 +33,7 @@ logger = logging.getLogger("error")
 
 PROTECTED_ROLE_IDENTIFIERS = frozenset(
     {
+        "root",
         "admin",
         "superadmin",
         "administrator",
@@ -96,6 +98,28 @@ class RolesViewSet(AdminViewSet):
         else:
             return RolesSerializer
 
+    @transaction.atomic
+    def perform_create(self, serializer):
+        check_role_write(self.request.user, "system:roles:add", None, serializer.validated_data)
+        serializer.save()
+
+    @transaction.atomic
+    def perform_update(self, serializer):
+        role_id = serializer.instance.pk
+        check_role_write(self.request.user, "system:roles:edit", role_id, serializer.validated_data)
+        serializer.instance = Roles.objects.select_for_update().get(pk=role_id)
+        serializer.save()
+        user_ids = list(Users.objects.filter(roles__id=role_id).values_list("id", flat=True))
+        transaction.on_commit(lambda: [clear_user_permission_cache(uid) for uid in user_ids])
+
+    @transaction.atomic
+    def perform_destroy(self, instance):
+        instance = Roles.objects.select_for_update().get(pk=instance.pk)
+        if self._is_protected_role(instance):
+            raise ValidationError("系统角色不可删除")
+        check_role_write(self.request.user, "system:roles:delete", instance.pk, {})
+        instance.delete()
+
     # def update(self, request, *args, **kwargs):
     #     if self.get_object().name == 'admin':
     #         return Response(data={'detail': 'admin角色不可修改'}, status=status.HTTP_400_BAD_REQUEST)
@@ -156,6 +180,7 @@ class RolesViewSet(AdminViewSet):
             outcome = self._delete_one_for_batch(
                 role_id,
                 object_name,
+                current_user=request.user,
                 missing_code="ALREADY_DELETED" if retry else "NOT_FOUND",
                 missing_message="角色已不存在" if retry else "角色不存在",
             )
@@ -200,6 +225,7 @@ class RolesViewSet(AdminViewSet):
         role_id: int,
         object_name: str,
         *,
+        current_user=None,
         missing_code: str,
         missing_message: str,
     ) -> dict:
@@ -222,10 +248,13 @@ class RolesViewSet(AdminViewSet):
                         "success": False,
                         "failure": cls._protected_failure(role_id, object_name),
                     }
+                check_role_write(current_user, "system:roles:delete", role_id, {})
                 affected_user_ids = list(
                     Users.objects.filter(roles=locked_role).values_list("id", flat=True)
                 )
                 locked_role.delete()
+        except PermissionDenied as exc:
+            return {"success": False, "failure": failure_item(role_id, object_name=object_name, error_code="PERMISSION_DENIED", message=str(exc.detail), retryable=False)}
         except Exception:  # noqa: BLE001 - 单条失败不能阻塞其余项目
             return {
                 "success": False,
@@ -247,6 +276,7 @@ class RolesViewSet(AdminViewSet):
         return {"success": True}
 
     @action(detail=True, methods=['put'], url_path='menus')
+    @transaction.atomic
     def assign_menus(self, request, *args, **kwargs):
         """分配角色菜单权限"""
         serializer = RolesMenuAssignSerializer(data=request.data)
@@ -264,6 +294,7 @@ class RolesViewSet(AdminViewSet):
             raise ValidationError({'menuIds': '权限不存在'})
 
         role = self.get_object()
+        check_role_write(request.user, "system:roles:edit", role.pk, {"permissions": menu_ids})
         role.permissions.set(permissions)
         return Response(data=list(role.permissions.values_list('id', flat=True)))
 

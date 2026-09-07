@@ -178,7 +178,7 @@ class Users(AbstractUser):
 
     def _get_user_permissions(self):
         perms = set()
-        for role in self.roles.all():
+        for role in (role for role in self.roles.all() if role.status == 1):
             for perm in role.permissions.all():
                 if perm.perm:
                     perms.add(perm.perm)
@@ -186,7 +186,7 @@ class Users(AbstractUser):
 
     def get_menus(self):
         perm_ids = set()
-        for role in self.roles.all():
+        for role in (role for role in self.roles.all() if role.status == 1):
             for perm in role.permissions.all():
                 if perm.type in ["CATALOG", "MENU", "EXTLINK"]:
                     perm_ids.add(perm.id)

@@ -6,13 +6,13 @@ from django.conf import settings
 from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins
-from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.response import Response
 
 from drf_admin.apps.system.filters.users import UsersFilter
-from drf_admin.apps.system.models import Permissions, Users
+from drf_admin.apps.system.models import Permissions, Roles, Users
 from drf_admin.apps.system.serializers.batch_delete import BatchDeleteResultSerializer
 from drf_admin.apps.system.serializers.users import (
     ResetPasswordSerializer,
@@ -28,6 +28,7 @@ from drf_admin.apps.system.services.batch_delete import (
     success_item,
 )
 from drf_admin.apps.system.services.data_scope import apply_user_data_scope
+from drf_admin.apps.system.services.grant_boundary import GrantBoundary
 from drf_admin.apps.system.services.user_import_export import (
     build_import_template,
     export_users,
@@ -90,6 +91,39 @@ class UsersViewSet(AdminViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         return apply_user_data_scope(queryset, self.request.user)
+
+    @transaction.atomic
+    def perform_create(self, serializer):
+        boundary = GrantBoundary.load(self.request.user, "system:users:add")
+        data = serializer.validated_data
+        roles = data.get("roles")
+        if roles is None:
+            roles = list(Roles.objects.filter(is_default=1, status=1).select_for_update()[:1])
+        else:
+            roles = list(Roles.objects.filter(id__in=[role.id for role in roles]).order_by("id").select_for_update())
+        boundary.user(Users(dept_id=data.get("dept_id")), roles, creating=True)
+        serializer.save(roles=roles)
+
+    @transaction.atomic
+    def perform_update(self, serializer):
+        boundary = GrantBoundary.load(self.request.user, "system:users:edit")
+        user = Users.objects.select_for_update().get(pk=serializer.instance.pk)
+        roles = serializer.validated_data.get("roles")
+        if roles is not None:
+            roles = list(Roles.objects.filter(id__in=[role.id for role in roles]).order_by("id").select_for_update())
+        dept_id = serializer.validated_data.get("dept_id", user.dept_id)
+        boundary.user(user, roles, dept_id=dept_id)
+        serializer.instance = user
+        serializer.save()
+
+    @transaction.atomic
+    def perform_destroy(self, instance):
+        if instance.pk == self.request.user.pk:
+            raise ValidationError("不能删除当前登录用户")
+        boundary = GrantBoundary.load(self.request.user, "system:users:delete")
+        user = Users.objects.select_for_update().get(pk=instance.pk)
+        boundary.user(user)
+        user.delete()
 
     def validate_ids(self, delete_ids):
         """批量删除必须全部处于当前数据范围，且不因重复 ID 误判。"""
@@ -194,8 +228,12 @@ class UsersViewSet(AdminViewSet):
                             )
                         )
                     else:
+                        boundary = GrantBoundary.load(request.user, "system:users:delete")
+                        boundary.user(locked_user)
                         locked_user.delete()
                         success_items.append(success_item(user_id, object_name))
+            except PermissionDenied as exc:
+                failures.append(failure_item(user_id, object_name=object_name, error_code="PERMISSION_DENIED", message=str(exc.detail), retryable=False))
             except Exception:  # noqa: BLE001 - 单条失败不能阻塞其余项目
                 failures.append(
                     failure_item(
@@ -342,6 +380,14 @@ class ResetPasswordAPIView(mixins.UpdateModelMixin, AutoPermissionAPIView, Gener
     def get_queryset(self):
         return apply_user_data_scope(super().get_queryset(), self.request.user)
 
+    @transaction.atomic
+    def perform_update(self, serializer):
+        boundary = GrantBoundary.load(self.request.user, "system:users:password:reset")
+        user = Users.objects.select_for_update().get(pk=serializer.instance.pk)
+        boundary.user(user)
+        serializer.instance = user
+        serializer.save()
+
     def initial(self, request, *args, **kwargs):
         set_audit_object(
             request,
@@ -418,7 +464,7 @@ class PermissionsAPIView(AutoPermissionAPIView):
         if user is None:
             raise NotFound("用户不存在")
         # admin角色
-        if 'admin' in user.roles.values_list('name', flat=True) or user.is_superuser:
+        if user.is_superuser:
             return Response(data={'results': Permissions.objects.values_list('id', flat=True)})
         # 其他角色
-        return Response(data={'results': list(filter(None, set(user.roles.values_list('permissions__id', flat=True))))})
+        return Response(data={'results': list(filter(None, set(user.roles.filter(status=1).values_list('permissions__id', flat=True))))})

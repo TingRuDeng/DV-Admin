@@ -4,6 +4,7 @@ import logging
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db import transaction
 from django.db.models.signals import m2m_changed, post_save, pre_delete
 from django.dispatch import receiver
 from django_redis import get_redis_connection
@@ -30,9 +31,18 @@ def clear_user_permission_cache(user_id):
 @receiver(post_save, sender=Users)
 def assign_default_role(sender, instance, created, **kwargs):
     if created:
-        default_role = Roles.objects.filter(is_default=True).first()
+        default_role = Roles.objects.filter(is_default=True, status=1).first()
         if default_role:
             instance.roles.add(default_role)
+
+
+@receiver(post_save, sender=Roles)
+def role_saved(sender, instance, created, **kwargs):
+    if not created:
+        user_ids = list(Users.objects.filter(roles=instance).values_list("id", flat=True))
+        for user_id in user_ids:
+            clear_user_permission_cache(user_id)
+        transaction.on_commit(lambda: [clear_user_permission_cache(uid) for uid in user_ids])
 
 
 @receiver(m2m_changed, sender=Roles.permissions.through)

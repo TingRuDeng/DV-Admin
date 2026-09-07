@@ -102,6 +102,7 @@ class CustomAuditEntryTestCase(TestCase):
     def test_role_menu_assignment_links_role(self):
         role = Roles.objects.create(name="审计授权角色", code="audit-role", status=1)
         menu = Permissions.objects.create(name="审计菜单", type="MENU", perm="audit:menu")
+        self.user.roles.first().permissions.add(menu)
         request_id = self.request_id()
 
         response = self.client.put(

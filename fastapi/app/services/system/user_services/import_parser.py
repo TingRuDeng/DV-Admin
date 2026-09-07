@@ -82,10 +82,10 @@ class UserImportParserMixin:
         mobile_values = await Users.filter(mobile__isnull=False).values_list("mobile", flat=True)
         return ImportContext(
             all_depts={dept.id: dept for dept in await Departments.all()},
-            all_roles={role.id: role for role in await Roles.filter(status=1).all()},
+            all_roles={role.id: role for role in await Roles.filter(status=1).order_by("id").select_for_update()},
             existing_usernames={str(username) for username in username_values},
             existing_mobiles={str(mobile) for mobile in mobile_values if mobile},
-            default_role=await Roles.filter(is_default=1).first(),
+            default_role=await Roles.filter(is_default=1, status=1).select_for_update().first(),
         )
 
     def _parse_import_row(
