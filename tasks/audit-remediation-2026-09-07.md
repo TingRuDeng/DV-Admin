@@ -17,7 +17,7 @@
 - [x] 双后端头像真实格式、解码及资源预算（原 #7）
 - [x] 实际注册路由完整性守卫（原 #10）
 - [x] 认证有效期文档事实修正（原 #13）
-- [ ] 万级数据基线、数据范围子查询、分块导入查询（原 #12）
+- [x] 万级数据基线、数据范围子查询、分块导入查询（原 #12）
 
 ## 验证与审查
 
@@ -127,6 +127,36 @@
 - 修正登录、OAuth 表单登录和刷新接口的示例/说明，以及 API/架构文档；明确 FastAPI Refresh 默认 7 天、Django 默认 1 天，列出分钟/天配置覆盖项。不改任何签发逻辑、有效期配置或已有令牌。
 - FastAPI 新示例及登录/刷新/会话回归 15 passed，Ruff/isort 通过；Django JWT 配置辅助测试 11 passed；文档/API/模型校验与 diff 通过。误用不存在的旧测试文件名的一次命令未运行测试，已改用当前文件并取得上述真实结果。
 - Review：默认示例与运行配置分开，不能据文档推断实际部署值；新增守卫解析实际 OpenAPI 和文档 JSON。第三批全量门禁在性能子项结束后复验。
+
+### 第十项：数据范围与导入性能
+
+- 分支：`codex/audit-data-scope-import-performance`，基于第九项 `a5807b9` / PR #373；第八/九项 PR #372/#373 均已七个远端门禁通过，未合并。
+- RED：隔离 SQLite 一万用户、两部门各 5000 人，范围查询单次携带 Django 5000 / FastAPI 5001 参数；导入预加载读取全库 10000 个用户名及手机号。初始 Django 日志夹具使用错误字段名，修正夹具后取得真实行为失败及完整基线，没有将夹具异常算作问题复现。
+- 两端改为用户数据库 OR 条件和日志/通知单列用户子查询；空集合、SELF+自定义范围并集、停用角色、超管及事务连接均有回归。导入两遍工作表读取，只收集本文件引用，用户名/手机号/部门/角色按 500 项查询，保留逐行结果、默认角色和整体事务回滚。
+- 实测范围查询最大参数数降到 2；导入针对 1001 条引用只缓存 1001 个用户名/手机号，拆为 500/500/1。时间、查询数、总参数数和 Python 峰值详见 PERFORMANCE_BASELINE.md；并不宣称所有场景都更快。
+- FastAPI quality 最终 855 passed/1 skipped，89.22% 覆盖率、mypy 151 文件、Ruff/isort/SQLite 迁移全部通过。首次 mypy 指出 Tortoise flat values_list 类型标注及不同元素类型共用循环变量，已补精确 cast 和独立变量后全量重跑。Django Ruff/全量 290 passed/1 skipped；根 unittest 38 passed。
+- 前端 quality 99 files/308 tests、build 通过；真实浏览器两端各六流程通过（FastAPI pytest 1 passed/45.73s；Django HTTP/浏览器 2 passed/40.56s）。文档/API/模型/组件路由/迁移目录校验、py_compile 和 diff 检查通过。
+- 浏览器观察：FastAPI 六流程虽通过，但字典标签存在 `dictItems.find is not a function` 未处理异常。已核实 API 类型/筛选参数与分页对象冲突的相关文件相对本轮基线无变更，登记 TECH_DEBT；不把流程通过视为前端无错误，不在本性能 PR 改字典契约。
+- Review：无索引、队列或数据库迁移，没有优化掉事务内权限重读。授权图所需组织元数据仍会读取；MySQL 真实执行计划/并发锁、逐行哈希/授权/写入和完整列表序列化成本不由本基线覆盖。
+
+## 交付索引
+
+下列 PR 逐项叠加，只有第一项以 `master` 为基线，其余以前一项分支为基线；本轮不自动合并或部署。
+
+| 项目 | PR |
+| --- | --- |
+| 令牌撤销与就绪 | [#365](https://github.com/TingRuDeng/DV-Admin/pull/365) |
+| 登录防刷 | [#366](https://github.com/TingRuDeng/DV-Admin/pull/366) |
+| 密码策略 | [#367](https://github.com/TingRuDeng/DV-Admin/pull/367) |
+| 角色边界 | [#368](https://github.com/TingRuDeng/DV-Admin/pull/368) |
+| 生产镜像 | [#369](https://github.com/TingRuDeng/DV-Admin/pull/369) |
+| 媒体持久化 | [#370](https://github.com/TingRuDeng/DV-Admin/pull/370) |
+| 头像校验 | [#371](https://github.com/TingRuDeng/DV-Admin/pull/371) |
+| 路由完整性 | [#372](https://github.com/TingRuDeng/DV-Admin/pull/372) |
+| 认证示例 | [#373](https://github.com/TingRuDeng/DV-Admin/pull/373) |
+| 数据范围与导入 | [#374](https://github.com/TingRuDeng/DV-Admin/pull/374) |
+
+最后一项主体提交 `6e7b047`。前端生产依赖审计 high/critical 为 0、moderate 为 3，未使用豁免。最终复核整个提交范围发现第七项两份新增头像校验器末尾空行，追加纯格式清理；此前工作区 `git diff --check` 不包含已提交的新文件，交付补充检查 `git diff master --check`，不改头像逻辑或降低校验。
 
 ## 剩余风险
 
