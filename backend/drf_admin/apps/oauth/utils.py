@@ -1,8 +1,10 @@
 import re
 
 import requests
+from django.conf import settings
 from django.contrib.auth.backends import ModelBackend
 
+from drf_admin.apps.oauth.login_throttle_policy import trusted_client_ip
 from drf_admin.apps.system.models import Users
 
 
@@ -31,11 +33,11 @@ def get_request_ip(request):
     :param request: request请求对象
     :return: ip
     """
-    if request.META.get("HTTP_X_FORWARDED_FOR"):
-        ip = request.META["HTTP_X_FORWARDED_FOR"]
-    else:
-        ip = request.META["REMOTE_ADDR"]
-    return ip
+    return trusted_client_ip(
+        request.META.get("REMOTE_ADDR", ""),
+        request.META.get("HTTP_X_FORWARDED_FOR", ""),
+        settings.TRUSTED_PROXY_IPS,
+    )
 
 
 def get_ip_address(ip):

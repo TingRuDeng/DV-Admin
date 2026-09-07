@@ -20,4 +20,6 @@ export const enum ApiCodeEnum {
    * 刷新令牌无效或过期
    */
   REFRESH_TOKEN_INVALID = 40002,
+  RATE_LIMIT = 429,
+  SERVICE_UNAVAILABLE = 503,
 }

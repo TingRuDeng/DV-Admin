@@ -8,6 +8,8 @@ SUCCESS_CODE = 20000
 ERROR_CODE = 40000
 ACCESS_TOKEN_INVALID_CODE = 40001
 REFRESH_TOKEN_INVALID_CODE = 40002
+RATE_LIMIT_CODE = 429
+SERVICE_UNAVAILABLE_CODE = 503
 
 
 @dataclass(frozen=True)
@@ -24,6 +26,8 @@ API_ERROR_CODES: tuple[ApiErrorCode, ...] = (
     ApiErrorCode("ERROR", ERROR_CODE, "通用业务错误"),
     ApiErrorCode("ACCESS_TOKEN_INVALID", ACCESS_TOKEN_INVALID_CODE, "Access Token 无效或过期"),
     ApiErrorCode("REFRESH_TOKEN_INVALID", REFRESH_TOKEN_INVALID_CODE, "Refresh Token 无效或过期"),
+    ApiErrorCode("RATE_LIMIT", RATE_LIMIT_CODE, "请求限速，按 Retry-After 重试"),
+    ApiErrorCode("SERVICE_UNAVAILABLE", SERVICE_UNAVAILABLE_CODE, "依赖暂不可用，不代表登录失效"),
 )
 
 API_ERROR_CODE_VALUES: Mapping[str, int] = MappingProxyType(

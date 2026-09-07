@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8769
     workers: int = 1
+    trusted_proxy_ips: str = Field(default="", alias="TRUSTED_PROXY_IPS")
 
     # 数据库配置 - 默认为 SQLite
     database_url: str = Field(

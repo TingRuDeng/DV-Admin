@@ -145,7 +145,10 @@ async def test_structured_context_failure_does_not_fail_successful_request(monke
     assert response.body == b"ok"
 
 
-def test_get_client_ip_prefers_forwarded_for_header():
+def test_get_client_ip_prefers_trusted_forwarded_for_header(monkeypatch):
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "trusted_proxy_ips", "127.0.0.1,10.0.0.2")
     request = make_request(
         headers=[
             (b"x-forwarded-for", b"10.0.0.1, 10.0.0.2"),
@@ -156,10 +159,14 @@ def test_get_client_ip_prefers_forwarded_for_header():
     assert get_client_ip(request) == "10.0.0.1"
 
 
-def test_get_client_ip_uses_real_ip_when_forwarded_for_missing():
+def test_get_client_ip_ignores_untrusted_real_ip():
     request = make_request(headers=[(b"x-real-ip", b"10.0.0.3")])
 
-    assert get_client_ip(request) == "10.0.0.3"
+    assert get_client_ip(request) == "127.0.0.1"
+
+
+def test_get_client_ip_ignores_untrusted_forwarded_for():
+    assert get_client_ip(make_request(headers=[(b"x-forwarded-for", b"10.0.0.1")])) == "127.0.0.1"
 
 
 def test_parse_user_agent_extracts_browser_os_and_device():

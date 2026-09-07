@@ -118,6 +118,8 @@ jobs:
       - name: Install dependencies
         working-directory: backend
         run: uv sync --frozen --group dev
+      - name: Install isolated login security store
+        run: sudo apt-get update && sudo apt-get install -y redis-server
       - name: Create .env.test
         working-directory: backend
         run: |
@@ -263,6 +265,8 @@ jobs:
       - name: Install backend dependencies
         working-directory: ${{ matrix.project_dir }}
         run: uv sync --frozen --group dev
+      - name: Install isolated login security store
+        run: sudo apt-get update && sudo apt-get install -y redis-server
       - name: Create FastAPI test environment
         if: matrix.backend == 'FastAPI'
         working-directory: fastapi
