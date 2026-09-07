@@ -49,3 +49,8 @@ class HealthEndpointTests(TestCase):
     @override_settings(ENVIRONMENT="production", REDIS_HOST="", REDIS_PORT=None)
     def test_production_missing_redis_is_not_ready(self):
         self.assertEqual(self.client.get("/health/ready").status_code, 503)
+
+    @override_settings(ENVIRONMENT="pro", REDIS_HOST="redis", REDIS_PORT=6379)
+    def test_production_settings_file_environment_checks_redis(self):
+        with patch("django_redis.get_redis_connection", side_effect=ConnectionError("lost")):
+            self.assertEqual(self.client.get("/health/ready").status_code, 503)
