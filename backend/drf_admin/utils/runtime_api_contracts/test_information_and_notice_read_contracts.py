@@ -78,7 +78,7 @@ class DjangoRuntimeInformationApiContractTestCase(TestCase):
         avatar_contract = contracts["information_avatar"]
         image = SimpleUploadedFile(
             "runtime-avatar.gif",
-            base64.b64decode("R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="),
+            base64.b64decode("R0lGODdhAQABAIEAAP8AAAAAAAAAAAAAACwAAAAAAQABAAAIBAABBAQAOw=="),
             content_type="image/gif",
         )
         avatar = assert_success_payload(
