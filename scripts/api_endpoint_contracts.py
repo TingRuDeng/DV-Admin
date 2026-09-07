@@ -21,6 +21,7 @@ REQUIRED_ENDPOINT_KEYS = {
     "information_profile",
     "information_profile_update",
     "information_password",
+    "information_password_policy",
     "information_avatar",
     "users_page",
     "users_form",

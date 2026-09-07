@@ -5,6 +5,7 @@
 from pydantic import Field, field_validator
 
 from app.schemas.base import BaseSchema, TimestampSchema
+from app.schemas.password import NewPassword, Password
 
 
 class UserBase(BaseSchema):
@@ -22,7 +23,7 @@ class UserBase(BaseSchema):
 class UserCreate(UserBase):
     """创建用户请求"""
 
-    password: str | None = Field(default=None, description="密码")
+    password: NewPassword | None = Field(default=None, description="密码")
     role_ids: list[int] = Field(default=[], alias="roles", description="角色ID列表")
     avatar: str | None = Field(default="avatar/default.png", description="头像")
 
@@ -49,17 +50,8 @@ class UserPartialUpdate(BaseSchema):
 class UserPasswordReset(BaseSchema):
     """重置用户密码请求。"""
 
-    password: str = Field(min_length=6, description="新密码")
-    confirm_password: str = Field(min_length=6, description="确认新密码")
-
-    @field_validator("password")
-    @classmethod
-    def validate_password_strength(cls, value: str) -> str:
-        if not any(character.isdigit() for character in value):
-            raise ValueError("密码必须包含数字")
-        if not any(character.isalpha() for character in value):
-            raise ValueError("密码必须包含字母")
-        return value
+    password: NewPassword = Field(description="新密码")
+    confirm_password: Password = Field(description="确认新密码")
 
     @field_validator("confirm_password")
     @classmethod

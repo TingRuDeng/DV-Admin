@@ -7,7 +7,7 @@ from tortoise.transactions import in_transaction
 
 from app.core.config import settings
 from app.core.exceptions import BusinessError, NotFound, ValidationError
-from app.core.security import get_password_hash
+from app.core.security import hash_new_password
 from app.db.models.oauth import Users
 from app.db.models.system import Roles
 from app.schemas.system import (
@@ -68,10 +68,10 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
                 raise ValidationError("手机号已存在")
 
         # 创建用户
-        password = user_in.password or settings.default_password
+        password = settings.default_password if user_in.password is None else user_in.password
         user = await Users.create(
             username=user_in.username,
-            password=get_password_hash(password),
+            password=await hash_new_password(password),
             name=user_in.name,
             email=user_in.email,
             mobile=user_in.mobile,
@@ -406,6 +406,7 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         """
         user = await self._get_scoped_user(user_id, current_user)
 
+        hashed = await hash_new_password(settings.default_password if password is None else password)
         revoked = await token_blacklist_service.revoke_all_user_tokens(
             user.id,
             reason="password_reset",
@@ -413,7 +414,7 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         if not revoked:
             raise BusinessError("旧令牌撤销失败，密码未更新")
 
-        user.password = get_password_hash(password or settings.default_password)
+        user.password = hashed
         await user.save()
 
     async def _get_scoped_user(

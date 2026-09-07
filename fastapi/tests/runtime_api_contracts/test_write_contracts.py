@@ -90,7 +90,7 @@ def assert_user_create_contract(context: UserWriteContext) -> int:
         contract.path,
         json={
             "username": "runtime-fastapi-writer",
-            "password": "testpass123",
+            "password": "a new runtime passphrase",
             "name": "FastAPI 写入用户",
             "email": "runtime-fastapi-writer@example.com",
             "mobile": "13800139999",

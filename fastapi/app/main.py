@@ -7,7 +7,8 @@ DV-Admin FastAPI 主应用入口
 from contextlib import asynccontextmanager
 from typing import Any, cast
 
-from fastapi import FastAPI, status
+from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
@@ -156,7 +157,7 @@ def create_app() -> FastAPI:
     app.add_exception_handler(AuthenticationError, cast(Any, api_exception_handler))
     app.add_exception_handler(PermissionDenied, cast(Any, api_exception_handler))
     app.add_exception_handler(ValidationError, cast(Any, api_exception_handler))
-    app.add_exception_handler(status.HTTP_422_UNPROCESSABLE_CONTENT, cast(Any, validation_exception_handler))
+    app.add_exception_handler(RequestValidationError, cast(Any, validation_exception_handler))
     app.add_exception_handler(Exception, cast(Any, general_exception_handler))
 
     # 注册 API 路由
