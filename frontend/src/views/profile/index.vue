@@ -20,6 +20,7 @@
       ref="profileEditDialogRef"
       :dialog="dialog"
       :password-form="passwordChangeForm"
+      :password-policy="passwordPolicy"
       :profile-form="userProfileForm"
       @update:visible="dialog.visible = $event"
       @submit="handleSubmit"
@@ -29,7 +30,12 @@
 </template>
 
 <script lang="ts" setup>
-import InformationAPI, { UserProfile, ProfileForm, PasswordForm } from "@/api/information-api";
+import InformationAPI, {
+  UserProfile,
+  ProfileForm,
+  PasswordForm,
+  PasswordPolicy,
+} from "@/api/information-api";
 import { useUserStoreHook } from "@/store";
 import { createLogger } from "@/utils/logger";
 import { resolveStaticAssetUrl } from "@/utils/static-asset-url";
@@ -52,6 +58,7 @@ const dialog = reactive<ProfileDialogState>({
 
 const userProfileForm = reactive<ProfileForm>({});
 const passwordChangeForm = reactive<PasswordForm>({});
+const passwordPolicy = ref<PasswordPolicy | null>(null);
 
 const profileSidebarRef = ref<InstanceType<typeof ProfileSidebar> | null>(null);
 const profileEditDialogRef = ref<InstanceType<typeof ProfileEditDialog> | null>(null);
@@ -60,7 +67,15 @@ const profileEditDialogRef = ref<InstanceType<typeof ProfileEditDialog> | null>(
  * 打开弹窗
  * @param type 弹窗类型 ACCOUNT: 账号资料 PASSWORD: 修改密码
  */
-const handleOpenDialog = (type: ProfileDialogType) => {
+const handleOpenDialog = async (type: ProfileDialogType) => {
+  if (type === ProfileDialogType.PASSWORD) {
+    passwordPolicy.value = null;
+    try {
+      passwordPolicy.value = await InformationAPI.getPasswordPolicy();
+    } catch {
+      return;
+    }
+  }
   dialog.type = type;
   dialog.visible = true;
   switch (type) {

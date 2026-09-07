@@ -94,6 +94,11 @@ async function installProfileMocks(page: Page, state: ProfileState) {
       return;
     }
 
+    if (method === "GET" && path === "/api/v1/information/password-policy") {
+      await fulfillJson(route, success({ minLength: 15, maxLength: 128 }));
+      return;
+    }
+
     if (method === "PUT" && path === "/api/v1/information/profile/") {
       Object.assign(state.profile, request.postDataJSON());
       await fulfillJson(route, success(state.profile));
@@ -168,13 +173,13 @@ test.describe("个人中心代表页 smoke", () => {
     const passwordDialog = page.getByRole("dialog", { name: "修改密码" });
     const passwordInputs = passwordDialog.locator('input[type="password"]');
     await passwordInputs.nth(0).fill("old-pass");
-    await passwordInputs.nth(1).fill("new-pass");
+    await passwordInputs.nth(1).fill("a new profile passphrase");
     await passwordInputs.nth(2).fill("different-pass");
     await passwordDialog.getByRole("button", { name: /确\s*定/ }).click();
     await expect(page.getByText("两次输入的密码不一致")).toBeVisible();
     expect(state.passwordPayloads).toHaveLength(0);
 
-    await passwordInputs.nth(2).fill("new-pass");
+    await passwordInputs.nth(2).fill("a new profile passphrase");
     await passwordDialog.getByRole("button", { name: /确\s*定/ }).click();
     await expect.poll(() => state.passwordPayloads.length).toBe(1);
     await expect(page.getByText("密码修改成功")).toBeVisible();

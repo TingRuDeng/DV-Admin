@@ -36,8 +36,8 @@ class TestPassword:
     def test_change_password(self, auth_client: TestClient):
         response = auth_client.put("/api/v1/information/password", json={
             "old_password": "admin123",
-            "new_password": "admin123",
-            "confirm_password": "admin123"
+            "new_password": "a new profile passphrase",
+            "confirm_password": "a new profile passphrase"
         })
         assert response.status_code == 200
 

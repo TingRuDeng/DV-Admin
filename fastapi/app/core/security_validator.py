@@ -8,6 +8,8 @@ import re
 import secrets
 import warnings
 
+from app.core.password_policy import validate_new_password
+
 
 class SecurityValidationError(Exception):
     """安全验证错误"""
@@ -148,37 +150,11 @@ class SecurityValidator:
         Returns:
             警告消息列表
         """
-        warnings_list = []
-
-        # 检查是否为弱密码
-        if password.lower() in cls.WEAK_PASSWORDS:
-            warnings_list.append(
-                f"WARNING: 默认密码 '{password}' 是常见弱密码，"
-                "生产环境请务必修改为强密码！"
-            )
-
-        # 检查密码长度
-        if len(password) < 8:
-            warnings_list.append(
-                f"WARNING: 默认密码长度过短（{len(password)} 字符），"
-                "建议至少 8 字符。"
-            )
-
-        # 检查密码复杂度
-        has_lower = bool(re.search(r"[a-z]", password))
-        has_upper = bool(re.search(r"[A-Z]", password))
-        has_digit = bool(re.search(r"\d", password))
-        has_special = bool(re.search(r"[!@#$%^&*(),.?\":{}|<>]", password))
-
-        complexity_score = sum([has_lower, has_upper, has_digit, has_special])
-
-        if complexity_score < 2:
-            warnings_list.append(
-                "WARNING: 默认密码复杂度过低，"
-                "建议包含大小写字母、数字和特殊字符。"
-            )
-
-        return warnings_list
+        try:
+            validate_new_password(password)
+        except ValueError as exc:
+            return [f"WARNING: 默认密码不符合新密码策略，创建/重置将被拒绝：{exc}"]
+        return []
 
     @classmethod
     def validate_production_settings(

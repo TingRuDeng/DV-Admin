@@ -78,8 +78,8 @@ def test_fastapi_information_runtime_samples_match_endpoint_catalog(
             password_contract.path,
             json={
                 "oldPassword": test_user_with_role["password"],
-                "newPassword": "runtime456",
-                "confirmPassword": "runtime456",
+                "newPassword": "a new runtime passphrase",
+                "confirmPassword": "a new runtime passphrase",
             },
         ),
         password_contract,
@@ -92,7 +92,7 @@ def test_fastapi_information_runtime_samples_match_endpoint_catalog(
             login_contract.path,
             json={
                 "username": test_user_with_role["username"],
-                "password": "runtime456",
+                "password": "a new runtime passphrase",
             },
         ),
         login_contract,

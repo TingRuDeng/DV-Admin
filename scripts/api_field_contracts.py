@@ -18,6 +18,12 @@ class FieldContract:
 
 API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
     FieldContract(
+        key="information_password_policy",
+        canonical=frozenset({"minLength", "maxLength"}),
+        django_source="drf_admin.apps.information.serializers.centre.PasswordPolicySerializer",
+        fastapi_source="app.schemas.oauth.PasswordPolicy",
+    ),
+    FieldContract(
         key="auth_info",
         canonical=frozenset(
             {"avatar", "deptName", "email", "gender", "id", "mobile", "name", "perms", "roleNames", "roles", "username"}
@@ -391,6 +397,7 @@ API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
 )
 
 ENDPOINT_FIELD_CONTRACTS: dict[str, str] = {
+    "information_password_policy": "information_password_policy",
     "auth_info": "auth_info",
     "auth_routes": "auth_routes",
     "information_profile": "information_profile",

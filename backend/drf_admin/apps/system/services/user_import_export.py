@@ -25,6 +25,7 @@ from drf_admin.apps.system.services.field_permission import (
     mask_email,
     mask_mobile,
 )
+from drf_admin.utils.password_validation import validate_password
 
 XLSX_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 CSV_CONTENT_TYPE = "text/csv;charset=utf-8"
@@ -120,6 +121,7 @@ def import_users(
     current_user: Users,
 ) -> dict[str, Any]:
     """逐行导入用户；无效行返回明细，意外异常则回滚本次写入。"""
+    password = validate_password(settings.DEFAULT_PWD)
     worksheet, workbook = _load_worksheet(file)
     try:
         columns = _parse_columns(worksheet)
@@ -149,7 +151,7 @@ def import_users(
                 continue
             user = Users.objects.create_user(
                 username=parsed.username,
-                password=settings.DEFAULT_PWD,
+                password=password,
                 name=parsed.name,
                 email=parsed.email,
                 mobile=parsed.mobile,

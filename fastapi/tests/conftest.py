@@ -1,11 +1,15 @@
 """Pytest 配置和领域数据 fixtures。"""
 
+import os
 import sys
 import uuid
 from pathlib import Path
 
 import pytest
 import pytest_asyncio
+
+os.environ.setdefault("PASSWORD_MIN_LENGTH", "15")
+os.environ.setdefault("DEFAULT_PASSWORD", "Test-only initial passphrase")
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 TESTS_DIR = Path(__file__).resolve().parent

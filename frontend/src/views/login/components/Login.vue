@@ -29,7 +29,7 @@
           <label class="sr-only" for="login-password-input">{{ t("login.password") }}</label>
           <el-input
             id="login-password-input"
-            v-model.trim="loginFormData.password"
+            v-model="loginFormData.password"
             :aria-label="t('login.password')"
             :placeholder="t('login.password')"
             type="password"
@@ -142,11 +142,6 @@ const loginRules = computed(() => {
         required: true,
         trigger: "blur",
         message: t("login.message.password.required"),
-      },
-      {
-        min: 6,
-        message: t("login.message.password.min"),
-        trigger: "blur",
       },
     ],
   };

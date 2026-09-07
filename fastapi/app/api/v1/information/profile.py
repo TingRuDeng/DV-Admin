@@ -12,15 +12,30 @@ from fastapi import APIRouter, File, Request, UploadFile
 from app.api.deps import CurrentUser
 from app.core.config import settings
 from app.core.exceptions import BusinessError, ValidationError
-from app.core.security import get_password_hash, verify_password
+from app.core.security import hash_new_password, verify_password_async
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
-from app.schemas.oauth import AvatarInfo, ChangePassword, UpdateProfile, UserInfo, UserProfile
+from app.schemas.oauth import (
+    AvatarInfo,
+    ChangePassword,
+    PasswordPolicy,
+    UpdateProfile,
+    UserInfo,
+    UserProfile,
+)
 from app.services.token_blacklist import token_blacklist_service
 from app.utils.audit import set_audit_object
 from app.utils.file import MAX_AVATAR_UPLOAD_SIZE, allowed_file, save_upload_file
 
 router = APIRouter()
+
+
+@router.get("/password-policy", response_model=ResponseModel[PasswordPolicy])
+async def get_password_policy(current_user: Users = CurrentUser) -> ResponseModel[PasswordPolicy]:
+    return ResponseModel.success(data=PasswordPolicy(
+        min_length=settings.password_min_length,
+        max_length=settings.password_max_length,
+    ))
 
 
 async def get_user_info_response(current_user: Users) -> UserInfo:
@@ -146,9 +161,10 @@ async def change_password(
         current_user.id,
         changed_fields=["oldPassword", "newPassword", "confirmPassword"],
     )
-    if not verify_password(data.old_password, current_user.password):
+    if not await verify_password_async(data.old_password, current_user.password):
         raise ValidationError("旧密码错误")
 
+    hashed = await hash_new_password(data.new_password)
     revoked = await token_blacklist_service.revoke_all_user_tokens(
         current_user.id,
         reason="password_change",
@@ -156,7 +172,7 @@ async def change_password(
     if not revoked:
         raise BusinessError("旧令牌撤销失败，密码未更新")
 
-    current_user.password = get_password_hash(data.new_password)
+    current_user.password = hashed
     await current_user.save()
 
     return ResponseModel.success(message="密码修改成功")

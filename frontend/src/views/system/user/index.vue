@@ -166,6 +166,8 @@ import { createPageRequest } from "@/utils/pro-table-request";
 import { runExclusive } from "@/utils/exclusive-action";
 import { downloadEncodedFile } from "@/utils/file-download";
 import { createLogger } from "@/utils/logger";
+import { passwordLengthError } from "@/utils/password-policy";
+import InformationAPI from "@/api/information-api";
 
 import type { UserInfo } from "@/api/auth-api";
 import type { BatchDeleteResult } from "@/api/system/batch-delete";
@@ -229,18 +231,22 @@ function handleSelectionChange(selection: unknown[]) {
 }
 
 // 重置密码
-function hancleResetPassword(row: UserPageVO) {
+async function hancleResetPassword(row: UserPageVO) {
+  let policy;
+  try {
+    policy = await InformationAPI.getPasswordPolicy();
+  } catch {
+    return;
+  }
   ElMessageBox.prompt("请输入用户【" + row.username + "】的新密码", "重置密码", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
+    inputType: "password",
+    inputValidator: (value) => passwordLengthError(value ?? "", policy) ?? true,
   }).then(
     ({ value }) => {
-      if (!value || value.length < 6) {
-        ElMessage.warning("密码至少需要6位字符，请重新输入");
-        return false;
-      }
       UserAPI.resetPassword(row.id, value, value).then(() => {
-        ElMessage.success("密码重置成功，新密码是：" + value);
+        ElMessage.success("密码重置成功");
       });
     },
     () => {
