@@ -63,8 +63,8 @@ async def _authenticate(username: str, password: str, client_ip: str) -> Users:
 - `accessToken`: 访问令牌，用于 API 认证
 - `refreshToken`: 刷新令牌，用于获取新的访问令牌
 - `tokenType`: 令牌类型，固定为 `bearer`
-- `expiresIn`: 访问令牌过期时间（秒）
-- `refreshExpiresIn`: 刷新令牌过期时间（秒）
+- `expiresIn`: 访问令牌有效期，默认 1800 秒（30 分钟），可由 ACCESS_TOKEN_EXPIRE_MINUTES 覆盖
+- `refreshExpiresIn`: 刷新令牌有效期，默认 604800 秒（7 天），可由 REFRESH_TOKEN_EXPIRE_DAYS 覆盖
 
 ### 错误码
 - `40000`: 用户名或密码错误、用户已被禁用或认证失败
@@ -81,7 +81,7 @@ async def _authenticate(username: str, password: str, client_ip: str) -> Users:
                             "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                             "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                             "tokenType": "bearer",
-                            "expiresIn": 7200,
+                            "expiresIn": 1800,
                             "refreshExpiresIn": 604800
                         }
                     }
@@ -158,8 +158,8 @@ async def login_access_token(
 
 ### 响应数据
 返回包含以下字段的令牌信息：
-- `accessToken`: 访问令牌，有效期默认 2 小时
-- `refreshToken`: 刷新令牌，有效期默认 7 天
+- `accessToken`: 访问令牌，默认 1800 秒（30 分钟），可由 ACCESS_TOKEN_EXPIRE_MINUTES 覆盖
+- `refreshToken`: 刷新令牌，默认 604800 秒（7 天），可由 REFRESH_TOKEN_EXPIRE_DAYS 覆盖
 - `tokenType`: 令牌类型，固定为 `bearer`
 - `expiresIn`: 访问令牌过期时间（秒）
 - `refreshExpiresIn`: 刷新令牌过期时间（秒）
@@ -184,7 +184,7 @@ async def login_access_token(
                             "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                             "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                             "tokenType": "bearer",
-                            "expiresIn": 7200,
+                            "expiresIn": 1800,
                             "refreshExpiresIn": 604800
                         }
                     }
