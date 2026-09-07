@@ -79,6 +79,8 @@ def run_real_backend_playwright(
             "REAL_BACKEND_URL": backend_url,
             "REAL_BACKEND_USERNAME": username,
             "REAL_BACKEND_PASSWORD": password,
+            "REAL_BACKEND_BOOTSTRAP_USERNAME": "rbac-bootstrap",
+            "REAL_BACKEND_BOOTSTRAP_PASSWORD": "Bootstrap test passphrase",
             "REAL_BACKEND_NOTICE_TITLE": notice_title,
             "REAL_BACKEND_NOTICE_CONTENT": notice_content,
             "REAL_BACKEND_RBAC_USERNAME": rbac_username,

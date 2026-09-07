@@ -3,10 +3,10 @@
 from typing import Any, cast
 
 from loguru import logger
-from tortoise.transactions import in_transaction
+from tortoise.transactions import atomic, in_transaction
 
 from app.core.config import settings
-from app.core.exceptions import BusinessError, NotFound, ValidationError
+from app.core.exceptions import BusinessError, NotFound, PermissionDenied, ValidationError
 from app.core.security import hash_new_password
 from app.db.models.oauth import Users
 from app.db.models.system import Roles
@@ -28,6 +28,7 @@ from app.services.system.field_permission import (
     can_write_sensitive_user_fields,
     has_sensitive_user_write,
 )
+from app.services.system.grant_boundary import GrantBoundary
 from app.services.system.user_services.cache import UserCacheMixin
 from app.services.system.user_services.serializers import UserSerializerMixin
 from app.services.token_blacklist import token_blacklist_service
@@ -36,6 +37,7 @@ from app.services.token_blacklist import token_blacklist_service
 class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
     """承载用户创建、更新、删除和密码重置。"""
 
+    @atomic()
     async def create(
         self,
         user_in: UserCreate,
@@ -44,6 +46,9 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         """
         创建用户
         """
+        boundary = await GrantBoundary.load(current_user, "system:users:add")
+        if boundary:
+            current_user = boundary.actor
         # 检查用户名是否已存在
         existing = await Users.get_or_none(username=user_in.username)
         if existing:
@@ -57,9 +62,11 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         await self._validate_department_write(current_user, user_in.dept_id)
         roles = await self._resolve_roles(user_in.role_ids)
         if not roles:
-            default_role = await Roles.filter(is_default=1).first()
+            default_role = await Roles.filter(is_default=1, status=1).select_for_update().first()
             if default_role:
                 roles = [default_role]
+        if boundary:
+            await boundary.user(Users(dept_id=user_in.dept_id), roles, creating=True)
 
         # 检查手机号是否已存在
         if user_in.mobile:
@@ -88,6 +95,7 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         return await self._serialize_user(user, current_user)
 
 
+    @atomic()
     async def update(
         self,
         user_id: int,
@@ -111,6 +119,9 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
             if user_in.role_ids is not None
             else None
         )
+        boundary = await GrantBoundary.load(current_user, "system:users:edit")
+        if boundary:
+            await boundary.user(user, roles, dept_id=user_in.dept_id)
 
         # 检查手机号是否已被其他用户使用
         if user_in.mobile:
@@ -166,6 +177,7 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         raise ValidationError("缺少字段写入权限，不能写入手机号或邮箱")
 
 
+    @atomic()
     async def partial_update(
         self,
         user_id: int,
@@ -187,6 +199,7 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         return await self._serialize_user(user, current_user)
 
 
+    @atomic()
     async def delete(
         self,
         user_id: int,
@@ -199,7 +212,7 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         if current_user is not None and user_id == current_user.id:
             raise BusinessError("不能删除当前登录用户")
 
-        user = await self._get_scoped_user(user_id, current_user)
+        user = await self._get_scoped_user(user_id, current_user, "system:users:delete")
 
         # 删除用户（级联删除角色关联）
         await user.delete()
@@ -262,7 +275,13 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
                     )
                     if locked_user is None:
                         raise NotFound("用户不存在")
+                    boundary = await GrantBoundary.load(current_user, "system:users:delete")
+                    if boundary:
+                        await boundary.user(locked_user)
                     await locked_user.delete(using_db=connection)
+            except PermissionDenied as exc:
+                failures.append(BatchDeleteFailure(object_id=str(user_id), object_name=object_name, error_code="PERMISSION_DENIED", message=exc.message, retryable=False))
+                continue
             except NotFound:
                 failures.append(
                     BatchDeleteFailure(
@@ -358,7 +377,13 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
                     )
                     if locked_user is None:
                         raise NotFound("用户不存在")
+                    boundary = await GrantBoundary.load(current_user, "system:users:delete")
+                    if boundary:
+                        await boundary.user(locked_user)
                     await locked_user.delete(using_db=connection)
+            except PermissionDenied as exc:
+                failures.append(BatchDeleteFailure(object_id=str(user_id), object_name=object_name, error_code="PERMISSION_DENIED", message=exc.message, retryable=False))
+                continue
             except NotFound:
                 failures.append(
                     BatchDeleteFailure(
@@ -395,6 +420,7 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         return build_batch_delete_result(unique_ids, success_items, failures)
 
 
+    @atomic()
     async def reset_password(
         self,
         user_id: int,
@@ -404,7 +430,7 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         """
         重置用户密码
         """
-        user = await self._get_scoped_user(user_id, current_user)
+        user = await self._get_scoped_user(user_id, current_user, "system:users:password:reset")
 
         hashed = await hash_new_password(settings.default_password if password is None else password)
         revoked = await token_blacklist_service.revoke_all_user_tokens(
@@ -421,12 +447,16 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         self,
         user_id: int,
         current_user: Users | None,
+        permission: str = "system:users:edit",
     ) -> Users:
         """按操作者数据范围读取目标用户，不泄露越权对象是否存在。"""
-        query = await apply_user_data_scope(Users.all(), current_user)
-        user = await query.filter(id=user_id).first()
+        boundary = await GrantBoundary.load(current_user, permission)
+        query = await apply_user_data_scope(Users.all(), boundary.actor if boundary else current_user)
+        user = await query.filter(id=user_id).select_for_update().first()
         if user is None:
             raise NotFound("用户不存在")
+        if boundary:
+            await boundary.user(user)
         return user
 
     async def _validate_department_write(
@@ -446,7 +476,7 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
         unique_role_ids = list(dict.fromkeys(role_ids or []))
         if not unique_role_ids:
             return []
-        roles = await Roles.filter(id__in=unique_role_ids).all()
+        roles = await Roles.filter(id__in=unique_role_ids).order_by("id").select_for_update()
         if len(roles) != len(unique_role_ids):
             raise ValidationError("角色不存在")
         return roles
