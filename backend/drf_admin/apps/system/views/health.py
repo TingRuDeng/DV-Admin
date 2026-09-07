@@ -40,7 +40,7 @@ def readiness_check(request):
         payload["checks"] = {"database": "error"}
         return JsonResponse(payload, status=STATUS_UNAVAILABLE)
 
-    if settings.ENVIRONMENT in {"prod", "production"}:
+    if settings.ENVIRONMENT in {"pro", "prod", "production"}:
         from django_redis import get_redis_connection
 
         try:

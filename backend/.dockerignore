@@ -1,0 +1,16 @@
+.env*
+.venv
+.git
+.agents
+.codex
+**/__pycache__
+.pytest_cache
+.ruff_cache
+.coverage*
+logs
+drf_admin/media
+**/*.sqlite3
+**/*.db
+build
+dist
+*.egg-info

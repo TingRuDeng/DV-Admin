@@ -622,6 +622,15 @@ CHANNEL_LAYERS = {
 
 ### Compose 模板
 
+生产后端镜像由 `backend/docker/Dockerfile` 和 `fastapi/docker/Dockerfile` 构建；
+`deploy/runtime-versions.json` 登记 Python 3.11 多架构摘要与 uv 版本/摘要，CI 使用同一 uv 版本，保留 FastAPI Python 3.10 源码兼容门禁。
+完整 `pyproject.toml`、`uv.lock`、README 和包数据参与 `uv sync --frozen --no-dev --no-editable`；运行层仅安装 wheel，不依赖源码挂载或 editable 链接，以 UID/GID 10001 运行。
+Django 镜像提供现有 WSGI/Gunicorn 入口，不代表 Channels/WebSocket 的 ASGI 部署已验收。
+参考 [uv 官方 Docker 指南](https://docs.astral.sh/uv/guides/integration/docker/)。
+
+`python3 scripts/verify_production_images.py` 实际构建两端镜像，使用临时卷和独立 Redis，验证非 root、包数据、无开发依赖、离线 Redis 下迁移、生产启动、Docker 探针、Redis 故障 503 与恢复。
+该测试不挂载开发库或真实媒体，不证明生产 MySQL 并发行为；镜像/数据库升级仍需独立发布验收。
+
 仓库根目录提供 `compose.yaml` 作为本地容器化联调和预部署模板：
 
 - `frontend` profile 启动 Vite 前端，默认连接宿主机 `8769` 后端端口。
