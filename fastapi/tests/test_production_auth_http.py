@@ -8,6 +8,7 @@ from contextlib import ExitStack, contextmanager
 
 import httpx
 import pytest
+from redis import Redis
 from test_live_http_contract import (
     build_server_env,
     reserve_tcp_port,
@@ -25,7 +26,7 @@ def api_process(root, env, name):
     with log_path.open("w") as output:
         process = subprocess.Popen(
             [sys.executable, "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1",
-             "--port", str(port)], env=env, stdout=output, stderr=subprocess.STDOUT,
+             "--port", str(port), "--no-proxy-headers"], env=env, stdout=output, stderr=subprocess.STDOUT,
         )
         try:
             base_url = f"http://127.0.0.1:{port}"
@@ -105,3 +106,22 @@ def test_production_revocation_rotation_outage_and_startup_recovery(tmp_path):
             assert changed.status_code == 200 and changed.json()["code"] == 20000
             assert second.get("/api/v1/oauth/info/", headers=headers).status_code == 401
             assert second.post("/api/v1/oauth/refresh-token/", json={"refreshToken": rotated["refreshToken"]}).status_code == 401
+
+            with Redis.from_url(redis.url) as counters:
+                keys = list(counters.scan_iter("login:*"))
+                if keys:
+                    counters.delete(*keys)
+
+            def failed_login(index):
+                client = clients[index % 2]
+                return client.post("/api/v1/oauth/login/", json={
+                    "username": f"unknown-{index}", "password": "invalid",
+                }, headers={"X-Forwarded-For": f"192.0.2.{index + 1}"})
+
+            with ThreadPoolExecutor(max_workers=8) as pool:
+                attempts = list(pool.map(failed_login, range(65)))
+            assert sum(response.status_code == 401 for response in attempts) == 60
+            assert sum(response.status_code == 429 for response in attempts) == 5
+            for response in attempts:
+                if response.status_code == 429:
+                    assert 1 <= int(response.headers["Retry-After"]) <= 60

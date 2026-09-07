@@ -13,6 +13,7 @@ from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
+from app.middleware.request_logging.client import get_client_ip
 from app.middleware.slow_query.constants import (
     DEFAULT_SLOW_THRESHOLD_MS,
     DEFAULT_VERY_SLOW_THRESHOLD_MS,
@@ -55,19 +56,8 @@ class SlowQueryMiddleware(BaseHTTPMiddleware):
         return any(path.startswith(excluded) for excluded in self.excluded_paths)
 
     def _get_client_ip(self, request: Request) -> str:
-        """按代理头优先级获取客户端 IP。"""
-        forwarded_for = request.headers.get("X-Forwarded-For")
-        if forwarded_for:
-            return forwarded_for.split(",")[0].strip()
-
-        real_ip = request.headers.get("X-Real-IP")
-        if real_ip:
-            return real_ip
-
-        if request.client:
-            return request.client.host
-
-        return "unknown"
+        """复用受信代理解析。"""
+        return get_client_ip(request)
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """处理请求并在耗时超过阈值时记录日志。"""

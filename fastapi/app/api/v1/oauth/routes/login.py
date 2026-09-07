@@ -8,12 +8,38 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.core.config import settings
 from app.core.error_codes import ERROR_CODE
 from app.core.exceptions import AuthenticationError
+from app.core.login_throttle_policy import trusted_client_ip
 from app.core.security import create_access_token, create_refresh_token, verify_password
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
 from app.schemas.oauth import Token, UserLogin
+from app.services.login_throttle import enforce_login_limit
 
 router = APIRouter()
+
+
+async def _begin_login(request: Request, username: str) -> str:
+    client_ip = trusted_client_ip(
+        request.client.host if request.client else "",
+        request.headers.get("X-Forwarded-For", ""),
+        settings.trusted_proxy_ips,
+    )
+    await enforce_login_limit("check", username, client_ip)
+    return client_ip
+
+
+async def _authenticate(username: str, password: str, client_ip: str) -> Users:
+    user = await Users.get_or_none(username=username)
+    try:
+        if not user or not verify_password(password, user.password):
+            raise AuthenticationError("用户名或密码错误", code=ERROR_CODE)
+        if not user.is_active:
+            raise AuthenticationError("用户已被禁用", code=ERROR_CODE)
+    except AuthenticationError:
+        await enforce_login_limit("failure", username, client_ip)
+        raise
+    await enforce_login_limit("success", username, client_ip)
+    return user
 
 @router.post(
     "/token/",
@@ -81,18 +107,8 @@ async def login_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> ResponseModel[Token]:
     session_started_at = datetime.now(timezone.utc)
-    # 查询用户
-    user = await Users.get_or_none(username=form_data.username)
-    if not user:
-        raise AuthenticationError("用户名或密码错误", code=ERROR_CODE)
-
-    # 验证密码
-    if not verify_password(form_data.password, user.password):
-        raise AuthenticationError("用户名或密码错误", code=ERROR_CODE)
-
-    # 检查用户状态
-    if not user.is_active:
-        raise AuthenticationError("用户已被禁用", code=ERROR_CODE)
+    client_ip = await _begin_login(request, form_data.username)
+    user = await _authenticate(form_data.username, form_data.password, client_ip)
 
     # 更新最后登录时间
     user.last_login = datetime.now(timezone.utc)
@@ -196,6 +212,7 @@ async def login(
     from app.services.captcha_service import verify_captcha
 
     session_started_at = datetime.now(timezone.utc)
+    client_ip = await _begin_login(request, login_data.username)
     # 验证码验证（如果提供了验证码）
     if login_data.captcha_key and login_data.captcha_code:
         is_valid = await verify_captcha(
@@ -204,20 +221,10 @@ async def login(
             delete=True  # 验证后删除验证码
         )
         if not is_valid:
+            await enforce_login_limit("failure", login_data.username, client_ip)
             raise AuthenticationError("验证码错误或已过期", code=ERROR_CODE)
 
-    # 查询用户
-    user = await Users.get_or_none(username=login_data.username)
-    if not user:
-        raise AuthenticationError("用户名或密码错误", code=ERROR_CODE)
-
-    # 验证密码
-    if not verify_password(login_data.password, user.password):
-        raise AuthenticationError("用户名或密码错误", code=ERROR_CODE)
-
-    # 检查用户状态
-    if not user.is_active:
-        raise AuthenticationError("用户已被禁用", code=ERROR_CODE)
+    user = await _authenticate(login_data.username, login_data.password, client_ip)
 
     # 更新最后登录时间
     user.last_login = datetime.now(timezone.utc)

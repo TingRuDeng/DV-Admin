@@ -111,7 +111,7 @@ def auth_headers(client: SyncASGIClient, test_user_with_role) -> dict:
 def auth_client(client: SyncASGIClient, auth_headers: dict) -> SyncASGIClient | None:
     """创建临时带认证头的测试客户端。"""
     if not auth_headers:
-        pytest.skip("无法获取认证 token，跳过需要认证的测试")
+        pytest.fail("认证夹具登录失败，不能跳过权限回归测试")
 
     original_auth = client.headers.get("Authorization")
     client.headers.update(auth_headers)

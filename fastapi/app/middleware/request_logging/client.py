@@ -6,21 +6,17 @@
 
 from fastapi import Request
 
+from app.core.config import settings
+from app.core.login_throttle_policy import trusted_client_ip
+
 
 def get_client_ip(request: Request) -> str:
-    """按代理头优先级获取客户端 IP。"""
-    forwarded_for = request.headers.get("X-Forwarded-For")
-    if forwarded_for:
-        return forwarded_for.split(",")[0].strip()
-
-    real_ip = request.headers.get("X-Real-IP")
-    if real_ip:
-        return real_ip
-
-    if request.client:
-        return request.client.host
-
-    return "unknown"
+    """日志与登录保护使用相同的受信代理边界。"""
+    return trusted_client_ip(
+        request.client.host if request.client else "",
+        request.headers.get("X-Forwarded-For", ""),
+        settings.trusted_proxy_ips,
+    )
 
 
 def parse_user_agent(user_agent: str) -> dict[str, str]:
