@@ -26,6 +26,7 @@ from drf_admin.apps.system.services.field_permission import (
     mask_mobile,
 )
 from drf_admin.apps.system.services.grant_boundary import GrantBoundary
+from drf_admin.utils.import_lookup import collect_import_keys, query_batches
 from drf_admin.utils.password_validation import validate_password
 
 XLSX_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -128,7 +129,7 @@ def import_users(
     worksheet, workbook = _load_worksheet(file)
     try:
         columns = _parse_columns(worksheet)
-        context = _build_context()
+        context = _build_context(worksheet, columns, dept_id)
         default_roles = list(Roles.objects.filter(is_default=1, status=1).select_for_update()[:1])
         visible_dept_ids = get_visible_department_ids(current_user)
         can_write_sensitive = can_write_sensitive_user_fields(current_user)
@@ -221,19 +222,24 @@ def _parse_columns(worksheet) -> ImportColumns:
     )
 
 
-def _build_context() -> ImportContext:
-    return ImportContext(
-        all_depts={dept.id: dept for dept in Departments.objects.all()},
-        all_roles={role.id: role for role in Roles.objects.filter(status=1).order_by("id").select_for_update()},
-        existing_usernames=set(Users.objects.values_list("username", flat=True)),
-        existing_mobiles={
-            str(mobile)
-            for mobile in Users.objects.exclude(mobile__isnull=True).values_list(
-                "mobile", flat=True
-            )
-            if mobile
-        },
+def _build_context(worksheet, columns: ImportColumns, dept_id: int | None) -> ImportContext:
+    """两遍流式读取：只预加载本文件引用，数据库 IN 查询每批最多 500 项。"""
+    keys = collect_import_keys(
+        worksheet.iter_rows(min_row=2, values_only=True),
+        username=columns.username, mobile=columns.mobile, dept=columns.dept,
+        role=columns.role, default_dept=dept_id,
     )
+    context = ImportContext({}, {}, set(), set())
+    for batch in query_batches(keys.usernames):
+        context.existing_usernames.update(Users.objects.filter(username__in=batch).values_list("username", flat=True))
+    for batch in query_batches(keys.mobiles):
+        context.existing_mobiles.update(Users.objects.filter(mobile__in=batch).values_list("mobile", flat=True))
+    for batch in query_batches(keys.departments):
+        context.all_depts.update({dept.id: dept for dept in Departments.objects.filter(id__in=batch)})
+    for batch in query_batches(keys.roles):
+        roles = Roles.objects.filter(id__in=batch, status=1).order_by("id").select_for_update()
+        context.all_roles.update({role.id: role for role in roles})
+    return context
 
 
 def _parse_row(
