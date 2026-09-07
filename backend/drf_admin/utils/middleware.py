@@ -6,10 +6,11 @@ import re
 import time
 from typing import Any
 
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import gettext_lazy as _
 from django_redis import get_redis_connection
+from redis.exceptions import RedisError
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -270,6 +271,9 @@ class ResponseMiddleware(MiddlewareMixin):
             elif isinstance(response.data, (str, list)):
                 detail = str(response.data)
 
+            if response.status_code in {429, 503}:
+                code = response.status_code
+
         elif response.status_code in [200, 201]:
             data = response.data
 
@@ -303,8 +307,12 @@ class IpBlackListMiddleware(MiddlewareMixin):
         redis_port = getattr(settings, "REDIS_PORT", None)
 
         if redis_host and redis_port:
-            conn = get_redis_connection("user_info")
-            if conn.sismember("ip_black_list", request_ip):
+            try:
+                conn = get_redis_connection("user_info")
+                blocked = conn.sismember("ip_black_list", request_ip)
+            except RedisError:
+                return JsonResponse({"code": 503, "msg": "访问保护暂不可用，请稍后重试", "data": {}}, status=503)
+            if blocked:
                 return HttpResponse(
                     _("IP已被拉入黑名单, 请联系管理员"), status=status.HTTP_400_BAD_REQUEST
                 )

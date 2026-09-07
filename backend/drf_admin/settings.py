@@ -36,6 +36,7 @@ BASE_DIR = Path(__file__).resolve().parent
 # 确定当前环境，默认为开发环境
 environment = os.environ.get("ENVIRONMENT", "dev")
 ENVIRONMENT = environment
+TRUSTED_PROXY_IPS = os.environ.get("TRUSTED_PROXY_IPS", "")
 # 根据环境读取对应的 .env 文件
 if environment == "dev":
     env_file = (BASE_DIR.parent / ".env.dev").resolve()

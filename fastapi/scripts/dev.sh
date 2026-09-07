@@ -59,4 +59,4 @@ echo ""
 echo -e "${YELLOW}按 Ctrl+C 停止服务${NC}"
 echo ""
 
-uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8769
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8769 --no-proxy-headers
