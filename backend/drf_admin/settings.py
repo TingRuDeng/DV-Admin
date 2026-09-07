@@ -182,16 +182,7 @@ SESSION_CACHE_ALIAS = "session"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        "NAME": "drf_admin.utils.password_validation.SharedPasswordValidator",
     },
 ]
 
@@ -231,6 +222,10 @@ AUTHENTICATION_BACKENDS = [
 
 # 新增用户默认密码
 DEFAULT_PWD = env.str("DEFAULT_PWD")
+PASSWORD_MIN_LENGTH = env.int("PASSWORD_MIN_LENGTH", default=15)
+PASSWORD_MAX_LENGTH = env.int("PASSWORD_MAX_LENGTH", default=128)
+if not 15 <= PASSWORD_MIN_LENGTH <= PASSWORD_MAX_LENGTH <= 128:
+    raise ValueError("Password bounds must satisfy 15 <= min <= max <= 128")
 
 # API版本
 API_VERSION = env.str("API_VERSION", default="v1")

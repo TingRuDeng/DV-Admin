@@ -9,7 +9,7 @@ from app.core.config import settings
 from app.core.error_codes import ERROR_CODE
 from app.core.exceptions import AuthenticationError
 from app.core.login_throttle_policy import trusted_client_ip
-from app.core.security import create_access_token, create_refresh_token, verify_password
+from app.core.security import create_access_token, create_refresh_token, verify_password_async
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
 from app.schemas.oauth import Token, UserLogin
@@ -31,7 +31,7 @@ async def _begin_login(request: Request, username: str) -> str:
 async def _authenticate(username: str, password: str, client_ip: str) -> Users:
     user = await Users.get_or_none(username=username)
     try:
-        if not user or not verify_password(password, user.password):
+        if not user or not await verify_password_async(password, user.password):
             raise AuthenticationError("用户名或密码错误", code=ERROR_CODE)
         if not user.is_active:
             raise AuthenticationError("用户已被禁用", code=ERROR_CODE)

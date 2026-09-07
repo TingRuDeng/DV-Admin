@@ -69,25 +69,25 @@ class PasswordTestCase(TestCase):
         """共享 password 路径与字段必须真实修改密码。"""
         response = self.client.put("/api/v1/information/password", {
             "oldPassword": "testpass123",
-            "newPassword": "newpass123",
-            "confirmPassword": "newpass123",
+            "newPassword": "a new account passphrase",
+            "confirmPassword": "a new account passphrase",
         }, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
-        self.assertTrue(self.user.check_password("newpass123"))
+        self.assertTrue(self.user.check_password("a new account passphrase"))
 
     def test_legacy_change_password_path_and_fields_remain_compatible(self):
         """旧 Django 路径与字段保留兼容，避免已部署客户端立即失效。"""
         response = self.client.put("/api/v1/information/change-password/", {
             "currentPassword": "testpass123",
-            "password": "legacy123",
-            "confirmPassword": "legacy123",
+            "password": " a legacy compatible passphrase ",
+            "confirmPassword": " a legacy compatible passphrase ",
         }, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
-        self.assertTrue(self.user.check_password("legacy123"))
+        self.assertTrue(self.user.check_password(" a legacy compatible passphrase "))
 
 
 class AvatarTestCase(TestCase):

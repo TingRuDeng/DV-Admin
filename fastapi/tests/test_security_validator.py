@@ -116,22 +116,22 @@ class TestValidatePasswordStrength:
 
     def test_weak_password(self):
         """测试弱密码"""
-        warnings_list = SecurityValidator.validate_password_strength("123456")
-        assert any("常见弱密码" in w for w in warnings_list)
+        warnings_list = SecurityValidator.validate_password_strength("    password    ")
+        assert any("常见密码" in w for w in warnings_list)
+        assert all("password" not in w for w in warnings_list)
 
     def test_short_password(self):
         """测试短密码"""
         warnings_list = SecurityValidator.validate_password_strength("abc")
-        assert any("长度过短" in w for w in warnings_list)
+        assert any("密码长度必须" in w for w in warnings_list)
 
-    def test_low_complexity_password(self):
-        """测试低复杂度密码"""
-        warnings_list = SecurityValidator.validate_password_strength("abcdefgh")
-        assert any("复杂度过低" in w for w in warnings_list)
+    def test_passphrase_needs_no_composition_rule(self):
+        warnings_list = SecurityValidator.validate_password_strength("an unhurried walk beside the lake")
+        assert warnings_list == []
 
     def test_strong_password(self):
         """测试强密码"""
-        warnings_list = SecurityValidator.validate_password_strength("Admin@123456")
+        warnings_list = SecurityValidator.validate_password_strength("a long enough passphrase")
         # 强密码不应该有警告
         assert len(warnings_list) == 0
 

@@ -61,7 +61,7 @@ class CustomAuditEntryTestCase(TestCase):
 
         response = self.client.put(
             f"/api/v1/system/users/{target.id}/password/reset/",
-            {"password": "Newpass1", "confirmPassword": "Newpass1"},
+            {"password": "a new audit passphrase", "confirmPassword": "a new audit passphrase"},
             format="json",
             HTTP_X_REQUEST_ID=request_id,
         )
@@ -202,8 +202,8 @@ class CustomAuditEntryTestCase(TestCase):
             "/api/v1/information/password",
             {
                 "oldPassword": "admin123",
-                "newPassword": "Newpass1",
-                "confirmPassword": "Newpass1",
+                "newPassword": "a new audit passphrase",
+                "confirmPassword": "a new audit passphrase",
             },
             format="json",
             HTTP_X_REQUEST_ID=request_id,
