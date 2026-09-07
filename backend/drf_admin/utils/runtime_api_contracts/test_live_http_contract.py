@@ -109,7 +109,7 @@ class DjangoLiveHttpContractTestCase(LiveServerTestCase):
             files={
                 "file": (
                     "avatar.gif",
-                    base64.b64decode("R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="),
+                    base64.b64decode("R0lGODdhAQABAIEAAP8AAAAAAAAAAAAAACwAAAAAAQABAAAIBAABBAQAOw=="),
                     "image/gif",
                 ),
             },

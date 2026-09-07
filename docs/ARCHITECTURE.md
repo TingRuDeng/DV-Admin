@@ -620,6 +620,11 @@ CHANNEL_LAYERS = {
                └────────┘ └────────┘
 ```
 
+### 媒体与头像
+
+头像输入由两端字节一致的 `avatar_validation.py` 验证：限制上传字节、真实格式、单边尺寸、帧数和累计像素，先 `verify()` 再重新打开逐帧 `load()`；FastAPI 解码在线程池执行，不阻塞事件循环。
+参考 [Pillow Image API](https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.verify)。验证通过才写文件，数据库失败时删除新文件并回滚头像标识，不删除原头像。该边界不等于普通附件深度扫描或病毒检测。
+
 ### Compose 模板
 
 生产持久化使用 `deploy/compose.production.yml` 加且仅加一个 `compose.django.yml` / `compose.fastapi.yml`。
