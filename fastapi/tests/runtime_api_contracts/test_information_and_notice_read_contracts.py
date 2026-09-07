@@ -7,6 +7,7 @@ from io import BytesIO
 from pathlib import Path
 
 import pytest_asyncio
+from fixtures.images import PNG_BYTES
 from runtime_api_contracts.helpers import (
     assert_response_fields,
     assert_success_payload,
@@ -106,7 +107,7 @@ def test_fastapi_information_runtime_samples_match_endpoint_catalog(
             files={
                 "file": (
                     "runtime-avatar.png",
-                    BytesIO(b"\x89PNG\r\n\x1a\nruntime"),
+                    BytesIO(PNG_BYTES),
                     "image/png",
                 ),
             },
