@@ -221,6 +221,7 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 
 **当前治理进展：**
 - `scripts/validate_api_contracts.py` 已接入 `scripts/api_route_coverage_validation.py`，关键端点契约会静态校验 Django URLConf/AdminRouter 与 FastAPI 具体 `method + path` 路由覆盖。
+- 运行时路由完整性已补齐：两端实际注册树对照 `api_runtime_route_contracts.py` 的共享/单端/兼容登记；新模块无法绕过固定文件清单。登记冻结现有入口，不等于所有单后端能力已对齐，也不证明每个路由的权限/字段/业务行为均被穷尽测试。
 - `scripts/generate_api_contract_report.py` 已从关键端点契约目录生成 `docs/api-contract-report.json`，并由 `scripts/validate_api_contracts.py` 校验报告是否过期。
 - 当前仍未从 OpenAPI/Swagger 自动生成完整文档。
 
