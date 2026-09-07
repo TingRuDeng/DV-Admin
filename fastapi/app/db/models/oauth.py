@@ -115,7 +115,7 @@ class Users(BaseModel):
         """是否已认证"""
         return True
 
-    async def get_permissions(self) -> list:
+    async def get_permissions(self, *, fresh: bool = False) -> list:
         """
         获取用户所有权限标识（带缓存）
 
@@ -124,7 +124,7 @@ class Users(BaseModel):
         """
         from app.db.models.oauth_user_access import get_user_permissions
 
-        return await get_user_permissions(self)
+        return await get_user_permissions(self, fresh=fresh)
 
     async def get_menus(self):
         """

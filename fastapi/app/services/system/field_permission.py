@@ -26,7 +26,7 @@ async def can_view_plain_fields(
         return default_when_anonymous
     if user.is_superuser:
         return True
-    permissions = await user.get_permissions()
+    permissions = await user.get_permissions(fresh=True)
     return permission_code in permissions
 
 
@@ -39,7 +39,7 @@ async def can_write_sensitive_user_fields(
         return default_when_anonymous
     if user.is_superuser:
         return True
-    permissions = await user.get_permissions()
+    permissions = await user.get_permissions(fresh=True)
     return USER_FIELD_WRITE_PERMISSION in permissions
 
 
@@ -52,7 +52,7 @@ async def can_write_notice_target_fields(
         return default_when_anonymous
     if user.is_superuser:
         return True
-    permissions = await user.get_permissions()
+    permissions = await user.get_permissions(fresh=True)
     return NOTICE_TARGET_WRITE_PERMISSION in permissions
 
 

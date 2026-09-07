@@ -21,13 +21,13 @@ MenuItem = dict[str, Any]
 MenuEntry = dict[str, Any]
 
 
-async def get_user_permissions(user: Users) -> list[str]:
+async def get_user_permissions(user: Users, *, fresh: bool = False) -> list[str]:
     """获取用户所有权限标识，并沿用原有用户权限缓存语义。"""
     if user.is_superuser:
         return []
 
     cache_key = CacheKeys.format_key(CacheKeys.USER_PERMISSIONS, user_id=user.id)
-    cached = await cache_service.get(cache_key)
+    cached = None if fresh else await cache_service.get(cache_key)
     if cached is not None:
         return cached
 
@@ -80,7 +80,7 @@ async def _get_roles_with_permissions(user: Users) -> list[Roles]:
     role_ids = [role.id for role in user.roles]
     if not role_ids:
         return []
-    return await Roles.filter(id__in=role_ids).prefetch_related("permissions")
+    return await Roles.filter(id__in=role_ids, status=1).prefetch_related("permissions")
 
 
 def build_menu_tree(menus: list[Permissions]) -> list[MenuItem]:

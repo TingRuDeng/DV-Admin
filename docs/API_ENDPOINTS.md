@@ -69,6 +69,7 @@ ai_summary:
 ## Key facts
 
 - 两套后端共享 `/api/v1/` 契约前缀，但仍存在局部差异端点。
+- 用户与角色写入执行权限子集和数据范围委派校验；无操作权限或越界授权返回 HTTP 403。角色关联范围外用户时修改/停用/删除均拒绝；批删逐条返回不可重试的 `PERMISSION_DENIED`。Django 兼容 PATCH 授权入口执行相同规则。
 - 前端成功分支主要依赖 `code/data`，错误分支会读取 `errors`、`msg` 或 `message`。
 - 刷新 token、验证码和健康检查端点是契约差异高风险区域。
 - 共享响应、分页、字段、错误码、能力边界和关键端点路由覆盖由 `scripts/api_contracts.py`、`scripts/api_endpoint_contracts.py`、`scripts/api_route_coverage_validation.py`、Django/FastAPI 后端测试和前端契约测试共同锁定。

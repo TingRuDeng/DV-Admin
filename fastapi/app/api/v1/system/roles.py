@@ -98,7 +98,7 @@ async def create_role(
         "",
         changed_fields=list(role_data.model_dump(exclude_unset=True)),
     )
-    role = await role_service.create(role_data)
+    role = await role_service.create(role_data, current_user=current_user)
     set_audit_object(
         request,
         "system.roles",
@@ -122,7 +122,7 @@ async def update_role(
         role_id,
         changed_fields=list(role_data.model_dump(exclude_unset=True)),
     )
-    role = await role_service.update(role_id, role_data)
+    role = await role_service.update(role_id, role_data, current_user=current_user)
     return ResponseModel.success(data=role, message="更新成功")
 
 
@@ -134,7 +134,7 @@ async def delete_role(
 ):
     """删除角色"""
     set_audit_object(request, "system.roles", role_id)
-    await role_service.delete(role_id)
+    await role_service.delete(role_id, current_user=current_user)
     return ResponseModel.success(message="删除成功")
 
 
@@ -177,7 +177,7 @@ async def assign_role_menus(
         changed_fields=["menuIds"],
         assigned_menu_ids=menu_data.menu_ids[:100],
     )
-    menu_ids = await role_service.assign_menus(role_id, menu_data.menu_ids)
+    menu_ids = await role_service.assign_menus(role_id, menu_data.menu_ids, current_user=current_user)
     return ResponseModel.success(data=menu_ids, message="分配权限成功")
 
 

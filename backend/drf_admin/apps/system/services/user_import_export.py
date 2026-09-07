@@ -11,7 +11,7 @@ from typing import Any, BinaryIO
 
 from django.conf import settings
 from django.db import transaction
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from drf_admin.apps.system.models import Departments, Roles, Users
 from drf_admin.apps.system.services.data_scope import (
@@ -25,6 +25,7 @@ from drf_admin.apps.system.services.field_permission import (
     mask_email,
     mask_mobile,
 )
+from drf_admin.apps.system.services.grant_boundary import GrantBoundary
 from drf_admin.utils.password_validation import validate_password
 
 XLSX_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -121,11 +122,14 @@ def import_users(
     current_user: Users,
 ) -> dict[str, Any]:
     """逐行导入用户；无效行返回明细，意外异常则回滚本次写入。"""
+    boundary = GrantBoundary.load(current_user, "system:users:import")
+    current_user = boundary.actor
     password = validate_password(settings.DEFAULT_PWD)
     worksheet, workbook = _load_worksheet(file)
     try:
         columns = _parse_columns(worksheet)
         context = _build_context()
+        default_roles = list(Roles.objects.filter(is_default=1, status=1).select_for_update()[:1])
         visible_dept_ids = get_visible_department_ids(current_user)
         can_write_sensitive = can_write_sensitive_user_fields(current_user)
         valid_count = 0
@@ -149,6 +153,13 @@ def import_users(
             if parsed is None:
                 invalid_count += 1
                 continue
+            roles = [context.all_roles[rid] for rid in parsed.role_ids] or default_roles
+            try:
+                boundary.user(Users(dept_id=parsed.dept_id), roles, creating=True)
+            except PermissionDenied as exc:
+                messages.append(f"第{row_idx}行: {exc.detail}")
+                invalid_count += 1
+                continue
             user = Users.objects.create_user(
                 username=parsed.username,
                 password=password,
@@ -159,8 +170,7 @@ def import_users(
                 is_active=1,
                 dept_id=parsed.dept_id,
             )
-            if parsed.role_ids:
-                user.roles.set([context.all_roles[role_id] for role_id in parsed.role_ids])
+            user.roles.set(roles)
             valid_count += 1
     finally:
         workbook.close()
@@ -214,7 +224,7 @@ def _parse_columns(worksheet) -> ImportColumns:
 def _build_context() -> ImportContext:
     return ImportContext(
         all_depts={dept.id: dept for dept in Departments.objects.all()},
-        all_roles={role.id: role for role in Roles.objects.filter(status=1)},
+        all_roles={role.id: role for role in Roles.objects.filter(status=1).order_by("id").select_for_update()},
         existing_usernames=set(Users.objects.values_list("username", flat=True)),
         existing_mobiles={
             str(mobile)

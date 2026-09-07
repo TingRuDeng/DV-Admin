@@ -26,6 +26,7 @@ async def test_user_batch_delete_returns_item_failures_without_blocking_other_it
         dept_id=test_user_for_service.dept_id,
     )
     test_user_for_service.is_superuser = True
+    await test_user_for_service.save(update_fields=["is_superuser"])
 
     result = await user_service.batch_delete(
         [test_user_for_service.id, target.id],
