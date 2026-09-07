@@ -56,6 +56,7 @@ class PasswordPolicyTests(TestCase):
 
     @override_settings(DEFAULT_PWD="weak123")
     def test_invalid_default_prevents_create_and_import(self):
+        from drf_admin.apps.system.models import Permissions
         from drf_admin.apps.system.services.user_import_export import import_users
         from drf_admin.apps.system.test_helpers import create_admin_user
         from drf_admin.apps.system.test_user_import_export import build_import_file
@@ -65,8 +66,10 @@ class PasswordPolicyTests(TestCase):
         with self.assertRaises(ValidationError):
             serializer.save()
         self.assertFalse(Users.objects.filter(username="bad-default-create").exists())
+        actor = create_admin_user()
+        actor.roles.first().permissions.add(Permissions.objects.create(name="Import", type="BUTTON", perm="system:users:import"))
         with self.assertRaises(ValidationError):
-            import_users(build_import_file([["bad-default-import"]]), dept_id=None, current_user=create_admin_user())
+            import_users(build_import_file([["bad-default-import"]]), dept_id=None, current_user=actor)
         self.assertFalse(Users.objects.filter(username="bad-default-import").exists())
 
     def test_legacy_login_preserves_spaces(self):

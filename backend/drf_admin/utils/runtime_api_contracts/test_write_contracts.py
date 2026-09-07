@@ -91,6 +91,7 @@ class DjangoRuntimeWriteApiContractTestCase(TestCase):
         assert all(key in contracts for key in ROLE_WRITE_SAMPLE_KEYS)
 
         permission = Permissions.objects.create(name="运行时角色权限", type="MENU", perm="runtime:role:assign")
+        self.user.roles.first().permissions.add(permission)
         created_role_id = self.assert_role_create_contract(contracts["roles_create"])
         self.assert_role_update_contract(contracts["roles_update"], created_role_id)
         self.assert_role_menu_assign_contract(contracts, created_role_id, permission.id)

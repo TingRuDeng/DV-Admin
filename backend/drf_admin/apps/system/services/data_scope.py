@@ -39,7 +39,7 @@ def get_visible_user_ids(user: Users) -> set[int] | None:
     if user.is_superuser:
         return None
 
-    roles = list(user.roles.prefetch_related("data_depts").all())
+    roles = list(user.roles.filter(status=1).prefetch_related("data_depts"))
     if any(role.data_scope == Roles.DATA_SCOPE_ALL for role in roles):
         return None
 
@@ -59,7 +59,7 @@ def get_visible_department_ids(user: Users) -> set[int] | None:
     """计算当前用户可管理的部门 ID；返回 None 表示不受部门范围限制。"""
     if user.is_superuser:
         return None
-    roles = list(user.roles.prefetch_related("data_depts").all())
+    roles = list(user.roles.filter(status=1).prefetch_related("data_depts"))
     if any(role.data_scope == Roles.DATA_SCOPE_ALL for role in roles):
         return None
     return _visible_department_ids(user, roles)

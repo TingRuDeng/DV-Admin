@@ -23,7 +23,7 @@ def can_view_plain_fields(user, permission_code: str) -> bool:
         return False
     if getattr(user, "is_superuser", False):
         return True
-    return permission_code in RBACPermission.get_user_permissions(user)
+    return permission_code in RBACPermission.get_user_permissions(user, fresh=True)
 
 
 def can_write_sensitive_user_fields(user) -> bool:
@@ -32,7 +32,7 @@ def can_write_sensitive_user_fields(user) -> bool:
         return False
     if getattr(user, "is_superuser", False):
         return True
-    return USER_FIELD_WRITE_PERMISSION in RBACPermission.get_user_permissions(user)
+    return USER_FIELD_WRITE_PERMISSION in RBACPermission.get_user_permissions(user, fresh=True)
 
 
 def can_write_notice_target_fields(user) -> bool:
@@ -41,7 +41,7 @@ def can_write_notice_target_fields(user) -> bool:
         return False
     if getattr(user, "is_superuser", False):
         return True
-    return NOTICE_TARGET_WRITE_PERMISSION in RBACPermission.get_user_permissions(user)
+    return NOTICE_TARGET_WRITE_PERMISSION in RBACPermission.get_user_permissions(user, fresh=True)
 
 
 def has_sensitive_user_write(attrs: dict[str, Any]) -> bool:

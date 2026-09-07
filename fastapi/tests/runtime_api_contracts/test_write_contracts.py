@@ -17,19 +17,22 @@ from runtime_api_contracts.helpers import (
     contracts_by_key,
 )
 
-from app.db.models.system import Permissions
+from app.db.models.system import Permissions, Roles
 
 
 @pytest_asyncio.fixture
-async def runtime_contract_permission(db):
+async def runtime_contract_permission(db, test_role):
     """创建运行时权限样本，用于证明角色权限分配真实落库。"""
     suffix = uuid.uuid4().hex[:6]
-    return await Permissions.create(
+    permission = await Permissions.create(
         name=f"运行时角色权限_{suffix}",
         type="MENU",
         perm=f"runtime:role:{suffix}",
         sort=30,
     )
+    role = await Roles.get(id=test_role["id"])
+    await role.permissions.add(permission)
+    return permission
 
 
 def test_fastapi_user_write_runtime_samples_match_endpoint_catalog(auth_client, test_role, test_dept):

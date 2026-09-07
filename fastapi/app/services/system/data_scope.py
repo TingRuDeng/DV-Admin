@@ -69,7 +69,7 @@ async def get_visible_user_ids(
         return None
 
     await current_user.fetch_related("roles", using_db=using_db)
-    roles = list(current_user.roles)
+    roles = [role for role in current_user.roles if role.status == 1]
     for role in roles:
         await role.fetch_related("data_depts", using_db=using_db)
     if any(role.data_scope == Roles.DATA_SCOPE_ALL for role in roles):
@@ -96,7 +96,7 @@ async def get_visible_department_ids(
         return None
 
     await current_user.fetch_related("roles", using_db=using_db)
-    roles = list(current_user.roles)
+    roles = [role for role in current_user.roles if role.status == 1]
     for role in roles:
         await role.fetch_related("data_depts", using_db=using_db)
     if any(role.data_scope == Roles.DATA_SCOPE_ALL for role in roles):

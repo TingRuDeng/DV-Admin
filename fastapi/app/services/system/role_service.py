@@ -4,10 +4,10 @@
 from typing import Any
 
 from loguru import logger
-from tortoise.transactions import in_transaction
+from tortoise.transactions import atomic, in_transaction
 
 from app.core.cache import CacheKeys, cache_service
-from app.core.exceptions import NotFound, ValidationError
+from app.core.exceptions import NotFound, PermissionDenied, ValidationError
 from app.db.models.system import Departments, Permissions, Roles
 from app.schemas.base import PageResult
 from app.schemas.system import (
@@ -21,6 +21,7 @@ from app.schemas.system import (
 )
 from app.services.system.access_cache import clear_user_access_cache, get_role_user_ids
 from app.services.system.batch_delete import build_batch_delete_result, normalize_batch_ids
+from app.services.system.grant_boundary import check_role_write
 from app.services.system.role_serializers import (
     build_role_menu_items,
     build_role_out,
@@ -30,6 +31,7 @@ from app.services.system.role_serializers import (
 
 PROTECTED_ROLE_IDENTIFIERS = frozenset(
     {
+        "root",
         "admin",
         "superadmin",
         "administrator",
@@ -118,10 +120,12 @@ class RoleService:
 
         return build_role_with_permissions(role, permission_ids, dept_ids)
 
-    async def create(self, role_data: RoleCreate) -> RoleOut:
+    @atomic()
+    async def create(self, role_data: RoleCreate, current_user=None) -> RoleOut:
         """
         创建角色
         """
+        await check_role_write(current_user, "system:roles:add", None, role_data.model_dump())
         # 检查角色名是否已存在
         existing = await Roles.get_or_none(name=role_data.name)
         if existing:
@@ -156,10 +160,12 @@ class RoleService:
             [dept.id for dept in role.data_depts],
         )
 
-    async def update(self, role_id: int, role_data: RoleUpdate) -> RoleOut:
+    @atomic()
+    async def update(self, role_id: int, role_data: RoleUpdate, current_user=None) -> RoleOut:
         """
         更新角色
         """
+        await check_role_write(current_user, "system:roles:edit", role_id, role_data.model_dump(exclude_unset=True))
         role = await Roles.get_or_none(id=role_id)
         if not role:
             raise NotFound("角色不存在")
@@ -184,6 +190,7 @@ class RoleService:
                 depts = await Departments.filter(id__in=role_data.dept_ids).all()
                 await role.data_depts.add(*depts)
 
+        await self._clear_assigned_user_access_cache(role_id)
         # 清除缓存
         await self._clear_role_cache(role_id)
 
@@ -194,10 +201,12 @@ class RoleService:
             [dept.id for dept in role.data_depts],
         )
 
-    async def assign_menus(self, role_id: int, menu_ids: list[int]) -> list[int]:
+    @atomic()
+    async def assign_menus(self, role_id: int, menu_ids: list[int], current_user=None) -> list[int]:
         """
         分配角色菜单权限
         """
+        await check_role_write(current_user, "system:roles:edit", role_id, {"permission_ids": menu_ids})
         role = await Roles.get_or_none(id=role_id)
         if not role:
             raise NotFound("角色不存在")
@@ -214,16 +223,19 @@ class RoleService:
         await self._clear_role_cache(role_id)
         return unique_ids
 
-    async def delete(self, role_id: int) -> None:
+    @atomic()
+    async def delete(self, role_id: int, current_user=None) -> None:
         """
         删除角色
         """
-        role = await Roles.get_or_none(id=role_id)
+        role = await Roles.filter(id=role_id).select_for_update().first()
         if not role:
             raise NotFound("角色不存在")
 
         if self._is_protected_role(role):
             raise ValidationError("系统角色不可删除")
+
+        await check_role_write(current_user, "system:roles:delete", role_id, {})
 
         affected_user_ids = await get_role_user_ids(role_id)
         await role.delete()
@@ -253,7 +265,7 @@ class RoleService:
                 failures.append(self._protected_failure(role_id, object_name))
                 continue
 
-            outcome = await self._delete_one_for_batch(role_id, object_name)
+            outcome = await self._delete_one_for_batch(role_id, object_name, current_user=current_user)
             if isinstance(outcome, BatchDeleteFailure):
                 failures.append(outcome)
             else:
@@ -291,6 +303,7 @@ class RoleService:
             outcome = await self._delete_one_for_batch(
                 role_id,
                 object_name,
+                current_user=current_user,
                 missing_code="ALREADY_DELETED",
                 missing_message="角色已不存在",
             )
@@ -325,6 +338,7 @@ class RoleService:
         role_id: int,
         object_name: str,
         *,
+        current_user=None,
         missing_code: str = "NOT_FOUND",
         missing_message: str = "角色不存在",
     ) -> BatchDeleteSuccessItem | BatchDeleteFailure:
@@ -338,6 +352,7 @@ class RoleService:
                     raise NotFound(missing_message)
                 if self._is_protected_role(locked_role):
                     raise _ProtectedRoleError
+                await check_role_write(current_user, "system:roles:delete", role_id, {})
                 # 角色行锁定后再读取关联用户，确保缓存清理集合与本次删除事务一致。
                 affected_user_ids = await get_role_user_ids(
                     role_id,
@@ -346,6 +361,8 @@ class RoleService:
                 await locked_role.delete(using_db=connection)
         except _ProtectedRoleError:
             return self._protected_failure(role_id, object_name)
+        except PermissionDenied as exc:
+            return BatchDeleteFailure(object_id=str(role_id), object_name=object_name, error_code="PERMISSION_DENIED", message=exc.message, retryable=False)
         except NotFound:
             return BatchDeleteFailure(
                 object_id=str(role_id),
