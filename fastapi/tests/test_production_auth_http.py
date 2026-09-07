@@ -93,15 +93,15 @@ def test_production_revocation_rotation_outage_and_startup_recovery(tmp_path):
                 assert client.post("/api/v1/oauth/logout/", headers=headers).status_code == 503
                 assert client.post("/api/v1/oauth/refresh-token/", json={"refreshToken": rotated["refreshToken"]}).status_code == 503
                 assert client.put("/api/v1/information/password", headers=headers, json={
-                    "oldPassword": "httpPass123", "newPassword": "httpPass456",
-                    "confirmPassword": "httpPass456",
+                    "oldPassword": "httpPass123", "newPassword": " a new HTTP passphrase ",
+                    "confirmPassword": " a new HTTP passphrase ",
                 }).status_code == 503
             redis.start()
             assert first.post("/api/v1/oauth/login/", json=credentials).status_code == 200
             assert second.get("/api/v1/oauth/info/", headers=headers).status_code == 200
             changed = first.put("/api/v1/information/password", headers=headers, json={
-                "oldPassword": "httpPass123", "newPassword": "httpPass456",
-                "confirmPassword": "httpPass456",
+                "oldPassword": "httpPass123", "newPassword": " a new HTTP passphrase ",
+                "confirmPassword": " a new HTTP passphrase ",
             })
             assert changed.status_code == 200 and changed.json()["code"] == 20000
             assert second.get("/api/v1/oauth/info/", headers=headers).status_code == 401

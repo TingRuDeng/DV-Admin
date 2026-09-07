@@ -42,13 +42,15 @@
 
 <script setup lang="ts">
 import ProDialog from "@/components/ProDialog/index.vue";
-import type { PasswordForm, ProfileForm } from "@/api/information-api";
+import type { PasswordForm, PasswordPolicy, ProfileForm } from "@/api/information-api";
+import { passwordLengthError } from "@/utils/password-policy";
 import type { FormInstance } from "element-plus";
 import { ProfileDialogType, type ProfileDialogState } from "../types";
 
 const props = defineProps<{
   dialog: ProfileDialogState;
   passwordForm: PasswordForm;
+  passwordPolicy: PasswordPolicy | null;
   profileForm: ProfileForm;
 }>();
 
@@ -68,7 +70,15 @@ const passwordChangeFormRef = ref<FormInstance>();
 
 const passwordRules = {
   oldPassword: [{ required: true, message: "请输入原密码", trigger: "blur" }],
-  newPassword: [{ required: true, message: "请输入新密码", trigger: "blur" }],
+  newPassword: [
+    {
+      validator: (_rule: unknown, value: string, callback: (error?: Error) => void) => {
+        const error = passwordLengthError(value ?? "", props.passwordPolicy);
+        callback(error ? new Error(error) : undefined);
+      },
+      trigger: "blur",
+    },
+  ],
   confirmPassword: [{ required: true, message: "请再次输入新密码", trigger: "blur" }],
 };
 
