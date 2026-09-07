@@ -552,6 +552,8 @@ DELETE /api/v1/system/logs/clear/{days}            # 清理历史日志
 
 ## 个人中心模块 (Information)
 
+生产媒体存储统一 `/data/media`，所选后端读写、Nginx 只读；接口仍返回既有 `/media/` URL 和相对标识，不迁移数据库记录。旧文件复制与回退见 [媒体部署说明](MEDIA_DEPLOYMENT.md)。
+
 **Django / FastAPI 共享端点：**
 
 ```text

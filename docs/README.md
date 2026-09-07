@@ -81,6 +81,7 @@ DV-Admin/
 │   ├── API_ENDPOINTS.md        # [权威-概览] API 契约核心概览
 │   ├── DATABASE_SCHEMA.md      # [权威-概览] 数据库模型核心概览
 │   ├── KNOWN_PITFALLS.md       # [权威] 已知陷阱和常见错误
+│   ├── MEDIA_DEPLOYMENT.md     # [权威-流程] 生产媒体卷、复制校验与回退
 │   ├── TECH_DEBT.md            # [权威-跟踪] 技术债务记录
 │   ├── AGENT_STARTER_PROMPT.md # [工具] 代理启动提示词
 │   ├── DOC_SYNC_CHECKLIST.md   # [权威-流程] 文档同步检查清单
