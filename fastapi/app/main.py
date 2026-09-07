@@ -190,13 +190,17 @@ def create_app() -> FastAPI:
 app = create_app()
 
 
-if __name__ == "__main__":
+def main() -> None:
     import uvicorn
 
     uvicorn.run(
-        "main:app",
+        "app.main:app",
         proxy_headers=False,
         host=settings.host,
         port=settings.port,
         reload=settings.is_development,
     )
+
+
+if __name__ == "__main__":
+    main()
