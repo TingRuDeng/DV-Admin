@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
 from typing import TypeVar, cast
 
 from tortoise.backends.base.client import BaseDBAsyncClient
+from tortoise.expressions import Q, Subquery
 from tortoise.models import Model
 from tortoise.queryset import QuerySet
 
@@ -21,13 +21,13 @@ async def apply_user_data_scope(
     using_db: BaseDBAsyncClient | None = None,
 ) -> QuerySet[T]:
     """按当前用户角色数据范围过滤用户查询。"""
-    visible_user_ids = await get_visible_user_ids(
+    scope = await _get_user_scope(
         current_user,
         using_db=using_db or getattr(query, "_db", None),
     )
-    if visible_user_ids is None:
+    if scope is None:
         return query
-    return query.filter(id__in=list(visible_user_ids))
+    return query.filter(scope)
 
 
 async def apply_log_data_scope(
@@ -36,13 +36,12 @@ async def apply_log_data_scope(
     using_db: BaseDBAsyncClient | None = None,
 ) -> QuerySet[T]:
     """按当前用户角色数据范围过滤操作日志查询。"""
-    visible_user_ids = await get_visible_user_ids(
-        current_user,
-        using_db=using_db or getattr(query, "_db", None),
-    )
-    if visible_user_ids is None:
+    connection = using_db or getattr(query, "_db", None)
+    scope = await _get_user_scope(current_user, using_db=connection)
+    if scope is None:
         return query
-    return query.filter(user_id__in=list(visible_user_ids))
+    users = Users.filter(scope).using_db(connection).order_by().values("id")
+    return query.filter(user_id__in=Subquery(users))
 
 
 async def apply_notice_admin_data_scope(
@@ -51,20 +50,19 @@ async def apply_notice_admin_data_scope(
     using_db: BaseDBAsyncClient | None = None,
 ) -> QuerySet[T]:
     """按发布人数据范围过滤后台通知管理查询。"""
-    visible_user_ids = await get_visible_user_ids(
-        current_user,
-        using_db=using_db or getattr(query, "_db", None),
-    )
-    if visible_user_ids is None:
+    connection = using_db or getattr(query, "_db", None)
+    scope = await _get_user_scope(current_user, using_db=connection)
+    if scope is None:
         return query
-    return query.filter(publisher_id__in=list(visible_user_ids))
+    users = Users.filter(scope).using_db(connection).order_by().values("id")
+    return query.filter(publisher_id__in=Subquery(users))
 
 
-async def get_visible_user_ids(
+async def _get_user_scope(
     current_user: Users | None,
     using_db: BaseDBAsyncClient | None = None,
-) -> set[int] | None:
-    """计算当前用户可见的用户 ID；返回 None 表示无需过滤。"""
+) -> Q | None:
+    """构造角色范围并集，用户集合留在数据库；None 表示不受限制。"""
     if current_user is None or current_user.is_superuser:
         return None
 
@@ -81,10 +79,10 @@ async def get_visible_user_ids(
         if role.data_scope == Roles.DATA_SCOPE_SELF:
             include_self = True
 
-    visible_user_ids = await _user_ids_in_depts(dept_ids, using_db=using_db)
+    scope = Q(dept_id__in=list(dept_ids)) if dept_ids else Q(id__in=[])
     if include_self and current_user.id:
-        visible_user_ids.add(current_user.id)
-    return visible_user_ids
+        scope |= Q(id=current_user.id)
+    return scope
 
 
 async def get_visible_department_ids(
@@ -171,20 +169,3 @@ async def _dept_with_descendant_ids(
         frontier = child_ids - collected
         collected.update(child_ids)
     return collected
-
-
-async def _user_ids_in_depts(
-    dept_ids: Iterable[int],
-    using_db: BaseDBAsyncClient | None = None,
-) -> set[int]:
-    """查询指定部门内的用户 ID。"""
-    dept_id_set = set(dept_ids)
-    if not dept_id_set:
-        return set()
-    user_ids = cast(
-        list[int],
-        await Users.filter(dept_id__in=list(dept_id_set))
-        .using_db(using_db)
-        .values_list("id", flat=True),
-    )
-    return set(user_ids)
