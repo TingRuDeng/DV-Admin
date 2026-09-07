@@ -47,4 +47,3 @@ def validate_avatar_content(content: bytes, filename: str) -> None:
                     image.load()
     except (OSError, SyntaxError, Image.DecompressionBombError, Image.DecompressionBombWarning) as exc:
         raise ValueError("Image is damaged or exceeds the decoding budget") from exc
-
