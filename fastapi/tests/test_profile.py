@@ -4,6 +4,7 @@
 from io import BytesIO
 
 from fastapi.testclient import TestClient
+from fixtures.images import PNG_BYTES
 
 
 class TestProfile:
@@ -49,11 +50,11 @@ class TestAvatar:
         from app.core.config import settings
 
         monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
-        files = {"file": ("test.png", BytesIO(b"fake image"), "image/png")}
+        files = {"file": ("test.png", BytesIO(PNG_BYTES), "image/png")}
         response = auth_client.post("/api/v1/information/change-avatar/", files=files)
         assert response.status_code == 200
         avatar = response.json()["data"]["avatar"]
-        assert (tmp_path / "avatar" / avatar).read_bytes() == b"fake image"
+        assert (tmp_path / "avatar" / avatar).read_bytes() == PNG_BYTES
 
     def test_change_avatar_rejects_oversize_without_partial_file(
         self,

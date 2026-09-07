@@ -219,7 +219,7 @@ class CustomAuditEntryTestCase(TestCase):
         request_id = self.request_id()
         image = SimpleUploadedFile(
             "audit-avatar.gif",
-            base64.b64decode("R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="),
+            base64.b64decode("R0lGODdhAQABAIEAAP8AAAAAAAAAAAAAACwAAAAAAQABAAAIBAABBAQAOw=="),
             content_type="image/gif",
         )
 
