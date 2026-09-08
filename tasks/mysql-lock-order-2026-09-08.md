@@ -2,6 +2,8 @@
 
 ## 后续交付授权（2026-09-08）
 
+- 实际交付：提交 `7a945dc` 已通过 PR [#377](https://github.com/TingRuDeng/DV-Admin/pull/377) 合并到 `master`，合并提交为 `b14f485c0ba9ee66ba4f521a72bb3bc2135d55d5`；未部署。
+- 合并前 [Quality Gates](https://github.com/TingRuDeng/DV-Admin/actions/runs/34189952695) 与合并后 [Quality Gates](https://github.com/TingRuDeng/DV-Admin/actions/runs/34190294885) 均 9/9 通过，包含双后端 MySQL、真实浏览器及镜像检查。本轮锁顺序修复已交付结束，以下保留阶段记录。
 - 有限收尾完成后，用户确认提交并推送当前分支、创建面向 `master` 的 PR，待 CI 全部通过后合并；不部署。下文“未提交/未推送”保留本地收尾阶段事实。
 - 提交前再次复跑：Django Ruff 与全量 pytest（290 passed / 1 skipped）、FastAPI 完整 `make quality`（856 passed / 1 skipped，覆盖率 89.25%）通过；FastAPI 沿用仅测试进程的密码配置覆盖。
 - 根 unittest 首次因沙箱内隔离 Nginx 未启动而失败，获准在沙箱外重跑 42 项全部通过，未修改业务或测试。远端 MySQL 56 项结果以本次 PR 的 CI 为准。
