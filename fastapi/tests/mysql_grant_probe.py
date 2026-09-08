@@ -135,6 +135,8 @@ async def rollback():
 
 
 async def main():
+    from mysql_lock_order_probe import run_checks
+
     config = credentials()
     config["database"] = schema_name()
     config["init_command"] = f"SET SESSION TRANSACTION ISOLATION LEVEL {isolation()}"
@@ -150,6 +152,7 @@ async def main():
         await race(warm_snapshot=True)
         await race(warm_snapshot=True, revoke_kind="membership")
         await race(warm_snapshot=True, revoke_kind="scope")
+        await run_checks(seed)
     finally:
         await Tortoise.close_connections()
 
