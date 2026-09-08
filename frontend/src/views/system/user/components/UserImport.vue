@@ -70,8 +70,8 @@
       cancel-text="关闭"
     >
       <el-alert
-        :title="`导入结果：${invalidCount}条无效数据，${validCount}条有效数据`"
-        type="warning"
+        :title="`导入结果：成功${validCount}条，失败${invalidCount}条`"
+        :type="validCount > 0 ? 'warning' : 'error'"
         :closable="false"
       />
       <el-table :data="resultData" style="width: 100%; max-height: 400px">
@@ -164,18 +164,31 @@ const handleUpload = async () => {
   }
 
   uploading.value = true;
+  resultVisible.value = false;
+  resultData.value = [];
+  invalidCount.value = 0;
+  validCount.value = 0;
   try {
     const result = await UserAPI.import(props.deptId, importFormData.files[0].raw as File);
-    if (result.invalidCount === 0) {
-      ElMessage.success("导入成功，导入数据：" + result.validCount + "条");
+    if (result.validCount > 0) {
       emit("import-success");
-      handleClose();
-    } else {
-      ElMessage.error("上传失败");
+    }
+    if (result.invalidCount > 0) {
+      const summary = `成功${result.validCount}条，失败${result.invalidCount}条`;
+      if (result.validCount > 0) {
+        ElMessage.warning("部分导入成功：" + summary);
+      } else {
+        ElMessage.error("导入失败：" + summary);
+      }
       resultVisible.value = true;
       resultData.value = result.messageList;
       invalidCount.value = result.invalidCount;
       validCount.value = result.validCount;
+    } else if (result.validCount > 0) {
+      ElMessage.success("导入成功，导入数据：" + result.validCount + "条");
+      handleClose();
+    } else {
+      ElMessage.warning("未导入任何数据，请检查文件内容");
     }
   } catch (error: unknown) {
     userImportLogger.error("用户导入失败:", error);
