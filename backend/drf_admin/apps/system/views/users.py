@@ -211,6 +211,7 @@ class UsersViewSet(AdminViewSet):
 
             try:
                 with transaction.atomic():
+                    boundary = GrantBoundary.load(request.user, "system:users:delete")
                     scoped_queryset = (
                         self.get_queryset()
                         .filter(id=user_id)
@@ -228,7 +229,6 @@ class UsersViewSet(AdminViewSet):
                             )
                         )
                     else:
-                        boundary = GrantBoundary.load(request.user, "system:users:delete")
                         boundary.user(locked_user)
                         locked_user.delete()
                         success_items.append(success_item(user_id, object_name))

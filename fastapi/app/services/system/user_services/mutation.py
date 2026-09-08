@@ -266,16 +266,16 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
 
             try:
                 async with in_transaction() as connection:
+                    boundary = await GrantBoundary.load(current_user, "system:users:delete")
                     scoped_query = await apply_user_data_scope(
                         Users.all().using_db(connection),
-                        current_user,
+                        boundary.actor if boundary else current_user,
                     )
                     locked_user = await (
                         scoped_query.filter(id=user_id).select_for_update().first()
                     )
                     if locked_user is None:
                         raise NotFound("用户不存在")
-                    boundary = await GrantBoundary.load(current_user, "system:users:delete")
                     if boundary:
                         await boundary.user(locked_user)
                     await locked_user.delete(using_db=connection)
@@ -368,16 +368,16 @@ class UserMutationMixin(UserCacheMixin, UserSerializerMixin):
 
             try:
                 async with in_transaction() as connection:
+                    boundary = await GrantBoundary.load(current_user, "system:users:delete")
                     scoped_query = await apply_user_data_scope(
                         Users.all().using_db(connection),
-                        current_user,
+                        boundary.actor if boundary else current_user,
                     )
                     locked_user = await (
                         scoped_query.filter(id=user_id).select_for_update().first()
                     )
                     if locked_user is None:
                         raise NotFound("用户不存在")
-                    boundary = await GrantBoundary.load(current_user, "system:users:delete")
                     if boundary:
                         await boundary.user(locked_user)
                     await locked_user.delete(using_db=connection)

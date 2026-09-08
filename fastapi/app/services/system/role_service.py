@@ -21,7 +21,7 @@ from app.schemas.system import (
 )
 from app.services.system.access_cache import clear_user_access_cache, get_role_user_ids
 from app.services.system.batch_delete import build_batch_delete_result, normalize_batch_ids
-from app.services.system.grant_boundary import check_role_write
+from app.services.system.grant_boundary import GrantBoundary, check_role_write
 from app.services.system.role_serializers import (
     build_role_menu_items,
     build_role_out,
@@ -228,6 +228,8 @@ class RoleService:
         """
         删除角色
         """
+        # Match updates: lock the actor before the target, including protected deletes.
+        await GrantBoundary.load(current_user, "system:roles:delete")
         role = await Roles.filter(id=role_id).select_for_update().first()
         if not role:
             raise NotFound("角色不存在")
@@ -345,6 +347,7 @@ class RoleService:
         """在独立事务中删除单个角色并清理关联用户缓存。"""
         try:
             async with in_transaction() as connection:
+                await GrantBoundary.load(current_user, "system:roles:delete")
                 locked_role = await (
                     Roles.filter(id=role_id).using_db(connection).select_for_update().first()
                 )
