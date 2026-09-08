@@ -24,7 +24,7 @@ from drf_admin.apps.system.services.batch_delete import (
     preflight_batch_ids,
     success_item,
 )
-from drf_admin.apps.system.services.grant_boundary import check_role_write
+from drf_admin.apps.system.services.grant_boundary import GrantBoundary, check_role_write
 from drf_admin.apps.system.signals import clear_user_permission_cache
 from drf_admin.utils.audit import set_audit_context, set_audit_object
 from drf_admin.utils.views import AdminViewSet, AutoPermissionAPIView
@@ -114,6 +114,8 @@ class RolesViewSet(AdminViewSet):
 
     @transaction.atomic
     def perform_destroy(self, instance):
+        # Match updates: lock the actor before the target.
+        GrantBoundary.load(self.request.user, "system:roles:delete")
         instance = Roles.objects.select_for_update().get(pk=instance.pk)
         if self._is_protected_role(instance):
             raise ValidationError("系统角色不可删除")
@@ -232,6 +234,7 @@ class RolesViewSet(AdminViewSet):
         """在独立事务中复核并删除单个角色。"""
         try:
             with transaction.atomic():
+                GrantBoundary.load(current_user, "system:roles:delete")
                 locked_role = Roles.objects.select_for_update().filter(id=role_id).first()
                 if locked_role is None:
                     return {
