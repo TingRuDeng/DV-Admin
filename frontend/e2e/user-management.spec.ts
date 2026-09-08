@@ -244,6 +244,85 @@ function buildRoutes() {
 }
 
 test.describe("用户管理核心业务 smoke", () => {
+  test("导入部分成功刷新列表，全部失败与网络异常保留准确反馈", async ({ page }) => {
+    const state = createMockState();
+    await installUserManagementMocks(page, state);
+    let imports = 0;
+    await page.route(`**${API_PREFIX}/api/v1/system/users/import`, async (route) => {
+      imports += 1;
+      if (imports === 1) {
+        state.users.push({ ...state.users[0], id: "103", username: "imported_user" });
+        await fulfillJson(
+          route,
+          success({
+            validCount: 1,
+            invalidCount: 1,
+            messageList: ["第3行：用户名已存在"],
+          })
+        );
+      } else if (imports === 2) {
+        await fulfillJson(
+          route,
+          success({
+            validCount: 0,
+            invalidCount: 1,
+            messageList: ["第2行：无权限"],
+          })
+        );
+      } else {
+        await route.abort("failed");
+      }
+    });
+
+    await page.goto("/login?redirect=%2Fsystem%2Fusers");
+    await page.getByLabel("用户名").fill("admin");
+    await page.getByLabel("密码").fill("123456");
+    await page.getByRole("button", { name: /登\s*录|Login/i }).click();
+    await expect(page.getByText("admin_mock", { exact: true })).toBeVisible();
+    const queriesBeforeImport = state.pageQueries.length;
+    await page.getByRole("button", { name: "导入用户" }).click();
+    const drawer = page.locator(".el-drawer").filter({ hasText: "导入数据" });
+    // The response is mocked: this file exercises the actual upload UI, not XLSX parsing.
+    await drawer.locator('input[type="file"]').setInputFiles({
+      name: "users.xlsx",
+      mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      buffer: Buffer.from("isolated UI import fixture"),
+    });
+    const submit = drawer.getByRole("button", { name: /确\s*定/ });
+    const result = page.getByRole("dialog", { name: "导入结果", exact: true });
+    await submit.click();
+    await expect(page.locator(".el-message--warning")).toContainText(
+      "部分导入成功：成功1条，失败1条"
+    );
+    await expect(result).toContainText("导入结果：成功1条，失败1条");
+    await expect(result).toContainText("第3行：用户名已存在");
+    await expect.poll(() => state.pageQueries.length).toBe(queriesBeforeImport + 1);
+    await expect(page.getByText("imported_user", { exact: true })).toBeVisible();
+    await result.getByRole("button", { name: "关闭", exact: true }).click();
+    await drawer.getByRole("button", { name: "错误信息" }).click();
+    await expect(result).toContainText("第3行：用户名已存在");
+    await result.getByRole("button", { name: "关闭", exact: true }).click();
+
+    await submit.click();
+    await expect(page.locator(".el-message--error")).toContainText("导入失败：成功0条，失败1条");
+    await expect(result).toContainText("第2行：无权限");
+    await expect(result).not.toContainText("第3行：用户名已存在");
+    expect(state.pageQueries).toHaveLength(queriesBeforeImport + 1);
+    await result.getByRole("button", { name: "关闭", exact: true }).click();
+
+    await submit.click();
+    await expect(
+      page.locator(".el-message--error").filter({ hasText: "上传失败：" })
+    ).toBeVisible();
+    await expect(submit).not.toHaveClass(/is-loading/);
+    await expect(result).not.toBeVisible();
+    await expect(drawer.getByRole("button", { name: "错误信息" })).toHaveCount(0);
+    expect(imports).toBe(3);
+    expect(state.pageQueries).toHaveLength(queriesBeforeImport + 1);
+    await drawer.getByRole("button", { name: /取\s*消/ }).click();
+    await expect(page.getByText("imported_user", { exact: true })).toBeVisible();
+  });
+
   test("登录后可以进入用户管理并新增用户", async ({ page }) => {
     const state = createMockState();
     await installUserManagementMocks(page, state);
