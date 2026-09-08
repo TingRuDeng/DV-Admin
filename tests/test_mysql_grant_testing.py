@@ -19,6 +19,15 @@ with patch.dict(sys.modules, {"mysql_grant_testing": helper}):
 
 
 class MySQLGrantTestingTests(unittest.TestCase):
+    def test_mysql_errno_unwraps_orm_errors_without_message_matching(self):
+        self.assertEqual(helper.mysql_errno(RuntimeError(Exception(1213, "deadlock"))), 1213)
+        error = RuntimeError("wrapper")
+        error.__cause__ = Exception(1205, "timeout")
+        self.assertEqual(helper.mysql_errno(error), 1205)
+        self.assertIsNone(helper.mysql_errno(RuntimeError("1213 is only text")))
+        error.__cause__ = error
+        self.assertIsNone(helper.mysql_errno(error))
+
     def test_rejects_remote_hosts_and_existing_database_names(self):
         for host in ("db.example.com", "192.168.0.1"):
             with self.subTest(host=host), patch.dict(os.environ, {"GRANT_MYSQL_HOST": host}):
