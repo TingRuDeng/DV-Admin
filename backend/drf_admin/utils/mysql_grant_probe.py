@@ -179,6 +179,8 @@ def main():
     from django.core.management import call_command
     from django.db import connections
 
+    from drf_admin.utils.mysql_lock_order_probe import run_checks
+
     try:
         call_command("migrate", verbosity=0, interactive=False)
         race()
@@ -187,6 +189,7 @@ def main():
         race(warm_snapshot=True)
         race(warm_snapshot=True, revoke_kind="membership")
         race(warm_snapshot=True, revoke_kind="scope")
+        run_checks(seed)
     finally:
         connections.close_all()
 

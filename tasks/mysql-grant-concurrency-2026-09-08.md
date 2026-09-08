@@ -1,5 +1,7 @@
 # MySQL 并发授权回归
 
+> 交付更新：本轮代码已通过 PR [#376](https://github.com/TingRuDeng/DV-Admin/pull/376) 合并到 `master`（`add845e`），合并前后 CI 均 9/9 通过；未部署。以下“本地提交/未推送”描述保留提交前阶段记录。
+
 ## 目标与边界
 
 - 分支：`codex/mysql-grant-concurrency`，基于 `origin/master` 的 `81d428a`。
