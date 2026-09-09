@@ -1,6 +1,9 @@
 <template>
   <div class="login-container">
-    <!-- 右侧切换主题、语言按钮  -->
+    <div class="login-ambient login-ambient--coral" aria-hidden="true"></div>
+    <div class="login-ambient login-ambient--blue" aria-hidden="true"></div>
+    <div class="login-grid" aria-hidden="true"></div>
+
     <div class="action-bar">
       <el-tooltip :content="t('login.themeToggle')" placement="bottom">
         <CommonWrapper>
@@ -13,75 +16,83 @@
         </CommonWrapper>
       </el-tooltip>
     </div>
-    <!-- 登录页主体 -->
-    <main flex-1 flex-center aria-labelledby="login-page-title">
-      <div class="login-card">
-        <div w-full flex flex-col items-center>
-          <!-- logo -->
-          <div class="cyber-logo">
+
+    <main class="login-layout" aria-labelledby="login-page-title">
+      <section class="login-art" aria-hidden="true">
+        <div class="login-art__topline">
+          <span>DV-ADMIN</span>
+          <span>ACCESS / 01</span>
+        </div>
+        <div class="login-art__title">
+          <span>CONTROL</span>
+          <em>ROOM</em>
+        </div>
+        <div class="login-art__line"></div>
+        <div class="login-art__footer">
+          <span>RBAC / PLATFORM</span>
+          <span>LOCAL SESSION</span>
+        </div>
+      </section>
+
+      <section class="login-card">
+        <div class="login-card__header">
+          <div class="cyber-logo" aria-hidden="true">
             <div class="logo-glow"></div>
             <div class="logo-glass">
-              <span class="logo-letter">{{ logoText }}</span>
+              <AppIcon name="command" :size="30" :stroke-width="1.8" />
             </div>
           </div>
-
-          <!-- 标题 -->
-          <h2 id="login-page-title" class="login-title">
-            <el-badge :value="`v ${defaultSettings.version}`" type="primary">
-              {{ defaultSettings.title }}
-            </el-badge>
-          </h2>
-
-          <!-- 组件切换 -->
-          <transition name="fade-slide" mode="out-in">
-            <component :is="formComponents[component]" v-model="component" class="login-form" />
-          </transition>
+          <div>
+            <p class="login-kicker">Workspace access</p>
+            <h2 id="login-page-title">进入工作区</h2>
+          </div>
         </div>
-      </div>
-      <!-- 登录页底部版权 -->
-      <el-text size="small" class="login-footer">
-        Copyright © 2021 - 2025 {{ defaultSettings.title }} All Rights Reserved.
-      </el-text>
+
+        <transition name="fade-slide" mode="out-in">
+          <component :is="formComponents[component]" v-model="component" class="login-form" />
+        </transition>
+      </section>
     </main>
+
+    <footer class="login-footer">
+      {{ defaultSettings.title }} · {{ defaultSettings.version }}
+    </footer>
   </div>
 </template>
 
 <script setup lang="ts">
 import { defaultSettings } from "@/settings";
+import AppIcon from "@/components/AppIcon/index.vue";
 import CommonWrapper from "@/components/CommonWrapper/index.vue";
 import DarkModeSwitch from "@/components/DarkModeSwitch/index.vue";
+import LangSelect from "@/components/LangSelect/index.vue";
 
 type LayoutMap = "login" | "register" | "resetPwd";
 
-const t = useI18n().t;
-
-const component = ref<LayoutMap>("login"); // 切换显示的组件
+const { t } = useI18n();
+const component = shallowRef<LayoutMap>("login");
 const formComponents = {
   login: defineAsyncComponent(() => import("./components/Login.vue")),
   register: defineAsyncComponent(() => import("./components/Register.vue")),
   resetPwd: defineAsyncComponent(() => import("./components/ResetPwd.vue")),
 };
-
-// 从环境变量读取 Logo 文字
-const logoText = import.meta.env.VITE_APP_LOGO_TEXT || "DV";
 </script>
 
 <style lang="scss" scoped>
 @use "@/styles/pages/login";
 
-/* fade-slide */
 .fade-slide-leave-active,
 .fade-slide-enter-active {
-  transition: all 0.3s;
+  transition: all var(--ff-duration-base) var(--ff-ease-spring);
 }
 
 .fade-slide-enter-from {
   opacity: 0;
-  transform: translateX(-30px);
+  transform: translateX(-18px);
 }
 
 .fade-slide-leave-to {
   opacity: 0;
-  transform: translateX(30px);
+  transform: translateX(18px);
 }
 </style>

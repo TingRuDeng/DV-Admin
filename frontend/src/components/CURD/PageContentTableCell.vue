@@ -82,14 +82,7 @@
   <!-- 显示图标 -->
   <template v-else-if="col.templet === 'icon'">
     <template v-if="col.prop">
-      <template v-if="toDisplayText(row[col.prop]).startsWith('el-icon-')">
-        <el-icon>
-          <component :is="toDisplayText(row[col.prop]).replace('el-icon-', '')" />
-        </el-icon>
-      </template>
-      <template v-else>
-        <div class="i-svg:{{ row[col.prop] }}" />
-      </template>
+      <AppIcon :name="toDisplayText(row[col.prop])" :size="16" />
     </template>
   </template>
   <!-- 格式化时间 -->
@@ -121,6 +114,7 @@
 </template>
 
 <script setup lang="ts">
+import AppIcon from "@/components/AppIcon/index.vue";
 import { useDateFormat } from "@vueuse/core";
 import type { IContentConfig, IObject, IOperateData } from "./types";
 import type { PageContentToolbarButton } from "./usePageContentToolbarConfig";

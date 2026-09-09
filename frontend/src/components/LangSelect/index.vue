@@ -1,7 +1,7 @@
 <template>
   <el-dropdown trigger="click" @command="handleLanguageChange">
     <button type="button" class="navbar-icon-button" :aria-label="t('langSelect.tooltip')">
-      <div class="i-svg:language" :class="size" aria-hidden="true" />
+      <AppIcon name="languages" :class="size" :size="18" />
     </button>
     <template #dropdown>
       <el-dropdown-menu>
@@ -21,6 +21,7 @@
 <script setup lang="ts">
 import { useAppStore } from "@/store/modules/app-store";
 import { LanguageEnum } from "@/enums/settings/locale-enum";
+import AppIcon from "@/components/AppIcon/index.vue";
 
 defineProps({
   size: {

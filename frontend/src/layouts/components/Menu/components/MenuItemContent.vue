@@ -1,13 +1,8 @@
 <template>
   <!-- 菜单图标 -->
-  <template v-if="icon">
-    <el-icon v-if="isElIcon" class="menu-icon">
-      <component :is="iconComponent" />
-    </el-icon>
-    <div v-else :class="`i-svg:${icon}`" class="menu-icon" />
-  </template>
+  <AppIcon v-if="icon" :name="iconName" class="menu-icon" :size="18" />
   <template v-else>
-    <div class="i-svg:menu menu-icon" />
+    <AppIcon name="menu" class="menu-icon" :size="18" />
   </template>
   <!-- 菜单标题 -->
   <span v-if="title" class="menu-title ml-1">{{ translateRouteTitle(title) }}</span>
@@ -15,14 +10,17 @@
 
 <script setup lang="ts">
 import { translateRouteTitle } from "@/utils/i18n";
+import AppIcon from "@/components/AppIcon/index.vue";
 
 const props = defineProps<{
   icon?: string;
   title?: string;
 }>();
 
-const isElIcon = computed(() => props.icon?.startsWith("el-icon"));
-const iconComponent = computed(() => props.icon?.replace("el-icon-", ""));
+const iconName = computed(() => {
+  const value = props.icon ?? "menu";
+  return value.replace(/^el-icon-/, "").replace(/^i-svg:/, "");
+});
 </script>
 
 <style lang="scss" scoped>

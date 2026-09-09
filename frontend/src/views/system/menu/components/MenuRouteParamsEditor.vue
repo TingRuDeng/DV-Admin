@@ -18,26 +18,27 @@
 
       <el-input v-model="item.value" placeholder="参数值" style="width: 100px" />
 
-      <el-icon
+      <AppIcon
         v-if="params.indexOf(item) === params.length - 1"
+        name="plus"
+        :size="18"
         class="cursor-pointer text-success"
         style="vertical-align: -0.15em"
         @click="params.push({ key: '', value: '' })"
-      >
-        <CirclePlusFilled />
-      </el-icon>
-      <el-icon
+      />
+      <AppIcon
+        name="delete"
+        :size="18"
         class="cursor-pointer text-danger"
         style="vertical-align: -0.15em"
         @click="params.splice(params.indexOf(item), 1)"
-      >
-        <DeleteFilled />
-      </el-icon>
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import AppIcon from "@/components/AppIcon/index.vue";
 type MenuRouteParam = {
   key: string;
   value: string;

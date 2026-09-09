@@ -7,7 +7,12 @@
     :aria-controls="controls"
     @click="toggleClick"
   >
-    <div :class="['i-svg:collapse', { hamburger: true, 'is-active': isActive }, hamburgerClass]" />
+    <AppIcon
+      :name="isActive ? 'panel-left-close' : 'panel-left-open'"
+      :class="['hamburger', hamburgerClass]"
+      :size="19"
+      :stroke-width="2"
+    />
   </button>
 </template>
 
@@ -15,6 +20,7 @@
 import { useSettingsStore } from "@/store";
 import { ThemeMode, SidebarColor } from "@/enums/settings/theme-enum";
 import { LayoutMode } from "@/enums/settings/layout-enum";
+import AppIcon from "@/components/AppIcon/index.vue";
 
 defineProps({
   isActive: { type: Boolean, required: true },
@@ -81,9 +87,7 @@ function toggleClick() {
   }
 
   .hamburger {
-    font-size: 18px;
     vertical-align: middle;
-    transform: scaleX(-1);
     transition: transform var(--ff-duration-base) var(--ff-ease-standard);
 
     &--white {
@@ -91,7 +95,7 @@ function toggleClick() {
     }
 
     &.is-active {
-      transform: scaleX(1);
+      transform: translateX(0);
     }
   }
 }

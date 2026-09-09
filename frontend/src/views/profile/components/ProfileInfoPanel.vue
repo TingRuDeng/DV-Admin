@@ -3,12 +3,12 @@
     <el-descriptions :column="1" border>
       <el-descriptions-item label="用户名">
         {{ profile.username }}
-        <el-icon v-if="profile.gender === 1" class="ff-profile-gender male">
-          <Male />
-        </el-icon>
-        <el-icon v-else class="ff-profile-gender female">
-          <Female />
-        </el-icon>
+        <AppIcon
+          :name="profile.gender === 1 ? 'mars' : 'venus'"
+          :size="16"
+          class="ff-profile-gender"
+          :class="profile.gender === 1 ? 'male' : 'female'"
+        />
       </el-descriptions-item>
       <el-descriptions-item label="手机号码">
         {{ profile.mobile || "未绑定" }}
@@ -24,6 +24,7 @@
 </template>
 
 <script setup lang="ts">
+import AppIcon from "@/components/AppIcon/index.vue";
 import type { UserProfile } from "@/api/information-api";
 
 defineProps<{

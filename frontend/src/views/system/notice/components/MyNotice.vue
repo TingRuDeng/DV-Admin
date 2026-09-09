@@ -65,11 +65,11 @@
       <div v-if="noticeDetail" class="ff-my-notice-detail__wrapper">
         <div class="ff-my-notice-detail__meta">
           <span>
-            <el-icon><User /></el-icon>
+            <AppIcon name="user-round" :size="15" />
             {{ noticeDetail.publisherName }}
           </span>
           <span class="ml-2">
-            <el-icon><Timer /></el-icon>
+            <AppIcon name="calendar-days" :size="15" />
             {{ noticeDetail.publishTime }}
           </span>
         </div>
@@ -83,6 +83,7 @@
 </template>
 
 <script setup lang="ts">
+import AppIcon from "@/components/AppIcon/index.vue";
 defineOptions({
   name: "MyNotice",
   inheritAttrs: false,
