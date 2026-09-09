@@ -33,10 +33,10 @@
           <el-button
             v-hasPerm="['system:permissions:add']"
             type="primary"
-            icon="plus"
             class="ff-button-primary"
             @click="handleOpenDialog('0')"
           >
+            <template #icon><AppIcon name="plus" :size="15" /></template>
             新增菜单
           </el-button>
         </div>
@@ -45,14 +45,7 @@
       <template #default>
         <el-table-column label="菜单名称" min-width="200">
           <template #default="scope">
-            <template v-if="scope.row.icon && scope.row.icon.startsWith('el-icon')">
-              <el-icon style="vertical-align: -0.15em">
-                <component :is="scope.row.icon.replace('el-icon-', '')" />
-              </el-icon>
-            </template>
-            <template v-else-if="scope.row.icon">
-              <div :class="`i-svg:${scope.row.icon}`" />
-            </template>
+            <AppIcon v-if="scope.row.icon" :name="scope.row.icon" :size="16" />
             {{ scope.row.name }}
           </template>
         </el-table-column>
@@ -89,10 +82,10 @@
               v-hasPerm="['system:permissions:add']"
               type="primary"
               link
-              icon="plus"
               size="small"
               @click.stop="handleOpenDialog(scope.row.id)"
             >
+              <template #icon><AppIcon name="plus" :size="14" /></template>
               新增
             </el-button>
 
@@ -100,18 +93,18 @@
               v-hasPerm="['system:permissions:edit']"
               type="primary"
               link
-              icon="edit"
               @click.stop="handleOpenDialog(undefined, scope.row.id)"
             >
+              <template #icon><AppIcon name="pencil" :size="14" /></template>
               编辑
             </el-button>
             <el-button
               v-hasPerm="['system:permissions:delete']"
               type="danger"
               link
-              icon="delete"
               @click.stop="handleDelete(scope.row.id)"
             >
+              <template #icon><AppIcon name="delete" :size="14" /></template>
               删除
             </el-button>
           </template>
@@ -124,6 +117,7 @@
 </template>
 
 <script setup lang="ts">
+import AppIcon from "@/components/AppIcon/index.vue";
 import PageShell from "@/components/PageShell/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";

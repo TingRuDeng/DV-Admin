@@ -2,12 +2,13 @@
 <template>
   <el-button link :style="style" @click="handleClipboard">
     <slot>
-      <el-icon><DocumentCopy color="var(--el-color-primary)" /></el-icon>
+      <AppIcon name="copy" :size="16" color="var(--el-color-primary)" />
     </slot>
   </el-button>
 </template>
 
 <script setup lang="ts">
+import AppIcon from "@/components/AppIcon/index.vue";
 import { createLogger } from "@/utils/logger";
 
 defineOptions({

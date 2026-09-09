@@ -4,24 +4,14 @@
       content="复制配置将生成当前设置的代码，覆盖 src/settings.ts 下的 defaultSettings 变量"
       placement="top"
     >
-      <el-button
-        type="primary"
-        size="default"
-        :icon="copyIcon"
-        :loading="copyLoading"
-        @click="emit('copy')"
-      >
+      <el-button type="primary" size="default" :loading="copyLoading" @click="emit('copy')">
+        <AppIcon name="document" :size="16" />
         {{ copyLoading ? "复制中..." : t("settings.copyConfig") }}
       </el-button>
     </el-tooltip>
     <el-tooltip content="重置将恢复所有设置为默认值" placement="top">
-      <el-button
-        type="warning"
-        size="default"
-        :icon="resetIcon"
-        :loading="resetLoading"
-        @click="emit('reset')"
-      >
+      <el-button type="warning" size="default" :loading="resetLoading" @click="emit('reset')">
+        <AppIcon name="refresh" :size="16" />
         {{ resetLoading ? "重置中..." : t("settings.resetConfig") }}
       </el-button>
     </el-tooltip>
@@ -29,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { DocumentCopy, RefreshLeft } from "@element-plus/icons-vue";
+import AppIcon from "@/components/AppIcon/index.vue";
 
 defineProps<{
   copyLoading: boolean;
@@ -42,9 +32,6 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-
-const copyIcon = markRaw(DocumentCopy);
-const resetIcon = markRaw(RefreshLeft);
 </script>
 
 <style lang="scss" scoped>

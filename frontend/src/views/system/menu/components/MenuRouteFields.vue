@@ -11,9 +11,7 @@
           <template #content>
             如果需要开启缓存，需保证页面 defineOptions 中的 name 与此处一致，建议使用驼峰。
           </template>
-          <el-icon class="ml-1 cursor-pointer text-primary">
-            <QuestionFilled />
-          </el-icon>
+          <AppIcon name="circle-help" :size="15" class="ml-1 cursor-pointer text-primary" />
         </el-tooltip>
       </div>
     </template>
@@ -29,9 +27,7 @@
             定义应用中不同页面对应的 URL 路径，目录需以 / 开头，菜单项不用。例如：系统管理目录
             /system，系统管理下的用户管理菜单 user。
           </template>
-          <el-icon class="ml-1 cursor-pointer text-primary">
-            <QuestionFilled />
-          </el-icon>
+          <AppIcon name="circle-help" :size="15" class="ml-1 cursor-pointer text-primary" />
         </el-tooltip>
       </div>
     </template>
@@ -47,9 +43,7 @@
           <template #content>
             组件页面完整路径，相对于 src/views/，如 system/user/index，缺省后缀 .vue
           </template>
-          <el-icon class="ml-1 cursor-pointer text-primary">
-            <QuestionFilled />
-          </el-icon>
+          <AppIcon name="circle-help" :size="15" class="ml-1 cursor-pointer text-primary" />
         </el-tooltip>
       </div>
     </template>
@@ -66,9 +60,7 @@
         路由参数
         <el-tooltip placement="bottom" effect="light">
           <template #content>组件页面使用 `useRoute().query.参数名` 获取路由参数值。</template>
-          <el-icon class="ml-1 cursor-pointer text-primary">
-            <QuestionFilled />
-          </el-icon>
+          <AppIcon name="circle-help" :size="15" class="ml-1 cursor-pointer text-primary" />
         </el-tooltip>
       </div>
     </template>
@@ -78,6 +70,7 @@
 </template>
 
 <script setup lang="ts">
+import AppIcon from "@/components/AppIcon/index.vue";
 import type { MenuForm } from "@/api/system/menu-api";
 import MenuRouteParamsEditor from "./MenuRouteParamsEditor.vue";
 

@@ -30,7 +30,7 @@
             </div>
             <div class="layout-name">{{ item.label }}</div>
             <div v-if="settingsStore.layout === item.value" class="layout-check">
-              <el-icon><Check /></el-icon>
+              <AppIcon name="check" :size="12" />
             </div>
           </div>
         </el-tooltip>
@@ -40,10 +40,10 @@
 </template>
 
 <script setup lang="ts">
-import { Check } from "@element-plus/icons-vue";
 import { LayoutMode } from "@/enums";
 import { useSettingsStore } from "@/store";
 import type { LayoutOption } from "./types";
+import AppIcon from "@/components/AppIcon/index.vue";
 
 const { t } = useI18n();
 const settingsStore = useSettingsStore();

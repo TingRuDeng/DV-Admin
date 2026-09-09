@@ -3,7 +3,7 @@
   <el-card shadow="never">
     <el-input v-model="deptName" placeholder="部门名称" clearable>
       <template #prefix>
-        <el-icon><Search /></el-icon>
+        <AppIcon name="search" :size="16" />
       </template>
     </el-input>
 
@@ -21,6 +21,7 @@
 </template>
 
 <script setup lang="ts">
+import AppIcon from "@/components/AppIcon/index.vue";
 import DeptAPI from "@/api/system/dept-api";
 import type { TreeInstance } from "element-plus";
 

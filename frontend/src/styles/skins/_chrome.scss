@@ -4,9 +4,11 @@
 .navbar,
 .layout__header {
   color: var(--ff-shell-text);
-  background: var(--ff-shell-surface) !important;
+  background: color-mix(in srgb, var(--ff-shell-surface) 88%, transparent) !important;
   border-bottom: 1px solid var(--ff-shell-border) !important;
   box-shadow: var(--ff-shadow-shell) !important;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
 }
 
 .navbar {
@@ -83,7 +85,7 @@
 
 .right-menu-item:hover,
 .navbar-actions__item:hover {
-  color: var(--el-color-primary) !important;
+  color: var(--ff-accent) !important;
   background: var(--ff-shell-hover) !important;
 }
 
@@ -141,8 +143,8 @@
 }
 
 .user-profile__avatar:hover {
-  border-color: var(--el-color-primary-light-7) !important;
-  box-shadow: 0 0 0 1px var(--el-color-primary-light-5) !important;
+  border-color: var(--ff-accent) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ff-accent) 55%, transparent) !important;
 }
 
 .tags-container {

@@ -7,10 +7,10 @@
       aria-haspopup="menu"
     >
       <el-badge v-if="noticeList.length > 0" :value="noticeList.length" :max="99">
-        <div class="i-svg:bell" aria-hidden="true" />
+        <AppIcon name="bell" :size="18" />
       </el-badge>
 
-      <div v-else class="i-svg:bell" aria-hidden="true" />
+      <AppIcon v-else name="bell" :size="18" />
     </button>
 
     <template #dropdown>
@@ -37,9 +37,7 @@
           <div class="flex-x-between">
             <el-link type="primary" underline="never" @click="handleViewMoreNotice">
               <span class="text-xs">查看更多</span>
-              <el-icon class="text-xs">
-                <ArrowRight />
-              </el-icon>
+              <AppIcon name="arrow-right" :size="14" />
             </el-link>
             <el-link
               v-if="noticeList.length > 0"
@@ -70,11 +68,11 @@
     <div v-if="noticeDetail" class="p-x-20px">
       <div class="flex-y-center mb-16px text-13px text-color-secondary">
         <span class="flex-y-center">
-          <el-icon><User /></el-icon>
+          <AppIcon name="user" :size="14" />
           {{ noticeDetail.publisherName }}
         </span>
         <span class="ml-2 flex-y-center">
-          <el-icon><Timer /></el-icon>
+          <AppIcon name="activity" :size="14" />
           {{ noticeDetail.publishTime }}
         </span>
       </div>
@@ -94,6 +92,7 @@ import SafeHtml from "@/components/SafeHtml/index.vue";
 import NoticeAPI, { NoticePageVO, NoticeDetailVO } from "@/api/system/notice-api";
 import router from "@/router";
 import { useStomp } from "@/composables/websocket/useStomp";
+import AppIcon from "@/components/AppIcon/index.vue";
 
 interface NotificationMessagePayload {
   id: string;

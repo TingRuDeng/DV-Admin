@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h3 text-center m-0 mb-20px>{{ t("login.login") }}</h3>
     <el-form
       ref="loginFormRef"
       :model="loginFormData"
@@ -18,7 +17,7 @@
           :placeholder="t('login.username')"
         >
           <template #prefix>
-            <el-icon><User /></el-icon>
+            <AppIcon name="user-round" :size="17" />
           </template>
         </el-input>
       </el-form-item>
@@ -38,7 +37,7 @@
             @keyup.enter="handleLoginSubmit"
           >
             <template #prefix>
-              <el-icon><Lock /></el-icon>
+              <AppIcon name="lock" :size="17" />
             </template>
           </el-input>
         </el-form-item>
@@ -55,11 +54,11 @@
             @keyup.enter="handleLoginSubmit"
           >
             <template #prefix>
-              <div class="i-svg:captcha" />
+              <AppIcon name="captcha" :size="17" />
             </template>
           </el-input>
           <div cursor-pointer h-48px w-120px flex-center @click="getCaptcha">
-            <el-icon v-if="codeLoading" class="is-loading" size="20"><Loading /></el-icon>
+            <AppIcon v-if="codeLoading" name="loader-circle" :size="20" class="is-loading" />
 
             <img
               v-else-if="captchaBase64"
@@ -94,6 +93,7 @@ import { AuthStorage } from "@/utils/auth";
 import { createLogger } from "@/utils/logger";
 import { defaultSettings } from "@/settings";
 import { getLoginDefaultCredentials } from "./login-defaults";
+import AppIcon from "@/components/AppIcon/index.vue";
 
 const loginLogger = createLogger("Login");
 const { t } = useI18n();

@@ -9,37 +9,37 @@
     >
       <li role="none">
         <button type="button" role="menuitem" @click="emit('refresh')">
-          <div class="i-svg:refresh" aria-hidden="true" />
+          <AppIcon name="refresh" :size="15" />
           刷新
         </button>
       </li>
       <li v-if="!selectedTag?.affix" role="none">
         <button type="button" role="menuitem" @click="emit('close')">
-          <div class="i-svg:close" aria-hidden="true" />
+          <AppIcon name="close" :size="15" />
           关闭
         </button>
       </li>
       <li role="none">
         <button type="button" role="menuitem" @click="emit('close-other')">
-          <div class="i-svg:close_other" aria-hidden="true" />
+          <AppIcon name="close_other" :size="15" />
           关闭其它
         </button>
       </li>
       <li v-if="!isFirstView" role="none">
         <button type="button" role="menuitem" @click="emit('close-left')">
-          <div class="i-svg:close_left" aria-hidden="true" />
+          <AppIcon name="close_left" :size="15" />
           关闭左侧
         </button>
       </li>
       <li v-if="!isLastView" role="none">
         <button type="button" role="menuitem" @click="emit('close-right')">
-          <div class="i-svg:close_right" aria-hidden="true" />
+          <AppIcon name="close_right" :size="15" />
           关闭右侧
         </button>
       </li>
       <li role="none">
         <button type="button" role="menuitem" @click="emit('close-all')">
-          <div class="i-svg:close_all" aria-hidden="true" />
+          <AppIcon name="close_all" :size="15" />
           关闭所有
         </button>
       </li>
@@ -48,6 +48,8 @@
 </template>
 
 <script setup lang="ts">
+import AppIcon from "@/components/AppIcon/index.vue";
+
 defineProps<{
   isFirstView: boolean;
   isLastView: boolean;

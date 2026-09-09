@@ -5,6 +5,9 @@
   min-width: 0;
   min-height: 100%;
   padding: 1rem;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--ff-ice) 5%, transparent), transparent 32%),
+    var(--ff-shell-bg);
 }
 
 @media (min-width: 768px) {

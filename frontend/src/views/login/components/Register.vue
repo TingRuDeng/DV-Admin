@@ -6,7 +6,7 @@
       <el-form-item prop="username">
         <el-input v-model.trim="model.username" :placeholder="t('login.username')">
           <template #prefix>
-            <el-icon><User /></el-icon>
+            <AppIcon name="user-round" :size="17" />
           </template>
         </el-input>
       </el-form-item>
@@ -23,7 +23,7 @@
             @keyup.enter="submit"
           >
             <template #prefix>
-              <el-icon><Lock /></el-icon>
+              <AppIcon name="lock" :size="17" />
             </template>
           </el-input>
         </el-form-item>
@@ -40,7 +40,7 @@
             @keyup.enter="submit"
           >
             <template #prefix>
-              <el-icon><Lock /></el-icon>
+              <AppIcon name="lock" :size="17" />
             </template>
           </el-input>
         </el-form-item>
@@ -55,11 +55,11 @@
             @keyup.enter="submit"
           >
             <template #prefix>
-              <div class="i-svg:captcha" />
+              <AppIcon name="captcha" :size="17" />
             </template>
           </el-input>
           <div cursor-pointer h="[40px]" w="[120px]" flex-center ml-10px @click="getCaptcha">
-            <el-icon v-if="codeLoading" class="is-loading"><Loading /></el-icon>
+            <AppIcon v-if="codeLoading" name="loader-circle" :size="18" class="is-loading" />
 
             <img
               v-else
@@ -96,11 +96,11 @@
 </template>
 <script setup lang="ts">
 import type { FormInstance, FormRules } from "element-plus";
-import { Lock } from "@element-plus/icons-vue";
 import { useI18n } from "vue-i18n";
 import AuthAPI, { type LoginFormData } from "@/api/auth-api";
 import { defaultSettings } from "@/settings";
 import { getLoginDefaultCredentials } from "./login-defaults";
+import AppIcon from "@/components/AppIcon/index.vue";
 
 const { t } = useI18n();
 

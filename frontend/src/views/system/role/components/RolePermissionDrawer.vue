@@ -9,7 +9,7 @@
     <div class="flex justify-between items-center mb-5">
       <el-input v-model="permKeywords" clearable class="w-[150px]" placeholder="菜单权限名称">
         <template #prefix>
-          <Search />
+          <AppIcon name="search" :size="16" />
         </template>
       </el-input>
 
@@ -22,7 +22,7 @@
           @click="togglePermTree"
         >
           <template #icon>
-            <Switch />
+            <AppIcon :name="isExpanded ? 'minimize' : 'maximize'" :size="15" />
           </template>
           {{ isExpanded ? "收缩" : "展开" }}
         </el-button>
@@ -33,9 +33,7 @@
           <template #content>
             如果只需勾选菜单权限，不需要勾选子菜单或者按钮权限，请关闭父子联动
           </template>
-          <el-icon class="text-primary cursor-pointer">
-            <QuestionFilled />
-          </el-icon>
+          <AppIcon name="circle-help" :size="16" class="text-primary cursor-pointer" />
         </el-tooltip>
       </div>
     </div>
@@ -64,6 +62,7 @@
 </template>
 
 <script setup lang="ts">
+import AppIcon from "@/components/AppIcon/index.vue";
 import type { CheckboxValueType, TreeInstance } from "element-plus";
 import ProDrawer from "@/components/ProDrawer/index.vue";
 import { DeviceEnum } from "@/enums/settings/device-enum";

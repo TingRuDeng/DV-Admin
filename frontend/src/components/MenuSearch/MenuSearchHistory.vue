@@ -9,7 +9,7 @@
         class="search-history__clear"
         @click="emit('clear')"
       >
-        <el-icon><Delete /></el-icon>
+        <AppIcon name="trash" :size="15" />
       </el-button>
     </div>
     <ul class="search-history__list">
@@ -20,11 +20,11 @@
         @click="emit('select', item)"
       >
         <div class="search-history__icon">
-          <el-icon><Clock /></el-icon>
+          <AppIcon name="activity" :size="15" />
         </div>
         <span class="search-history__name">{{ item.title }}</span>
         <div class="search-history__action">
-          <el-icon @click.stop="emit('remove', index)"><Close /></el-icon>
+          <AppIcon name="close" :size="15" @click.stop="emit('remove', index)" />
         </div>
       </li>
     </ul>
@@ -32,8 +32,8 @@
 </template>
 
 <script setup lang="ts">
-import { Clock, Close, Delete } from "@element-plus/icons-vue";
 import type { SearchItem } from "./types";
+import AppIcon from "@/components/AppIcon/index.vue";
 
 defineProps<{
   items: SearchItem[];

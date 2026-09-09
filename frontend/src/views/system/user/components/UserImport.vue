@@ -23,7 +23,7 @@
           :auto-upload="false"
           :on-exceed="handleFileExceed"
         >
-          <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+          <AppIcon name="upload" :size="38" class="el-icon--upload" />
           <div class="el-upload__text">
             将文件拖到此处，或
             <em>点击上传</em>
@@ -31,12 +31,8 @@
           <template #tip>
             <div class="el-upload__tip">
               格式为*.xlsx，文件不超过一个
-              <el-link
-                type="primary"
-                icon="download"
-                underline="never"
-                @click="handleDownloadTemplate"
-              >
+              <el-link type="primary" underline="never" @click="handleDownloadTemplate">
+                <template #icon><AppIcon name="download" :size="14" /></template>
                 下载模板
               </el-link>
             </div>
@@ -92,6 +88,7 @@
 </template>
 
 <script lang="ts" setup>
+import AppIcon from "@/components/AppIcon/index.vue";
 import ProDialog from "@/components/ProDialog/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import { ElMessage, type UploadInstance, type UploadUserFile } from "element-plus";

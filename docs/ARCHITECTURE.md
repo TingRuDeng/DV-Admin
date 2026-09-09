@@ -166,6 +166,8 @@ frontend/src/
 - `frontend/src/styles` 采用分层结构：`tokens -> theme -> foundation -> skins -> pages`
 - 路由页应优先组合 `PageShell`、`FilterPanel`、`DataPanel`，而不是在页面内重复拼接 `glass-panel` 或 `minimal-*` 视觉类
 - `UnoCSS` 主要用于布局和局部原子样式，共享视觉皮肤统一放在 `skins/*`
+- 登录页、全局壳层和首页仪表盘共享暗色画布与荧光珊瑚色 token；这些首屏范围内的图标通过 `components/AppIcon` 统一映射到 Lucide，页面层不直接新增手绘 SVG 或表情符号。
+- 首页仪表盘由 `views/dashboard/components` 下的 Hero、指标卡和快捷入口组成，只从用户信息与权限路由派生数据，不新增首页专用 API。
 - `_minimal-saas.scss` 仅作为未迁移页面的兼容层，不再作为新增样式的主入口
 - `components/CURD` 作为历史兼容层保留；新页面/重构页面统一使用 `ProSearch`、`ProTable`、`ProFormDrawer`
 - `ProTable` 支持受控模式与 `request(params)=>{list,total}` 请求驱动模式，对外分页参数统一为 `pageNum/pageSize`

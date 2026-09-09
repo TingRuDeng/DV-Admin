@@ -26,7 +26,7 @@
 .el-menu-item.is-active,
 .el-sub-menu.has-active-child > .el-sub-menu__title {
   font-weight: 600 !important;
-  color: var(--el-color-primary) !important;
+  color: var(--ff-accent) !important;
   background: var(--ff-shell-active) !important;
 }
 
@@ -41,7 +41,7 @@
   left: 0;
   width: 3px;
   content: "";
-  background: var(--el-color-primary);
+  background: var(--ff-accent);
   border-radius: 0 4px 4px 0;
 }
 
@@ -108,7 +108,7 @@ html.dark {
 
   .el-menu-item.is-active,
   .el-sub-menu.has-active-child > .el-sub-menu__title {
-    color: var(--el-color-primary-light-3) !important;
+    color: var(--ff-accent) !important;
     background: var(--ff-shell-active) !important;
   }
 }
@@ -127,7 +127,7 @@ html.sidebar-color-blue {
 
   .el-menu-item.is-active,
   .el-sub-menu.has-active-child > .el-sub-menu__title {
-    color: var(--el-color-primary-light-3) !important;
+    color: var(--ff-accent) !important;
     background: rgba(129, 140, 248, 0.18) !important;
   }
 }
