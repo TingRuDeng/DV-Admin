@@ -1,8 +1,0 @@
-{
-  "version": 1,
-  "introducedAt": "2026-09-04",
-  "expiresAt": "2026-09-07",
-  "owner": "DV-Admin Team",
-  "reason": "The npm advisory bulk endpoint is intermittently timing out in CI; keep PR validation moving while preserving the audit gate whenever a report is available.",
-  "tracking": "PR #360"
-}

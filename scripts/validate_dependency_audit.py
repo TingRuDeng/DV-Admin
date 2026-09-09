@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""校验前端生产依赖审计结果及有期限、限定依赖路径的临时豁免。"""
+"""校验前端生产依赖审计结果及有期限、限定依赖路径的漏洞豁免。"""
 
 from __future__ import annotations
 
@@ -28,10 +28,6 @@ class AuditValidationError(ValueError):
     """依赖审计输入或豁免配置不合法。"""
 
 
-class AuditNetworkUnavailable(AuditValidationError):
-    """漏洞审计 registry 请求超时，未获得可校验的报告。"""
-
-
 @dataclass(frozen=True)
 class Exemption:
     """只对指定公告、包和依赖路径生效的临时豁免。"""
@@ -39,17 +35,6 @@ class Exemption:
     advisory_id: str
     package: str
     paths: frozenset[str]
-    introduced_at: date
-    expires_at: date
-    owner: str
-    reason: str
-    tracking: str
-
-
-@dataclass(frozen=True)
-class NetworkException:
-    """仅用于短期、可追踪的外部审计服务不可用例外。"""
-
     introduced_at: date
     expires_at: date
     owner: str
@@ -126,33 +111,6 @@ def parse_exemptions(payload: Any, *, today: date) -> list[Exemption]:
             )
         )
     return exemptions
-
-
-def parse_network_exception(payload: Any, *, today: date) -> NetworkException:
-    """解析网络不可用例外，并在到期前阻止其继续生效。"""
-    if not isinstance(payload, dict) or payload.get("version") != 1:
-        raise AuditValidationError("网络例外配置必须是 version=1 的对象")
-
-    introduced_at = _parse_iso_date(payload, "introducedAt")
-    expires_at = _parse_iso_date(payload, "expiresAt")
-    if introduced_at > expires_at:
-        raise AuditValidationError("网络例外的 introducedAt 晚于 expiresAt")
-    if introduced_at > today:
-        raise AuditValidationError(
-            f"网络例外尚未生效: {introduced_at.isoformat()}"
-        )
-    if today > expires_at:
-        raise AuditValidationError(
-            f"网络例外已于 {expires_at.isoformat()} 过期"
-        )
-
-    return NetworkException(
-        introduced_at=introduced_at,
-        expires_at=expires_at,
-        owner=_required_string(payload, "owner"),
-        reason=_required_string(payload, "reason"),
-        tracking=_required_string(payload, "tracking"),
-    )
 
 
 def _advisory_paths(advisory: dict[str, Any]) -> frozenset[str]:
@@ -249,7 +207,7 @@ def run_pnpm_audit() -> dict[str, Any]:
             timeout=120,
         )
     except subprocess.TimeoutExpired as exc:
-        raise AuditNetworkUnavailable(f"pnpm audit 网络请求超时: {exc}") from exc
+        raise AuditValidationError(f"pnpm audit 网络请求超时: {exc}") from exc
     except OSError as exc:
         raise AuditValidationError(f"pnpm audit 执行失败: {exc}") from exc
     if completed.returncode not in (0, 1):
@@ -280,37 +238,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--audit-json", type=Path, help="读取已有 pnpm audit JSON，跳过联网审计")
     parser.add_argument("--exemptions", type=Path, default=DEFAULT_EXEMPTIONS)
-    parser.add_argument(
-        "--network-exception",
-        type=Path,
-        help="仅在 registry 请求超时时使用的限期网络例外配置",
-    )
     parser.add_argument("--minimum-severity", choices=SEVERITY_RANK, default="high")
     parser.add_argument("--today", type=date.fromisoformat, default=date.today())
     args = parser.parse_args()
 
     try:
         exemptions = parse_exemptions(load_json(args.exemptions), today=args.today)
-        network_exception = (
-            parse_network_exception(load_json(args.network_exception), today=args.today)
-            if args.network_exception
-            else None
-        )
-        try:
-            report = load_json(args.audit_json) if args.audit_json else run_pnpm_audit()
-        except AuditNetworkUnavailable as exc:
-            if network_exception is None:
-                raise
-            print(
-                "Dependency audit temporary network exception: "
-                f"{exc}; audit report unavailable; "
-                f"expires={network_exception.expires_at.isoformat()}, "
-                f"owner={network_exception.owner}, "
-                f"tracking={network_exception.tracking}; "
-                f"reason={network_exception.reason}",
-                file=sys.stderr,
-            )
-            return 3
+        report = load_json(args.audit_json) if args.audit_json else run_pnpm_audit()
         violations, unused = evaluate_audit(
             report,
             exemptions,
