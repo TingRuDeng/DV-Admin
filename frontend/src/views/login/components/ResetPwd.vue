@@ -6,7 +6,7 @@
       <el-form-item prop="username">
         <el-input v-model.trim="model.username" :placeholder="t('login.username')">
           <template #prefix>
-            <el-icon><User /></el-icon>
+            <AppIcon name="user-round" :size="17" />
           </template>
         </el-input>
       </el-form-item>
@@ -26,6 +26,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 import type { FormInstance } from "element-plus";
+import AppIcon from "@/components/AppIcon/index.vue";
 
 const { t } = useI18n();
 

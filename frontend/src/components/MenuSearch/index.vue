@@ -5,7 +5,7 @@
     :aria-label="t('navbar.search')"
     @click="openSearchModal"
   >
-    <div class="i-svg:search" aria-hidden="true" />
+    <AppIcon name="search" :size="18" />
   </button>
 
   <ProDialog
@@ -66,6 +66,7 @@
 
 <script setup lang="ts">
 import ProDialog from "@/components/ProDialog/index.vue";
+import AppIcon from "@/components/AppIcon/index.vue";
 import router from "@/router";
 import { usePermissionStore } from "@/store";
 import { isExternal } from "@/utils";

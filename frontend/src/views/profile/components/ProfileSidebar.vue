@@ -7,11 +7,12 @@
           type="info"
           class="ff-profile-user__avatar-button"
           circle
-          :icon="Camera"
           size="small"
           aria-label="上传头像"
           @click="emit('upload-avatar')"
-        />
+        >
+          <AppIcon name="camera" :size="15" />
+        </el-button>
         <input
           ref="fileInput"
           type="file"
@@ -30,7 +31,7 @@
           aria-label="编辑账号资料"
           @click="emit('edit-account')"
         >
-          <el-icon><Edit /></el-icon>
+          <AppIcon name="pencil" :size="15" />
         </el-button>
       </div>
       <div class="ff-profile-user__role">{{ profile.roleNames }}</div>
@@ -39,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { Camera } from "@element-plus/icons-vue";
+import AppIcon from "@/components/AppIcon/index.vue";
 import type { UserProfile } from "@/api/information-api";
 
 defineProps<{

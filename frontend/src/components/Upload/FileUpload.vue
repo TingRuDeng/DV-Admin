@@ -22,10 +22,10 @@
         <template v-if="file.status === 'success'">
           <div class="el-upload-list__item-info">
             <a class="el-upload-list__item-name" @click="handleDownload(file)">
-              <el-icon><Document /></el-icon>
+              <AppIcon name="file-text" :size="16" />
               <span class="el-upload-list__item-file-name">{{ file.name }}</span>
               <span class="el-icon--close" @click.stop="handleRemove(file)">
-                <el-icon><Close /></el-icon>
+                <AppIcon name="close" :size="16" />
               </span>
             </a>
           </div>
@@ -40,6 +40,7 @@
   </div>
 </template>
 <script lang="ts" setup>
+import AppIcon from "@/components/AppIcon/index.vue";
 import {
   UploadRawFile,
   UploadUserFile,

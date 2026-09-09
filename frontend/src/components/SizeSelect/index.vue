@@ -3,7 +3,7 @@
   <el-tooltip :content="t('sizeSelect.tooltip')" effect="dark" placement="bottom">
     <el-dropdown trigger="click" @command="handleSizeChange">
       <button type="button" class="navbar-icon-button" :aria-label="t('sizeSelect.tooltip')">
-        <div class="i-svg:size" aria-hidden="true" />
+        <AppIcon name="sliders-horizontal" :size="18" />
       </button>
       <template #dropdown>
         <el-dropdown-menu>
@@ -24,6 +24,7 @@
 <script setup lang="ts">
 import { ComponentSize } from "@/enums/settings/layout-enum";
 import { useAppStore } from "@/store/modules/app-store";
+import AppIcon from "@/components/AppIcon/index.vue";
 
 const { t } = useI18n();
 const sizeOptions = computed(() => {

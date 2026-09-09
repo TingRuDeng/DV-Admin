@@ -6,13 +6,14 @@
     :aria-pressed="isFullscreen"
     @click="toggle"
   >
-    <div :class="`i-svg:` + (isFullscreen ? 'fullscreen-exit' : 'fullscreen')" aria-hidden="true" />
+    <AppIcon :name="isFullscreen ? 'minimize' : 'maximize'" :size="18" />
   </button>
 </template>
 
 <script setup lang="ts">
 const { isFullscreen, toggle } = useFullscreen();
 const { t } = useI18n();
+import AppIcon from "@/components/AppIcon/index.vue";
 </script>
 
 <style lang="scss" scoped></style>
