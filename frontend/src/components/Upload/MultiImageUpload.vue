@@ -12,18 +12,18 @@
     :limit="props.limit"
     multiple
   >
-    <el-icon><Plus /></el-icon>
+    <AppIcon name="plus" :size="22" />
     <template #file="{ file }">
       <div style="width: 100%">
         <img class="el-upload-list__item-thumbnail" :src="file.url" />
         <span class="el-upload-list__item-actions">
           <!-- 预览 -->
           <span @click="handlePreviewImage(file.url!)">
-            <el-icon><zoom-in /></el-icon>
+            <AppIcon name="zoom-in" :size="18" />
           </span>
           <!-- 删除 -->
           <span @click="handleRemove(file.url!)">
-            <el-icon><Delete /></el-icon>
+            <AppIcon name="delete" :size="18" />
           </span>
         </span>
       </div>
@@ -39,6 +39,7 @@
   />
 </template>
 <script setup lang="ts">
+import AppIcon from "@/components/AppIcon/index.vue";
 import { UploadRawFile, UploadRequestOptions, UploadUserFile } from "element-plus";
 import FileAPI, { FileInfo } from "@/api/file-api";
 import { getUploadErrorMessage } from "@/components/Upload/uploadError";

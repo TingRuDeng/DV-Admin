@@ -18,7 +18,7 @@
   >
     <!-- 左侧图标 -->
     <div class="left-icon">
-      <el-icon><Bell /></el-icon>
+      <AppIcon name="bell" :size="17" />
     </div>
     <!-- 滚动内容包装器 -->
     <div class="scroll-wrapper">
@@ -35,12 +35,13 @@
     </div>
     <!-- 可选的关闭按钮 -->
     <div v-if="showClose" class="right-icon" @click="handleRightIconClick">
-      <el-icon><Close /></el-icon>
+      <AppIcon name="close" :size="17" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import AppIcon from "@/components/AppIcon/index.vue";
 import type { TextScrollProps } from "./types";
 import { useTextScroll } from "./useTextScroll";
 

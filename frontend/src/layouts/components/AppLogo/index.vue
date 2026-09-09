@@ -1,7 +1,9 @@
 <template>
   <div class="sidebar-logo-container" :class="{ collapse }">
     <router-link class="sidebar-logo-link" to="/" :aria-label="platformName">
-      <span class="sidebar-logo-mark" aria-hidden="true">{{ logoMark }}</span>
+      <span class="sidebar-logo-mark" aria-hidden="true">
+        <AppIcon name="command" :size="19" :stroke-width="2.2" />
+      </span>
       <transition name="sidebar-logo-fade">
         <span v-if="!collapse" class="sidebar-title">{{ platformName }}</span>
       </transition>
@@ -14,8 +16,8 @@ defineProps<{
   collapse: boolean;
 }>();
 
-const logoText = import.meta.env.VITE_APP_LOGO_TEXT || "DV";
-const logoMark = logoText.slice(0, 2).toUpperCase();
+import AppIcon from "@/components/AppIcon/index.vue";
+
 const platformName = import.meta.env.VITE_APP_TITLE || "DV-Admin";
 </script>
 

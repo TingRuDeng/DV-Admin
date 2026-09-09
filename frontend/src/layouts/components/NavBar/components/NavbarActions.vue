@@ -61,7 +61,7 @@
       :aria-label="t('navbar.settings')"
       @click="handleSettingsClick"
     >
-      <div class="i-svg:setting" aria-hidden="true" />
+      <AppIcon name="settings" :size="18" />
     </button>
   </div>
 </template>
@@ -79,6 +79,7 @@ import Fullscreen from "@/components/Fullscreen/index.vue";
 import SizeSelect from "@/components/SizeSelect/index.vue";
 import LangSelect from "@/components/LangSelect/index.vue";
 import Notification from "@/components/Notification/index.vue";
+import AppIcon from "@/components/AppIcon/index.vue";
 import { resolveNavbarActionsTextClass } from "./navbarActionsHelpers";
 
 const { t } = useI18n();
@@ -177,7 +178,7 @@ function handleSettingsClick() {
     }
 
     // 图标样式
-    :deep([class^="i-svg:"]) {
+    :deep(.app-icon) {
       font-size: 18px;
       line-height: 1;
       color: var(--el-text-color-regular);
@@ -187,7 +188,7 @@ function handleSettingsClick() {
     &:hover {
       background: rgba(0, 0, 0, 0.04);
 
-      :deep([class^="i-svg:"]) {
+      :deep(.app-icon) {
         color: var(--el-color-primary);
       }
     }
@@ -219,14 +220,14 @@ function handleSettingsClick() {
 // 白色文字样式（用于深色背景：暗黑主题、顶部布局、混合布局）
 .navbar-actions--white-text {
   .navbar-actions__item {
-    :deep([class^="i-svg:"]) {
+    :deep(.app-icon) {
       color: rgba(255, 255, 255, 0.85);
     }
 
     &:hover {
       background: rgba(255, 255, 255, 0.1);
 
-      :deep([class^="i-svg:"]) {
+      :deep(.app-icon) {
         color: #fff;
       }
     }
@@ -240,14 +241,14 @@ function handleSettingsClick() {
 // 深色文字样式（用于浅色背景：明亮主题下的左侧布局）
 .navbar-actions--dark-text {
   .navbar-actions__item {
-    :deep([class^="i-svg:"]) {
+    :deep(.app-icon) {
       color: var(--el-text-color-regular) !important;
     }
 
     &:hover {
       background: rgba(0, 0, 0, 0.04);
 
-      :deep([class^="i-svg:"]) {
+      :deep(.app-icon) {
         color: var(--el-color-primary) !important;
       }
     }
@@ -260,7 +261,7 @@ function handleSettingsClick() {
 
 // 确保下拉菜单中的图标不受影响
 :deep(.el-dropdown-menu) {
-  [class^="i-svg:"] {
+  .app-icon {
     color: var(--el-text-color-regular) !important;
 
     &:hover {

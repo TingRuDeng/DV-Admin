@@ -11,11 +11,7 @@
       ]"
       @click="emit('select', item)"
     >
-      <el-icon v-if="item.icon && item.icon.startsWith('el-icon')">
-        <component :is="item.icon.replace('el-icon-', '')" />
-      </el-icon>
-      <div v-else-if="item.icon" :class="`i-svg:${item.icon}`" />
-      <div v-else class="i-svg:menu" />
+      <AppIcon :name="item.icon?.replace('el-icon-', '') || 'menu'" :size="16" />
       <span class="ml-2">{{ item.title }}</span>
     </li>
   </ul>
@@ -23,6 +19,7 @@
 
 <script setup lang="ts">
 import type { SearchItem } from "./types";
+import AppIcon from "@/components/AppIcon/index.vue";
 
 defineProps<{
   activeIndex: number;

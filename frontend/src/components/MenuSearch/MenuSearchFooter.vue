@@ -10,10 +10,10 @@
       <div class="arrow-box">
         <div class="arrow-up-down">
           <div class="key-btn">
-            <div class="i-svg:up" />
+            <AppIcon name="arrow-up" :size="13" />
           </div>
           <div class="key-btn ml-1">
-            <div class="i-svg:down" />
+            <AppIcon name="chevron-down" :size="13" />
           </div>
         </div>
         <span class="key-text">切换</span>
@@ -25,6 +25,10 @@
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import AppIcon from "@/components/AppIcon/index.vue";
+</script>
 
 <style scoped lang="scss">
 .dialog-footer {

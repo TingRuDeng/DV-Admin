@@ -12,7 +12,7 @@
 
     <!-- 返回顶部按钮 -->
     <el-backtop target=".app-main">
-      <div class="i-svg:backtop w-6 h-6" />
+      <AppIcon name="arrow-up" :size="18" />
     </el-backtop>
   </main>
 </template>
@@ -24,6 +24,7 @@ import variables from "@/styles/variables.module.scss";
 import { getRouteRenderKey } from "@/utils/view-cache";
 import { createLogger } from "@/utils/logger";
 import Error404 from "@/views/error/404.vue";
+import AppIcon from "@/components/AppIcon/index.vue";
 
 const appMainLogger = createLogger("AppMain");
 const { cachedViews } = toRefs(useTagsViewStore());

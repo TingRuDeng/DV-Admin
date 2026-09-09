@@ -1,5 +1,15 @@
 :root {
   --ff-duration-fast: 0.2s;
   --ff-duration-base: 0.3s;
+  --ff-duration-slow: 0.7s;
   --ff-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ff-ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ff-duration-fast: 0s;
+    --ff-duration-base: 0s;
+    --ff-duration-slow: 0s;
+  }
 }
