@@ -697,7 +697,12 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     const updatedUserContext = await browser.newContext({ baseURL: frontendBaseUrl });
     const updatedUserPage = await updatedUserContext.newPage();
     const updatedUserFailures = collectFailedApiResponses(updatedUserPage);
-    await loginWithRoutes(updatedUserPage, rbacUsername, rbacPassword, "/dashboard");
+    await loginWithRoutes(
+      updatedUserPage,
+      rbacUsername,
+      rbacPassword,
+      `/runtime-contract/${menuWriteRoutePath}`
+    );
     await expect(sidebarMenuItem(updatedUserPage, menuWriteUpdatedName)).toBeVisible();
     await expect(sidebarMenuItem(updatedUserPage, menuWriteInitialName)).toHaveCount(0);
     expect(updatedUserFailures).toEqual([]);

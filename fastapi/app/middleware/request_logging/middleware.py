@@ -32,7 +32,7 @@ from app.utils.logger import clear_request_id, set_request_id
 
 # 只持久化写操作，避免 GET 轮询淹没审计表
 PERSISTED_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
-SENSITIVE_KEYWORDS = ("password", "token", "secret", "key", "authorization")
+SENSITIVE_KEYWORDS = ("password", "token", "secret", "key", "code", "authorization")
 MAX_REQUEST_ID_LENGTH = 64
 REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
 

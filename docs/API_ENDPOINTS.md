@@ -295,12 +295,41 @@ GET /api/v1/oauth/menus/routes/
 
 ### 获取验证码
 
-**⚠️ 仅 FastAPI：**
+**Django & FastAPI：**
 ```
 GET /api/v1/oauth/captcha/
 ```
 
-**Django 后端无此端点。**
+两套后端均提供图形验证码，响应字段保持 `captchaKey/captchaBase64` 一致。
+
+### 发送邮箱验证码
+
+**Django & FastAPI：**
+```
+POST /api/v1/oauth/email-code/
+```
+
+请求体包含 `purpose`（`register` 或 `reset_password`）、`email`、`captchaKey` 和 `captchaCode`。验证码有效期 10 分钟，60 秒内不可重复发送，成功校验后一次性失效。
+
+重复发送统一返回 HTTP `429`、业务码 `429` 和 `Retry-After: 60`。
+
+### 注册
+
+**Django & FastAPI：**
+```
+POST /api/v1/oauth/register/
+```
+
+请求体包含 `username`、`email`、`password`、`confirmPassword`、`emailCode`、`captchaKey` 和 `captchaCode`。邮箱验证成功后创建激活用户并关联启用的默认角色。
+
+### 找回密码
+
+**Django & FastAPI：**
+```
+POST /api/v1/oauth/password/reset/
+```
+
+请求体包含 `username`、`email`、`emailCode`、`newPassword`、`confirmPassword`、`captchaKey` 和 `captchaCode`。成功后撤销该用户已有 Refresh Token，不回显敏感字段。
 
 **响应：**
 ```json
@@ -638,7 +667,10 @@ GET /api/openapi.json   # OpenAPI JSON（FastAPI 非生产环境）
 
 - `POST /api/v1/oauth/login/`
 - `POST /api/v1/oauth/refresh-token/`
-- `GET /api/v1/oauth/captcha/`（仅 FastAPI）
+- `GET /api/v1/oauth/captcha/`
+- `POST /api/v1/oauth/email-code/`
+- `POST /api/v1/oauth/register/`
+- `POST /api/v1/oauth/password/reset/`
 - `GET /api/v1/system/dict-items/`
 - `GET /health`
 - `GET /health/live`

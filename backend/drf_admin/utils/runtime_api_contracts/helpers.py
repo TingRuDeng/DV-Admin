@@ -93,7 +93,9 @@ def sample_query_params(contract) -> dict[str, Any]:
 
 def create_runtime_contract_user() -> Users:
     """创建覆盖运行时契约所需权限、菜单和列表数据的 Django 用户。"""
-    role = Roles.objects.create(name="运行时契约角色", code="runtime-contract", status=1, sort=1)
+    role = Roles.objects.create(
+        name="运行时契约角色", code="runtime-contract", status=1, sort=1, is_default=1
+    )
     role.permissions.add(*create_runtime_contract_permissions())
     user = Users.objects.create_user(
         username="runtime-admin",

@@ -122,6 +122,7 @@ async def seed() -> dict[str, int | str | list[int]]:
         code="http-smoke",
         status=1,
         data_scope=1,
+        is_default=1,
     )
     department = await Departments.create(
         name="HTTP Smoke 部门",
