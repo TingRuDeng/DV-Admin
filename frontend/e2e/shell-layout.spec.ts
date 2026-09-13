@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page, type Route } from "@playwright/test";
+import { expectReadableAction } from "./helpers/visual-assertions";
 
 const API_PREFIX = "/dev-api";
 const USER_PERMS = ["system:users:query"];
@@ -41,8 +42,7 @@ async function installShellMocks(page: Page) {
           id: "1",
           username: "admin",
           name: "管理员",
-          avatar:
-            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'/%3E",
+          avatar: "",
           roles: ["admin"],
           perms: USER_PERMS,
         })
@@ -71,6 +71,18 @@ async function installShellMocks(page: Page) {
                   keepAlive: true,
                   cacheKey: "User",
                 },
+              },
+              {
+                path: "icons",
+                component: "demo/icon-select",
+                name: "IconSelectDemo",
+                meta: { title: "图标选择", hidden: true },
+              },
+              {
+                path: "uploads",
+                component: "demo/upload",
+                name: "UploadDemo",
+                meta: { title: "上传", hidden: true },
               },
               {
                 path: "roles",
@@ -117,6 +129,11 @@ async function installShellMocks(page: Page) {
 
     if (method === "GET" && path === "/api/v1/system/roles/options/") {
       await fulfillJson(route, success([{ id: 1, label: "管理员", value: 1 }]));
+      return;
+    }
+
+    if (method === "GET" && path === "/api/v1/system/roles/") {
+      await fulfillJson(route, success({ list: [], total: 0 }));
       return;
     }
 
@@ -178,6 +195,154 @@ async function focusWithKeyboard(page: Page, target: Locator) {
 }
 
 test.describe("现代化壳层 smoke", () => {
+  test("图片预览按钮在键盘聚焦后可见并可操作", async ({ page }) => {
+    await installShellMocks(page);
+    await page.route("https://s2.loli.net/**", (route) =>
+      route.fulfill({
+        contentType: "image/png",
+        body: Buffer.from(
+          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a/R8AAAAASUVORK5CYII=",
+          "base64"
+        ),
+      })
+    );
+    await login(page);
+    await page.goto("/system/uploads");
+    const preview = page.getByRole("button", { name: "预览图片", exact: true });
+    await preview.focus();
+    await expect(preview.locator("..")).toHaveCSS("opacity", "1");
+    await preview.press("Enter");
+    await expect(page.locator(".el-image-viewer__wrapper")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.locator(".el-image-viewer__wrapper")).not.toBeVisible();
+  });
+
+  test("通知请求失败后可重试，不误显示为空通知", async ({ page }) => {
+    await installShellMocks(page);
+    let attempts = 0;
+    await page.route("**/api/v1/system/notices/my-page/**", async (route) => {
+      attempts += 1;
+      await fulfillJson(
+        route,
+        attempts === 1
+          ? { code: 50000, message: "暂时无法加载通知", data: null }
+          : success({ list: [], total: 0 }),
+        attempts === 1 ? 503 : 200
+      );
+    });
+    await login(page);
+    await page.getByRole("button", { name: "通知消息", exact: true }).click();
+    const notifications = page.locator(".notification-list");
+    await expect(notifications.getByRole("alert")).toBeVisible();
+    await expect(notifications.locator(".el-empty")).toHaveCount(0);
+    await notifications.getByRole("button", { name: "重试", exact: true }).click();
+    await expect(notifications.getByRole("alert")).toHaveCount(0);
+    await expect(notifications.locator(".el-empty")).toBeVisible();
+    expect(attempts).toBe(2);
+  });
+
+  test("只读用户不显示操作列，手机部门筛选可展开并清除", async ({ page }) => {
+    await installShellMocks(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await login(page);
+    await expect(page.getByRole("columnheader", { name: "操作", exact: true })).toHaveCount(0);
+    await expect(page.locator(".ff-table .el-checkbox")).toHaveCount(0);
+    const filter = page.locator(".ff-user-page__dept-toggle");
+    await expect(filter).toHaveAttribute("aria-expanded", "false");
+    await filter.click();
+    await page.getByRole("treeitem", { name: "研发部" }).click();
+    await expect(filter).toHaveText("研发部");
+    await expect(filter).toHaveAttribute("aria-expanded", "false");
+    await page.getByRole("button", { name: "重置", exact: true }).click();
+    await expect(filter).toHaveText("部门");
+  });
+
+  test("菜单搜索支持空状态、键盘选择和搜索历史", async ({ page }) => {
+    await installShellMocks(page);
+    await login(page);
+    const trigger = page.getByRole("button", { name: "搜索菜单", exact: true });
+    await trigger.click();
+    const dialog = page.getByRole("dialog", { name: "搜索菜单", exact: true });
+    const input = dialog.getByRole("textbox", { name: "搜索菜单", exact: true });
+    await expect(input).toBeFocused();
+    await input.fill("no-such-menu");
+    await expect(dialog.getByRole("status")).toHaveText("未找到匹配的菜单");
+    await input.fill("角色管理");
+    await input.press("Enter");
+    await expect(page).toHaveURL(/\/system\/roles/);
+    await trigger.click();
+    await expect(dialog.getByText("搜索历史")).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "角色管理", exact: true })).toBeVisible();
+    await input.press("Escape");
+    await expect(dialog).not.toBeVisible();
+    await expect(trigger).toBeFocused();
+  });
+
+  test("图标选择可搜索、清除并保持键盘焦点", async ({ page }) => {
+    await installShellMocks(page);
+    await login(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/system/icons");
+    const trigger = page.getByRole("button", { name: "选择图标", exact: true });
+    await trigger.click();
+    const input = page.getByRole("textbox", { name: "搜索图标", exact: true });
+    await expect(input).toBeFocused();
+    await input.fill("no-such-icon");
+    await expect(page.getByRole("status")).toHaveText("未找到匹配的图标");
+    await input.fill("search");
+    await page.getByRole("button", { name: "search", exact: true }).click();
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await expect(trigger).toBeFocused();
+    const clear = page.getByRole("button", { name: "清除图标", exact: true });
+    await clear.focus();
+    await page.keyboard.press("Space");
+    await expect(clear).not.toBeVisible();
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await expect(trigger).toBeFocused();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true
+    );
+  });
+
+  test("首页与用户页的桌面和手机视觉验收", async ({ page }, testInfo) => {
+    await installShellMocks(page);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await setPreferences(page, { "vea:ui:theme": "dark", "vea:ui:layout": "left" });
+    await login(page);
+    for (const theme of ["dark", "light"]) {
+      await page.evaluate((value) => localStorage.setItem("vea:ui:theme", value), theme);
+      for (const width of [1440, 390]) {
+        await page.setViewportSize({ width, height: width > 600 ? 1000 : 844 });
+        await page.goto("/system/users");
+        await expect(page.getByText("用户数据")).toBeVisible();
+        await expectReadableAction(page.getByRole("button", { name: "搜索", exact: true }));
+        await expect(page.locator(".user-profile__avatar.lucide")).toBeVisible();
+        await page.mouse.move(0, 0);
+        const users = testInfo.outputPath(`users-${theme}-${width}.png`);
+        await page.screenshot({ path: users, fullPage: true, animations: "disabled" });
+        await testInfo.attach("Users", { path: users, contentType: "image/png" });
+        await page.goto("/dashboard");
+        await expect(page.locator(".dashboard-hero")).toBeVisible();
+        await expect(page.locator(".dashboard-metric")).toHaveCount(3);
+        await expect(page.locator(".dashboard-hero__beam").first()).toHaveCSS(
+          "animation-name",
+          "none"
+        );
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+          true
+        );
+        if (width === 390) {
+          await expect(
+            page.getByRole("button", { name: "用户管理", exact: true }).last()
+          ).toBeInViewport();
+        }
+        const dashboard = testInfo.outputPath(`dashboard-${theme}-${width}.png`);
+        await page.screenshot({ path: dashboard, fullPage: true, animations: "disabled" });
+        await testInfo.attach("Dashboard", { path: dashboard, contentType: "image/png" });
+      }
+    }
+  });
+
   test("桌面端保持三种布局、TagsView、动态路由和暗色主题", async ({ page }) => {
     await installShellMocks(page);
     await setPreferences(page, {
@@ -219,6 +384,10 @@ test.describe("现代化壳层 smoke", () => {
     await keywordInput.fill("缓存探针");
     await tags.getByRole("link", { name: "首页" }).press("Enter");
     await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page.locator(".dashboard-page")).toBeVisible();
+    await expect(page.locator("#dashboard-title")).toBeVisible();
+    await expect(page.locator(".dashboard-metrics")).toBeVisible();
+    await expect(page.locator(".dashboard-actions")).toBeVisible();
     await userTag.press("Enter");
     await expect(keywordInput).toHaveValue("缓存探针");
 
@@ -305,7 +474,7 @@ test.describe("现代化壳层 smoke", () => {
       .poll(async () => (await mixSidebar.boundingBox())?.x ?? -1)
       .toBeGreaterThanOrEqual(0);
     const sidebarToggle = mixSidebar.locator(".layout__sidebar-toggle button");
-    await expect(sidebarToggle).toHaveAttribute("aria-label", "收起侧边导航");
+    await expect(sidebarToggle).toHaveAttribute("aria-label", "收起导航");
     await expect
       .poll(async () =>
         page.evaluate(() => document.activeElement?.closest("#layout-sidebar") !== null)

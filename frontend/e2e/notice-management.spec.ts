@@ -285,6 +285,75 @@ function buildRoutes() {
 }
 
 test.describe("通知公告权限链路 smoke", () => {
+  test("编辑器语言跟随切换且保留草稿与撤销记录", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    const state = createMockState();
+    await installNoticeManagementMocks(page, state);
+    await login(page);
+
+    await page.getByRole("button", { name: "新增通知", exact: true }).click();
+    const drawer = page.getByRole("dialog");
+    const editor = drawer.locator("[data-slate-editor]");
+    const placeholder = drawer.locator(".w-e-text-placeholder");
+    const toolbar = drawer.locator(".w-e-toolbar");
+    await expect(placeholder).toHaveText("请输入内容...");
+    await drawer.getByRole("button", { name: "取消", exact: true }).click();
+    await page.getByRole("button", { name: "切换语言" }).click();
+    await page.getByRole("menuitem", { name: "English" }).click();
+    await page.getByRole("button", { name: "Add announcement", exact: true }).click();
+    await expect(placeholder).toHaveText("Enter content...");
+    await expect(toolbar.getByRole("button", { name: "Bold", exact: true })).toBeVisible();
+    const editorId = await editor.getAttribute("id");
+
+    await editor.click();
+    const bold = toolbar.getByRole("button", { name: "Bold", exact: true });
+    await expect(bold).not.toHaveClass(/disabled/);
+    await bold.click();
+    await expect(bold).toHaveClass(/active/);
+    await editor.pressSequentially("Draft stays intact");
+    await expect(editor.locator("strong")).toHaveText("Draft stays intact");
+    const draftHtml = await editor.innerHTML();
+
+    // Keep the open modal and draft intact while exercising the application's locale source.
+    // The navbar language control is outside the modal's focus boundary.
+    for (const locale of ["zh-cn", "en"]) {
+      await page.evaluate(async (language) => {
+        const modulePath = "/src/lang/index.ts";
+        const { default: i18n } = await import(/* @vite-ignore */ modulePath);
+        i18n.global.locale.value = language;
+      }, locale);
+      await expect(toolbar.locator('[data-menu-key="bold"]')).toHaveAttribute(
+        "aria-label",
+        locale === "en" ? "Bold" : "粗体"
+      );
+      await expect(editor).toHaveAttribute("id", editorId!);
+      expect(await editor.innerHTML()).toBe(draftHtml);
+      await expect(toolbar.locator("svg:not([data-editor-lucide])")).toHaveCount(0);
+    }
+    // The native language change dismisses its selection/hoverbar; resume editing
+    // before checking that the original document history remains available.
+    await editor.click();
+    await expect(toolbar.locator('[data-menu-key="undo"]')).not.toHaveClass(/disabled/);
+    await toolbar.locator('[data-menu-key="undo"]').click();
+    await expect(editor).not.toContainText("Draft stays intact");
+    await toolbar.locator('[data-menu-key="redo"]').click();
+    await expect(editor.locator("strong")).toHaveText("Draft stays intact");
+    await expect(placeholder).not.toBeVisible();
+    await editor.click();
+    await editor.press("ControlOrMeta+A");
+    await editor.press("Backspace");
+    await expect(placeholder).toBeVisible();
+    await expect(placeholder).toHaveText("Enter content...");
+    await drawer.getByRole("button", { name: "Cancel", exact: true }).click();
+    await page.reload();
+    await page.getByRole("button", { name: "Add announcement", exact: true }).click();
+    await expect(placeholder).toHaveText("Enter content...");
+    await expect(toolbar.getByRole("button", { name: "Bold", exact: true })).toBeVisible();
+    expect(errors).toEqual([]);
+    expect(state.writePayloads).toEqual([]);
+  });
+
   test("后端通知权限码应显示通知写操作", async ({ page }) => {
     const state = createMockState();
     await installNoticeManagementMocks(page, state);
@@ -323,6 +392,24 @@ test.describe("通知公告权限链路 smoke", () => {
     await page.getByRole("button", { name: "新增通知" }).click();
     const drawer = page.locator(".el-drawer", { hasText: "新增公告" });
     await expect(drawer).toBeVisible();
+    const toolbar = drawer.locator(".w-e-bar");
+    await expect(toolbar.locator('svg[data-editor-lucide="true"]').first()).toBeVisible();
+    await expect(toolbar.locator("svg:not([data-editor-lucide])")).toHaveCount(0);
+    await expect(toolbar.getByRole("button", { name: "上传图片", exact: true })).toBeVisible();
+    const editor = drawer.locator("[data-slate-editor]");
+    await editor.click();
+    const bold = toolbar.locator('[data-menu-key="bold"]');
+    await expect(bold).not.toHaveClass(/disabled/);
+    await bold.click();
+    await editor.pressSequentially("Lucide editor");
+    await expect(editor).toContainText("Lucide editor");
+    await expect(toolbar.locator('[data-menu-key="bold"]')).toHaveClass(/active/);
+    const fullscreen = toolbar.locator('[data-menu-key="fullScreen"]');
+    await fullscreen.click();
+    await expect(fullscreen.locator(".lucide-minimize-2")).toBeVisible();
+    await fullscreen.click();
+    await expect(fullscreen.locator(".lucide-maximize-2")).toBeVisible();
+    await expect(editor).toContainText("Lucide editor");
     await drawer.getByRole("button", { name: /取\s*消/ }).click();
     expect(state.writePayloads).toEqual([
       { action: "publish", id: "801" },

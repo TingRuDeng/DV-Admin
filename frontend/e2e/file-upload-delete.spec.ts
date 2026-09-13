@@ -74,6 +74,11 @@ async function installFileUploadMocks(page: Page, state: MockState, auth: AuthMo
 }
 
 async function handleAuthRequest(context: MockRouteContext) {
+  if (context.method === "GET" && context.path === "/api/v1/system/notices/my-page/") {
+    await fulfillJson(context.route, success({ list: [], total: 0 }));
+    return true;
+  }
+
   if (context.method === "POST" && context.path === "/api/v1/oauth/login/") {
     await fulfillJson(
       context.route,

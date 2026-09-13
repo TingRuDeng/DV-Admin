@@ -5,11 +5,20 @@
 
       <el-form-item v-if="showActions" class="ff-toolbar__actions">
         <slot name="actions" :submit="emitSubmit" :reset="handleReset">
-          <el-button type="primary" icon="search" class="ff-button-primary" @click="emitSubmit">
-            {{ submitText }}
+          <el-button
+            type="primary"
+            :icon="resolveAppIcon('search')"
+            class="ff-button-primary"
+            @click="emitSubmit"
+          >
+            {{ submitText ?? t("common.search") }}
           </el-button>
-          <el-button icon="refresh" class="ff-button-secondary" @click="handleReset">
-            {{ resetText }}
+          <el-button
+            :icon="resolveAppIcon('refresh')"
+            class="ff-button-secondary"
+            @click="handleReset"
+          >
+            {{ resetText ?? t("common.reset") }}
           </el-button>
         </slot>
       </el-form-item>
@@ -18,7 +27,9 @@
 </template>
 
 <script setup lang="ts">
+import { resolveAppIcon } from "@/components/AppIcon/icon-map";
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import type { FormInstance, FormProps } from "element-plus";
 import FilterPanel from "@/components/FilterPanel/index.vue";
 
@@ -32,10 +43,9 @@ const props = withDefaults(
   }>(),
   {
     showActions: true,
-    submitText: "搜索",
-    resetText: "重置",
   }
 );
+const { t } = useI18n();
 
 const emit = defineEmits<{
   submit: [];

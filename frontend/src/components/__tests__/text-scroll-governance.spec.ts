@@ -20,6 +20,17 @@ describe("text scroll governance", () => {
     expect(source).not.toContain("sanitizeHtml");
     expect(source).not.toContain("setTimeout(type");
     expect(source).not.toContain("window.addEventListener");
+    expect(source).toContain("@media (prefers-reduced-motion: reduce)");
+  });
+
+  it("completes the typewriter immediately when reduced motion is preferred", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "src/components/TextScroll/useTextScroll.ts"),
+      "utf8"
+    );
+
+    expect(source).toContain('useMediaQuery("(prefers-reduced-motion: reduce)")');
+    expect(source).toContain("if (prefersReducedMotion.value)");
   });
 
   it("keeps TextScroll files below the component size limit", () => {

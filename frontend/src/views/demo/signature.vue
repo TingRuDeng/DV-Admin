@@ -1,26 +1,31 @@
 <template>
-  <div class="canvas-dom">
-    <h3>基于canvas实现的签名组件</h3>
-    <header>
-      <el-button type="primary" @click="handleSaveImg">保存为图片</el-button>
-      <el-button @click="handleToFile">保存到后端</el-button>
-      <el-button @click="handleClearSign">清空签名</el-button>
-    </header>
-    <canvas
-      ref="canvas"
-      height="200"
-      width="500"
-      @mousedown="onEventStart"
-      @mousemove.stop.prevent="onEventMove"
-      @mouseup="onEventEnd"
-      @touchstart="onEventStart"
-      @touchmove.stop.prevent="onEventMove"
-      @touchend="onEventEnd"
-    />
-    <img v-if="imgUrl" :src="imgUrl" alt="签名" />
-  </div>
+  <PageShell class="ff-demo-page">
+    <div class="ff-demo-page__panel signature-panel">
+      <h1>签名画布</h1>
+      <header class="signature-panel__actions">
+        <el-button type="primary" @click="handleSaveImg">保存为图片</el-button>
+        <el-button @click="handleToFile">保存到后端</el-button>
+        <el-button @click="handleClearSign">清空签名</el-button>
+      </header>
+      <canvas
+        ref="canvas"
+        class="signature-canvas"
+        height="200"
+        width="500"
+        aria-label="签名画布"
+        @mousedown="onEventStart"
+        @mousemove.stop.prevent="onEventMove"
+        @mouseup="onEventEnd"
+        @touchstart="onEventStart"
+        @touchmove.stop.prevent="onEventMove"
+        @touchend="onEventEnd"
+      />
+      <img v-if="imgUrl" :src="imgUrl" alt="签名" />
+    </div>
+  </PageShell>
 </template>
 <script setup lang="ts">
+import PageShell from "@/components/PageShell/index.vue";
 import FileAPI from "@/api/file-api";
 
 const imgUrl = ref("");
@@ -156,30 +161,40 @@ function paint(
 }
 </script>
 <style scoped lang="scss">
-.canvas-dom {
+.signature-panel {
   width: 100%;
-  height: 100%;
-  padding: 0 20px;
-  background-color: #fff;
+  color: var(--ff-shell-text);
 
-  canvas {
-    border: 1px solid #e6e6e6;
+  h1 {
+    margin: 0 0 1rem;
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    letter-spacing: -0.05em;
   }
 
-  header {
+  &__actions {
     display: flex;
-    flex-flow: row nowrap;
+    flex-wrap: wrap;
+    gap: 0.5rem;
     align-items: center;
-    width: 100%;
-    margin: 8px;
+    margin-bottom: 1rem;
+  }
 
-    .eraser-option {
-      display: flex;
+  .signature-canvas {
+    display: block;
+    width: min(100%, 500px);
+    height: auto;
+    touch-action: none;
+    background: color-mix(in srgb, var(--ff-shell-bg) 78%, transparent);
+    border: 1px solid var(--ff-shell-border);
+    border-radius: 14px;
+  }
 
-      label {
-        white-space: nowrap;
-      }
-    }
+  img {
+    display: block;
+    max-width: 100%;
+    margin-top: 1rem;
+    border: 1px solid var(--ff-shell-border);
+    border-radius: 14px;
   }
 }
 </style>

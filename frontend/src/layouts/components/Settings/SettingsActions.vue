@@ -1,20 +1,13 @@
 <template>
   <div class="action-buttons">
-    <el-tooltip
-      content="复制配置将生成当前设置的代码，覆盖 src/settings.ts 下的 defaultSettings 变量"
-      placement="top"
-    >
-      <el-button type="primary" size="default" :loading="copyLoading" @click="emit('copy')">
-        <AppIcon name="document" :size="16" />
-        {{ copyLoading ? "复制中..." : t("settings.copyConfig") }}
-      </el-button>
-    </el-tooltip>
-    <el-tooltip content="重置将恢复所有设置为默认值" placement="top">
-      <el-button type="warning" size="default" :loading="resetLoading" @click="emit('reset')">
-        <AppIcon name="refresh" :size="16" />
-        {{ resetLoading ? "重置中..." : t("settings.resetConfig") }}
-      </el-button>
-    </el-tooltip>
+    <el-button type="primary" size="default" :loading="copyLoading" @click="emit('copy')">
+      <AppIcon name="document" :size="16" />
+      {{ copyLoading ? t("settings.copyLoading") : t("settings.copyConfig") }}
+    </el-button>
+    <el-button type="warning" size="default" :loading="resetLoading" @click="emit('reset')">
+      <AppIcon name="refresh" :size="16" />
+      {{ resetLoading ? t("settings.resetLoading") : t("settings.resetConfig") }}
+    </el-button>
   </div>
 </template>
 

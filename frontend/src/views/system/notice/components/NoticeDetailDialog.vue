@@ -10,28 +10,28 @@
   >
     <template #header>
       <div class="flex justify-between items-center">
-        <span class="font-semibold text-slate-700">通知公告详情</span>
+        <span class="font-semibold text-slate-700">{{ t("system.noticeDetail") }}</span>
         <div class="dialog-toolbar">
-          <el-button circle aria-label="关闭通知详情" @click="close">
+          <el-button circle :aria-label="t('system.closeNoticeDetail')" @click="close">
             <template #icon>
-              <Close />
+              <AppIcon name="close" :size="16" />
             </template>
           </el-button>
         </div>
       </div>
     </template>
     <el-descriptions :column="1">
-      <el-descriptions-item label="标题：">
+      <el-descriptions-item :label="t('system.title')">
         {{ currentNotice.title }}
       </el-descriptions-item>
-      <el-descriptions-item label="发布状态：">
+      <el-descriptions-item :label="t('system.publishStatus')">
         <el-tag
           v-if="currentNotice.publishStatus == 0"
           type="info"
           effect="light"
           class="ff-status-tag info"
         >
-          未发布
+          {{ t("system.unpublished") }}
         </el-tag>
         <el-tag
           v-else-if="currentNotice.publishStatus == 1"
@@ -39,7 +39,7 @@
           effect="light"
           class="ff-status-tag success"
         >
-          已发布
+          {{ t("system.publishedStatus") }}
         </el-tag>
         <el-tag
           v-else-if="currentNotice.publishStatus == -1"
@@ -47,16 +47,16 @@
           effect="light"
           class="ff-status-tag warning"
         >
-          已撤回
+          {{ t("system.revokedStatus") }}
         </el-tag>
       </el-descriptions-item>
-      <el-descriptions-item label="发布人：">
+      <el-descriptions-item :label="t('system.publisher')">
         {{ currentNotice.publisherName }}
       </el-descriptions-item>
-      <el-descriptions-item label="发布时间：">
+      <el-descriptions-item :label="t('system.releaseTime')">
         {{ currentNotice.publishTime }}
       </el-descriptions-item>
-      <el-descriptions-item label="公告内容：">
+      <el-descriptions-item :label="t('system.noticeContent')">
         <SafeHtml class="ff-notice-content" :content="currentNotice.content" />
       </el-descriptions-item>
     </el-descriptions>
@@ -64,6 +64,10 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
+import AppIcon from "@/components/AppIcon/index.vue";
 import ProDialog from "@/components/ProDialog/index.vue";
 import SafeHtml from "@/components/SafeHtml/index.vue";
 import NoticeAPI, { type NoticeDetailVO } from "@/api/system/notice-api";

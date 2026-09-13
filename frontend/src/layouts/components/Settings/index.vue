@@ -63,7 +63,7 @@ const handleCopySettings = async () => {
       duration: 3000,
     });
   } catch {
-    ElMessage.error("复制配置失败");
+    ElMessage.error(t("settings.copyFailed"));
   } finally {
     copyLoading.value = false;
   }
@@ -81,7 +81,7 @@ const handleResetSettings = async () => {
 
     ElMessage.success(t("settings.resetSuccess"));
   } catch {
-    ElMessage.error("重置配置失败");
+    ElMessage.error(t("settings.resetFailed"));
   } finally {
     resetLoading.value = false;
   }

@@ -2,7 +2,9 @@
   <button
     type="button"
     class="hamburger-wrapper"
-    :aria-label="label || (isActive ? '收起导航' : '展开导航')"
+    :aria-label="
+      label || (isActive ? t('navbar.collapseNavigation') : t('navbar.expandNavigation'))
+    "
     :aria-expanded="isActive"
     :aria-controls="controls"
     @click="toggleClick"
@@ -21,6 +23,8 @@ import { useSettingsStore } from "@/store";
 import { ThemeMode, SidebarColor } from "@/enums/settings/theme-enum";
 import { LayoutMode } from "@/enums/settings/layout-enum";
 import AppIcon from "@/components/AppIcon/index.vue";
+
+const { t } = useI18n();
 
 defineProps({
   isActive: { type: Boolean, required: true },

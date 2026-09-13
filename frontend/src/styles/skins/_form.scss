@@ -8,6 +8,17 @@
   color: var(--el-text-color-regular);
 }
 
+@media (max-width: 640px) {
+  .ff-drawer .ff-form .el-form-item__label {
+    width: auto !important;
+    min-width: 80px;
+    max-width: 42%;
+    padding-right: 12px;
+    word-break: keep-all;
+    overflow-wrap: normal;
+  }
+}
+
 .ff-form .el-input__wrapper,
 .ff-form .el-select__wrapper,
 .ff-form .el-textarea__inner,
@@ -29,7 +40,7 @@
   background-color: #ffffff;
   box-shadow:
     0 0 0 1px var(--el-color-primary) inset,
-    0 0 0 3px rgba(64, 128, 255, 0.1) !important;
+    0 0 0 3px rgba(255, 112, 92, 0.1) !important;
 }
 
 .ff-form .el-select__wrapper,
@@ -48,7 +59,7 @@
   background-color: #ffffff;
   box-shadow:
     0 0 0 1px var(--el-color-primary) inset,
-    0 0 0 3px rgba(64, 128, 255, 0.1) !important;
+    0 0 0 3px rgba(255, 112, 92, 0.1) !important;
 }
 
 html.dark {
@@ -65,7 +76,7 @@ html.dark {
     background-color: #1e293b;
     box-shadow:
       0 0 0 1px var(--el-color-primary) inset,
-      0 0 0 3px rgba(129, 140, 248, 0.2) !important;
+      0 0 0 3px rgba(255, 112, 92, 0.2) !important;
   }
 
   .ff-form .el-select__wrapper,
@@ -84,6 +95,6 @@ html.dark {
     background-color: #1e293b;
     box-shadow:
       0 0 0 1px var(--el-color-primary) inset,
-      0 0 0 3px rgba(129, 140, 248, 0.2) !important;
+      0 0 0 3px rgba(255, 112, 92, 0.2) !important;
   }
 }

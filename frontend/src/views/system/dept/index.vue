@@ -6,25 +6,30 @@
       @submit="handleQuery"
       @reset="handleResetQuery"
     >
-      <el-form-item label="关键字" prop="search" class="mb-0">
+      <el-form-item :label="t('common.keyword')" prop="search" class="mb-0">
         <el-input
           v-model="queryParams.search"
-          placeholder="输入部门名称"
+          :placeholder="t('system.deptNamePlaceholder')"
           @keyup.enter="handleQuery"
         />
       </el-form-item>
 
-      <el-form-item label="部门状态" prop="status" class="mb-0">
-        <el-select v-model="queryParams.status" placeholder="全部" clearable style="width: 120px">
-          <el-option :value="1" label="正常" />
-          <el-option :value="0" label="禁用" />
+      <el-form-item :label="t('system.status')" prop="status" class="mb-0">
+        <el-select
+          v-model="queryParams.status"
+          :placeholder="t('common.all')"
+          clearable
+          style="width: 120px"
+        >
+          <el-option :value="1" :label="t('common.normal')" />
+          <el-option :value="0" :label="t('common.disabled')" />
         </el-select>
       </el-form-item>
     </ProSearch>
 
     <ProTable
       ref="tableRef"
-      title="部门数据"
+      :title="t('system.deptData')"
       :request="requestTableData"
       :params="queryParams"
       :show-pagination="false"
@@ -36,78 +41,78 @@
           <el-button
             v-hasPerm="['system:departments:add']"
             type="primary"
-            icon="plus"
+            :icon="resolveAppIcon('plus')"
             class="ff-button-primary"
             @click="handleOpenDialog()"
           >
-            新增部门
+            {{ t("system.addDeptAction") }}
           </el-button>
           <el-button
             v-hasPerm="['system:departments:delete']"
             type="danger"
             plain
             :disabled="selectIds.length === 0"
-            icon="delete"
+            :icon="resolveAppIcon('delete')"
             class="ff-button-danger"
             @click="handleDelete()"
           >
-            批量删除
+            {{ t("system.batchDelete") }}
           </el-button>
         </div>
       </template>
 
       <template #default>
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column prop="sort" label="排序" width="100" align="center">
+        <el-table-column prop="sort" :label="t('common.sort')" width="100" align="center">
           <template #default="{ row }">
             <span class="text-slate-400 font-mono bg-slate-50 px-2 py-0.5 rounded-md">
               {{ row.sort }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="name" label="部门名称" min-width="200" />
-        <el-table-column prop="status" label="状态" width="120" align="center">
+        <el-table-column prop="name" :label="t('system.deptName')" min-width="200" />
+        <el-table-column prop="status" :label="t('common.status')" width="120" align="center">
           <template #default="scope">
             <el-tag
               :type="scope.row.status == 1 ? 'success' : 'info'"
               class="ff-status-tag"
               :class="scope.row.status == 1 ? 'success' : 'info'"
             >
-              {{ scope.row.status == 1 ? "正常" : "禁用" }}
+              {{ scope.row.status == 1 ? t("common.normal") : t("common.disabled") }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" fixed="right" width="280">
+        <el-table-column :label="t('common.actions')" fixed="right" width="280">
           <template #default="scope">
             <el-button
               v-hasPerm="['system:departments:add']"
               type="primary"
               link
-              icon="plus"
+              :icon="resolveAppIcon('plus')"
               size="small"
               @click.stop="handleOpenDialog(scope.row.id, undefined)"
             >
-              新增
+              {{ t("common.add") }}
             </el-button>
             <el-button
               v-hasPerm="['system:departments:edit']"
               type="primary"
               link
-              icon="edit"
+              :icon="resolveAppIcon('edit')"
               size="small"
               @click.stop="handleOpenDialog(scope.row.parentId, scope.row.id)"
             >
-              编辑
+              {{ t("common.edit") }}
             </el-button>
             <el-button
               v-hasPerm="['system:departments:delete']"
               type="danger"
               link
-              icon="delete"
+              :icon="resolveAppIcon('delete')"
               size="small"
               @click.stop="handleDelete(scope.row.id)"
             >
-              删除
+              {{ t("common.delete") }}
             </el-button>
           </template>
         </el-table-column>
@@ -117,7 +122,7 @@
     <DeptFormDrawer
       ref="deptFormRef"
       v-model="dialog.visible"
-      :title="dialog.title"
+      :title="t(dialog.titleKey)"
       :model="formData"
       :rules="rules"
       :loading="formLoading"
@@ -129,6 +134,10 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
+import { resolveAppIcon } from "@/components/AppIcon/icon-map";
 defineOptions({
   name: "Dept",
   inheritAttrs: false,
@@ -150,7 +159,7 @@ const selectIds = ref<string[]>([]);
 const queryParams = reactive<DeptQuery>({});
 
 const dialog = reactive({
-  title: "",
+  titleKey: "system.addDeptAction",
   visible: false,
 });
 
@@ -162,8 +171,8 @@ const formData = reactive<DeptForm>({
 });
 
 const rules = reactive({
-  name: [{ required: true, message: "部门名称不能为空", trigger: "blur" }],
-  sort: [{ required: true, message: "显示排序不能为空", trigger: "blur" }],
+  name: [{ required: true, message: () => t("system.deptNameRequired"), trigger: "blur" }],
+  sort: [{ required: true, message: () => t("system.sortRequired"), trigger: "blur" }],
 });
 
 const requestTableData = createListRequest<DeptQuery, DeptVO>(DeptAPI.getList, {
@@ -188,12 +197,12 @@ async function handleOpenDialog(parentId?: string, deptId?: string) {
   deptOptions.value = await DeptAPI.getOptions();
   dialog.visible = true;
   if (deptId) {
-    dialog.title = "修改部门";
+    dialog.titleKey = "system.editDept";
     DeptAPI.getFormData(deptId).then((data) => {
       Object.assign(formData, data);
     });
   } else {
-    dialog.title = "新增部门";
+    dialog.titleKey = "system.addDeptAction";
     formData.parentId = parentId;
   }
 }
@@ -206,7 +215,7 @@ function handleSubmit() {
       if (deptId) {
         DeptAPI.update(deptId, formData)
           .then(() => {
-            ElMessage.success("修改成功");
+            ElMessage.success(t("system.updateSuccess"));
             handleCloseDialog();
             tableRef.value?.reload(true);
           })
@@ -214,7 +223,7 @@ function handleSubmit() {
       } else {
         DeptAPI.create(formData)
           .then(() => {
-            ElMessage.success("新增成功");
+            ElMessage.success(t("system.createSuccess"));
             handleCloseDialog();
             tableRef.value?.reload(true);
           })
@@ -230,25 +239,25 @@ function handleSubmit() {
 function handleDelete(deptId?: string | number) {
   const deptIds = deptId !== undefined ? [deptId] : selectIds.value;
   if (!deptIds || (Array.isArray(deptIds) && deptIds.length === 0)) {
-    ElMessage.warning("请勾选删除项");
+    ElMessage.warning(t("system.selectDelete"));
     return;
   }
 
-  ElMessageBox.confirm("确认删除已选中的数据项?", "警告", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
+  ElMessageBox.confirm(t("system.confirmDelete"), t("common.warning"), {
+    confirmButtonText: t("common.confirm"),
+    cancelButtonText: t("common.cancel"),
     type: "warning",
   }).then(
     () => {
       DeptAPI.deleteByIds(deptIds)
         .then(() => {
-          ElMessage.success("删除成功");
+          ElMessage.success(t("system.deleteSuccess"));
           tableRef.value?.reload(true);
         })
         .finally(() => undefined);
     },
     () => {
-      ElMessage.info("已取消删除");
+      ElMessage.info(t("system.cancelDelete"));
     }
   );
 }

@@ -6,32 +6,30 @@
       @submit="handleQuery"
       @reset="handleResetQuery"
     >
-      <el-form-item label="标题" prop="title" class="mb-0">
+      <el-form-item :label="t('system.title')" prop="title" class="mb-0">
         <el-input
           v-model="queryParams.title"
-          placeholder="标题"
+          :placeholder="t('system.title')"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-
-      <el-form-item label="发布状态" prop="publishStatus" class="mb-0">
+      <el-form-item :label="t('system.publishStatus')" prop="publishStatus" class="mb-0">
         <el-select
           v-model="queryParams.publishStatus"
           clearable
-          placeholder="全部"
+          :placeholder="t('common.all')"
           style="width: 100px"
         >
-          <el-option :value="0" label="未发布" />
-          <el-option :value="1" label="已发布" />
-          <el-option :value="-1" label="已撤回" />
+          <el-option :value="0" :label="t('system.unpublished')" />
+          <el-option :value="1" :label="t('system.publishedStatus')" />
+          <el-option :value="-1" :label="t('system.revokedStatus')" />
         </el-select>
       </el-form-item>
     </ProSearch>
-
     <ProTable
       ref="tableRef"
-      title="通知公告"
+      :title="t('system.noticeData')"
       :request="requestTableData"
       :params="queryParams"
       @selection-change="handleSelectionChange"
@@ -41,11 +39,11 @@
           <el-button
             v-hasPerm="['system:notices:add']"
             type="primary"
-            icon="plus"
+            :icon="resolveAppIcon('plus')"
             class="ff-button-primary"
             @click="handleOpenDialog()"
           >
-            新增通知
+            {{ t("system.addNotice") }}
           </el-button>
           <el-button
             v-hasPerm="['system:notices:delete']"
@@ -53,59 +51,70 @@
             plain
             :loading="loading"
             :disabled="selectIds.length === 0 || loading"
-            icon="delete"
+            :icon="resolveAppIcon('delete')"
             class="ff-button-danger"
             @click="handleDelete()"
           >
-            批量删除
+            {{ t("system.batchDelete") }}
           </el-button>
         </div>
       </template>
       <template #default>
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column type="index" label="序号" width="60" align="center" />
-        <el-table-column label="通知标题" prop="title" min-width="200" />
-        <el-table-column align="center" label="通知类型" width="150">
+        <el-table-column type="index" :label="t('system.sequence')" width="60" align="center" />
+        <el-table-column :label="t('system.noticeTitle')" prop="title" min-width="200" />
+        <el-table-column align="center" :label="t('system.noticeType')" width="150">
           <template #default="scope">
             <DictLabel v-model="scope.row.type" :code="'notice_type'" />
           </template>
         </el-table-column>
-        <el-table-column align="center" label="发布人" prop="publisherName" width="150" />
-        <el-table-column align="center" label="通知等级" width="100">
+        <el-table-column
+          align="center"
+          :label="t('system.publisher')"
+          prop="publisherName"
+          width="150"
+        />
+        <el-table-column align="center" :label="t('system.noticeLevel')" width="100">
           <template #default="scope">
             <DictLabel v-model="scope.row.level" code="notice_level" />
           </template>
         </el-table-column>
-        <el-table-column align="center" label="通告目标类型" prop="targetType" width="120">
+        <el-table-column
+          align="center"
+          :label="t('system.targetType')"
+          prop="targetType"
+          width="120"
+        >
           <template #default="scope">
             <NoticeStatusTag kind="target" :value="scope.row.targetType" />
           </template>
         </el-table-column>
-        <el-table-column align="center" label="发布状态" width="100">
+        <el-table-column align="center" :label="t('system.publishStatus')" width="100">
           <template #default="scope">
             <NoticeStatusTag kind="publish" :value="scope.row.publishStatus" />
           </template>
         </el-table-column>
-        <el-table-column label="操作时间" width="250">
+        <el-table-column :label="t('system.operationTime')" width="250">
           <template #default="scope">
             <div class="flex items-center gap-1 text-sm">
-              <span class="text-slate-400">创建：</span>
+              <span class="text-slate-400">{{ t("system.created") }}</span>
               <span>{{ scope.row.createTime || "-" }}</span>
             </div>
-
             <div v-if="scope.row.publishStatus === 1" class="flex items-center gap-1 text-sm">
-              <span class="text-slate-400">发布：</span>
+              <span class="text-slate-400">{{ t("system.published") }}</span>
               <span>{{ scope.row.publishTime || "-" }}</span>
             </div>
             <div v-else-if="scope.row.publishStatus === -1" class="flex items-center gap-1 text-sm">
-              <span class="text-slate-400">撤回：</span>
+              <span class="text-slate-400">{{ t("system.revoked") }}</span>
               <span>{{ scope.row.revokeTime || "-" }}</span>
             </div>
           </template>
         </el-table-column>
-        <el-table-column align="center" fixed="right" label="操作" width="200">
+        <el-table-column align="center" fixed="right" :label="t('common.actions')" width="200">
           <template #default="scope">
-            <el-button type="primary" link @click="openDetailDialog(scope.row.id)">查看</el-button>
+            <el-button type="primary" link @click="openDetailDialog(scope.row.id)">
+              {{ t("common.view") }}
+            </el-button>
             <el-button
               v-if="scope.row.publishStatus != 1"
               v-hasPerm="['system:notices:publish']"
@@ -113,7 +122,7 @@
               link
               @click="handlePublish(scope.row.id)"
             >
-              发布
+              {{ t("common.publish") }}
             </el-button>
             <el-button
               v-if="scope.row.publishStatus == 1"
@@ -122,35 +131,34 @@
               link
               @click="handleRevoke(scope.row.id)"
             >
-              撤回
+              {{ t("common.revoke") }}
             </el-button>
             <el-button
               v-if="scope.row.publishStatus != 1"
               v-hasPerm="['system:notices:edit']"
               type="primary"
               link
-              icon="edit"
+              :icon="resolveAppIcon('edit')"
               @click="handleOpenDialog(scope.row.id)"
             >
-              编辑
+              {{ t("common.edit") }}
             </el-button>
             <el-button
               v-if="scope.row.publishStatus != 1"
               v-hasPerm="['system:notices:delete']"
               type="danger"
               link
-              icon="delete"
+              :icon="resolveAppIcon('delete')"
               :loading="loading"
               :disabled="loading"
               @click="handleDelete(scope.row.id)"
             >
-              删除
+              {{ t("common.delete") }}
             </el-button>
           </template>
         </el-table-column>
       </template>
     </ProTable>
-
     <NoticeFormDrawer ref="noticeFormDrawerRef" @success="handleQuery" />
 
     <NoticeDetailDialog ref="noticeDetailDialogRef" />
@@ -164,6 +172,10 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
+import { resolveAppIcon } from "@/components/AppIcon/icon-map";
 defineOptions({
   name: "Notice",
   inheritAttrs: false,
@@ -192,20 +204,17 @@ const selectIds = ref<string[]>([]);
 
 const queryParams = reactive<Omit<NoticePageQuery, "pageNum" | "pageSize">>({});
 
-// 查询通知公告
 function handleQuery() {
   tableRef.value?.reload(true);
 }
 
 const requestTableData = createPageRequest<NoticePageQuery, NoticePageVO>(NoticeAPI.getPage);
 
-// 重置查询
 function handleResetQuery() {
   queryFormRef.value?.resetFields();
   tableRef.value?.reload(true);
 }
 
-// 行复选框选中项变化
 function handleSelectionChange(selection: NoticePageVO[]) {
   selectIds.value = selection.map((item) => item.id).filter((id): id is string => Boolean(id));
 }
@@ -219,18 +228,16 @@ async function handleOpenDialog(id?: string) {
   await noticeFormDrawerRef.value?.openCreate();
 }
 
-// 发布通知公告
 function handlePublish(id: string) {
   NoticeAPI.publish(id).then(() => {
-    ElMessage.success("发布成功");
+    ElMessage.success(t("system.publishSuccess"));
     tableRef.value?.reload(true);
   });
 }
 
-// 撤回通知公告
 function handleRevoke(id: string) {
   NoticeAPI.revoke(id).then(() => {
-    ElMessage.success("撤回成功");
+    ElMessage.success(t("system.revokeSuccess"));
     tableRef.value?.reload(true);
   });
 }
@@ -241,11 +248,14 @@ function presentBatchDeleteResult(result: BatchDeleteResult) {
   }
 
   if (result.failedCount === 0) {
-    ElMessage.success(`删除成功，共 ${result.successCount} 条`);
+    ElMessage.success(t("system.deleteSummary", { count: result.successCount }));
     return;
   }
 
-  const message = `删除完成：成功 ${result.successCount} 条，失败 ${result.failedCount} 条`;
+  const message = t("system.deleteComplete", {
+    success: result.successCount,
+    failed: result.failedCount,
+  });
   if (result.successCount > 0) {
     ElMessage.warning(message);
   } else {
@@ -254,30 +264,28 @@ function presentBatchDeleteResult(result: BatchDeleteResult) {
   batchDeleteResultDialogRef.value?.open(result);
 }
 
-// 删除通知公告
 function handleDelete(id?: string) {
   const deleteIds = id !== undefined ? [id] : selectIds.value;
   if (deleteIds.length === 0) {
-    ElMessage.warning("请勾选删除项");
+    ElMessage.warning(t("system.selectDelete"));
     return;
   }
 
   void runExclusive(loading, async () => {
     try {
-      await ElMessageBox.confirm("确认删除已选中的数据项?", "警告", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
+      await ElMessageBox.confirm(t("system.confirmDelete"), t("common.warning"), {
+        confirmButtonText: t("common.confirm"),
+        cancelButtonText: t("common.cancel"),
         type: "warning",
       });
     } catch {
-      ElMessage.info("已取消删除");
+      ElMessage.info(t("system.cancelDelete"));
       return;
     }
 
     try {
       presentBatchDeleteResult(await NoticeAPI.deleteByIds(deleteIds));
     } catch (error: unknown) {
-      // 请求拦截器负责用户提示，这里保留页面侧错误上下文并消费拒绝。
       noticeBatchDeleteLogger.error("批量删除失败:", error);
     }
   });

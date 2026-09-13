@@ -2,7 +2,7 @@
   <el-select
     v-if="type === 'select'"
     v-model="selectedScalarValue"
-    :placeholder="placeholder"
+    :placeholder="placeholder ?? t('common.select')"
     :disabled="disabled"
     clearable
     :style="style"
@@ -43,11 +43,13 @@
 
 <script setup lang="ts">
 import type { CheckboxValueType } from "element-plus";
+import { useI18n } from "vue-i18n";
 
 import { useDictStore } from "@/store";
 import type { DictModelValue, DictValue } from "@/components/Dict/types";
 
 const dictStore = useDictStore();
+const { t } = useI18n();
 
 const props = defineProps({
   code: {
@@ -65,7 +67,7 @@ const props = defineProps({
   },
   placeholder: {
     type: String,
-    default: "请选择",
+    default: undefined,
   },
   disabled: {
     type: Boolean,
@@ -76,6 +78,7 @@ const props = defineProps({
     default: () => {
       return {
         width: "300px",
+        maxWidth: "100%",
       };
     },
   },

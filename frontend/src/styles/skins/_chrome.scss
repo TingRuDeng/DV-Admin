@@ -89,7 +89,7 @@
   background: var(--ff-shell-hover) !important;
 }
 
-.navbar-actions__item [class^="i-svg:"] {
+.navbar-actions__item .app-icon {
   transition: color var(--ff-duration-fast) ease !important;
 }
 

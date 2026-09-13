@@ -1,7 +1,7 @@
 <template>
   <ProDialog
     v-model="visible"
-    title="导出数据"
+    :title="t('dataTransfer.exportTitle')"
     width="600px"
     :dialog-attrs="{ alignCenter: true }"
     @close="handleClose"
@@ -15,28 +15,28 @@
         :model="exportsFormData"
         :rules="exportsFormRules"
       >
-        <el-form-item label="文件名" prop="filename">
+        <el-form-item :label="t('dataTransfer.filename')" prop="filename">
           <el-input v-model="exportsFormData.filename" clearable />
         </el-form-item>
-        <el-form-item label="工作表名" prop="sheetname">
+        <el-form-item :label="t('dataTransfer.sheetName')" prop="sheetname">
           <el-input v-model="exportsFormData.sheetname" clearable />
         </el-form-item>
-        <el-form-item label="数据源" prop="origin">
+        <el-form-item :label="t('dataTransfer.origin')" prop="origin">
           <el-select v-model="exportsFormData.origin">
-            <el-option label="当前数据 (当前页的数据)" :value="EXPORT_ORIGIN_CURRENT" />
+            <el-option :label="t('dataTransfer.currentData')" :value="EXPORT_ORIGIN_CURRENT" />
             <el-option
-              label="选中数据 (所有选中的数据)"
+              :label="t('dataTransfer.selectedData')"
               :value="EXPORT_ORIGIN_SELECTED"
               :disabled="selectionCount <= 0"
             />
             <el-option
-              label="全量数据 (所有分页的数据)"
+              :label="t('dataTransfer.allData')"
               :value="EXPORT_ORIGIN_REMOTE"
               :disabled="!hasRemoteAction"
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="字段" prop="fields">
+        <el-form-item :label="t('dataTransfer.fields')" prop="fields">
           <el-checkbox-group v-model="exportsFormData.fields">
             <template v-for="col in cols" :key="col.prop">
               <el-checkbox v-if="col.prop" :value="col.prop" :label="col.label" />
@@ -48,8 +48,8 @@
     <!-- 弹窗底部操作按钮 -->
     <template #footer>
       <div style="padding-right: var(--el-dialog-padding-primary)">
-        <el-button type="primary" @click="handleSubmit">确 定</el-button>
-        <el-button @click="handleClose">取 消</el-button>
+        <el-button type="primary" @click="handleSubmit">{{ t("common.confirm") }}</el-button>
+        <el-button @click="handleClose">{{ t("common.cancel") }}</el-button>
       </div>
     </template>
   </ProDialog>
@@ -60,6 +60,7 @@ import ProDialog from "@/components/ProDialog/index.vue";
 import { useThrottleFn } from "@vueuse/core";
 import type { FormInstance, FormRules } from "element-plus";
 import { computed, nextTick, reactive, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import type { IContentConfig } from "./types";
 
 const EXPORT_ORIGIN_CURRENT = "current";
@@ -89,6 +90,8 @@ const emit = defineEmits<{
   submit: [data: PageContentExportPayload];
 }>();
 
+const { t } = useI18n();
+
 const selectableFields = computed(() =>
   props.cols.flatMap((col) => (col.prop !== undefined ? [col.prop] : []))
 );
@@ -100,8 +103,8 @@ const exportsFormData = reactive<PageContentExportPayload>({
   origin: EXPORT_ORIGIN_CURRENT,
 });
 const exportsFormRules: FormRules = {
-  fields: [{ required: true, message: "请选择字段" }],
-  origin: [{ required: true, message: "请选择数据源" }],
+  fields: [{ required: true, message: () => t("dataTransfer.selectFields") }],
+  origin: [{ required: true, message: () => t("dataTransfer.selectOrigin") }],
 };
 
 function resetFormData() {

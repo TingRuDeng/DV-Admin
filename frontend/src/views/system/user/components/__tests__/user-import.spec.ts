@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 import { defineComponent, h, type PropType } from "vue";
+import { createI18n } from "vue-i18n";
+import zhCn from "@/lang/package/zh-cn.json";
+import en from "@/lang/package/en.json";
 import { ElMessage } from "element-plus";
 import UserAPI from "@/api/system/user-api";
 import UserImport from "../UserImport.vue";
@@ -12,6 +15,7 @@ vi.mock("element-plus", () => ({
 vi.mock("@/utils/logger", () => ({ createLogger: () => ({ error: vi.fn() }) }));
 
 const file = new File(["test workbook"], "users.xlsx");
+let selectedFile = file;
 /* eslint-disable vue/one-component-per-file -- Local UI stubs keep the component behavior test self-contained. */
 const Drawer = defineComponent({
   props: { modelValue: Boolean, loading: Boolean },
@@ -45,7 +49,7 @@ const Upload = defineComponent({
       h(
         "button",
         {
-          onClick: () => emit("update:fileList", [{ name: file.name, raw: file }]),
+          onClick: () => emit("update:fileList", [{ name: selectedFile.name, raw: selectedFile }]),
         },
         "选择文件"
       );
@@ -65,10 +69,16 @@ const Table = defineComponent({
 });
 /* eslint-enable vue/one-component-per-file */
 
+let i18n: ReturnType<typeof createTestI18n>;
+function createTestI18n() {
+  return createI18n({ legacy: false, locale: "zh-cn", messages: { "zh-cn": zhCn, en } });
+}
+
 function renderImport() {
   return mount(UserImport, {
     props: { modelValue: true, deptId: "42" },
     global: {
+      plugins: [i18n],
       stubs: {
         ProFormDrawer: Drawer,
         ProDialog: Dialog,
@@ -76,7 +86,10 @@ function renderImport() {
         ElAlert: Alert,
         ElTable: Table,
         ElTableColumn: true,
-        ElFormItem: { template: "<div><slot /></div>" },
+        ElFormItem: {
+          props: ["error"],
+          template: '<div><slot /><p v-if="error" role="alert">{{ error }}</p></div>',
+        },
         ElButton: { template: "<button><slot /></button>" },
         ElIcon: true,
         UploadFilled: true,
@@ -89,18 +102,55 @@ function renderImport() {
 let wrapper: ReturnType<typeof renderImport>;
 async function submit() {
   await wrapper.get("button").trigger("click");
-  const confirm = wrapper.findAll("button").find((button) => button.text() === "确 定");
+  const confirm = wrapper
+    .findAll("button")
+    .find((button) => button.text() === i18n.global.t("userImport.confirm"));
   await confirm!.trigger("click");
   await flushPromises();
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
+  selectedFile = file;
+  i18n = createTestI18n();
   wrapper = renderImport();
 });
-afterEach(() => wrapper.unmount());
+afterEach(() => wrapper?.unmount());
 
 describe("用户导入结果反馈", () => {
+  it("保留部门树返回的数字 ID", async () => {
+    await wrapper.setProps({ deptId: 42 });
+    vi.mocked(UserAPI.import).mockResolvedValue({
+      validCount: 1,
+      invalidCount: 0,
+      messageList: [],
+    });
+    await submit();
+    expect(UserAPI.import).toHaveBeenCalledWith(42, file);
+  });
+
+  it("提交非 XLSX 文件时显示字段错误且不调用导入接口", async () => {
+    selectedFile = new File(["unsupported"], "users.csv");
+    await submit();
+    expect(UserAPI.import).not.toHaveBeenCalled();
+    expect(wrapper.get('[role="alert"]').text()).toBe("请选择 XLSX 文件");
+    expect(wrapper.emitted("import-success")).toBeUndefined();
+  });
+
+  it("切换语言后保留导入结果并更新按钮和统计文案", async () => {
+    vi.mocked(UserAPI.import).mockResolvedValue({
+      validCount: 1,
+      invalidCount: 1,
+      messageList: ["Row 3: duplicate username"],
+    });
+    await submit();
+    i18n.global.locale.value = "en";
+    await flushPromises();
+    expect(wrapper.get('[role="dialog"]').text()).toContain("1 succeeded, 1 failed");
+    expect(wrapper.text()).toContain("View errors");
+    expect(wrapper.emitted("import-success")).toHaveLength(1);
+  });
+
   it("全部成功时刷新一次并关闭导入抽屉", async () => {
     vi.mocked(UserAPI.import).mockResolvedValue({
       validCount: 2,

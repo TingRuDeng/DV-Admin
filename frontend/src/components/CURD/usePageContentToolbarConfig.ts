@@ -1,4 +1,5 @@
 import { hasPerm } from "@/utils/auth";
+import { resolveAppIcon } from "@/components/AppIcon/icon-map";
 import type { ButtonProps } from "element-plus";
 import { computed, type CSSProperties } from "vue";
 import type { IContentConfig, IObject, IToolsButton } from "./types";
@@ -33,6 +34,23 @@ const DEFAULT_BUTTON_CONFIG: Record<string, DefaultButtonConfig> = {
 
 type ToolbarAttrs = Partial<ButtonProps> & { style?: CSSProperties };
 
+/**
+ * Resolve string icon names before they reach Element Plus.
+ *
+ * Toolbar definitions are data-driven and are therefore not visible to the
+ * template-level icon governance check. Keeping the conversion here ensures
+ * default and custom toolbar buttons use the same Lucide adapter as direct
+ * button declarations.
+ */
+export function normalizeToolbarAttrs(attrs: ToolbarAttrs): ToolbarAttrs {
+  if (typeof attrs.icon !== "string") return attrs;
+
+  return {
+    ...attrs,
+    icon: resolveAppIcon(attrs.icon),
+  };
+}
+
 export function usePageContentToolbarConfig(contentConfig: IContentConfig) {
   const authPrefix = computed(() => contentConfig.permPrefix);
 
@@ -62,10 +80,10 @@ export function usePageContentToolbarConfig(contentConfig: IContentConfig) {
       return {
         name: isString ? item : item?.name || "",
         text: isString ? defaultConfig!.text : item?.text,
-        attrs: {
+        attrs: normalizeToolbarAttrs({
           ...attr,
           ...(isString ? defaultConfig!.attrs : item?.attrs),
-        },
+        }),
         render: isString ? undefined : (item?.render ?? undefined),
         perm: isString
           ? getButtonPerm(defaultConfig!.perm)

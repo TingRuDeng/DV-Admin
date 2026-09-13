@@ -13,7 +13,7 @@
               <span class="flex-y-center">
                 {{ item?.label || "" }}
                 <el-tooltip v-if="item?.tips" v-bind="getTooltipProps(item.tips)">
-                  <QuestionFilled class="w-4 h-4 mx-1" />
+                  <AppIcon name="circle-help" :size="16" class="mx-1" />
                 </el-tooltip>
                 <span v-if="searchConfig.colon" class="ml-0.5">:</span>
               </span>
@@ -51,13 +51,17 @@
         </template>
 
         <el-form-item :class="{ 'col-[auto/-1] justify-self-end': searchConfig?.grid === 'right' }">
-          <el-button icon="search" type="primary" @click="handleQuery">搜索</el-button>
-          <el-button icon="refresh" @click="handleReset">重置</el-button>
+          <el-button :icon="resolveAppIcon('search')" type="primary" @click="handleQuery">
+            {{ t("common.search") }}
+          </el-button>
+          <el-button :icon="resolveAppIcon('refresh')" @click="handleReset">
+            {{ t("common.reset") }}
+          </el-button>
           <!-- 展开/收起 -->
           <template v-if="isExpandable && formItems.length > showNumber">
             <el-link class="ml-3" type="primary" underline="never" @click="isExpand = !isExpand">
-              {{ isExpand ? "收起" : "展开" }}
-              <component :is="isExpand ? ArrowUp : ArrowDown" class="w-4 h-4 ml-2" />
+              {{ isExpand ? t("common.collapse") : t("common.expand") }}
+              <AppIcon :name="isExpand ? 'arrow-up' : 'arrow-down'" :size="16" class="ml-2" />
             </el-link>
           </template>
         </el-form-item>
@@ -67,6 +71,7 @@
 </template>
 
 <script setup lang="ts">
+import { resolveAppIcon } from "@/components/AppIcon/icon-map";
 import type {
   ICurdComponentMap,
   ICurdComponentMapValue,
@@ -75,7 +80,6 @@ import type {
   ISearchConfig,
   ISearchComponent,
 } from "./types";
-import { ArrowUp, ArrowDown } from "@element-plus/icons-vue";
 import {
   ElCascader,
   ElDatePicker,
@@ -89,6 +93,10 @@ import {
 } from "element-plus";
 import type { CascaderValue, FormInstance } from "element-plus";
 import InputTag from "@/components/InputTag/index.vue";
+import AppIcon from "@/components/AppIcon/index.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 // 定义接收的属性
 const props = defineProps<{ searchConfig: ISearchConfig }>();

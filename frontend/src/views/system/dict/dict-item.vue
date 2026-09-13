@@ -7,16 +7,21 @@
       @submit="handleQuery"
       @reset="handleResetQuery"
     >
-      <el-form-item label="关键字" prop="search" class="mb-0">
+      <el-form-item :label="t('common.keyword')" prop="search" class="mb-0">
         <el-input
           v-model="queryParams.search"
-          placeholder="字典项标签/字典项值"
+          :placeholder="t('system.dictItemSearchPlaceholder')"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="归属字典" prop="dictSelect" class="mb-0">
-        <el-select v-model="queryParams.dict" placeholder="请选择归属字典" clearable filterable>
+      <el-form-item :label="t('system.dictOwner')" prop="dictSelect" class="mb-0">
+        <el-select
+          v-model="queryParams.dict"
+          :placeholder="t('system.dictRequired')"
+          clearable
+          filterable
+        >
           <el-option v-for="item in dictList" :key="item.id" :label="item.name" :value="item.id" />
         </el-select>
       </el-form-item>
@@ -24,7 +29,7 @@
 
     <ProTable
       ref="tableRef"
-      title="字典项数据"
+      :title="t('system.dictItemData')"
       :request="requestTableData"
       :params="queryParams"
       @selection-change="handleSelectionChange"
@@ -34,40 +39,40 @@
           <el-button
             v-hasPerm="['system:dictitems:add']"
             type="primary"
-            icon="plus"
+            :icon="resolveAppIcon('plus')"
             class="ff-button-primary"
             @click="handleOpenDialog()"
           >
-            新增字典项
+            {{ t("system.addDictItem") }}
           </el-button>
           <el-button
             v-hasPerm="['system:dictitems:delete']"
             type="danger"
             plain
             :disabled="ids.length === 0"
-            icon="delete"
+            :icon="resolveAppIcon('delete')"
             class="ff-button-danger"
             @click="handleDelete()"
           >
-            批量删除
+            {{ t("system.batchDelete") }}
           </el-button>
         </div>
       </template>
 
       <template #default>
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="归属字典" prop="dictName" min-width="120" />
-        <el-table-column label="字典项标签" prop="label" min-width="120" />
-        <el-table-column label="字典项值" prop="value" min-width="100" />
-        <el-table-column label="标签类型" width="100" align="center">
+        <el-table-column :label="t('system.dictOwner')" prop="dictName" min-width="120" />
+        <el-table-column :label="t('system.dictItemLabel')" prop="label" min-width="120" />
+        <el-table-column :label="t('system.dictItemValue')" prop="value" min-width="100" />
+        <el-table-column :label="t('system.labelType')" width="100" align="center">
           <template #default="scope">
             <el-tag v-if="scope.row.tagType" :type="scope.row.tagType" effect="light">
               {{ scope.row.tagType }}
             </el-tag>
-            <span v-else class="text-slate-400">无</span>
+            <span v-else class="text-slate-400">{{ t("common.none") }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="100" align="center">
+        <el-table-column :label="t('common.status')" width="100" align="center">
           <template #default="scope">
             <el-tag
               v-if="scope.row.status === 1"
@@ -75,31 +80,33 @@
               effect="light"
               class="ff-status-tag success"
             >
-              启用
+              {{ t("common.enabled") }}
             </el-tag>
-            <el-tag v-else type="info" effect="light" class="ff-status-tag info">禁用</el-tag>
+            <el-tag v-else type="info" effect="light" class="ff-status-tag info">
+              {{ t("common.disabled") }}
+            </el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column fixed="right" label="操作" width="200">
+        <el-table-column fixed="right" :label="t('common.actions')" width="200">
           <template #default="scope">
             <el-button
               v-hasPerm="['system:dictitems:edit']"
               type="primary"
               link
-              icon="edit"
+              :icon="resolveAppIcon('edit')"
               @click.stop="handleOpenDialog(scope.row.id)"
             >
-              编辑
+              {{ t("common.edit") }}
             </el-button>
             <el-button
               v-hasPerm="['system:dictitems:delete']"
               type="danger"
               link
-              icon="delete"
+              :icon="resolveAppIcon('delete')"
               @click.stop="handleDelete(scope.row.id)"
             >
-              删除
+              {{ t("common.delete") }}
             </el-button>
           </template>
         </el-table-column>
@@ -111,6 +118,10 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
+import { resolveAppIcon } from "@/components/AppIcon/icon-map";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
 import DictAPI, { DictPageVO } from "@/api/system/dict-api";
@@ -164,22 +175,22 @@ async function handleOpenDialog(id?: number) {
 function handleDelete(id?: number) {
   const itemIds = id !== undefined ? [id] : ids.value;
   if (!itemIds) {
-    ElMessage.warning("请勾选删除项");
+    ElMessage.warning(t("system.selectDelete"));
     return;
   }
-  ElMessageBox.confirm("确认删除已选中的数据项?", "警告", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
+  ElMessageBox.confirm(t("system.confirmDelete"), t("common.warning"), {
+    confirmButtonText: t("common.confirm"),
+    cancelButtonText: t("common.cancel"),
     type: "warning",
   }).then(
     () => {
       DictItemAPI.deleteDictItems(itemIds).then(() => {
-        ElMessage.success("删除成功");
+        ElMessage.success(t("system.deleteSuccess"));
         tableRef.value?.reload(true);
       });
     },
     () => {
-      ElMessage.info("已取消删除");
+      ElMessage.info(t("system.cancelDelete"));
     }
   );
 }

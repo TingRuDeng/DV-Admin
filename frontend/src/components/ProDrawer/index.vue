@@ -16,7 +16,7 @@
       <slot name="footer" :submit="handleSubmit" :cancel="handleCancel">
         <div class="dialog-footer flex justify-end gap-2">
           <el-button v-if="showCancelButton" class="ff-button-secondary" @click="handleCancel">
-            {{ cancelText }}
+            {{ cancelText ?? t("common.cancel") }}
           </el-button>
           <el-button
             v-if="showConfirmButton"
@@ -25,7 +25,7 @@
             :loading="loading"
             @click="handleSubmit"
           >
-            {{ confirmText }}
+            {{ confirmText ?? t("common.confirm") }}
           </el-button>
         </div>
       </slot>
@@ -35,7 +35,10 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import type { DrawerProps } from "element-plus";
+
+const { t } = useI18n();
 
 const props = withDefaults(
   defineProps<{
@@ -59,8 +62,6 @@ const props = withDefaults(
     showFooter: true,
     showConfirmButton: true,
     showCancelButton: true,
-    confirmText: "确 定",
-    cancelText: "取 消",
     drawerAttrs: () => ({}),
   }
 );

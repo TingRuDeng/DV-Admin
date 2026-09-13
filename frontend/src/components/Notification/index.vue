@@ -14,19 +14,31 @@
     </button>
 
     <template #dropdown>
-      <div class="p-5">
-        <template v-if="noticeList.length > 0">
-          <div v-for="(item, index) in noticeList" :key="index" class="w-500px py-3">
+      <div class="notification-list">
+        <div v-if="noticeLoadFailed" class="notification-list__status" role="alert">
+          <p>{{ t("navbar.notificationsUnavailable") }}</p>
+          <el-button type="primary" link @click="fetchMyNotice">{{ t("common.retry") }}</el-button>
+        </div>
+        <div
+          v-else-if="noticeLoading"
+          class="notification-list__status"
+          role="status"
+          :aria-label="t('navbar.loadingNotifications')"
+        >
+          <AppIcon name="loader-circle" :size="24" class="is-loading" />
+        </div>
+        <template v-else-if="noticeList.length > 0">
+          <div v-for="item in noticeList" :key="item.id" class="py-3">
             <div class="flex-y-center">
               <DictLabel v-model="item.type" code="notice_type" size="small" />
-              <el-text
-                size="small"
-                class="w-200px cursor-pointer !ml-2 !flex-1"
-                truncated
+              <button
+                type="button"
+                class="notification-list__title"
+                :disabled="openingNotice"
                 @click="handleReadNotice(item.id)"
               >
                 {{ item.title }}
-              </el-text>
+              </button>
 
               <div class="text-xs text-gray">
                 {{ item.publishTime }}
@@ -35,23 +47,24 @@
           </div>
           <el-divider />
           <div class="flex-x-between">
-            <el-link type="primary" underline="never" @click="handleViewMoreNotice">
-              <span class="text-xs">查看更多</span>
+            <el-button type="primary" link @click="handleViewMoreNotice">
+              <span class="text-xs">{{ t("navbar.viewMoreNotifications") }}</span>
               <AppIcon name="arrow-right" :size="14" />
-            </el-link>
-            <el-link
+            </el-button>
+            <el-button
               v-if="noticeList.length > 0"
               type="primary"
-              underline="never"
+              link
+              :loading="markingRead"
               @click="handleMarkAllAsRead"
             >
-              <span class="text-xs">全部已读</span>
-            </el-link>
+              <span class="text-xs">{{ t("navbar.markAllNotificationsRead") }}</span>
+            </el-button>
           </div>
         </template>
         <template v-else>
-          <div class="flex-center h-150px w-350px">
-            <el-empty :image-size="50" description="暂无消息" />
+          <div class="flex-center h-150px">
+            <el-empty :image-size="50" :description="t('navbar.noNotifications')" />
           </div>
         </template>
       </div>
@@ -60,7 +73,7 @@
 
   <ProDialog
     v-model="noticeDialogVisible"
-    :title="noticeDetail?.title ?? '通知详情'"
+    :title="noticeDetail?.title ?? t('navbar.notificationDetail')"
     width="800px"
     class="notification-detail"
     :show-footer="false"
@@ -102,6 +115,10 @@ interface NotificationMessagePayload {
 }
 
 const noticeList = ref<NoticePageVO[]>([]);
+const noticeLoading = ref(true);
+const noticeLoadFailed = ref(false);
+const openingNotice = ref(false);
+const markingRead = ref(false);
 const noticeDialogVisible = ref(false);
 const noticeDetail = ref<NoticeDetailVO | null>(null);
 const { t } = useI18n();
@@ -130,7 +147,7 @@ watch(
           });
 
           ElNotification({
-            title: "您收到一条新的通知消息！",
+            title: t("navbar.newNotification"),
             message: data.title ?? "",
             type: "success",
             position: "bottom-right",
@@ -187,15 +204,25 @@ function normalizePublishTime(value: unknown): NoticePageVO["publishTime"] {
 /**
  * 获取我的通知公告
  */
-function featchMyNotice() {
-  NoticeAPI.getMyNoticePage({ pageNum: 1, pageSize: 5, isRead: 0 }).then((data) => {
+async function fetchMyNotice() {
+  noticeLoading.value = true;
+  noticeLoadFailed.value = false;
+  try {
+    const data = await NoticeAPI.getMyNoticePage({ pageNum: 1, pageSize: 5, isRead: 0 });
     noticeList.value = data.list;
-  });
+  } catch {
+    noticeLoadFailed.value = true;
+  } finally {
+    noticeLoading.value = false;
+  }
 }
 
 // 阅读通知公告
-function handleReadNotice(id: string) {
-  NoticeAPI.getDetail(id).then((data) => {
+async function handleReadNotice(id: string) {
+  if (openingNotice.value) return;
+  openingNotice.value = true;
+  try {
+    const data = await NoticeAPI.getDetail(id);
     noticeDialogVisible.value = true;
     noticeDetail.value = data;
     // 标记为已读
@@ -203,7 +230,11 @@ function handleReadNotice(id: string) {
     if (index >= 0) {
       noticeList.value.splice(index, 1);
     }
-  });
+  } catch {
+    // 请求层已展示失败信息；保留原未读项，允许用户重试。
+  } finally {
+    openingNotice.value = false;
+  }
 }
 
 // 查看更多
@@ -212,14 +243,21 @@ function handleViewMoreNotice() {
 }
 
 // 全部已读
-function handleMarkAllAsRead() {
-  NoticeAPI.readAll().then(() => {
+async function handleMarkAllAsRead() {
+  if (markingRead.value) return;
+  markingRead.value = true;
+  try {
+    await NoticeAPI.readAll();
     noticeList.value = [];
-  });
+  } catch {
+    // 请求层已展示失败信息；未成功时不清空列表。
+  } finally {
+    markingRead.value = false;
+  }
 }
 
 onMounted(() => {
-  featchMyNotice();
+  fetchMyNotice();
 });
 
 onBeforeUnmount(() => {
@@ -227,4 +265,46 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.notification-list {
+  box-sizing: border-box;
+  width: min(460px, calc(100vw - 24px));
+  max-height: min(520px, calc(100dvh - 100px));
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.notification-list__title {
+  flex: 1;
+  min-width: 0;
+  padding: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font: inherit;
+  font-size: 13px;
+  color: var(--el-text-color-primary);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--el-color-primary);
+    outline: 2px solid var(--el-color-primary);
+    outline-offset: -2px;
+  }
+}
+
+.notification-list__status {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  color: var(--el-text-color-secondary);
+}
+</style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <PageShell class="ff-demo-page">
     <el-row :gutter="10">
       <el-col :span="12">
         <el-card>
@@ -85,10 +85,11 @@
         </el-card>
       </el-col>
     </el-row>
-  </div>
+  </PageShell>
 </template>
 
 <script setup lang="ts">
+import PageShell from "@/components/PageShell/index.vue";
 import { useStomp } from "@/composables/websocket/useStomp";
 import { useUserStoreHook } from "@/store/modules/user-store";
 

@@ -1,10 +1,10 @@
 <template>
-  <div v-loading="loading" class="redoc-container" :style="{ height: containerHeight }">
-    <iframe ref="redocIframe" :src="src" class="redoc-iframe" @load="handleIframeLoad" />
+  <div v-loading="loading" class="redoc-container">
+    <iframe :src="src" class="redoc-iframe" title="ReDoc API 文档" @load="handleIframeLoad" />
   </div>
 </template>
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref } from "vue";
 // 明确指定组件名称，避免与其他组件冲突
 defineOptions({
   name: "RedocFrame",
@@ -19,38 +19,19 @@ defineProps({
 });
 
 const loading = ref(true);
-const redocIframe = ref(null);
-const containerHeight = ref("");
-
-// 计算容器高度
-const calculateHeight = () => {
-  const windowHeight = document.documentElement.clientHeight;
-  containerHeight.value = `${windowHeight - 94.5}px`;
-};
 
 // 监听iframe加载完成
 const handleIframeLoad = () => {
   loading.value = false;
 };
-
-// 处理窗口大小变化
-const handleResize = () => {
-  calculateHeight();
-};
-
-onMounted(() => {
-  calculateHeight();
-  window.addEventListener("resize", handleResize);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("resize", handleResize);
-});
 </script>
 <style scoped>
 .redoc-container {
   width: 100%;
+  height: 100%;
+  min-height: 100%;
   overflow: hidden;
+  background: var(--ff-shell-surface);
 }
 
 .redoc-iframe {

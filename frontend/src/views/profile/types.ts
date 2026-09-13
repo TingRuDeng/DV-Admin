@@ -5,6 +5,6 @@ export const enum ProfileDialogType {
 
 export interface ProfileDialogState {
   visible: boolean;
-  title: string;
+  titleKey: "profile.accountDialog" | "profile.passwordDialog" | "";
   type: ProfileDialogType | "";
 }

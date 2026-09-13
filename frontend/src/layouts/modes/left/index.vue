@@ -5,7 +5,7 @@
       id="layout-sidebar"
       class="layout__sidebar"
       role="navigation"
-      aria-label="主导航"
+      :aria-label="t('navbar.mainNavigation')"
       tabindex="-1"
       :class="{ 'layout__sidebar--collapsed': !isSidebarOpen }"
       :aria-hidden="isMobile && !isSidebarOpen ? 'true' : undefined"
@@ -45,6 +45,8 @@ import NavBar from "../../components/NavBar/index.vue";
 import TagsView from "../../components/TagsView/index.vue";
 import AppMain from "../../components/AppMain/index.vue";
 import BasicMenu from "../../components/Menu/BasicMenu.vue";
+
+const { t } = useI18n();
 
 // 布局相关参数
 const { isShowTagsView, isShowLogo, isSidebarOpen, isMobile } = useLayout();

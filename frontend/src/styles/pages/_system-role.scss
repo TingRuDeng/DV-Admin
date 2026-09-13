@@ -18,8 +18,8 @@
 }
 
 .ff-role-page .permission-tree .el-tree-node.is-current > .el-tree-node__content {
-  color: #6366f1;
-  background-color: rgba(99, 102, 241, 0.1);
+  color: #ff705c;
+  background-color: rgba(255, 112, 92, 0.1);
 }
 
 html.dark .ff-role-page .permission-tree {
@@ -32,6 +32,6 @@ html.dark .ff-role-page .permission-tree .el-tree-node__content:hover {
 }
 
 html.dark .ff-role-page .permission-tree .el-tree-node.is-current > .el-tree-node__content {
-  color: #818cf8;
-  background-color: rgba(129, 140, 248, 0.15);
+  color: #ff9e8f;
+  background-color: rgba(255, 112, 92, 0.15);
 }

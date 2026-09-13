@@ -1,12 +1,14 @@
 <template>
   <div class="search-history">
     <div class="search-history__title">
-      搜索历史
+      {{ t("menuSearch.history") }}
       <el-button
         type="primary"
         text
         size="small"
         class="search-history__clear"
+        :aria-label="t('menuSearch.clearHistory')"
+        :title="t('menuSearch.clearHistory')"
         @click="emit('clear')"
       >
         <AppIcon name="trash" :size="15" />
@@ -15,16 +17,25 @@
     <ul class="search-history__list">
       <li
         v-for="(item, index) in items"
-        :key="index"
+        :key="item.path"
         class="search-history__item"
-        @click="emit('select', item)"
+        :data-active="index === activeIndex"
       >
-        <div class="search-history__icon">
-          <AppIcon name="activity" :size="15" />
-        </div>
-        <span class="search-history__name">{{ item.title }}</span>
+        <button type="button" class="search-history__navigate" @click="emit('select', item)">
+          <span class="search-history__icon">
+            <AppIcon name="activity" :size="15" />
+          </span>
+          <span class="search-history__name">{{ item.title }}</span>
+        </button>
         <div class="search-history__action">
-          <AppIcon name="close" :size="15" @click.stop="emit('remove', index)" />
+          <button
+            type="button"
+            :aria-label="t('menuSearch.removeHistory')"
+            :title="t('menuSearch.removeHistory')"
+            @click.stop="emit('remove', index)"
+          >
+            <AppIcon name="close" :size="15" />
+          </button>
         </div>
       </li>
     </ul>
@@ -37,6 +48,7 @@ import AppIcon from "@/components/AppIcon/index.vue";
 
 defineProps<{
   items: SearchItem[];
+  activeIndex?: number;
 }>();
 
 const emit = defineEmits<{
@@ -44,6 +56,8 @@ const emit = defineEmits<{
   remove: [index: number];
   select: [item: SearchItem];
 }>();
+
+const { t } = useI18n();
 </script>
 
 <style scoped lang="scss">
@@ -80,6 +94,25 @@ const emit = defineEmits<{
     color: var(--el-text-color-secondary);
   }
 
+  &__navigate {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+
+    &:focus-visible {
+      outline: 2px solid var(--el-color-primary);
+      outline-offset: -2px;
+    }
+  }
+
   &__name {
     flex: 1;
     overflow: hidden;
@@ -96,6 +129,15 @@ const emit = defineEmits<{
     opacity: 0;
     transition: opacity 0.2s;
 
+    button {
+      display: inline-flex;
+      padding: 0;
+      color: inherit;
+      cursor: pointer;
+      background: transparent;
+      border: 0;
+    }
+
     &:hover {
       color: var(--el-color-danger);
       background-color: var(--el-fill-color);
@@ -109,7 +151,9 @@ const emit = defineEmits<{
     padding: 0 12px;
     cursor: pointer;
 
-    &:hover {
+    &:hover,
+    &:focus-within,
+    &[data-active="true"] {
       background-color: var(--el-fill-color-light);
 
       .search-history__action {

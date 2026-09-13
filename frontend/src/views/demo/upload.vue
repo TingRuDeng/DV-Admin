@@ -1,6 +1,6 @@
 <!-- 文件上传组件示例 -->
 <template>
-  <div class="app-container">
+  <PageShell class="ff-demo-page">
     <el-form>
       <el-form-item label="单图上传">
         <SingleImageUpload v-model="picUrl" />
@@ -14,10 +14,11 @@
         <FileUpload v-model="fileUrls" />
       </el-form-item>
     </el-form>
-  </div>
+  </PageShell>
 </template>
 
 <script setup lang="ts">
+import PageShell from "@/components/PageShell/index.vue";
 import MultiImageUpload from "@/components/Upload/MultiImageUpload.vue";
 
 // 单图

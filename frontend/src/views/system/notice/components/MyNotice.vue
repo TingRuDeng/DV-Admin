@@ -6,26 +6,36 @@
       @submit="handleQuery"
       @reset="handleResetQuery"
     >
-      <el-form-item label="通知标题" prop="title">
+      <el-form-item :label="t('system.noticeTitle')" prop="title">
         <el-input
           v-model="queryParams.title"
-          placeholder="关键字"
+          :placeholder="t('common.keyword')"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
     </ProSearch>
 
-    <ProTable ref="tableRef" title="我的通知" :request="requestTableData" :params="queryParams">
-      <el-table-column type="index" label="序号" width="60" />
-      <el-table-column label="通知标题" prop="title" min-width="200" />
-      <el-table-column align="center" label="通知类型" width="150">
+    <ProTable
+      ref="tableRef"
+      :title="t('system.myNotice')"
+      :request="requestTableData"
+      :params="queryParams"
+    >
+      <el-table-column type="index" :label="t('system.sequence')" width="60" />
+      <el-table-column :label="t('system.noticeTitle')" prop="title" min-width="200" />
+      <el-table-column align="center" :label="t('system.noticeType')" width="150">
         <template #default="scope">
           <DictLabel v-model="scope.row.type" code="notice_type" />
         </template>
       </el-table-column>
-      <el-table-column align="center" label="发布人" prop="publisherName" width="100" />
-      <el-table-column align="center" label="通知等级" width="100">
+      <el-table-column
+        align="center"
+        :label="t('system.publisher')"
+        prop="publisherName"
+        width="100"
+      />
+      <el-table-column align="center" :label="t('system.noticeLevel')" width="100">
         <template #default="scope">
           <DictLabel v-model="scope.row.level" code="notice_level" />
         </template>
@@ -33,22 +43,22 @@
       <el-table-column
         key="releaseTime"
         align="center"
-        label="发布时间"
+        :label="t('system.releaseTime')"
         prop="publishTime"
         width="150"
       />
-      <el-table-column align="center" label="状态" width="100">
+      <el-table-column align="center" :label="t('common.status')" width="100">
         <template #default="scope">
           <el-tag v-if="scope.row.isRead == 1" type="success" class="ff-status-tag success">
-            已读
+            {{ t("system.read") }}
           </el-tag>
-          <el-tag v-else type="info" class="ff-status-tag info">未读</el-tag>
+          <el-tag v-else type="info" class="ff-status-tag info">{{ t("system.unread") }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column align="center" fixed="right" label="操作" width="80">
+      <el-table-column align="center" fixed="right" :label="t('common.actions')" width="80">
         <template #default="scope">
           <el-button type="primary" size="small" link @click="handleReadNotice(scope.row.id)">
-            查看
+            {{ t("common.view") }}
           </el-button>
         </template>
       </el-table-column>
@@ -56,7 +66,7 @@
 
     <ProDialog
       v-model="noticeDialogVisible"
-      :title="noticeDetail?.title ?? '通知详情'"
+      :title="noticeDetail?.title ?? t('system.noticeDetailShort')"
       width="800px"
       class="ff-my-notice-detail-dialog"
       :show-footer="false"
@@ -83,6 +93,9 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 import AppIcon from "@/components/AppIcon/index.vue";
 defineOptions({
   name: "MyNotice",

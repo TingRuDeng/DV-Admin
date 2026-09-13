@@ -13,18 +13,33 @@
     multiple
   >
     <AppIcon name="plus" :size="22" />
+    <span class="sr-only">{{ t("upload.image") }}</span>
     <template #file="{ file }">
       <div style="width: 100%">
-        <img class="el-upload-list__item-thumbnail" :src="file.url" />
+        <img
+          class="el-upload-list__item-thumbnail"
+          :src="file.url"
+          :alt="file.name || t('upload.uploadedImage')"
+        />
         <span class="el-upload-list__item-actions">
           <!-- 预览 -->
-          <span @click="handlePreviewImage(file.url!)">
+          <button
+            type="button"
+            :aria-label="t('upload.previewImage')"
+            :title="t('upload.previewImage')"
+            @click="handlePreviewImage(file.url!)"
+          >
             <AppIcon name="zoom-in" :size="18" />
-          </span>
+          </button>
           <!-- 删除 -->
-          <span @click="handleRemove(file.url!)">
+          <button
+            type="button"
+            :aria-label="t('upload.deleteImage')"
+            :title="t('upload.deleteImage')"
+            @click="handleRemove(file.url!)"
+          >
             <AppIcon name="delete" :size="18" />
-          </span>
+          </button>
         </span>
       </div>
     </template>
@@ -43,6 +58,8 @@ import AppIcon from "@/components/AppIcon/index.vue";
 import { UploadRawFile, UploadRequestOptions, UploadUserFile } from "element-plus";
 import FileAPI, { FileInfo } from "@/api/file-api";
 import { getUploadErrorMessage } from "@/components/Upload/uploadError";
+
+const { t } = useI18n();
 
 const props = defineProps({
   /**
@@ -104,7 +121,7 @@ function handleRemove(imageUrl: string) {
   const filePath =
     uploadedFilePaths[imageUrl] ?? fileList.value.find((file) => file.url === imageUrl)?.path;
   if (!filePath) {
-    ElMessage.warning("缺少文件路径，无法删除");
+    ElMessage.warning(t("upload.missingFilePath"));
     return;
   }
   FileAPI.delete(filePath).then(() => {
@@ -140,13 +157,13 @@ function handleBeforeUpload(file: UploadRawFile) {
   });
 
   if (!isValidType) {
-    ElMessage.warning(`上传文件的格式不正确，仅支持：${props.accept}`);
+    ElMessage.warning(t("upload.invalidFormat", { types: props.accept }));
     return false;
   }
 
   // 限制文件大小
   if (file.size > props.maxFileSize * 1024 * 1024) {
-    ElMessage.warning("上传图片不能大于" + props.maxFileSize + "M");
+    ElMessage.warning(t("upload.imageTooLarge", { size: props.maxFileSize }));
     return false;
   }
   return true;
@@ -181,14 +198,14 @@ function handleUpload(options: UploadRequestOptions) {
  * 上传文件超出限制
  */
 function handleExceed() {
-  ElMessage.warning("最多只能上传" + props.limit + "张图片");
+  ElMessage.warning(t("upload.maxImages", { count: props.limit }));
 }
 
 /**
  * 上传成功回调
  */
 const handleSuccess = (fileInfo: FileInfo, uploadFile: UploadUserFile) => {
-  ElMessage.success("上传成功");
+  ElMessage.success(t("upload.success"));
   const index = fileList.value.findIndex((file) => file.uid === uploadFile.uid);
   if (index !== -1) {
     fileList.value[index].url = fileInfo.url;
@@ -203,7 +220,7 @@ const handleSuccess = (fileInfo: FileInfo, uploadFile: UploadUserFile) => {
  * 上传失败回调
  */
 const handleError = (error: unknown) => {
-  ElMessage.error("上传失败: " + getUploadErrorMessage(error));
+  ElMessage.error(`${t("upload.failed")}: ${getUploadErrorMessage(error)}`);
 };
 
 /**
@@ -225,4 +242,33 @@ onMounted(() => {
   fileList.value = modelValue.value.map((url) => ({ url }) as UploadedImageFile);
 });
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.el-upload-list__item-actions:focus-within {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .el-upload-list__item-actions {
+    top: auto;
+    bottom: 0;
+    height: 40px;
+    opacity: 1;
+  }
+}
+
+.el-upload-list__item-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+.el-upload-list__item-actions button:focus-visible {
+  outline: 2px solid currentcolor;
+  outline-offset: 2px;
+}
+</style>

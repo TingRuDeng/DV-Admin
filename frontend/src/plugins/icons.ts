@@ -1,9 +1,39 @@
 import type { App } from "vue";
-import * as ElementPlusIconsVue from "@element-plus/icons-vue";
+import { resolveAppIcon } from "@/components/AppIcon/icon-map";
 
-// 注册所有图标
+const legacyIconNames = [
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowUp",
+  "CircleClose",
+  "CircleCloseFilled",
+  "Download",
+  "Edit",
+  "Eye",
+  "Moon",
+  "Operation",
+  "Plus",
+  "Position",
+  "RefreshLeft",
+  "RefreshRight",
+  "Search",
+  "Sunny",
+  "UploadFilled",
+  "View",
+  "arrow-left",
+  "delete",
+  "download",
+  "edit",
+  "plus",
+  "refresh",
+  "search",
+  "upload",
+];
+
+// 保留 Element Plus 的全局图标入口，实际渲染统一落到 Lucide。
 export function setupElIcons(app: App<Element>) {
-  for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-    app.component(key, component);
+  for (const name of legacyIconNames) {
+    app.component(name, resolveAppIcon(name));
   }
 }

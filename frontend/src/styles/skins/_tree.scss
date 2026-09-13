@@ -13,22 +13,22 @@
 }
 
 .transparent-tree .el-tree-node__content:hover {
-  background-color: rgba(64, 128, 255, 0.08) !important;
+  background-color: rgba(255, 112, 92, 0.08) !important;
 }
 
 .transparent-tree .el-tree-node.is-current > .el-tree-node__content {
   font-weight: 600;
   color: var(--el-color-primary);
-  background-color: rgba(64, 128, 255, 0.15) !important;
+  background-color: rgba(255, 112, 92, 0.15) !important;
 }
 
 html.dark {
   .transparent-tree .el-tree-node__content:hover {
-    background-color: rgba(129, 140, 248, 0.1) !important;
+    background-color: rgba(255, 112, 92, 0.1) !important;
   }
 
   .transparent-tree .el-tree-node.is-current > .el-tree-node__content {
-    color: #818cf8;
-    background-color: rgba(129, 140, 248, 0.15) !important;
+    color: #ff9e8f;
+    background-color: rgba(255, 112, 92, 0.15) !important;
   }
 }
