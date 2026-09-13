@@ -1,7 +1,7 @@
 <template>
   <ProDialog
     v-model="dialogVisible"
-    :title="dialog.title"
+    :title="dialog.titleKey ? t(dialog.titleKey) : ''"
     :width="500"
     @submit="emit('submit')"
     @cancel="emit('cancel')"
@@ -14,7 +14,7 @@
       :label-width="100"
       class="ff-form"
     >
-      <el-form-item label="昵称">
+      <el-form-item :label="t('profile.nickname')">
         <el-input v-model="profileForm.name" />
       </el-form-item>
     </el-form>
@@ -24,16 +24,17 @@
       ref="passwordChangeFormRef"
       :model="passwordForm"
       :rules="passwordRules"
+      :validate-on-rule-change="false"
       :label-width="100"
       class="ff-form"
     >
-      <el-form-item label="原密码" prop="oldPassword">
+      <el-form-item :label="t('profile.oldPassword')" prop="oldPassword">
         <el-input v-model="passwordForm.oldPassword" type="password" show-password />
       </el-form-item>
-      <el-form-item label="新密码" prop="newPassword">
+      <el-form-item :label="t('profile.newPassword')" prop="newPassword">
         <el-input v-model="passwordForm.newPassword" type="password" show-password />
       </el-form-item>
-      <el-form-item label="确认密码" prop="confirmPassword">
+      <el-form-item :label="t('profile.confirmPassword')" prop="confirmPassword">
         <el-input v-model="passwordForm.confirmPassword" type="password" show-password />
       </el-form-item>
     </el-form>
@@ -46,6 +47,8 @@ import type { PasswordForm, PasswordPolicy, ProfileForm } from "@/api/informatio
 import { passwordLengthError } from "@/utils/password-policy";
 import type { FormInstance } from "element-plus";
 import { ProfileDialogType, type ProfileDialogState } from "../types";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   dialog: ProfileDialogState;
@@ -68,19 +71,24 @@ const dialogVisible = computed({
 const userProfileFormRef = ref<FormInstance>();
 const passwordChangeFormRef = ref<FormInstance>();
 
-const passwordRules = {
-  oldPassword: [{ required: true, message: "请输入原密码", trigger: "blur" }],
+const passwordRules = computed(() => ({
+  oldPassword: [{ required: true, message: t("profile.oldPasswordRequired"), trigger: "blur" }],
   newPassword: [
     {
       validator: (_rule: unknown, value: string, callback: (error?: Error) => void) => {
-        const error = passwordLengthError(value ?? "", props.passwordPolicy);
+        const error = passwordLengthError(value ?? "", props.passwordPolicy, {
+          policyUnavailable: t("profile.passwordPolicyUnavailable"),
+          invalidLength: (min, max) => t("profile.passwordLength", { min, max }),
+        });
         callback(error ? new Error(error) : undefined);
       },
       trigger: "blur",
     },
   ],
-  confirmPassword: [{ required: true, message: "请再次输入新密码", trigger: "blur" }],
-};
+  confirmPassword: [
+    { required: true, message: t("profile.confirmPasswordRequired"), trigger: "blur" },
+  ],
+}));
 
 function resetProfileForm() {
   userProfileFormRef.value?.resetFields();

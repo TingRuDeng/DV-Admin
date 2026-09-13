@@ -1,6 +1,12 @@
 <!-- 复制组件 -->
 <template>
-  <el-button link :style="style" @click="handleClipboard">
+  <el-button
+    link
+    :style="style"
+    :aria-label="t('common.copy')"
+    :title="t('common.copy')"
+    @click="handleClipboard"
+  >
     <slot>
       <AppIcon name="copy" :size="16" color="var(--el-color-primary)" />
     </slot>
@@ -17,6 +23,7 @@ defineOptions({
 });
 
 const copyButtonLogger = createLogger("CopyButton");
+const { t } = useI18n();
 
 const props = defineProps({
   text: {
@@ -35,10 +42,10 @@ function handleClipboard() {
     navigator.clipboard
       .writeText(props.text)
       .then(() => {
-        ElMessage.success("Copy successfully");
+        ElMessage.success(t("common.copySuccess"));
       })
       .catch((error) => {
-        ElMessage.warning("Copy failed");
+        ElMessage.warning(t("common.copyFailed"));
         copyButtonLogger.error("复制失败:", error);
       });
   } else {
@@ -52,12 +59,12 @@ function handleClipboard() {
     try {
       const successful = document.execCommand("copy");
       if (successful) {
-        ElMessage.success("Copy successfully!");
+        ElMessage.success(t("common.copySuccess"));
       } else {
-        ElMessage.warning("Copy failed!");
+        ElMessage.warning(t("common.copyFailed"));
       }
     } catch (err) {
-      ElMessage.error("Copy failed.");
+      ElMessage.error(t("common.copyFailed"));
       copyButtonLogger.error("兼容复制失败:", err);
     } finally {
       document.body.removeChild(input);

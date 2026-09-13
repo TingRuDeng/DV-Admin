@@ -143,6 +143,28 @@ async function login(page: Page) {
 }
 
 test.describe("个人中心代表页 smoke", () => {
+  test("打开资料弹窗后切换语言会更新标题并保留表单内容", async ({ page }) => {
+    const state = createProfileState();
+    await installProfileMocks(page, state);
+    await login(page);
+
+    await page.getByRole("button", { name: "编辑账号资料" }).click();
+    const dialog = page.getByRole("dialog").last();
+    const nameInput = dialog.getByRole("textbox").first();
+    await nameInput.fill("Draft profile");
+    await page.evaluate(async () => {
+      const { default: i18n } = await import(/* @vite-ignore */ "/src/lang/index.ts");
+      i18n.global.locale.value = "en";
+    });
+    await expect(page.getByRole("dialog", { name: "Account profile" })).toBeVisible();
+    await expect(nameInput).toHaveValue("Draft profile");
+    await page.evaluate(async () => {
+      const { default: i18n } = await import(/* @vite-ignore */ "/src/lang/index.ts");
+      i18n.global.locale.value = "zh-cn";
+    });
+    await expect(page.getByRole("dialog", { name: "账号资料" })).toBeVisible();
+  });
+
   test("移动端支持资料、头像、密码与静态资源 URL", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     const state = createProfileState();

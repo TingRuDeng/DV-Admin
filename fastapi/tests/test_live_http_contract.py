@@ -8,6 +8,7 @@ import socket
 import subprocess
 import sys
 import time
+import uuid
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
@@ -27,6 +28,74 @@ def test_shared_profile_avatar_password_and_notice_flow_over_http(tmp_path: Path
     """绕过 TestClient，验证真实 Uvicorn HTTP 链路。"""
     with running_seeded_server(tmp_path) as (base_url, seed):
         run_http_flow(base_url, seed)
+
+
+@pytest.mark.integration
+def test_registration_email_code_reset_and_relogin_over_http(tmp_path: Path):
+    """验证真实 Uvicorn HTTP 链路上的注册、重置和旧令牌撤销。"""
+    with running_seeded_server(tmp_path) as (base_url, _seed):
+        suffix = uuid.uuid4().hex[:10]
+        username = f"http-auth-{suffix}"
+        email = f"http-auth-{suffix}@example.com"
+        password = "first sufficiently long passphrase"
+        reset_password = "second sufficiently long passphrase"
+        with httpx.Client(base_url=base_url, timeout=10) as client:
+            assert client.post(
+                "/api/v1/oauth/email-code/",
+                json={"purpose": "register", "email": email},
+            ).status_code == 200
+            code = captured_email_code(tmp_path / "email-capture.txt", "register", email)
+            register = client.post(
+                "/api/v1/oauth/register/",
+                json={
+                    "username": username,
+                    "email": email,
+                    "password": password,
+                    "confirmPassword": password,
+                    "emailCode": code,
+                },
+            )
+            assert register.status_code == 200, register.text
+            first_login = client.post(
+                "/api/v1/oauth/login/",
+                json={"username": username, "password": password},
+            )
+            old_refresh = assert_success(first_login)["refreshToken"]
+            assert client.post(
+                "/api/v1/oauth/email-code/",
+                json={"purpose": "reset_password", "email": email},
+            ).status_code == 200
+            reset_code = captured_email_code(
+                tmp_path / "email-capture.txt", "reset_password", email
+            )
+            reset = client.post(
+                "/api/v1/oauth/password/reset/",
+                json={
+                    "username": username,
+                    "email": email,
+                    "newPassword": reset_password,
+                    "confirmPassword": reset_password,
+                    "emailCode": reset_code,
+                },
+            )
+            assert reset.status_code == 200, reset.text
+            revoked = client.post(
+                "/api/v1/oauth/refresh-token/", json={"refreshToken": old_refresh}
+            )
+            assert revoked.status_code == 401, revoked.text
+            relogin = client.post(
+                "/api/v1/oauth/login/",
+                json={"username": username, "password": reset_password},
+            )
+            assert "accessToken" in assert_success(relogin)
+
+
+def captured_email_code(path: Path, purpose: str, email: str) -> str:
+    prefix = f"{purpose}:{email}="
+    for line in reversed(path.read_text(encoding="utf-8").splitlines()):
+        if line.startswith(prefix):
+            return line[len(prefix) :]
+    raise AssertionError(f"missing captured email code for {purpose}")
 
 
 @pytest.mark.integration
@@ -51,6 +120,7 @@ def test_shared_frontend_flow_over_real_fastapi_http(tmp_path: Path):
             rbac_granted_permission_ids=list(seed["rbac_granted_permission_ids"]),
             lifecycle_role_name=str(seed["lifecycle_role_name"]),
             lifecycle_dept_name=str(seed["lifecycle_dept_name"]),
+            auth_capture_file=str(tmp_path / "email-capture.txt"),
         )
 
 
@@ -106,6 +176,7 @@ def build_server_env(tmp_path: Path) -> dict[str, str]:
             "PASSWORD_MIN_LENGTH": "15",
             "SECRET_KEY": "http-smoke-secret-key",
             "UPLOAD_DIR": str(tmp_path / "uploads"),
+            "EMAIL_CAPTURE_FILE": str(tmp_path / "email-capture.txt"),
             "REDIS_URL": "redis://127.0.0.1:1/0",
         }
     )

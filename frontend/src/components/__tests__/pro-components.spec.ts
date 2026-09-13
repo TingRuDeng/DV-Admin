@@ -1,6 +1,8 @@
 import { defineComponent } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
+import { createI18n } from "vue-i18n";
+import zhCn from "@/lang/package/zh-cn.json";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
@@ -26,6 +28,7 @@ const ElFormStub = defineComponent({
 });
 
 const testGlobal = {
+  plugins: [createI18n({ legacy: false, locale: "zh-cn", messages: { "zh-cn": zhCn } })],
   stubs: {
     "el-form": ElFormStub,
     "el-form-item": {

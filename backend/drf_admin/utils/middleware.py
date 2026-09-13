@@ -22,7 +22,7 @@ from drf_admin.utils.audit import (
 )
 from drf_admin.utils.request_id import get_request_id
 
-SENSITIVE_KEYWORDS = ["password", "token", "secret", "key", "authorization"]
+SENSITIVE_KEYWORDS = ["password", "token", "secret", "key", "code", "authorization"]
 MAX_LOG_LENGTH = 4096
 # 只持久化写操作，避免 GET 轮询淹没审计表
 PERSISTED_METHODS = {"POST", "PUT", "PATCH", "DELETE"}

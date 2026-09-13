@@ -6,21 +6,21 @@
       :current-time="currentTime"
     />
 
-    <section class="dashboard-metrics" aria-label="工作空间概览">
+    <section class="dashboard-metrics" :aria-label="t('dashboard.workspaceOverview')">
       <DashboardMetricCard
-        label="可访问模块"
-        :value="quickActions.length"
+        :label="t('dashboard.accessibleModules')"
+        :value="accessibleModuleCount"
         icon="layout-dashboard"
         accent="coral"
       />
       <DashboardMetricCard
-        label="角色"
+        :label="t('dashboard.roles')"
         :value="userStore.userInfo.roles.length"
         icon="users-round"
         accent="blue"
       />
       <DashboardMetricCard
-        label="权限"
+        :label="t('dashboard.permissions')"
         :value="userStore.userInfo.perms.length"
         icon="shield-check"
         accent="neutral"
@@ -32,17 +32,16 @@
 </template>
 
 <script setup lang="ts">
-import type { RouteRecordRaw } from "vue-router";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import PageShell from "@/components/PageShell/index.vue";
 import { useLayoutMenu } from "@/composables/layout/useLayoutMenu";
 import { useUserStore } from "@/store/modules/user-store";
-import { translateRouteTitle } from "@/utils/i18n";
+import { isExternal } from "@/utils";
 import DashboardHero from "./components/DashboardHero.vue";
 import DashboardMetricCard from "./components/DashboardMetricCard.vue";
-import DashboardQuickActions, {
-  type DashboardQuickAction,
-} from "./components/DashboardQuickActions.vue";
+import DashboardQuickActions from "./components/DashboardQuickActions.vue";
+import { collectDashboardActions } from "./dashboard-route-actions";
 
 defineOptions({
   name: "Dashboard",
@@ -52,45 +51,23 @@ defineOptions({
 const router = useRouter();
 const userStore = useUserStore();
 const { routes } = useLayoutMenu();
+const { t } = useI18n();
 const currentTime = useDateFormat(useNow(), "HH:mm");
 
 const displayName = computed(
-  () => userStore.userInfo.name || userStore.userInfo.username || "Admin"
+  () => userStore.userInfo.name || userStore.userInfo.username || t("dashboard.operator")
 );
 
-function joinRoutePath(parentPath: string, path: string) {
-  const joined = `${parentPath}/${path}`.replace(/\/+/g, "/");
-  return joined.startsWith("/") ? joined : `/${joined}`;
-}
-
-function collectQuickActions(routeRecords: RouteRecordRaw[], parentPath = "") {
-  const result: DashboardQuickAction[] = [];
-
-  routeRecords.forEach((route) => {
-    const meta = route.meta ?? {};
-    const fullPath = joinRoutePath(parentPath, route.path);
-    const children = route.children ?? [];
-
-    if (children.length > 0) {
-      result.push(...collectQuickActions(children, fullPath));
-      return;
-    }
-
-    if (meta.hidden || fullPath === "/dashboard" || !meta.title) return;
-
-    result.push({
-      title: translateRouteTitle(String(meta.title)) ?? String(meta.title),
-      path: fullPath,
-      icon: typeof meta.icon === "string" ? meta.icon.replace(/^el-icon-/, "") : "menu",
-    });
-  });
-
-  return result.slice(0, 8);
-}
-
-const quickActions = computed(() => collectQuickActions(routes.value));
+const dashboardActions = computed(() => collectDashboardActions(routes.value));
+const quickActions = computed(() => dashboardActions.value.slice(0, 8));
+const accessibleModuleCount = computed(() => dashboardActions.value.length);
 
 function handleNavigate(path: string) {
+  if (isExternal(path)) {
+    window.open(path, "_blank", "noopener,noreferrer");
+    return;
+  }
+
   void router.push(path);
 }
 </script>

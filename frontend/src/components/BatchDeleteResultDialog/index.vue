@@ -1,10 +1,10 @@
 <template>
   <ProDialog
     v-model="dialogVisible"
-    title="批量删除结果"
+    :title="t('batchDelete.title')"
     width="min(760px, calc(100vw - 32px))"
     :show-confirm-button="false"
-    cancel-text="关闭"
+    :cancel-text="t('common.close')"
     append-to-body
     @close="handleDialogClose"
   >
@@ -17,41 +17,42 @@
         max-height="360"
         style="width: 100%"
       >
-        <el-table-column label="对象" min-width="150">
+        <el-table-column :label="t('batchDelete.object')" min-width="150">
           <template #default="scope">
             {{ scope.row.objectName || scope.row.objectId }}
           </template>
         </el-table-column>
-        <el-table-column label="失败原因" min-width="240">
+        <el-table-column :label="t('batchDelete.reason')" min-width="240">
           <template #default="scope">
             <span>{{ scope.row.message }}</span>
-            <span class="ml-2 text-xs text-slate-400">{{ scope.row.errorCode }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="处理" width="110" align="center">
+        <el-table-column :label="t('batchDelete.action')" width="110" align="center">
           <template #default="scope">
             <el-button
               v-if="scope.row.retryable === true"
               type="primary"
               link
               size="small"
-              icon="RefreshRight"
+              :icon="resolveAppIcon('RefreshRight')"
               :loading="isRetrying(scope.row.objectId)"
               @click="handleRetry(scope.row)"
             >
-              重试
+              {{ t("common.retry") }}
             </el-button>
-            <el-tag v-else type="info" size="small">不可重试</el-tag>
+            <el-tag v-else type="info" size="small">{{ t("batchDelete.notRetryable") }}</el-tag>
           </template>
         </el-table-column>
       </el-table>
 
-      <el-empty v-else description="失败项已处理" :image-size="72" />
+      <el-empty v-else :description="t('batchDelete.resolved')" :image-size="72" />
     </template>
   </ProDialog>
 </template>
 
 <script setup lang="ts">
+import { resolveAppIcon } from "@/components/AppIcon/icon-map";
+import { useI18n } from "vue-i18n";
 import type {
   BatchDeleteFailure,
   BatchDeleteObjectId,
@@ -67,6 +68,7 @@ import {
 } from "./batch-delete-result";
 
 const logger = createLogger("BatchDeleteResultDialog");
+const { t } = useI18n();
 
 const props = defineProps<{
   retryAction: (ids: readonly BatchDeleteObjectId[]) => Promise<BatchDeleteResult>;
@@ -83,7 +85,10 @@ let currentBatchToken = Symbol("batch-delete-result");
 
 const summaryText = computed(() => {
   if (!currentResult.value) return "";
-  return `已删除 ${currentResult.value.successCount} 条，失败 ${currentResult.value.failedCount} 条`;
+  return t("batchDelete.summary", {
+    success: currentResult.value.successCount,
+    failed: currentResult.value.failedCount,
+  });
 });
 
 const summaryType = computed<"success" | "warning" | "error">(() => {
@@ -135,18 +140,24 @@ async function handleRetry(failure: BatchDeleteFailure) {
       retryResult
     );
     if (shouldNotifyBatchDeleteRetrySuccess(currentResult.value, failure.objectId)) {
-      ElMessage.success(`${failure.objectName || "对象"}删除成功`);
+      ElMessage.success(
+        t("batchDelete.success", { name: failure.objectName || t("batchDelete.object") })
+      );
       emit("changed");
     } else {
       const latestFailure = currentResult.value.failures.find(
         (item) => item.objectId === failure.objectId
       );
-      ElMessage.warning(latestFailure?.message || "删除仍未成功");
+      ElMessage.warning(latestFailure?.message || t("batchDelete.stillFailed"));
     }
   } catch (error: unknown) {
     logger.error("批量删除重试失败:", error);
     // 请求拦截器会展示服务端错误；网络异常在此补充明确的可观察反馈。
-    ElMessage.error(error instanceof Error ? `重试失败：${error.message}` : "重试失败");
+    ElMessage.error(
+      error instanceof Error
+        ? t("batchDelete.retryError", { message: error.message })
+        : t("batchDelete.retryFailed")
+    );
   } finally {
     if (isCurrentBatchToken(requestToken, currentBatchToken)) {
       removeRetrying(failure.objectId);

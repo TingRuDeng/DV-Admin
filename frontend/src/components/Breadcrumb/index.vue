@@ -7,9 +7,9 @@
       >
         {{ translateRouteTitle(item.meta.title) }}
       </span>
-      <a v-else @click.prevent="handleLink(item)">
+      <button v-else type="button" class="breadcrumb-link" @click="handleLink(item)">
         {{ translateRouteTitle(item.meta.title) }}
-      </a>
+      </button>
     </el-breadcrumb-item>
   </el-breadcrumb>
 </template>
@@ -99,7 +99,16 @@ onBeforeMount(() => {
 <style lang="scss" scoped>
 // 覆盖 element-plus 的样式
 .el-breadcrumb__inner,
-.el-breadcrumb__inner a {
+.el-breadcrumb__inner a,
+.breadcrumb-link {
   font-weight: 400 !important;
+}
+
+.breadcrumb-link {
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
 }
 </style>

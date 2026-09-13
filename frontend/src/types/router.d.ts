@@ -14,7 +14,7 @@ declare module "vue-router" {
 
     /**
      * 菜单图标
-     * @example 'el-icon-edit'
+     * @example 'pencil'
      */
     icon?: string;
 

@@ -1,6 +1,6 @@
 <!-- 字典组件示例 -->
 <template>
-  <div class="app-container">
+  <PageShell class="ff-demo-page">
     <el-form>
       <el-form-item label="性别">
         <dict v-model="stringValue" code="gender" />
@@ -30,10 +30,11 @@
         </el-link>
       </el-form-item>
     </el-form>
-  </div>
+  </PageShell>
 </template>
 
 <script setup lang="ts">
+import PageShell from "@/components/PageShell/index.vue";
 const stringValue = ref("1"); // 性别(值为String)
 const numberValue = ref(1); // 性别(值为Number)
 const arrayValue = ref(["1", "2"]); // 性别(值为Array)

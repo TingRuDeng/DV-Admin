@@ -7,7 +7,9 @@ const appBaseUrl = `http://127.0.0.1:${appPort}`;
 
 export default defineConfig({
   testDir: "./e2e",
-  testIgnore: ["**/real-backend-smoke.spec.ts"],
+  testIgnore: process.env.REAL_AUTH_CAPTURE_FILE
+    ? ["**/real-backend-smoke.spec.ts"]
+    : ["**/real-backend-smoke.spec.ts", "**/real-auth.spec.ts"],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

@@ -2,7 +2,7 @@
   <ProFormDrawer
     ref="roleFormRef"
     v-model="dialogState.visible"
-    :title="dialogState.title"
+    :title="t(dialogState.titleKey)"
     :model="formData"
     :rules="rules"
     :loading="formLoading"
@@ -11,23 +11,27 @@
     @submit="handleSubmitWrapper"
     @close="handleClose"
   >
-    <el-form-item label="角色名称" prop="name">
-      <el-input v-model="formData.name" placeholder="请输入角色名称" />
+    <el-form-item :label="t('system.roleName')" prop="name">
+      <el-input v-model="formData.name" :placeholder="t('system.roleNameRequired')" />
     </el-form-item>
-    <el-form-item label="状态" prop="status">
+    <el-form-item :label="t('common.status')" prop="status">
       <el-radio-group v-model="formData.status">
-        <el-radio :value="1">正常</el-radio>
-        <el-radio :value="0">停用</el-radio>
+        <el-radio :value="1">{{ t("common.normal") }}</el-radio>
+        <el-radio :value="0">{{ t("system.stop") }}</el-radio>
       </el-radio-group>
     </el-form-item>
-    <el-form-item label="是否默认" prop="isDefault">
+    <el-form-item :label="t('system.default')" prop="isDefault">
       <el-radio-group v-model="formData.isDefault">
-        <el-radio :value="1">是</el-radio>
-        <el-radio :value="0">否</el-radio>
+        <el-radio :value="1">{{ t("common.yes") }}</el-radio>
+        <el-radio :value="0">{{ t("common.no") }}</el-radio>
       </el-radio-group>
     </el-form-item>
-    <el-form-item label="数据权限" prop="dataScope">
-      <el-select v-model="formData.dataScope" placeholder="请选择数据权限" class="w-full">
+    <el-form-item :label="t('system.dataPermission')" prop="dataScope">
+      <el-select
+        v-model="formData.dataScope"
+        :placeholder="t('system.dataPermissionPlaceholder')"
+        class="w-full"
+      >
         <el-option
           v-for="item in dataScopeOptions"
           :key="item.value"
@@ -36,10 +40,14 @@
         />
       </el-select>
     </el-form-item>
-    <el-form-item v-if="formData.dataScope === DATA_SCOPE_CUSTOM" label="权限部门" prop="deptIds">
+    <el-form-item
+      v-if="formData.dataScope === DATA_SCOPE_CUSTOM"
+      :label="t('system.permissionDept')"
+      prop="deptIds"
+    >
       <el-tree-select
         v-model="formData.deptIds"
-        placeholder="请选择权限部门"
+        :placeholder="t('system.permissionDeptPlaceholder')"
         :data="deptOptions"
         node-key="id"
         multiple
@@ -49,7 +57,7 @@
         class="w-full"
       />
     </el-form-item>
-    <el-form-item label="排序" prop="sort">
+    <el-form-item :label="t('common.sort')" prop="sort">
       <el-input-number
         v-model="formData.sort"
         controls-position="right"
@@ -57,13 +65,21 @@
         style="width: 100px"
       />
     </el-form-item>
-    <el-form-item label="备注" prop="desc">
-      <el-input v-model="formData.desc" placeholder="请输入角色备注" type="textarea" :rows="2" />
+    <el-form-item :label="t('system.roleRemark')" prop="desc">
+      <el-input
+        v-model="formData.desc"
+        :placeholder="t('system.roleRemarkPlaceholder')"
+        type="textarea"
+        :rows="2"
+      />
     </el-form-item>
   </ProFormDrawer>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 import type { FormRules } from "element-plus";
 import DeptAPI from "@/api/system/dept-api";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
@@ -86,16 +102,16 @@ const DATA_SCOPE_DEPT = 3;
 const DATA_SCOPE_DEPT_AND_CHILDREN = 4;
 const DATA_SCOPE_CUSTOM = 5;
 
-const dataScopeOptions = [
-  { label: "全部数据", value: DATA_SCOPE_ALL },
-  { label: "仅本人数据", value: DATA_SCOPE_SELF },
-  { label: "本部门数据", value: DATA_SCOPE_DEPT },
-  { label: "本部门及以下数据", value: DATA_SCOPE_DEPT_AND_CHILDREN },
-  { label: "自定义部门数据", value: DATA_SCOPE_CUSTOM },
-];
+const dataScopeOptions = computed(() => [
+  { label: t("system.allData"), value: DATA_SCOPE_ALL },
+  { label: t("system.selfData"), value: DATA_SCOPE_SELF },
+  { label: t("system.deptDataScope"), value: DATA_SCOPE_DEPT },
+  { label: t("system.deptChildrenData"), value: DATA_SCOPE_DEPT_AND_CHILDREN },
+  { label: t("system.customDeptData"), value: DATA_SCOPE_CUSTOM },
+]);
 
 const dialogState = reactive({
-  title: "新增角色",
+  titleKey: "system.addRole",
   visible: false,
 });
 
@@ -110,9 +126,11 @@ const formData = reactive<RoleForm>({
 });
 
 const rules: FormRules = {
-  name: [{ required: true, message: "请输入角色名称", trigger: "blur" }],
-  status: [{ required: true, message: "请选择状态", trigger: "blur" }],
-  dataScope: [{ required: true, message: "请选择数据权限", trigger: "change" }],
+  name: [{ required: true, message: () => t("system.roleNameRequired"), trigger: "blur" }],
+  status: [{ required: true, message: () => t("system.statusRequired"), trigger: "blur" }],
+  dataScope: [
+    { required: true, message: () => t("system.dataPermissionPlaceholder"), trigger: "change" },
+  ],
 };
 
 function resetFormData() {
@@ -134,14 +152,14 @@ async function loadOptions() {
 
 async function openCreate() {
   resetFormData();
-  dialogState.title = "新增角色";
+  dialogState.titleKey = "system.addRole";
   dialogState.visible = true;
   await loadOptions();
 }
 
 async function openEdit(roleId: string) {
   resetFormData();
-  dialogState.title = "修改角色";
+  dialogState.titleKey = "system.editRole";
   dialogState.visible = true;
   await loadOptions();
   const data = await RoleAPI.getFormData(roleId);
@@ -170,7 +188,7 @@ const handleSubmit = useDebounceFn(() => {
     const request = roleId ? RoleAPI.update(roleId, payload) : RoleAPI.create(payload);
     request
       .then(() => {
-        ElMessage.success(roleId ? "修改成功" : "新增成功");
+        ElMessage.success(roleId ? t("system.updateSuccess") : t("system.createSuccess"));
         handleClose();
         emit("success");
       })

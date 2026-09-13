@@ -98,6 +98,15 @@ class Settings(BaseSettings):
     # 缓存配置
     cache_ttl: int = Field(default=300, alias="CACHE_TTL")  # 5分钟
 
+    # Email delivery; development uses the in-process capture adapter.
+    email_host: str | None = Field(default=None, alias="EMAIL_HOST")
+    email_port: int = Field(default=587, alias="EMAIL_PORT")
+    email_username: str | None = Field(default=None, alias="EMAIL_USERNAME")
+    email_password: str | None = Field(default=None, alias="EMAIL_PASSWORD")
+    email_from: str = Field(default="no-reply@example.com", alias="EMAIL_FROM")
+    email_use_tls: bool = Field(default=True, alias="EMAIL_USE_TLS")
+    email_capture_file: str | None = Field(default=None, alias="EMAIL_CAPTURE_FILE")
+
     def model_post_init(self, __context) -> None:
         """模型初始化后的验证"""
         validate_bounds(self.password_min_length, self.password_max_length)

@@ -1,0 +1,12 @@
+.ff-tool-page {
+  height: 100%;
+  min-height: 100%;
+  padding: 0;
+  overflow: hidden;
+}
+
+.ff-tool-page > .redoc-container,
+.ff-tool-page > .swagger-container {
+  height: 100% !important;
+  min-height: 100%;
+}

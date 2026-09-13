@@ -169,7 +169,7 @@ export interface UserPageQuery extends PageQuery {
   isActive?: number;
 
   /** 部门ID */
-  deptId?: string;
+  deptId?: string | number;
 
   /** 开始时间 */
 }

@@ -31,6 +31,10 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": resolve(import.meta.dirname, "src"),
+      "@element-plus/icons-vue": resolve(
+        import.meta.dirname,
+        "src/components/AppIcon/element-plus-icons.ts"
+      ),
     },
   },
 });

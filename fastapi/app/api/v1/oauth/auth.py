@@ -15,6 +15,7 @@ from app.api.v1.oauth.routes.menus import get_user_menus
 from app.api.v1.oauth.routes.menus import router as menus_router
 from app.api.v1.oauth.routes.profile import get_current_user_info
 from app.api.v1.oauth.routes.profile import router as profile_router
+from app.api.v1.oauth.routes.registration import router as registration_router
 from app.api.v1.oauth.routes.session import logout, refresh_token
 from app.api.v1.oauth.routes.session import router as session_router
 
@@ -24,6 +25,7 @@ router.include_router(session_router)
 router.include_router(profile_router)
 router.include_router(menus_router)
 router.include_router(captcha_router)
+router.include_router(registration_router)
 
 __all__ = [
     "get_captcha",

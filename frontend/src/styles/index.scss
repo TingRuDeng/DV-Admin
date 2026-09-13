@@ -36,7 +36,7 @@ body,
     .el-menu-item,
     .el-sub-menu__title {
       .menu-title,
-      span:not([class*="i-svg"]):not(.el-icon) {
+      span:not(.el-icon) {
         display: none !important;
       }
     }
@@ -47,7 +47,7 @@ body,
     .el-menu-item,
     .el-sub-menu__title {
       .menu-title,
-      span:not([class*="i-svg"]):not(.el-icon) {
+      span:not(.el-icon) {
         display: none !important;
       }
     }

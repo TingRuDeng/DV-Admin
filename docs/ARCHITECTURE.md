@@ -166,8 +166,20 @@ frontend/src/
 - `frontend/src/styles` 采用分层结构：`tokens -> theme -> foundation -> skins -> pages`
 - 路由页应优先组合 `PageShell`、`FilterPanel`、`DataPanel`，而不是在页面内重复拼接 `glass-panel` 或 `minimal-*` 视觉类
 - `UnoCSS` 主要用于布局和局部原子样式，共享视觉皮肤统一放在 `skins/*`
-- 登录页、全局壳层和首页仪表盘共享暗色画布与荧光珊瑚色 token；这些首屏范围内的图标通过 `components/AppIcon` 统一映射到 Lucide，页面层不直接新增手绘 SVG 或表情符号。
-- 首页仪表盘由 `views/dashboard/components` 下的 Hero、指标卡和快捷入口组成，只从用户信息与权限路由派生数据，不新增首页专用 API。
+- 登录页、全局壳层和首页仪表盘共享暗色画布与荧光珊瑚色 token；前端业务图标通过 `components/AppIcon` 统一映射到 Lucide，页面层不直接新增手绘 SVG 或表情符号。
+- `AppIcon` 的名称归一化兼容历史 `el-icon-*`、`i-svg:*`、PascalCase 和下划线写法；实际图标依赖为维护中的 `@lucide/vue`，`plugins/icons.ts` 只保留兼容注册入口。Vite/Vitest 将 Element Plus 内部的 `@element-plus/icons-vue` 导入别名到同一套 Lucide 适配层。菜单图标选择器和图标演示页只提供 Lucide 名称，旧 `assets/icons` 已移除，UnoCSS 不再加载本地 SVG 图标集合。
+- Element Plus 适配层把 Lucide 函数式组件包装为对象组件，避免图标作为 prop 默认值时被 Vue 当作默认值工厂调用。富文本编辑器仅在工具栏、浮动菜单和编辑弹层中替换图标，保留原按钮、监听器和文档内容，卸载时断开观察器。
+- 富文本编辑器通过 `components/WangEditor/editor-language.ts` 同步其独立的全局语言状态；组件单独更新原生占位缓存，不重建编辑实例，保留草稿、格式和撤销记录。
+- 个人中心资料与密码弹窗使用语言键保存标题，避免缓存翻译字符串；登录、注册和找回密码表单关闭规则变更自动校验，语言切换只更新已有错误反馈。
+- 首页仪表盘由 `views/dashboard/components` 下的 Hero、指标卡和快捷入口组成，路由叶子节点展平逻辑位于 `views/dashboard/dashboard-route-actions.ts`，完整统计与快捷入口展示上限分离，只从用户信息与权限路由派生数据，不新增首页专用 API；新增界面文案统一从 `lang/package` 读取。
+- 菜单搜索、通知、复制、公告关闭、上传组件、个人中心和退出确认的可见文案、校验提示与 ARIA 标签统一从 `lang/package` 读取；组件仍允许通过业务属性覆盖上传按钮文案，密码策略工具保留默认中文消息以兼容非页面调用。
+- 主题色更新同时写入 `--el-color-*`、`--color-*` 和 `--ff-accent*`，保证 Element Plus、设计系统和沉浸式首屏使用同一主题色。
+- 实心主操作按钮统一使用主题色，文字前景根据相对亮度选择黑色或白色；登录和列表查询按钮通过真实浏览器检查文字对比度。用户页按可用权限显示操作列和批量选择，手机部门筛选默认收起；首页手机指标使用三列紧凑布局。
+- 应用默认主题为暗色画布，设置面板仍提供亮色切换；登录页与主应用首次进入时保持同一视觉方向。
+- 401/403/404 使用 `styles/pages/_errors.scss` 的共享错误页画布，统一网格背景、珊瑚光晕、响应式排版和 reduced-motion 行为。
+- `views/demo` 中的组件演示页统一使用 `PageShell` 和 `styles/pages/_demo.scss`，保留 `views/doc/internal-doc.vue` 的文档容器兼容入口。
+- `views/doc/internal-doc.vue` 在尚未配置正式文档时提供空状态和返回首页入口，移除了与产品无关的占位 iframe。
+- `views/tool/redoc` 与 `views/tool/swagger` 使用 `styles/pages/_tool.scss` 的全高容器，iframe 高度由 `AppMain` 继承，不再使用固定窗口高度计算。
 - `_minimal-saas.scss` 仅作为未迁移页面的兼容层，不再作为新增样式的主入口
 - `components/CURD` 作为历史兼容层保留；新页面/重构页面统一使用 `ProSearch`、`ProTable`、`ProFormDrawer`
 - `ProTable` 支持受控模式与 `request(params)=>{list,total}` 请求驱动模式，对外分页参数统一为 `pageNum/pageSize`
@@ -715,3 +727,6 @@ docker compose config
 
 **最后更新：** 2026-09-01
 **维护者：** DV-Admin Team
+### 公开认证闭环
+
+OAuth 公共端点由 Django 与 FastAPI 同时实现：图形验证码、邮箱验证码、注册和找回密码使用相同的 camelCase 外部契约。邮箱发送层在生产环境使用 SMTP，开发和测试环境使用本地捕获适配器；验证码和短期发送状态存放在缓存中，密码重置成功后撤销用户 Refresh Token。

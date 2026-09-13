@@ -6,7 +6,7 @@ import { STORAGE_KEYS } from "@/constants";
 
 type SidebarColorScheme = AppSettings["sidebarColorScheme"];
 
-// 🎯 设置项类型定义
+// 设置项类型定义
 interface SettingsState {
   // 界面显示设置
   settingsVisible: boolean;
@@ -31,7 +31,7 @@ interface SettingsRefMap {
   layout: Ref<SettingsState["layout"]>;
 }
 
-// 🎯 设置项写入值和 key 保持关联，避免通用更新入口绕过类型约束
+// 设置项写入值和 key 保持关联，避免通用更新入口绕过类型约束
 type SettingValue<K extends keyof SettingsRefMap> =
   SettingsRefMap[K] extends Ref<infer Value> ? Value : never;
 

@@ -2,8 +2,7 @@
   <section class="dashboard-actions" aria-labelledby="dashboard-actions-title">
     <div class="dashboard-actions__header">
       <div>
-        <p class="dashboard-actions__eyebrow">Navigation</p>
-        <h2 id="dashboard-actions-title">快捷入口</h2>
+        <h2 id="dashboard-actions-title">{{ t("dashboard.quickActions") }}</h2>
       </div>
       <span class="dashboard-actions__count">{{ String(items.length).padStart(2, "0") }}</span>
     </div>
@@ -21,12 +20,15 @@
         <AppIcon name="arrow-right" :size="15" class="dashboard-action__arrow" />
       </button>
     </div>
-    <div v-else class="dashboard-actions__empty">暂无可访问入口</div>
+    <div v-else class="dashboard-actions__empty">{{ t("dashboard.empty") }}</div>
   </section>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import AppIcon from "@/components/AppIcon/index.vue";
+
+const { t } = useI18n();
 
 export interface DashboardQuickAction {
   title: string;

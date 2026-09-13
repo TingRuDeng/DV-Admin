@@ -1,7 +1,7 @@
 <!-- 部门树 -->
 <template>
   <el-card shadow="never">
-    <el-input v-model="deptName" placeholder="部门名称" clearable>
+    <el-input v-model="deptName" :placeholder="t('user.department')" clearable>
       <template #prefix>
         <AppIcon name="search" :size="16" />
       </template>
@@ -11,6 +11,8 @@
       ref="deptTreeRef"
       class="mt-2"
       :data="deptList"
+      node-key="id"
+      :current-node-key="modelValue"
       :props="{ children: 'children', label: 'label', disabled: '' }"
       :expand-on-click-node="false"
       :filter-node-method="handleFilter"
@@ -25,6 +27,8 @@ import AppIcon from "@/components/AppIcon/index.vue";
 import DeptAPI from "@/api/system/dept-api";
 import type { TreeInstance } from "element-plus";
 
+const { t } = useI18n();
+
 const props = defineProps<{
   modelValue?: string | number;
 }>();
@@ -34,7 +38,7 @@ const deptTreeRef = ref<TreeInstance | null>(null); // 部门树
 const deptName = ref(""); // 部门名称
 
 const emits = defineEmits<{
-  "node-click": [];
+  "node-click": [label?: string];
   "update:modelValue": [value?: string | number];
 }>();
 
@@ -62,7 +66,7 @@ function handleFilter(value: string, data: { label?: string }) {
 /** 部门树节点 Click */
 function handleNodeClick(data: OptionType) {
   deptId.value = data.id;
-  emits("node-click");
+  emits("node-click", data.label);
 }
 
 onBeforeMount(() => {

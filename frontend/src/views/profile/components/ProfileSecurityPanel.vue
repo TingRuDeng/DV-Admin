@@ -1,11 +1,12 @@
 <template>
-  <DataPanel title="安全设置">
+  <DataPanel :title="t('profile.securitySettings')">
     <div class="ff-profile-security-item">
       <div class="ff-profile-security-item__copy">
-        <div class="ff-profile-security-item__title">账户密码</div>
-        <div class="ff-profile-security-item__desc">定期修改密码有助于保护账户安全</div>
+        <div class="ff-profile-security-item__title">{{ t("profile.password") }}</div>
       </div>
-      <el-button type="primary" link @click="emit('change-password')">修改</el-button>
+      <el-button type="primary" link @click="emit('change-password')">
+        {{ t("profile.edit") }}
+      </el-button>
     </div>
   </DataPanel>
 </template>
@@ -14,4 +15,6 @@
 const emit = defineEmits<{
   "change-password": [];
 }>();
+
+const { t } = useI18n();
 </script>

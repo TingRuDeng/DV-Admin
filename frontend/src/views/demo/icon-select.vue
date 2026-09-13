@@ -1,13 +1,14 @@
 <!-- 图标选择器示例 -->
 <template>
-  <div class="app-container">
-    <icon-select v-model="iconName" />
-  </div>
+  <PageShell class="ff-demo-page">
+    <div class="ff-demo-page__panel">
+      <IconSelect v-model="iconName" />
+    </div>
+  </PageShell>
 </template>
 
 <script setup lang="ts">
-// element-plus 图标格式以el-icon-开头
-const iconName = ref("el-icon-edit");
-// 本地SVG图标格式取 src/assets/icons 下的文件名，不需要svg后缀
-// const iconName = ref("api");
+import PageShell from "@/components/PageShell/index.vue";
+import IconSelect from "@/components/IconSelect/index.vue";
+const iconName = ref("edit");
 </script>

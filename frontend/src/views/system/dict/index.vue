@@ -7,10 +7,10 @@
       @submit="handleQuery"
       @reset="handleResetQuery"
     >
-      <el-form-item label="关键字" prop="search" class="mb-0">
+      <el-form-item :label="t('common.keyword')" prop="search" class="mb-0">
         <el-input
           v-model="queryParams.search"
-          placeholder="字典名称/编码"
+          :placeholder="t('system.dictSearchPlaceholder')"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -19,7 +19,7 @@
 
     <ProTable
       ref="tableRef"
-      title="字典数据"
+      :title="t('system.dictData')"
       :request="requestTableData"
       :params="queryParams"
       @selection-change="handleSelectionChange"
@@ -29,42 +29,42 @@
           <el-button
             v-hasPerm="['system:dicts:add']"
             type="primary"
-            icon="plus"
+            :icon="resolveAppIcon('plus')"
             class="ff-button-primary"
             @click="handleAddClick()"
           >
-            新增字典
+            {{ t("system.addDict") }}
           </el-button>
           <el-button
             v-hasPerm="['system:dicts:delete']"
             type="danger"
             plain
             :disabled="ids.length === 0"
-            icon="delete"
+            :icon="resolveAppIcon('delete')"
             class="ff-button-danger"
             @click="handleDelete()"
           >
-            批量删除
+            {{ t("system.batchDelete") }}
           </el-button>
         </div>
       </template>
 
       <template #default>
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="字典名称" prop="name" min-width="150" />
-        <el-table-column label="字典编码" prop="dictCode" min-width="150" />
-        <el-table-column label="状态" prop="status" width="100" align="center">
+        <el-table-column :label="t('system.dictName')" prop="name" min-width="150" />
+        <el-table-column :label="t('system.dictCode')" prop="dictCode" min-width="150" />
+        <el-table-column :label="t('common.status')" prop="status" width="100" align="center">
           <template #default="scope">
             <el-tag
               :type="scope.row.status === 1 ? 'success' : 'info'"
               class="ff-status-tag"
               :class="scope.row.status === 1 ? 'success' : 'info'"
             >
-              {{ scope.row.status === 1 ? "启用" : "禁用" }}
+              {{ scope.row.status === 1 ? t("common.enabled") : t("common.disabled") }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="操作" width="280">
+        <el-table-column fixed="right" :label="t('common.actions')" width="280">
           <template #default="scope">
             <el-button
               v-hasPerm="['system:dictitems:query']"
@@ -73,28 +73,28 @@
               size="small"
               @click.stop="handleOpenDictData(scope.row)"
             >
-              <template #icon><Collection /></template>
-              字典数据
+              <template #icon><AppIcon name="book-open" :size="14" /></template>
+              {{ t("system.dictData") }}
             </el-button>
             <el-button
               v-hasPerm="['system:dicts:edit']"
               type="primary"
               link
-              icon="edit"
+              :icon="resolveAppIcon('edit')"
               size="small"
               @click.stop="handleEditClick(scope.row.id)"
             >
-              编辑
+              {{ t("common.edit") }}
             </el-button>
             <el-button
               v-hasPerm="['system:dicts:delete']"
               type="danger"
               link
-              icon="delete"
+              :icon="resolveAppIcon('delete')"
               size="small"
               @click.stop="handleDelete(scope.row.id)"
             >
-              删除
+              {{ t("common.delete") }}
             </el-button>
           </template>
         </el-table-column>
@@ -106,6 +106,11 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
+import { resolveAppIcon } from "@/components/AppIcon/icon-map";
+import AppIcon from "@/components/AppIcon/index.vue";
 defineOptions({
   name: "Dict",
   inheritAttrs: false,
@@ -169,22 +174,22 @@ async function handleEditClick(id: string) {
 function handleDelete(id?: number) {
   const attrGroupIds = id !== undefined ? [id] : ids.value;
   if (!attrGroupIds) {
-    ElMessage.warning("请勾选删除项");
+    ElMessage.warning(t("system.selectDelete"));
     return;
   }
-  ElMessageBox.confirm("确认删除已选中的数据项?", "警告", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
+  ElMessageBox.confirm(t("system.confirmDelete"), t("common.warning"), {
+    confirmButtonText: t("common.confirm"),
+    cancelButtonText: t("common.cancel"),
     type: "warning",
   }).then(
     () => {
       DictAPI.deleteByIds(attrGroupIds).then(() => {
-        ElMessage.success("删除成功");
+        ElMessage.success(t("system.deleteSuccess"));
         tableRef.value?.reload(true);
       });
     },
     () => {
-      ElMessage.info("已取消删除");
+      ElMessage.info(t("system.cancelDelete"));
     }
   );
 }
@@ -192,7 +197,7 @@ function handleDelete(id?: number) {
 // 打开字典项
 function handleOpenDictData(row: DictPageVO) {
   if (!row || !row.id || !row.name) {
-    ElMessage.warning("字典数据无效");
+    ElMessage.warning(t("system.dictInvalid"));
     return;
   }
 

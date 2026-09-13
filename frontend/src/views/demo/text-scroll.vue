@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <PageShell class="ff-demo-page">
     <!-- 基础用法 -->
     <TextScroll text="这是一条基础的滚动公告，默认向左滚动。" typewriter />
 
@@ -14,15 +14,16 @@
 
     <!-- 自定义速度和方向 -->
     <TextScroll text="这是一条速度较慢、向右滚动的公告" :speed="30" direction="right" show-close />
-  </div>
+  </PageShell>
 </template>
 
 <script setup lang="ts">
+import PageShell from "@/components/PageShell/index.vue";
 import TextScroll from "@/components/TextScroll/index.vue";
 </script>
 
 <style lang="scss" scoped>
-.app-container {
+.ff-demo-page {
   :deep(.text-scroll-container) {
     margin-bottom: 20px;
   }

@@ -1,216 +1,244 @@
 <template>
-  <div ref="iconSelectRef" :style="{ width: props.width }">
-    <el-popover :visible="popoverVisible" :width="props.width" placement="bottom-end">
+  <div
+    ref="iconSelectRef"
+    :style="{ width: props.width, maxWidth: '100%' }"
+    @keydown.esc.stop.prevent="closePopover"
+  >
+    <el-popover
+      :visible="popoverVisible"
+      width="min(500px, calc(100vw - 32px))"
+      placement="bottom-end"
+      @after-enter="searchRef?.focus()"
+    >
       <template #reference>
-        <div @click="popoverVisible = !popoverVisible">
-          <slot>
-            <el-input v-model="selectedIcon" readonly placeholder="点击选择图标" class="reference">
-              <template #prepend>
-                <!-- 根据图标类型展示 -->
-                <el-icon v-if="isElementIcon">
-                  <component :is="selectedIcon.replace('el-icon-', '')" />
-                </el-icon>
-                <template v-else>
-                  <div :class="`i-svg:${selectedIcon}`" />
-                </template>
-              </template>
-              <template #suffix>
-                <!-- 清空按钮 -->
-                <el-icon
-                  v-if="selectedIcon"
-                  style="margin-right: 8px"
-                  @click.stop="clearSelectedIcon"
-                >
-                  <CircleClose />
-                </el-icon>
-
-                <el-icon
-                  :style="{
-                    transform: popoverVisible ? 'rotate(180deg)' : 'rotate(0)',
-                    transition: 'transform .5s',
-                  }"
-                >
-                  <ArrowDown @click.stop="togglePopover" />
-                </el-icon>
-              </template>
-            </el-input>
-          </slot>
+        <div class="icon-select-preview">
+          <button
+            ref="triggerRef"
+            type="button"
+            class="icon-select-trigger"
+            :aria-expanded="popoverVisible"
+            :aria-label="t('iconSelect.select')"
+            @click="togglePopover"
+          >
+            <slot>
+              <AppIcon :name="previewIcon" :size="18" />
+              <span class="icon-select-preview__value">
+                {{ selectedIcon || t("iconSelect.placeholder") }}
+              </span>
+            </slot>
+            <AppIcon
+              :name="popoverVisible ? 'arrow-up' : 'arrow-down'"
+              :size="16"
+              class="icon-select-preview__chevron"
+            />
+          </button>
+          <button
+            v-if="selectedIcon"
+            type="button"
+            class="icon-select-preview__clear"
+            :aria-label="t('iconSelect.clear')"
+            :title="t('iconSelect.clear')"
+            @click="clearSelectedIcon"
+          >
+            <AppIcon name="x" :size="15" />
+          </button>
         </div>
       </template>
 
-      <!-- 图标选择弹窗 -->
-      <div ref="popoverContentRef">
-        <el-input v-model="filterText" placeholder="搜索图标" clearable @input="filterIcons" />
-        <el-tabs v-model="activeTab" @tab-click="handleTabClick">
-          <el-tab-pane label="SVG 图标" name="svg">
-            <el-scrollbar height="300px">
-              <ul class="icon-grid">
-                <li
-                  v-for="icon in filteredSvgIcons"
-                  :key="'svg-' + icon"
-                  class="icon-grid-item"
-                  @click="selectIcon(icon)"
-                >
-                  <el-tooltip :content="icon" placement="bottom" effect="light">
-                    <div :class="`i-svg:${icon}`" />
-                  </el-tooltip>
-                </li>
-              </ul>
-            </el-scrollbar>
-          </el-tab-pane>
-          <el-tab-pane label="Element 图标" name="element">
-            <el-scrollbar height="300px">
-              <ul class="icon-grid">
-                <li
-                  v-for="icon in filteredElementIcons"
-                  :key="icon"
-                  class="icon-grid-item"
-                  @click="selectIcon(icon)"
-                >
-                  <el-icon>
-                    <component :is="icon" />
-                  </el-icon>
-                </li>
-              </ul>
-            </el-scrollbar>
-          </el-tab-pane>
-        </el-tabs>
+      <div
+        ref="popoverContentRef"
+        class="icon-select-popover"
+        @keydown.esc.stop.prevent="closePopover"
+      >
+        <el-input
+          ref="searchRef"
+          v-model="filterText"
+          :placeholder="t('iconSelect.search')"
+          :aria-label="t('iconSelect.search')"
+          clearable
+        />
+        <ul class="icon-grid" :aria-label="t('iconSelect.listLabel')">
+          <li v-for="icon in filteredIcons" :key="icon" class="icon-grid-item">
+            <button type="button" :aria-label="icon" @click="selectIcon(icon)">
+              <AppIcon :name="icon" :size="20" />
+              <span>{{ icon }}</span>
+            </button>
+          </li>
+        </ul>
+        <p v-if="filteredIcons.length === 0" class="icon-select-empty" role="status">
+          {{ t("iconSelect.noResults") }}
+        </p>
       </div>
     </el-popover>
   </div>
 </template>
 
 <script setup lang="ts">
-import * as ElementPlusIconsVue from "@element-plus/icons-vue";
-import type { TabPaneName, TabsPaneContext } from "element-plus";
+import AppIcon from "@/components/AppIcon/index.vue";
+import type { InputInstance } from "element-plus";
+import { APP_ICON_NAMES, normalizeAppIconName } from "@/components/AppIcon/icon-map";
+
+const { t } = useI18n();
 
 const props = defineProps({
-  modelValue: {
-    type: String,
-    default: "",
-  },
   width: {
     type: String,
-    default: "500px",
+    default: "100%",
   },
 });
 
-const emit = defineEmits(["update:modelValue"]);
-
-const iconSelectRef = ref();
-const popoverContentRef = ref();
+const selectedIcon = defineModel<string>({ default: "" });
+const iconSelectRef = ref<HTMLElement>();
+const popoverContentRef = ref<HTMLElement>();
 const popoverVisible = ref(false);
-const activeTab = ref<TabPaneName>("svg");
-
-const svgIcons = ref<string[]>([]);
-const elementIcons = ref<string[]>(Object.keys(ElementPlusIconsVue));
-const selectedIcon = defineModel("modelValue", {
-  type: String,
-  required: true,
-  default: "",
-});
-
 const filterText = ref("");
-const filteredSvgIcons = ref<string[]>([]);
-const filteredElementIcons = ref<string[]>(elementIcons.value);
-const isElementIcon = computed(() => {
-  return selectedIcon.value && selectedIcon.value.startsWith("el-icon");
+const triggerRef = ref<HTMLButtonElement>();
+const searchRef = ref<InputInstance>();
+
+const previewIcon = computed(() => normalizeAppIconName(selectedIcon.value || "menu"));
+const filteredIcons = computed(() => {
+  const keyword = filterText.value.trim().toLowerCase();
+  return keyword ? APP_ICON_NAMES.filter((icon) => icon.includes(keyword)) : APP_ICON_NAMES;
 });
-
-function loadIcons() {
-  const icons = import.meta.glob("../../assets/icons/*.svg");
-  for (const path in icons) {
-    const iconName = path.replace(/.*\/(.*)\.svg$/, "$1");
-    svgIcons.value.push(iconName);
-  }
-  filteredSvgIcons.value = svgIcons.value;
-}
-
-function handleTabClick(tabPane: TabsPaneContext) {
-  activeTab.value = getTabPaneName(tabPane);
-  filterIcons();
-}
-
-function getTabPaneName(tabPane: TabsPaneContext): TabPaneName {
-  const tabName = tabPane.props.name;
-  if (tabName === undefined) {
-    throw new Error("IconSelect 标签页缺少 name");
-  }
-  return tabName;
-}
-
-function filterIcons() {
-  if (activeTab.value === "svg") {
-    filteredSvgIcons.value = filterText.value
-      ? svgIcons.value.filter((icon) => icon.toLowerCase().includes(filterText.value.toLowerCase()))
-      : svgIcons.value;
-  } else {
-    filteredElementIcons.value = filterText.value
-      ? elementIcons.value.filter((icon) =>
-          icon.toLowerCase().includes(filterText.value.toLowerCase())
-        )
-      : elementIcons.value;
-  }
-}
 
 function selectIcon(icon: string) {
-  const iconName = activeTab.value === "element" ? "el-icon-" + icon : icon;
-  emit("update:modelValue", iconName);
+  selectedIcon.value = icon;
+  closePopover();
+}
+
+function closePopover() {
   popoverVisible.value = false;
+  triggerRef.value?.focus();
 }
 
 function togglePopover() {
   popoverVisible.value = !popoverVisible.value;
 }
 
-onClickOutside(iconSelectRef, () => (popoverVisible.value = false), {
-  ignore: [popoverContentRef],
-});
-
-/**
- * 清空已选图标
- */
 function clearSelectedIcon() {
   selectedIcon.value = "";
+  triggerRef.value?.focus();
 }
 
-onMounted(() => {
-  loadIcons();
-  if (selectedIcon.value) {
-    if (elementIcons.value.includes(selectedIcon.value.replace("el-icon-", ""))) {
-      activeTab.value = "element";
-    } else {
-      activeTab.value = "svg";
-    }
-  }
+onClickOutside(iconSelectRef, () => (popoverVisible.value = false), {
+  ignore: [popoverContentRef],
 });
 </script>
 
 <style scoped lang="scss">
-.reference :deep(.el-input__wrapper),
-.reference :deep(.el-input__inner) {
+.icon-select-trigger {
+  display: flex;
+  flex: 1;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+  min-height: 34px;
+  padding: 5px 10px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
   cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+.icon-select-preview {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  color: var(--el-text-color-primary);
+  background: var(--el-fill-color-blank);
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+
+  &:hover,
+  &:focus-within {
+    border-color: var(--el-color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 14%, transparent);
+  }
+
+  &__value {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--el-text-color-secondary);
+    white-space: nowrap;
+  }
+
+  &__clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    min-height: 34px;
+    padding: 6px;
+    color: var(--el-text-color-secondary);
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+
+    &:hover {
+      color: var(--el-color-danger);
+    }
+  }
+
+  &__chevron {
+    color: var(--el-text-color-secondary);
+  }
+}
+
+.icon-select-popover {
+  display: grid;
+  gap: 12px;
+}
+
+.icon-select-empty {
+  padding: 24px 0;
+  margin: 0;
+  color: var(--el-text-color-secondary);
+  text-align: center;
 }
 
 .icon-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  max-height: 300px;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  list-style: none;
 }
 
-.icon-grid-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.icon-grid-item button {
+  display: grid;
+  gap: 6px;
+  place-items: center;
+  width: 100%;
+  min-height: 64px;
   padding: 8px;
-  margin: 4px;
+  color: var(--el-text-color-secondary);
   cursor: pointer;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  transition: all 0.3s;
-}
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
 
-.icon-grid-item:hover {
-  border-color: #4080ff;
-  transform: scale(1.2);
+  &:hover,
+  &:focus-visible {
+    color: var(--el-color-primary);
+    outline: none;
+    background: var(--el-fill-color-light);
+    border-color: var(--el-color-primary-light-7);
+  }
+
+  span {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11px;
+    white-space: nowrap;
+  }
 }
 </style>

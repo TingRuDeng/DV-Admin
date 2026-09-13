@@ -30,25 +30,32 @@
 .el-button--primary {
   background: linear-gradient(
     135deg,
-    var(--color-primary, #6366f1) 0%,
-    var(--color-primary-dark, #4f46e5) 100%
+    var(--color-primary, #ff705c) 0%,
+    var(--color-primary-dark, #e95645) 100%
   );
   border-color: transparent;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+  box-shadow: 0 2px 8px rgba(255, 112, 92, 0.25);
 
   &:hover,
   &:focus {
     background: linear-gradient(
       135deg,
-      var(--color-primary-light, #818cf8) 0%,
-      var(--color-primary, #6366f1) 100%
+      var(--color-primary-light, #ff9e8f) 0%,
+      var(--color-primary, #ff705c) 100%
     );
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    box-shadow: 0 4px 12px rgba(255, 112, 92, 0.35);
   }
 
   &:active {
-    box-shadow: 0 1px 4px rgba(99, 102, 241, 0.2);
+    box-shadow: 0 1px 4px rgba(255, 112, 92, 0.2);
   }
+}
+
+.el-button--primary:not(.is-link, .is-text, .is-plain) {
+  --el-button-text-color: var(--ff-accent-text);
+  --el-button-hover-text-color: var(--ff-accent-text);
+  --el-button-active-text-color: var(--ff-accent-text);
+  background: var(--ff-accent);
 }
 
 // ============================================
@@ -140,11 +147,11 @@
 // ============================================
 html.dark {
   .el-button--primary {
-    box-shadow: 0 2px 8px rgba(129, 140, 248, 0.3);
+    box-shadow: 0 2px 8px rgba(255, 112, 92, 0.3);
 
     &:hover,
     &:focus {
-      box-shadow: 0 4px 12px rgba(129, 140, 248, 0.4);
+      box-shadow: 0 4px 12px rgba(255, 112, 92, 0.4);
     }
   }
 }

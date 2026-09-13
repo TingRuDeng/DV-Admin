@@ -1,4 +1,7 @@
 @use "dashboard";
+@use "demo";
+@use "doc";
+@use "errors";
 @use "profile";
 @use "system-dept";
 @use "system-dict";
@@ -8,3 +11,4 @@
 @use "system-notice";
 @use "system-role";
 @use "system-user";
+@use "tool";

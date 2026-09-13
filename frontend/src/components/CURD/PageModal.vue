@@ -17,7 +17,7 @@
                     <span>
                       {{ item?.label || "" }}
                       <el-tooltip v-if="item?.tips" v-bind="getTooltipProps(item.tips)">
-                        <QuestionFilled class="w-4 h-4 mx-1" />
+                        <AppIcon name="circle-help" :size="16" class="mx-1" />
                       </el-tooltip>
                       <span v-if="modalConfig.colon" class="ml-0.5">:</span>
                     </span>
@@ -59,8 +59,12 @@
         </el-form>
 
         <template #footer>
-          <el-button v-if="!formDisable" type="primary" @click="handleSubmit">确 定</el-button>
-          <el-button @click="handleClose">{{ !formDisable ? "取 消" : "关闭" }}</el-button>
+          <el-button v-if="!formDisable" type="primary" @click="handleSubmit">
+            {{ t("common.confirm") }}
+          </el-button>
+          <el-button @click="handleClose">
+            {{ !formDisable ? t("common.cancel") : t("common.close") }}
+          </el-button>
         </template>
       </ProDrawer>
     </template>
@@ -81,7 +85,7 @@
                       <span>
                         {{ item?.label || "" }}
                         <el-tooltip v-if="item?.tips" v-bind="getTooltipProps(item.tips)">
-                          <QuestionFilled class="w-4 h-4 mx-1" />
+                          <AppIcon name="circle-help" :size="16" class="mx-1" />
                         </el-tooltip>
                         <span v-if="modalConfig.colon" class="ml-0.5">:</span>
                       </span>
@@ -124,8 +128,12 @@
         </el-form>
 
         <template #footer>
-          <el-button v-if="!formDisable" type="primary" @click="handleSubmit">确 定</el-button>
-          <el-button @click="handleClose">{{ !formDisable ? "取 消" : "关闭" }}</el-button>
+          <el-button v-if="!formDisable" type="primary" @click="handleSubmit">
+            {{ t("common.confirm") }}
+          </el-button>
+          <el-button @click="handleClose">
+            {{ !formDisable ? t("common.cancel") : t("common.close") }}
+          </el-button>
         </template>
       </ProDialog>
     </template>
@@ -139,6 +147,10 @@ import type { ICurdFormSlots, ICurdFormValue, IModalConfig, IObject } from "./ty
 import { childrenMap, componentMap } from "./pageModalComponentMaps";
 import ProDialog from "@/components/ProDialog/index.vue";
 import ProDrawer from "@/components/ProDrawer/index.vue";
+import AppIcon from "@/components/AppIcon/index.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 defineSlots<ICurdFormSlots>();
 const props = defineProps<{ modalConfig: IModalConfig }>();
@@ -185,11 +197,11 @@ const handleSubmit = useThrottleFn(() => {
       return;
     }
     props.modalConfig.formAction(formData).then(() => {
-      if (props.modalConfig.component === "drawer") {
-        ElMessage.success(`${props.modalConfig.drawer?.title}成功`);
-      } else {
-        ElMessage.success(`${props.modalConfig.dialog?.title}成功`);
-      }
+      const title =
+        props.modalConfig.component === "drawer"
+          ? props.modalConfig.drawer?.title
+          : props.modalConfig.dialog?.title;
+      ElMessage.success(t("common.operationSuccess", { name: title ?? t("common.actions") }));
       emit("submitClick");
       handleClose();
     });

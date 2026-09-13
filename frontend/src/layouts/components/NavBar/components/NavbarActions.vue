@@ -33,11 +33,14 @@
       <el-dropdown trigger="click">
         <button type="button" class="user-profile" :aria-label="t('navbar.userMenu')">
           <img
+            v-if="userStore.userInfo.avatar && !avatarFailed"
             class="user-profile__avatar"
             :src="userStore.userInfo.avatar"
             alt=""
             aria-hidden="true"
+            @error="avatarFailed = true"
           />
+          <AppIcon v-else name="user-round" :size="28" class="user-profile__avatar" />
           <span class="user-profile__name">{{ userStore.userInfo.username }}</span>
         </button>
         <template #dropdown>
@@ -86,6 +89,13 @@ const { t } = useI18n();
 const appStore = useAppStore();
 const settingStore = useSettingsStore();
 const userStore = useUserStore();
+const avatarFailed = ref(false);
+watch(
+  () => userStore.userInfo.avatar,
+  () => {
+    avatarFailed.value = false;
+  }
+);
 
 const route = useRoute();
 const router = useRouter();
@@ -111,9 +121,9 @@ const navbarActionsClass = computed(() => {
  * 退出登录
  */
 function logout() {
-  ElMessageBox.confirm("确定注销并退出系统吗？", "提示", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
+  ElMessageBox.confirm(t("navbar.logoutConfirm"), t("navbar.confirmTitle"), {
+    confirmButtonText: t("navbar.confirm"),
+    cancelButtonText: t("navbar.cancel"),
     type: "warning",
     lockScroll: false,
   })
@@ -121,14 +131,14 @@ function logout() {
       try {
         await userStore.logout();
       } catch {
-        ElMessage.warning("当前设备已退出，服务端令牌撤销未确认");
+        ElMessage.warning(t("navbar.logoutRevocationUnconfirmed"));
       } finally {
         await router.push({ path: "/login", query: { redirect: route.fullPath } });
       }
     })
     .catch((reason) => {
       if (reason !== "cancel" && reason !== "close") {
-        ElMessage.error("退出操作未完成，请重试");
+        ElMessage.error(t("navbar.logoutFailed"));
       }
     });
 }

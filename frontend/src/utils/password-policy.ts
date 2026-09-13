@@ -1,8 +1,19 @@
 import type { PasswordPolicy } from "@/api/information-api";
 
+export interface PasswordErrorMessages {
+  policyUnavailable: string;
+  invalidLength: (min: number, max: number) => string;
+}
+
+const DEFAULT_MESSAGES: PasswordErrorMessages = {
+  policyUnavailable: "密码规则尚未加载，请重试",
+  invalidLength: (min, max) => `密码长度必须为 ${min}-${max} 个字符`,
+};
+
 export function passwordLengthError(
   value: string,
-  policy: PasswordPolicy | null
+  policy: PasswordPolicy | null,
+  messages: PasswordErrorMessages = DEFAULT_MESSAGES
 ): string | undefined {
   if (
     !policy ||
@@ -12,10 +23,10 @@ export function passwordLengthError(
     policy.maxLength > 128 ||
     policy.minLength > policy.maxLength
   ) {
-    return "密码规则尚未加载，请重试";
+    return messages.policyUnavailable;
   }
   const length = Array.from(value).length;
   if (length < policy.minLength || length > policy.maxLength) {
-    return `密码长度必须为 ${policy.minLength}-${policy.maxLength} 个字符`;
+    return messages.invalidLength(policy.minLength, policy.maxLength);
   }
 }

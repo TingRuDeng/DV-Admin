@@ -22,14 +22,16 @@
     <template #footer>
       <slot name="footer" :submit="handleSubmit" :cancel="handleCancel">
         <div class="dialog-footer flex justify-end gap-2">
-          <el-button class="ff-button-secondary" @click="handleCancel">取 消</el-button>
+          <el-button class="ff-button-secondary" @click="handleCancel">
+            {{ t("common.cancel") }}
+          </el-button>
           <el-button
             type="primary"
             class="ff-button-primary"
             :loading="loading"
             @click="handleSubmit"
           >
-            确 定
+            {{ t("common.confirm") }}
           </el-button>
         </div>
       </slot>
@@ -38,9 +40,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import type { FormInstance, FormProps, FormRules } from "element-plus";
 import type { ProFormDrawerExpose } from "./types";
+
+const { t, locale } = useI18n();
 
 const props = withDefaults(
   defineProps<{
@@ -70,6 +75,20 @@ const emit = defineEmits<{
 }>();
 
 const formRef = ref<FormInstance>();
+
+watch(
+  locale,
+  () => {
+    if (!props.modelValue) return;
+    // Refresh existing errors without validating untouched fields or resetting user input.
+    for (const field of formRef.value?.fields ?? []) {
+      if (field.validateState === "error") {
+        void field.validate("", () => {});
+      }
+    }
+  },
+  { flush: "post" }
+);
 
 const drawerVisible = computed({
   get: () => props.modelValue,

@@ -11,10 +11,10 @@
     @submit="emit('submit')"
     @close="emit('close')"
   >
-    <el-form-item label="上级部门" prop="parentId">
+    <el-form-item :label="t('system.parentDept')" prop="parentId">
       <el-tree-select
         v-model="model.parentId"
-        placeholder="选择上级部门"
+        :placeholder="t('system.parentDeptPlaceholder')"
         :data="deptOptions"
         filterable
         node-key="id"
@@ -24,11 +24,11 @@
       />
     </el-form-item>
 
-    <el-form-item label="部门名称" prop="name">
-      <el-input v-model="model.name" placeholder="请输入部门名称" />
+    <el-form-item :label="t('system.deptName')" prop="name">
+      <el-input v-model="model.name" :placeholder="t('system.deptNamePlaceholder')" />
     </el-form-item>
 
-    <el-form-item label="显示排序" prop="sort">
+    <el-form-item :label="t('system.displaySort')" prop="sort">
       <el-input-number
         v-model="model.sort"
         controls-position="right"
@@ -37,16 +37,19 @@
       />
     </el-form-item>
 
-    <el-form-item label="部门状态">
+    <el-form-item :label="t('system.status')">
       <el-radio-group v-model="model.status">
-        <el-radio :value="1">正常</el-radio>
-        <el-radio :value="0">禁用</el-radio>
+        <el-radio :value="1">{{ t("common.normal") }}</el-radio>
+        <el-radio :value="0">{{ t("common.disabled") }}</el-radio>
       </el-radio-group>
     </el-form-item>
   </ProFormDrawer>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 import type { FormInstance, FormRules } from "element-plus";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import type { DeptForm } from "@/api/system/dept-api";

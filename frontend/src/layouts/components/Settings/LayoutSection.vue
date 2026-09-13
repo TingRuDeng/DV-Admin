@@ -10,9 +10,9 @@
           :content="item.label"
           placement="bottom"
         >
-          <div
-            role="button"
-            tabindex="0"
+          <button
+            type="button"
+            :aria-pressed="settingsStore.layout === item.value"
             :class="[
               'layout-item',
               item.className,
@@ -21,7 +21,6 @@
               },
             ]"
             @click="handleLayoutChange(item.value)"
-            @keydown.enter.space="handleLayoutChange(item.value)"
           >
             <div class="layout-preview">
               <div v-if="item.value !== LayoutMode.LEFT" class="layout-header"></div>
@@ -32,7 +31,7 @@
             <div v-if="settingsStore.layout === item.value" class="layout-check">
               <AppIcon name="check" :size="12" />
             </div>
-          </div>
+          </button>
         </el-tooltip>
       </div>
     </div>
@@ -48,11 +47,11 @@ import AppIcon from "@/components/AppIcon/index.vue";
 const { t } = useI18n();
 const settingsStore = useSettingsStore();
 
-const layoutOptions: LayoutOption[] = [
+const layoutOptions = computed<LayoutOption[]>(() => [
   { value: LayoutMode.LEFT, label: t("settings.leftLayout"), className: "left" },
   { value: LayoutMode.TOP, label: t("settings.topLayout"), className: "top" },
   { value: LayoutMode.MIX, label: t("settings.mixLayout"), className: "mix" },
-];
+]);
 
 function handleLayoutChange(layout: LayoutMode) {
   if (settingsStore.layout === layout) return;
@@ -81,16 +80,21 @@ function handleLayoutChange(layout: LayoutMode) {
   position: relative;
   width: 70px;
   height: 80px;
+  padding: 0;
   overflow: hidden;
+  font: inherit;
   cursor: pointer;
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  background: var(--el-fill-color-blank);
   border: 2px solid var(--el-border-color-light);
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-  &:hover {
-    background: linear-gradient(145deg, #ffffff 0%, var(--el-color-primary-light-9) 100%);
+  &:hover,
+  &:focus-visible {
+    outline: 2px solid var(--el-color-primary);
+    outline-offset: 2px;
+    background: var(--el-fill-color-light);
     border-color: var(--el-color-primary-light-3);
     transform: translateY(-4px) scale(1.05);
   }
@@ -134,7 +138,7 @@ function handleLayoutChange(layout: LayoutMode) {
 
   .layout-main {
     position: absolute;
-    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    background: var(--el-fill-color-darker);
     border: 1px solid var(--el-border-color-lighter);
     border-radius: 2px;
   }

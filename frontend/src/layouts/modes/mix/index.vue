@@ -34,7 +34,7 @@
         id="layout-sidebar"
         class="layout__sidebar--left"
         role="navigation"
-        aria-label="主导航"
+        :aria-label="t('navbar.mainNavigation')"
         tabindex="-1"
         :class="{ 'layout__sidebar--collapsed': !isSidebarOpen }"
         :aria-hidden="isMobile && !isSidebarOpen ? 'true' : undefined"
@@ -63,7 +63,7 @@
           <Hamburger
             :is-active="isSidebarOpen"
             controls="layout-sidebar"
-            :label="isSidebarOpen ? '收起侧边导航' : '展开侧边导航'"
+            :label="isSidebarOpen ? t('navbar.collapseNavigation') : t('navbar.expandNavigation')"
             @toggle-click="toggleSidebar"
           />
         </div>
@@ -92,6 +92,8 @@ import AppMain from "../../components/AppMain/index.vue";
 import MenuItem from "../../components/Menu/components/MenuItem.vue";
 import Hamburger from "@/components/Hamburger/index.vue";
 import variables from "@/styles/variables.module.scss";
+
+const { t } = useI18n();
 
 const route = useRoute();
 

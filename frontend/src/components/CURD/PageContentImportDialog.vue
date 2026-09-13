@@ -1,7 +1,7 @@
 <template>
   <ProDialog
     v-model="visible"
-    title="导入数据"
+    :title="t('dataTransfer.importTitle')"
     width="600px"
     :dialog-attrs="{ alignCenter: true }"
     @close="close"
@@ -15,7 +15,7 @@
         :model="importFormData"
         :rules="importFormRules"
       >
-        <el-form-item label="文件名" prop="files">
+        <el-form-item :label="t('dataTransfer.file')" prop="files">
           <el-upload
             ref="uploadRef"
             v-model:file-list="importFormData.files"
@@ -26,10 +26,10 @@
             :auto-upload="false"
             :on-exceed="handleFileExceed"
           >
-            <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+            <AppIcon name="upload" :size="38" class="el-icon--upload" />
             <div class="el-upload__text">
-              <span>将文件拖到此处，或</span>
-              <em>点击上传</em>
+              <span>{{ t("dataTransfer.dropFile") }}</span>
+              <em>{{ t("dataTransfer.clickUpload") }}</em>
             </div>
             <template #tip>
               <div class="el-upload__tip">
@@ -37,11 +37,11 @@
                 <el-link
                   v-if="hasImportTemplate"
                   type="primary"
-                  icon="download"
+                  :icon="resolveAppIcon('download')"
                   underline="never"
                   @click="emit('downloadTemplate')"
                 >
-                  下载模板
+                  {{ t("dataTransfer.downloadTemplate") }}
                 </el-link>
               </div>
             </template>
@@ -57,16 +57,18 @@
           :disabled="importFormData.files.length === 0"
           @click="handleSubmit"
         >
-          确 定
+          {{ t("common.confirm") }}
         </el-button>
-        <el-button @click="close">取 消</el-button>
+        <el-button @click="close">{{ t("common.cancel") }}</el-button>
       </div>
     </template>
   </ProDialog>
 </template>
 
 <script setup lang="ts">
+import { resolveAppIcon } from "@/components/AppIcon/icon-map";
 import ProDialog from "@/components/ProDialog/index.vue";
+import AppIcon from "@/components/AppIcon/index.vue";
 import { useThrottleFn } from "@vueuse/core";
 import {
   genFileId,
@@ -77,6 +79,7 @@ import {
   type UploadUserFile,
 } from "element-plus";
 import { nextTick, reactive, ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 export interface PageContentImportPayload {
   file: File;
@@ -93,6 +96,8 @@ const emit = defineEmits<{
   downloadTemplate: [];
 }>();
 
+const { t } = useI18n();
+
 let isFileImport = false;
 const uploadRef = ref<UploadInstance>();
 const importFormRef = ref<FormInstance>();
@@ -102,7 +107,7 @@ const importFormData = reactive<{
   files: [],
 });
 const importFormRules: FormRules = {
-  files: [{ required: true, message: "请选择文件" }],
+  files: [{ required: true, message: () => t("dataTransfer.selectFile") }],
 };
 
 function open(isFile = false) {

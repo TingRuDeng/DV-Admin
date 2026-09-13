@@ -7,7 +7,12 @@
     @submit="handleSubmit"
   >
     <div class="flex justify-between items-center mb-5">
-      <el-input v-model="permKeywords" clearable class="w-[150px]" placeholder="菜单权限名称">
+      <el-input
+        v-model="permKeywords"
+        clearable
+        class="w-[150px]"
+        :placeholder="t('system.permissionMenuSearch')"
+      >
         <template #prefix>
           <AppIcon name="search" :size="16" />
         </template>
@@ -24,17 +29,11 @@
           <template #icon>
             <AppIcon :name="isExpanded ? 'minimize' : 'maximize'" :size="15" />
           </template>
-          {{ isExpanded ? "收缩" : "展开" }}
+          {{ isExpanded ? t("system.collapse") : t("system.expand") }}
         </el-button>
         <el-checkbox v-model="parentChildLinked" @change="handleParentChildLinkedChange">
-          父子联动
+          {{ t("system.parentChildLink") }}
         </el-checkbox>
-        <el-tooltip placement="bottom">
-          <template #content>
-            如果只需勾选菜单权限，不需要勾选子菜单或者按钮权限，请关闭父子联动
-          </template>
-          <AppIcon name="circle-help" :size="16" class="text-primary cursor-pointer" />
-        </el-tooltip>
       </div>
     </div>
 
@@ -54,14 +53,19 @@
     </el-tree>
     <template #footer="{ cancel, submit }">
       <div class="dialog-footer flex justify-end gap-2">
-        <el-button class="ff-button-secondary" @click="cancel">取 消</el-button>
-        <el-button type="primary" class="ff-button-primary" @click="submit">确 定</el-button>
+        <el-button class="ff-button-secondary" @click="cancel">{{ t("common.cancel") }}</el-button>
+        <el-button type="primary" class="ff-button-primary" @click="submit">
+          {{ t("common.confirm") }}
+        </el-button>
       </div>
     </template>
   </ProDrawer>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 import AppIcon from "@/components/AppIcon/index.vue";
 import type { CheckboxValueType, TreeInstance } from "element-plus";
 import ProDrawer from "@/components/ProDrawer/index.vue";
@@ -103,7 +107,9 @@ const isExpanded = ref(true);
 const parentChildLinked = ref(true);
 
 const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "600px" : "90%"));
-const drawerTitle = computed(() => `【${checkedRole.value.name ?? ""}】权限分配`);
+const drawerTitle = computed(() =>
+  t("system.permissionTitle", { name: checkedRole.value.name ?? "" })
+);
 
 async function open(row: RolePageVO) {
   if (!row.id) return;
@@ -137,7 +143,7 @@ function handleSubmit() {
   drawerLoading.value = true;
   RoleAPI.updateRoleMenus(roleId, checkedMenuIds)
     .then(() => {
-      ElMessage.success("分配权限成功");
+      ElMessage.success(t("system.permissionAssigned"));
       visible.value = false;
       emit("success");
     })

@@ -5,8 +5,9 @@
     <div class="flex-center">
       <el-switch
         v-model="isDark"
-        active-icon="Moon"
-        inactive-icon="Sunny"
+        :aria-label="t('settings.darkMode')"
+        :active-icon="resolveAppIcon('Moon')"
+        :inactive-icon="resolveAppIcon('Sunny')"
         class="theme-switch"
         @change="handleThemeChange"
       />
@@ -15,6 +16,7 @@
 </template>
 
 <script setup lang="ts">
+import { resolveAppIcon } from "@/components/AppIcon/icon-map";
 import { ThemeMode } from "@/enums";
 import { useSettingsStore } from "@/store";
 

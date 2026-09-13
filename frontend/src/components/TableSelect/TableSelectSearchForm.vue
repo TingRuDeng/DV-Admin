@@ -41,14 +41,20 @@
       </el-form-item>
     </template>
     <el-form-item>
-      <el-button type="primary" icon="search" @click="emit('query')">搜索</el-button>
-      <el-button icon="refresh" @click="handleReset">重置</el-button>
+      <el-button type="primary" :icon="resolveAppIcon('search')" @click="emit('query')">
+        {{ t("tableSelect.search") }}
+      </el-button>
+      <el-button :icon="resolveAppIcon('refresh')" @click="handleReset">
+        {{ t("tableSelect.reset") }}
+      </el-button>
     </el-form-item>
   </el-form>
 </template>
 
 <script lang="ts" setup>
+import { resolveAppIcon } from "@/components/AppIcon/icon-map";
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 import type { FormInstance } from "element-plus";
 import type { TableSelectFieldValue, TableSelectFormItem, TableSelectQueryParams } from "./types";
 
@@ -69,6 +75,8 @@ const emit = defineEmits<{
   query: [];
   reset: [];
 }>();
+
+const { t } = useI18n();
 
 const formRef = ref<FormInstance>();
 

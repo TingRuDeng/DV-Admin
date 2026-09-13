@@ -74,6 +74,10 @@ def build_white_list(base_api: str) -> list[str]:
         f"/{base_api}oauth/info/",
         f"/{base_api}oauth/menus/routes/",
         f"/{base_api}oauth/refresh-token/",
+        f"/{base_api}oauth/captcha/",
+        f"/{base_api}oauth/email-code/",
+        f"/{base_api}oauth/register/",
+        f"/{base_api}oauth/password/reset/",
         f"/{base_api}system/users/profile/",
         f"/{base_api}system/dict-items/",
     ]

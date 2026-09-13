@@ -2,7 +2,7 @@
   <ProFormDrawer
     ref="dictItemFormRef"
     v-model="dialogState.visible"
-    :title="dialogState.title"
+    :title="t(dialogState.titleKey)"
     :model="formData"
     :rules="rules"
     :loading="formLoading"
@@ -11,24 +11,29 @@
     @close="handleClose"
     @submit="handleSubmitWrapper"
   >
-    <el-form-item label="归属字典" prop="dict">
-      <el-select v-model="formData.dict" placeholder="请选择归属字典" filterable class="w-full">
+    <el-form-item :label="t('system.dictOwner')" prop="dict">
+      <el-select
+        v-model="formData.dict"
+        :placeholder="t('system.dictRequired')"
+        filterable
+        class="w-full"
+      >
         <el-option v-for="item in dictList" :key="item.id" :label="item.name" :value="item.id" />
       </el-select>
     </el-form-item>
-    <el-form-item label="字典项标签" prop="label">
-      <el-input v-model="formData.label" placeholder="请输入字典标签" />
+    <el-form-item :label="t('system.dictItemLabel')" prop="label">
+      <el-input v-model="formData.label" :placeholder="t('system.dictLabelInput')" />
     </el-form-item>
-    <el-form-item label="字典项值" prop="value">
-      <el-input v-model="formData.value" placeholder="请输入字典值" />
+    <el-form-item :label="t('system.dictItemValue')" prop="value">
+      <el-input v-model="formData.value" :placeholder="t('system.dictValueInput')" />
     </el-form-item>
-    <el-form-item label="状态">
+    <el-form-item :label="t('common.status')">
       <el-radio-group v-model="formData.status">
-        <el-radio :value="1">启用</el-radio>
-        <el-radio :value="0">禁用</el-radio>
+        <el-radio :value="1">{{ t("common.enabled") }}</el-radio>
+        <el-radio :value="0">{{ t("common.disabled") }}</el-radio>
       </el-radio-group>
     </el-form-item>
-    <el-form-item label="标签类型">
+    <el-form-item :label="t('system.labelType')">
       <el-tag v-if="formData.tagType" :type="formData.tagType" class="mr-2">
         {{ formData.label }}
       </el-tag>
@@ -38,13 +43,16 @@
         <el-radio value="info" border size="small">info</el-radio>
         <el-radio value="primary" border size="small">primary</el-radio>
         <el-radio value="danger" border size="small">danger</el-radio>
-        <el-radio value="" border size="small">清空</el-radio>
+        <el-radio value="" border size="small">{{ t("system.clearForm") }}</el-radio>
       </el-radio-group>
     </el-form-item>
   </ProFormDrawer>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 import type { FormRules } from "element-plus";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import type { DictPageVO } from "@/api/system/dict-api";
@@ -63,14 +71,14 @@ const formLoading = ref(false);
 const formData = reactive<DictItemForm>(createDefaultFormData());
 
 const dialogState = reactive({
-  title: "新增字典项",
+  titleKey: "system.addDictItem",
   visible: false,
 });
 
 const rules: FormRules<DictItemForm> = {
-  dict: [{ required: true, message: "请选择归属字典", trigger: "change" }],
-  value: [{ required: true, message: "请输入字典值", trigger: "blur" }],
-  label: [{ required: true, message: "请输入字典标签", trigger: "blur" }],
+  dict: [{ required: true, message: () => t("system.dictRequired"), trigger: "change" }],
+  value: [{ required: true, message: () => t("system.dictValueInput"), trigger: "blur" }],
+  label: [{ required: true, message: () => t("system.dictLabelInput"), trigger: "blur" }],
 };
 
 function createDefaultFormData(): DictItemForm {
@@ -88,13 +96,13 @@ function resetFormData() {
 async function openCreate(dict?: number | string) {
   resetFormData();
   formData.dict = dict === undefined ? undefined : String(dict);
-  dialogState.title = "新增字典项";
+  dialogState.titleKey = "system.addDictItem";
   dialogState.visible = true;
 }
 
 async function openEdit(id: number) {
   resetFormData();
-  dialogState.title = "编辑字典项";
+  dialogState.titleKey = "system.editDictItem";
   dialogState.visible = true;
   const data = await DictItemAPI.getDictItemFormData(id);
   Object.assign(formData, data);
@@ -118,7 +126,7 @@ function submitDictItem() {
     : DictItemAPI.createDictItem(formData);
   request
     .then(() => {
-      ElMessage.success(id ? "修改成功" : "新增成功");
+      ElMessage.success(id ? t("system.updateSuccess") : t("system.createSuccess"));
       handleClose();
       emit("success");
     })

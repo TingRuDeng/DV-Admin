@@ -4,43 +4,43 @@
       v-show="visible"
       class="contextmenu"
       role="menu"
-      aria-label="标签页操作"
+      :aria-label="t('navbar.tagActions')"
       :style="{ left: x + 'px', top: y + 'px' }"
     >
       <li role="none">
         <button type="button" role="menuitem" @click="emit('refresh')">
           <AppIcon name="refresh" :size="15" />
-          刷新
+          {{ t("navbar.refreshTag") }}
         </button>
       </li>
       <li v-if="!selectedTag?.affix" role="none">
         <button type="button" role="menuitem" @click="emit('close')">
           <AppIcon name="close" :size="15" />
-          关闭
+          {{ t("navbar.closeTag") }}
         </button>
       </li>
       <li role="none">
         <button type="button" role="menuitem" @click="emit('close-other')">
           <AppIcon name="close_other" :size="15" />
-          关闭其它
+          {{ t("navbar.closeOtherTags") }}
         </button>
       </li>
       <li v-if="!isFirstView" role="none">
         <button type="button" role="menuitem" @click="emit('close-left')">
           <AppIcon name="close_left" :size="15" />
-          关闭左侧
+          {{ t("navbar.closeLeftTags") }}
         </button>
       </li>
       <li v-if="!isLastView" role="none">
         <button type="button" role="menuitem" @click="emit('close-right')">
           <AppIcon name="close_right" :size="15" />
-          关闭右侧
+          {{ t("navbar.closeRightTags") }}
         </button>
       </li>
       <li role="none">
         <button type="button" role="menuitem" @click="emit('close-all')">
           <AppIcon name="close_all" :size="15" />
-          关闭所有
+          {{ t("navbar.closeAllTags") }}
         </button>
       </li>
     </ul>
@@ -49,6 +49,8 @@
 
 <script setup lang="ts">
 import AppIcon from "@/components/AppIcon/index.vue";
+
+const { t } = useI18n();
 
 defineProps<{
   isFirstView: boolean;

@@ -294,7 +294,7 @@ test.describe("用户管理核心业务 smoke", () => {
     await expect(page.locator(".el-message--warning")).toContainText(
       "部分导入成功：成功1条，失败1条"
     );
-    await expect(result).toContainText("导入结果：成功1条，失败1条");
+    await expect(result).toContainText("成功1条，失败1条");
     await expect(result).toContainText("第3行：用户名已存在");
     await expect.poll(() => state.pageQueries.length).toBe(queriesBeforeImport + 1);
     await expect(page.getByText("imported_user", { exact: true })).toBeVisible();
