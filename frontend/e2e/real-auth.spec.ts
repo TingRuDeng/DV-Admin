@@ -46,11 +46,27 @@ test("real backend registration, password recovery and re-login", async ({ page 
   await resetForm
     .getByPlaceholder(/^(邮箱验证码|Email code)$/i)
     .fill(capturedCode("reset_password"));
+  const resetResponsePromise = page.waitForResponse(
+    (response) =>
+      response.url().includes("/api/v1/oauth/password/reset/") &&
+      response.request().method() === "POST"
+  );
   await resetForm.getByRole("button", { name: /重置密码|Reset password/i }).click();
+  expect((await resetResponsePromise).status()).toBe(200);
   await expect(page.getByText(/^(登\s*录|Login)$/i).last()).toBeVisible();
 
-  await page.getByLabel("用户名").fill(username);
-  await page.getByLabel("密码").fill(resetPassword);
-  await page.getByRole("button", { name: /登\s*录|Login/i }).click();
-  await expect(page).not.toHaveURL(/\/login/);
+  const loginForm = page
+    .locator(".login-form")
+    .filter({ has: page.locator("#login-username-input") });
+  await expect(loginForm.getByLabel("用户名")).toBeVisible();
+  await loginForm.getByLabel("用户名").fill(username);
+  await loginForm.getByLabel("密码").fill(resetPassword);
+  const loginResponsePromise = page.waitForResponse(
+    (response) =>
+      response.url().includes("/api/v1/oauth/login/") && response.request().method() === "POST"
+  );
+  await loginForm.getByRole("button", { name: /登\s*录|Login/i }).click();
+  expect((await loginResponsePromise).status()).toBe(200);
+  await expect(page.getByRole("heading", { name: /你好|Hello/i })).toBeVisible({ timeout: 30_000 });
+  await expect(page).not.toHaveURL(/\/login/, { timeout: 30_000 });
 });
