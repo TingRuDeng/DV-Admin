@@ -1,7 +1,13 @@
 <template>
   <div>
     <h3 text-center m-0 mb-20px>{{ t("login.reg") }}</h3>
-    <el-form ref="formRef" :model="model" :rules="rules" size="large">
+    <el-form
+      ref="formRef"
+      :model="model"
+      :rules="rules"
+      :validate-on-rule-change="false"
+      size="large"
+    >
       <!-- 用户名 -->
       <el-form-item prop="username">
         <el-input v-model.trim="model.username" :placeholder="t('login.username')">
@@ -46,6 +52,12 @@
         </el-form-item>
       </el-tooltip>
 
+      <el-form-item prop="email">
+        <el-input v-model.trim="model.email" :placeholder="t('login.email')">
+          <template #prefix><AppIcon name="mail" :size="17" /></template>
+        </el-input>
+      </el-form-item>
+
       <!-- 验证码 - 根据配置显示 -->
       <el-form-item v-if="enableCaptcha" prop="captchaCode">
         <div flex>
@@ -58,7 +70,12 @@
               <AppIcon name="captcha" :size="17" />
             </template>
           </el-input>
-          <div cursor-pointer h="[40px]" w="[120px]" flex-center ml-10px @click="getCaptcha">
+          <button
+            type="button"
+            class="captcha-refresh captcha-refresh--compact ml-10px"
+            :aria-label="t('login.captchaRefresh')"
+            @click="getCaptcha"
+          >
             <AppIcon v-if="codeLoading" name="loader-circle" :size="18" class="is-loading" />
 
             <img
@@ -68,9 +85,18 @@
               p-1px
               shadow="[0_0_0_1px_var(--el-border-color)_inset]"
               :src="captchaBase64"
-              alt="code"
+              :alt="t('login.captchaAlt')"
             />
-          </div>
+          </button>
+        </div>
+      </el-form-item>
+
+      <el-form-item prop="emailCode">
+        <div flex w-full gap-10px>
+          <el-input v-model.trim="model.emailCode" :placeholder="t('login.emailCode')" />
+          <el-button :disabled="emailCountdown > 0 || emailLoading" @click="sendEmailCode">
+            {{ emailCountdown > 0 ? `${emailCountdown}s` : t("login.sendEmailCode") }}
+          </el-button>
         </div>
       </el-form-item>
 
@@ -97,7 +123,7 @@
 <script setup lang="ts">
 import type { FormInstance, FormRules } from "element-plus";
 import { useI18n } from "vue-i18n";
-import AuthAPI, { type LoginFormData } from "@/api/auth-api";
+import AuthAPI, { type LoginFormData, type RegisterRequest } from "@/api/auth-api";
 import { defaultSettings } from "@/settings";
 import { getLoginDefaultCredentials } from "./login-defaults";
 import AppIcon from "@/components/AppIcon/index.vue";
@@ -125,6 +151,8 @@ const isRead = ref(false);
 
 interface Model extends LoginFormData {
   confirmPassword: string;
+  email: string;
+  emailCode: string;
 }
 
 const defaultCredentials = getLoginDefaultCredentials();
@@ -133,6 +161,8 @@ const model = ref<Model>({
   username: defaultCredentials.username,
   password: defaultCredentials.password,
   confirmPassword: "",
+  email: "",
+  emailCode: "",
   captchaKey: "",
   captchaCode: "",
   rememberMe: false,
@@ -168,6 +198,17 @@ const rules = computed(() => {
         message: t("login.message.password.inconformity"),
       },
     ],
+    email: [
+      {
+        required: true,
+        type: "email",
+        trigger: "blur",
+        message: t("login.message.email.required"),
+      },
+    ],
+    emailCode: [
+      { required: true, trigger: "blur", message: t("login.message.emailCode.required") },
+    ],
   };
 
   // 只有启用了验证码时才添加验证码的验证规则
@@ -187,6 +228,9 @@ const rules = computed(() => {
 
 // 获取验证码
 const codeLoading = ref(false);
+const emailLoading = ref(false);
+const emailCountdown = ref(0);
+let emailTimer: ReturnType<typeof setInterval> | undefined;
 function getCaptcha() {
   codeLoading.value = true;
   AuthAPI.getCaptcha()
@@ -206,7 +250,51 @@ function checkCapsLock(event: KeyboardEvent) {
 }
 
 const submit = async () => {
-  await formRef.value?.validate();
-  ElMessage.warning("开发中 ...");
+  const valid = await formRef.value?.validate();
+  if (!valid) return;
+  loading.value = true;
+  try {
+    await AuthAPI.register({
+      purpose: "register",
+      username: model.value.username,
+      email: model.value.email,
+      password: model.value.password,
+      confirmPassword: model.value.confirmPassword,
+      emailCode: model.value.emailCode,
+      captchaKey: model.value.captchaKey,
+      captchaCode: model.value.captchaCode,
+    } satisfies RegisterRequest);
+    ElMessage.success(t("login.registerSuccess"));
+    toLogin();
+  } finally {
+    loading.value = false;
+  }
 };
+
+async function sendEmailCode() {
+  try {
+    await formRef.value?.validateField(["email", "captchaCode"]);
+  } catch {
+    return;
+  }
+  emailLoading.value = true;
+  try {
+    await AuthAPI.sendEmailCode({
+      purpose: "register",
+      email: model.value.email,
+      captchaKey: model.value.captchaKey,
+      captchaCode: model.value.captchaCode,
+    });
+    emailCountdown.value = 60;
+    emailTimer = setInterval(() => {
+      emailCountdown.value -= 1;
+      if (emailCountdown.value <= 0 && emailTimer) clearInterval(emailTimer);
+    }, 1000);
+    ElMessage.success(t("login.emailCodeSent"));
+  } finally {
+    emailLoading.value = false;
+  }
+}
+
+onUnmounted(() => emailTimer && clearInterval(emailTimer));
 </script>

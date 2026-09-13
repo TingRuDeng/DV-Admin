@@ -55,6 +55,33 @@ const AuthAPI = {
       method: "get",
     });
   },
+
+  sendEmailCode(data: EmailCodeRequest) {
+    return request<EmailCodeRequest, null>({
+      url: `${AUTH_BASE_URL}/email-code/`,
+      method: "post",
+      data,
+      headers: { Authorization: "no-auth" },
+    });
+  },
+
+  register(data: RegisterRequest) {
+    return request<RegisterRequest, null>({
+      url: `${AUTH_BASE_URL}/register/`,
+      method: "post",
+      data,
+      headers: { Authorization: "no-auth" },
+    });
+  },
+
+  resetPassword(data: ResetPasswordRequest) {
+    return request<ResetPasswordRequest, null>({
+      url: `${AUTH_BASE_URL}/password/reset/`,
+      method: "post",
+      data,
+      headers: { Authorization: "no-auth" },
+    });
+  },
 };
 
 export default AuthAPI;
@@ -127,6 +154,27 @@ export interface CaptchaInfo {
   captchaKey: string;
   /** 验证码图片Base64字符串 */
   captchaBase64: string;
+}
+
+export interface EmailCodeRequest {
+  purpose: "register" | "reset_password";
+  email: string;
+  captchaKey: string;
+  captchaCode: string;
+}
+
+export interface RegisterRequest extends EmailCodeRequest {
+  username: string;
+  password: string;
+  confirmPassword: string;
+  emailCode: string;
+}
+
+export interface ResetPasswordRequest extends EmailCodeRequest {
+  username: string;
+  newPassword: string;
+  confirmPassword: string;
+  emailCode: string;
 }
 
 export interface RouteVO {

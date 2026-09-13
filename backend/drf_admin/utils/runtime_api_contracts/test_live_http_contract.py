@@ -6,6 +6,7 @@ import base64
 import os
 import tempfile
 import unittest
+import uuid
 
 import requests
 from django.db import connection
@@ -34,7 +35,11 @@ class DjangoLiveHttpContractTestCase(LiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         cls.media_root = tempfile.TemporaryDirectory()
-        cls.settings_override = override_settings(MEDIA_ROOT=cls.media_root.name)
+        cls.auth_capture_file = os.path.join(cls.media_root.name, "email-capture.txt")
+        cls.settings_override = override_settings(
+            MEDIA_ROOT=cls.media_root.name,
+            EMAIL_CAPTURE_FILE=cls.auth_capture_file,
+        )
         cls.settings_override.enable()
         super().setUpClass()
 
@@ -66,7 +71,8 @@ class DjangoLiveHttpContractTestCase(LiveServerTestCase):
             name="运行时 RBAC 用户",
             is_active=1,
         )
-        self.rbac_user.roles.add(self.rbac_role)
+        # post_save 自动分配默认角色；清掉契约管理员角色，确保本用例只验证显式授权。
+        self.rbac_user.roles.set([self.rbac_role])
         self.rbac_base_permission_ids = [
             Permissions.objects.get(type="BUTTON", perm="system:departments:query").id,
             Permissions.objects.get(type="BUTTON", perm="system:dictitems:query").id,
@@ -171,6 +177,80 @@ class DjangoLiveHttpContractTestCase(LiveServerTestCase):
         )
         self.assertIn("accessToken", self.assert_success(relogin))
 
+    def test_registration_email_code_reset_and_relogin_over_http(self):
+        suffix = uuid.uuid4().hex[:10]
+        username = f"http-auth-{suffix}"
+        email = f"http-auth-{suffix}@example.com"
+        password = "first sufficiently long passphrase"
+        reset_password = "second sufficiently long passphrase"
+        session = requests.Session()
+        session.headers["Accept"] = "application/json"
+
+        send = session.post(
+            f"{self.live_server_url}/api/v1/oauth/email-code/",
+            json={"purpose": "register", "email": email},
+            timeout=10,
+        )
+        self.assertEqual(send.status_code, 200, send.text)
+        code = self._captured_email_code("register", email)
+        register = session.post(
+            f"{self.live_server_url}/api/v1/oauth/register/",
+            json={
+                "username": username,
+                "email": email,
+                "password": password,
+                "confirmPassword": password,
+                "emailCode": code,
+            },
+            timeout=10,
+        )
+        self.assertEqual(register.status_code, 200, register.text)
+        first_login = session.post(
+            f"{self.live_server_url}/api/v1/oauth/login/",
+            json={"username": username, "password": password},
+            timeout=10,
+        )
+        old_refresh = self.assert_success(first_login)["refreshToken"]
+
+        session.post(
+            f"{self.live_server_url}/api/v1/oauth/email-code/",
+            json={"purpose": "reset_password", "email": email},
+            timeout=10,
+        ).raise_for_status()
+        reset_code = self._captured_email_code("reset_password", email)
+        reset = session.post(
+            f"{self.live_server_url}/api/v1/oauth/password/reset/",
+            json={
+                "username": username,
+                "email": email,
+                "newPassword": reset_password,
+                "confirmPassword": reset_password,
+                "emailCode": reset_code,
+            },
+            timeout=10,
+        )
+        self.assertEqual(reset.status_code, 200, reset.text)
+        revoked = session.post(
+            f"{self.live_server_url}/api/v1/oauth/refresh-token/",
+            json={"refreshToken": old_refresh},
+            timeout=10,
+        )
+        self.assertEqual(revoked.status_code, 401, revoked.text)
+        relogin = session.post(
+            f"{self.live_server_url}/api/v1/oauth/login/",
+            json={"username": username, "password": reset_password},
+            timeout=10,
+        )
+        self.assertIn("accessToken", self.assert_success(relogin))
+
+    def _captured_email_code(self, purpose, email):
+        lines = open(self.auth_capture_file, encoding="utf-8").read().splitlines()
+        prefix = f"{purpose}:{email}="
+        for line in reversed(lines):
+            if line.startswith(prefix):
+                return line[len(prefix) :]
+        self.fail(f"missing captured email code for {purpose}")
+
     @unittest.skipUnless(
         os.environ.get("RUN_REAL_BACKEND_PLAYWRIGHT") == "1",
         "仅在双后端真实浏览器 smoke 门禁中运行",
@@ -195,6 +275,7 @@ class DjangoLiveHttpContractTestCase(LiveServerTestCase):
             rbac_granted_permission_ids=self.rbac_granted_permission_ids,
             lifecycle_role_name=self.lifecycle_role.name,
             lifecycle_dept_name=self.lifecycle_dept.name,
+            auth_capture_file=self.auth_capture_file,
         )
 
     def assert_success(self, response):

@@ -57,7 +57,12 @@
               <AppIcon name="captcha" :size="17" />
             </template>
           </el-input>
-          <div cursor-pointer h-48px w-120px flex-center @click="getCaptcha">
+          <button
+            type="button"
+            class="captcha-refresh"
+            :aria-label="t('login.captchaRefresh')"
+            @click="getCaptcha"
+          >
             <AppIcon v-if="codeLoading" name="loader-circle" :size="20" class="is-loading" />
 
             <img
@@ -68,10 +73,10 @@
               object-cover
               shadow="[0_0_0_1px_rgba(0,0,0,0.06)_inset]"
               :src="captchaBase64"
-              alt="captchaCode"
+              :alt="t('login.captchaAlt')"
             />
-            <el-text v-else type="info" size="small">点击获取</el-text>
-          </div>
+            <el-text v-else type="info" size="small">{{ t("login.captchaLoad") }}</el-text>
+          </button>
         </div>
       </el-form-item>
 
@@ -82,6 +87,14 @@
         </el-button>
       </el-form-item>
     </el-form>
+    <div flex justify-between mt-4>
+      <el-link type="primary" underline="never" @click="toRegister">
+        {{ t("login.register") }}
+      </el-link>
+      <el-link type="primary" underline="never" @click="toResetPassword">
+        {{ t("login.forgetPassword") }}
+      </el-link>
+    </div>
   </div>
 </template>
 <script setup lang="ts">
@@ -97,6 +110,9 @@ import AppIcon from "@/components/AppIcon/index.vue";
 
 const loginLogger = createLogger("Login");
 const { t } = useI18n();
+const emit = defineEmits(["update:modelValue"]);
+const toRegister = () => emit("update:modelValue", "register");
+const toResetPassword = () => emit("update:modelValue", "resetPwd");
 const userStore = useUserStore();
 const route = useRoute();
 

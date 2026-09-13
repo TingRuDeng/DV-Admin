@@ -31,6 +31,9 @@ DATABASES = {
 # 关闭调试模式
 DEBUG = False
 
+# 真实浏览器 smoke 使用本地捕获器读取邮箱验证码，不连接 SMTP。
+EMAIL_CAPTURE_FILE = os.environ.get("EMAIL_CAPTURE_FILE", EMAIL_CAPTURE_FILE)
+
 # 简化权限检查 - 测试时允许所有请求
 REST_FRAMEWORK["DEFAULT_PERMISSION_CLASSES"] = [
     "rest_framework.permissions.AllowAny",

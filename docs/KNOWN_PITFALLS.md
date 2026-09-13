@@ -291,6 +291,28 @@ WHITE_LIST = [
 
 ## 前端开发陷阱
 
+### Lucide 与第三方组件的默认图标
+
+直接把 Lucide 函数式组件作为 Element Plus 图标适配导出，会让部分图标 prop 的默认值被 Vue 当作工厂函数执行，出现读取 `slots` 失败，导致登录输入框等组件无法挂载。适配层必须导出 `defineComponent` 对象包装，并通过真实 `ElInput` 挂载和清除操作验证，不能仅检查导出名称。
+
+Vite 预构建可能仍缓存旧适配实现。修改依赖别名的目标后，应让开发服务器以 `--force` 重新预构建，再验证浏览器行为。演示页面与全局组件同名时应显式导入组件，避免 Vue 将模板标签解析为页面自身造成递归。
+
+相关代码：`frontend/src/components/AppIcon/element-plus-icons.ts`、`frontend/src/views/demo/icon-select.vue`。
+
+### 富文本编辑器的语言状态与占位缓存
+
+wangEditor 使用独立的全局语言状态，Vue i18n 切换不会更新原生工具栏。`defaultConfig` 的占位文字配置只在创建时读取，原生占位 DOM 生成后也会缓存；只改语言包或调用 `updateView()` 无法刷新已有占位文字。
+
+通过 `components/WangEditor/editor-language.ts` 统一调用 `i18nChangeLanguage`，相同语言不重复广播；组件更新实例配置和编辑区域外的占位标签。保持编辑实例，避免用重新挂载或 `setHtml()` 刷新语言而丢失草稿和撤销记录。原生语言切换会关闭选区与浮动菜单，重新聚焦后可继续撤销/重做。
+
+回归入口：`frontend/e2e/notice-management.spec.ts` 中的编辑器语言用例，覆盖缓存表单、中英文往返、Lucide 工具栏、格式/草稿保留、撤销重做和英文初始加载。
+
+### 透明表格与固定列
+
+固定列覆盖横向滚动区，透明背景会透出下方数据和表头。固定单元格及悬停状态需使用不透明的主题背景；没有行操作权限时应隐藏整列。复验需同时覆盖有操作权限和只读账号，不能只检查页面是否横向溢出。
+
+相关代码：`frontend/src/styles/skins/_table.scss`、`frontend/src/views/system/user/index.vue`。
+
 ### 陷阱 7：动态路由缓存
 
 **问题描述：**
@@ -694,3 +716,6 @@ location /media/ {
 **维护者：** DV-Admin Team
 
 **贡献指南：** 发现新陷阱时，请及时更新此文档。
+## 公开认证验证码与邮箱验证码
+
+注册和找回密码必须先完成图形验证码，再发送邮箱验证码。发送接口不消费图形验证码，最终注册或重置请求才消费它；否则用户点击“发送验证码”后提交表单会遇到二次校验失败。邮箱验证码保存在缓存中，成功后立即删除，并通过冷却键限制重复发送。

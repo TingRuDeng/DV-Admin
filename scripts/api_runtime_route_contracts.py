@@ -144,7 +144,16 @@ SUPPLEMENTAL_ROUTES = (
         for action in ("change-information", "change-password")
     ),
     RouteRegistration(
-        "GET", "/api/v1/oauth/captcha", FASTAPI, "backend_only", "captcha challenge"
+        "GET", "/api/v1/oauth/captcha", BOTH, "shared", "captcha challenge"
+    ),
+    RouteRegistration(
+        "POST", "/api/v1/oauth/email-code", BOTH, "shared", "email verification code"
+    ),
+    RouteRegistration(
+        "POST", "/api/v1/oauth/register", BOTH, "shared", "public registration"
+    ),
+    RouteRegistration(
+        "POST", "/api/v1/oauth/password/reset", BOTH, "shared", "public password recovery"
     ),
     RouteRegistration(
         "GET",

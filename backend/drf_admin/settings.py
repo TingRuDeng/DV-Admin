@@ -173,6 +173,15 @@ REDIS_STR = build_redis_auth_segment(REDIS_PWD)
 
 # 如果能获取到Redis配置，则使用Redis缓存；否则使用本地缓存
 CACHES = build_caches(REDIS_HOST, REDIS_PORT, REDIS_STR)
+# Email delivery is optional in development; the OAuth service captures codes locally
+# when EMAIL_HOST is not configured.
+EMAIL_HOST = env.str("EMAIL_HOST", default="")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_HOST_USER = env.str("EMAIL_USERNAME", default="")
+EMAIL_HOST_PASSWORD = env.str("EMAIL_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+DEFAULT_FROM_EMAIL = env.str("EMAIL_FROM", default="no-reply@example.com")
+EMAIL_CAPTURE_FILE = env.str("EMAIL_CAPTURE_FILE", default="")
 # 设置Django session使用redis作为后端存储
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "session"

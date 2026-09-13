@@ -70,6 +70,7 @@ def run_real_backend_playwright(
     rbac_granted_permission_ids: list[int],
     lifecycle_role_name: str,
     lifecycle_dept_name: str,
+    auth_capture_file: str | None = None,
 ) -> None:
     """让同一份浏览器流程连接指定真实后端，失败时保留 Playwright 原始错误。"""
     env = os.environ.copy()
@@ -97,6 +98,8 @@ def run_real_backend_playwright(
         }
     )
     env["REAL_FRONTEND_PORT"] = _frontend_port(backend_name, env)
+    if auth_capture_file:
+        env["REAL_AUTH_CAPTURE_FILE"] = auth_capture_file
     command = ["pnpm", "run", "test:e2e:real-backend"]
     process = subprocess.Popen(
         command,
