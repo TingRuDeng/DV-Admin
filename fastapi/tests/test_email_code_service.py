@@ -43,7 +43,18 @@ def test_email_code_resend_is_throttled():
 
 
 def test_email_code_route_returns_retry_after(client):
-    payload = {"purpose": "register", "email": "throttle-route@example.com"}
+    import asyncio
+
+    from app.services.captcha_service import get_captcha_service
+
+    captcha = client.get("/api/v1/oauth/captcha/").json()["data"]
+    captcha_code = asyncio.run(get_captcha_service()._cache.get(captcha["captchaKey"]))
+    payload = {
+        "purpose": "register",
+        "email": "throttle-route@example.com",
+        "captcha_key": captcha["captchaKey"],
+        "captcha_code": captcha_code,
+    }
     assert client.post("/api/v1/oauth/email-code/", json=payload).status_code == 200
     response = client.post("/api/v1/oauth/email-code/", json=payload)
     assert response.status_code == 429
