@@ -7,32 +7,45 @@
     <div class="dashboard-hero__content">
       <div class="dashboard-hero__meta">
         <span class="dashboard-hero__signal"></span>
-        <span>Workspace / {{ currentTime }}</span>
+        <span>{{ t("dashboard.workspace") }} / {{ currentTime }}</span>
       </div>
       <h1 id="dashboard-title" class="dashboard-hero__title">
-        你好，
+        {{ t("dashboard.greeting") }}
         <span>{{ name }}</span>
       </h1>
     </div>
 
     <div class="dashboard-hero__identity">
       <div class="dashboard-hero__avatar">
-        <img v-if="avatar" :src="avatar" :alt="`${name} 的头像`" />
+        <img
+          v-if="avatar && !avatarFailed"
+          :src="avatar"
+          :alt="t('dashboard.avatarAlt', { name })"
+          @error="avatarFailed = true"
+        />
         <AppIcon v-else name="user-round" :size="28" />
       </div>
-      <AppIcon name="arrow-right" :size="18" class="dashboard-hero__arrow" />
     </div>
-
-    <div class="dashboard-hero__index" aria-hidden="true">01</div>
   </section>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import AppIcon from "@/components/AppIcon/index.vue";
+import { ref, watch } from "vue";
 
-defineProps<{
+const { t } = useI18n();
+
+const props = defineProps<{
   name: string;
   avatar?: string;
   currentTime: string;
 }>();
+const avatarFailed = ref(false);
+watch(
+  () => props.avatar,
+  () => {
+    avatarFailed.value = false;
+  }
+);
 </script>

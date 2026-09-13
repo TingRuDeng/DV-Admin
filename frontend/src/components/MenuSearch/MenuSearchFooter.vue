@@ -1,11 +1,9 @@
 <template>
   <div class="dialog-footer">
-    <div class="ctrl-k-hint">
-      <span class="ctrl-k-text">Ctrl+K 快速打开</span>
-    </div>
     <div class="shortcuts-group">
       <div class="key-box">
-        <div class="key-btn">选择</div>
+        <kbd class="key-btn">Enter</kbd>
+        <span class="key-text">{{ t("menuSearch.select") }}</span>
       </div>
       <div class="arrow-box">
         <div class="arrow-up-down">
@@ -16,11 +14,11 @@
             <AppIcon name="chevron-down" :size="13" />
           </div>
         </div>
-        <span class="key-text">切换</span>
+        <span class="key-text">{{ t("menuSearch.switch") }}</span>
       </div>
       <div class="key-box">
         <div class="key-btn esc-btn">ESC</div>
-        <span class="key-text">关闭</span>
+        <span class="key-text">{{ t("menuSearch.close") }}</span>
       </div>
     </div>
   </div>
@@ -28,26 +26,28 @@
 
 <script setup lang="ts">
 import AppIcon from "@/components/AppIcon/index.vue";
+
+const { t } = useI18n();
 </script>
 
 <style scoped lang="scss">
 .dialog-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   width: 100%;
 }
 
 .shortcuts-group {
   display: flex;
+  flex-wrap: wrap;
   gap: 15px;
   align-items: center;
 }
 
 .key-box,
 .arrow-box,
-.arrow-up-down,
-.ctrl-k-hint {
+.arrow-up-down {
   display: flex;
   align-items: center;
 }

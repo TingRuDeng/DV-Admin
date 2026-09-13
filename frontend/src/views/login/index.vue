@@ -19,19 +19,11 @@
 
     <main class="login-layout" aria-labelledby="login-page-title">
       <section class="login-art" aria-hidden="true">
-        <div class="login-art__topline">
-          <span>DV-ADMIN</span>
-          <span>ACCESS / 01</span>
-        </div>
         <div class="login-art__title">
           <span>CONTROL</span>
           <em>ROOM</em>
         </div>
         <div class="login-art__line"></div>
-        <div class="login-art__footer">
-          <span>RBAC / PLATFORM</span>
-          <span>LOCAL SESSION</span>
-        </div>
       </section>
 
       <section class="login-card">
@@ -43,8 +35,7 @@
             </div>
           </div>
           <div>
-            <p class="login-kicker">Workspace access</p>
-            <h2 id="login-page-title">进入工作区</h2>
+            <h2 id="login-page-title">{{ t("login.workspace") }}</h2>
           </div>
         </div>
 

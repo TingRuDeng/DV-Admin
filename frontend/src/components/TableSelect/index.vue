@@ -17,14 +17,14 @@
               :placeholder="placeholder"
             >
               <template #suffix>
-                <el-icon
+                <AppIcon
+                  name="arrow-down"
+                  :size="16"
                   :style="{
                     transform: popoverVisible ? 'rotate(180deg)' : 'rotate(0)',
                     transition: 'transform .5s',
                   }"
-                >
-                  <ArrowDown />
-                </el-icon>
+                />
               </template>
             </el-input>
           </slot>
@@ -70,7 +70,9 @@
 
 <script lang="ts" setup>
 import { computed, reactive, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useResizeObserver } from "@vueuse/core";
+import AppIcon from "@/components/AppIcon/index.vue";
 import TableSelectDataTable from "./TableSelectDataTable.vue";
 import TableSelectFooter from "./TableSelectFooter.vue";
 import TableSelectSearchForm from "./TableSelectSearchForm.vue";
@@ -97,10 +99,12 @@ const emit = defineEmits<{
   confirmClick: [selection: TableSelectRecord[]];
 }>();
 
+const { t } = useI18n();
+
 const pk = props.selectConfig.pk ?? "id";
 const isMultiple = props.selectConfig.multiple === true;
 const width = props.selectConfig.width ?? "100%";
-const placeholder = props.selectConfig.placeholder ?? "请选择";
+const placeholder = computed(() => props.selectConfig.placeholder ?? t("common.select"));
 const popoverVisible = ref(false);
 const loading = ref(false);
 const total = ref(0);
@@ -133,9 +137,11 @@ const customColumns = computed(() => {
   return tableColumns.value.filter((item) => item.templet === "custom");
 });
 
-const confirmText = computed(() => {
-  return selectedItems.value.length > 0 ? `已选(${selectedItems.value.length})` : "确 定";
-});
+const confirmText = computed(() =>
+  selectedItems.value.length > 0
+    ? t("tableSelect.selected", { count: selectedItems.value.length })
+    : t("tableSelect.confirm")
+);
 
 useResizeObserver(tableSelectRef, (entries) => {
   popoverWidth.value = `${entries[0].contentRect.width}px`;

@@ -8,13 +8,11 @@ const ICON_SELECT_SOURCE = readFileSync(
   "utf8"
 );
 
-describe("IconSelect 标签页事件类型治理", () => {
-  it("标签页点击事件不能回退到显式 any", () => {
-    expect(ICON_SELECT_SOURCE).not.toMatch(/handleTabClick\(tabPane:\s*any\)/);
-  });
-
-  it("标签页点击事件必须使用 Element Plus 事件上下文类型", () => {
-    expect(ICON_SELECT_SOURCE).toContain("TabsPaneContext");
-    expect(ICON_SELECT_SOURCE).toContain("TabPaneName");
+describe("IconSelect 图标来源治理", () => {
+  it("只通过 AppIcon 渲染 Lucide 图标", () => {
+    expect(ICON_SELECT_SOURCE).toContain("APP_ICON_NAMES");
+    expect(ICON_SELECT_SOURCE).toContain("<AppIcon");
+    expect(ICON_SELECT_SOURCE).not.toContain("@element-plus/icons-vue");
+    expect(ICON_SELECT_SOURCE).not.toContain("i-svg:");
   });
 });

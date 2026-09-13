@@ -11,6 +11,7 @@
 -->
 <template>
   <div
+    v-if="isVisible"
     ref="containerRef"
     class="text-scroll-container"
     :class="[`text-scroll--${props.type}`]"
@@ -34,9 +35,16 @@
       </div>
     </div>
     <!-- 可选的关闭按钮 -->
-    <div v-if="showClose" class="right-icon" @click="handleRightIconClick">
+    <button
+      v-if="showClose"
+      type="button"
+      class="right-icon"
+      :aria-label="t('common.closeAnnouncement')"
+      :title="t('common.closeAnnouncement')"
+      @click="handleRightIconClick"
+    >
       <AppIcon name="close" :size="17" />
-    </div>
+    </button>
   </div>
 </template>
 
@@ -44,6 +52,8 @@
 import AppIcon from "@/components/AppIcon/index.vue";
 import type { TextScrollProps } from "./types";
 import { useTextScroll } from "./useTextScroll";
+
+const { t } = useI18n();
 
 const emit = defineEmits(["close"]);
 
@@ -59,18 +69,15 @@ const props = withDefaults(defineProps<TextScrollProps>(), {
 
 const { containerRef, sanitizedContent, scrollContent, scrollStyle, shouldScroll } =
   useTextScroll(props);
+const isVisible = ref(true);
 
 /**
  * 处理关闭按钮点击事件
- * 触发 close 事件，并直接销毁当前组件
+ * 触发 close 事件并隐藏当前公告
  */
 const handleRightIconClick = () => {
+  isVisible.value = false;
   emit("close");
-  // 获取当前组件的DOM元素
-  if (containerRef.value) {
-    // 从DOM中移除元素
-    containerRef.value.remove();
-  }
 };
 </script>
 
@@ -98,8 +105,10 @@ const handleRightIconClick = () => {
     justify-content: center;
     width: 40px;
     height: 100%;
+    padding: 0;
     text-align: center;
     background-color: var(--el-color-primary-light-9) !important;
+    border: 0;
   }
 
   .left-icon {
@@ -110,6 +119,11 @@ const handleRightIconClick = () => {
     right: 0;
     cursor: pointer;
     background-color: transparent !important;
+
+    &:focus-visible {
+      outline: 2px solid currentcolor;
+      outline-offset: -4px;
+    }
   }
 
   .scroll-wrapper {
@@ -256,6 +270,17 @@ const handleRightIconClick = () => {
   content: "|";
   opacity: 0;
   animation: cursor 1s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .text-scroll-content {
+    animation: none !important;
+  }
+
+  .text-scroll-container[typewriter] .text-scroll-content .scroll-item::after {
+    opacity: 0;
+    animation: none;
+  }
 }
 
 @keyframes cursor {

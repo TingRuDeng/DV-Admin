@@ -2,7 +2,7 @@
   <ProFormDrawer
     ref="noticeFormRef"
     v-model="dialogState.visible"
-    :title="dialogState.title"
+    :title="t(dialogState.titleKey)"
     :model="formData"
     :rules="rules"
     :loading="formLoading"
@@ -11,28 +11,32 @@
     @close="handleClose"
     @submit="handleSubmitWrapper"
   >
-    <el-form-item label="通知标题" prop="title">
-      <el-input v-model="formData.title" placeholder="通知标题" clearable />
+    <el-form-item :label="t('system.noticeTitle')" prop="title">
+      <el-input v-model="formData.title" :placeholder="t('system.noticeTitle')" clearable />
     </el-form-item>
 
-    <el-form-item label="通知类型" prop="type">
+    <el-form-item :label="t('system.noticeType')" prop="type">
       <Dict v-model="formData.type" code="notice_type" />
     </el-form-item>
-    <el-form-item label="通知等级" prop="level">
+    <el-form-item :label="t('system.noticeLevel')" prop="level">
       <Dict v-model="formData.level" code="notice_level" />
     </el-form-item>
-    <el-form-item label="目标类型" prop="targetType">
+    <el-form-item :label="t('system.target')" prop="targetType">
       <el-radio-group v-model="formData.targetType">
-        <el-radio :value="1">全体</el-radio>
-        <el-radio :value="2">指定</el-radio>
+        <el-radio :value="1">{{ t("system.allUsers") }}</el-radio>
+        <el-radio :value="2">{{ t("system.specifiedUsers") }}</el-radio>
       </el-radio-group>
     </el-form-item>
-    <el-form-item v-if="formData.targetType == 2" label="指定用户" prop="targetUserIds">
+    <el-form-item
+      v-if="formData.targetType == 2"
+      :label="t('system.specifiedUser')"
+      prop="targetUserIds"
+    >
       <el-select
         v-model="formData.targetUserIds"
         multiple
         search
-        placeholder="请选择指定用户"
+        :placeholder="t('system.specifiedUserPlaceholder')"
         class="w-full"
       >
         <el-option
@@ -43,13 +47,16 @@
         />
       </el-select>
     </el-form-item>
-    <el-form-item label="通知内容" prop="content">
+    <el-form-item :label="t('system.noticeContent')" prop="content">
       <WangEditor v-model="formData.content" />
     </el-form-item>
   </ProFormDrawer>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 import type { FormRules } from "element-plus";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import NoticeAPI, { type NoticeForm } from "@/api/system/notice-api";
@@ -64,7 +71,7 @@ const formLoading = ref(false);
 const userOptions = ref<OptionType[]>([]);
 
 const dialogState = reactive({
-  title: "新增公告",
+  titleKey: "system.addNoticeTitle",
   visible: false,
 });
 
@@ -74,22 +81,22 @@ const formData = reactive<NoticeForm>({
 });
 
 const rules: FormRules = {
-  title: [{ required: true, message: "请输入通知标题", trigger: "blur" }],
+  title: [{ required: true, message: () => t("system.noticeTitleRequired"), trigger: "blur" }],
   content: [
     {
       required: true,
-      message: "请输入通知内容",
+      message: () => t("system.noticeContentRequired"),
       trigger: "blur",
-      validator: (_rule: unknown, value: string, callback: (error?: Error) => void) => {
-        if (!value.replace(/<[^>]+>/g, "").trim()) {
-          callback(new Error("请输入通知内容"));
+      validator: (_rule: unknown, value: string | undefined, callback: (error?: Error) => void) => {
+        if (!(value ?? "").replace(/<[^>]+>/g, "").trim()) {
+          callback(new Error(t("system.noticeContentRequired")));
           return;
         }
         callback();
       },
     },
   ],
-  type: [{ required: true, message: "请选择通知类型", trigger: "change" }],
+  type: [{ required: true, message: () => t("system.noticeTypeRequired"), trigger: "change" }],
 };
 
 function resetFormData() {
@@ -110,14 +117,14 @@ async function loadUserOptions() {
 
 async function openCreate() {
   resetFormData();
-  dialogState.title = "新增公告";
+  dialogState.titleKey = "system.addNoticeTitle";
   dialogState.visible = true;
   await loadUserOptions();
 }
 
 async function openEdit(id: string) {
   resetFormData();
-  dialogState.title = "修改公告";
+  dialogState.titleKey = "system.editNotice";
   dialogState.visible = true;
   await loadUserOptions();
   const data = await NoticeAPI.getFormData(id);
@@ -142,7 +149,7 @@ const handleSubmit = useDebounceFn(() => {
     const request = noticeId ? NoticeAPI.update(noticeId, formData) : NoticeAPI.create(formData);
     request
       .then(() => {
-        ElMessage.success(noticeId ? "修改成功" : "新增成功");
+        ElMessage.success(noticeId ? t("system.updateSuccess") : t("system.createSuccess"));
         handleClose();
         emit("success");
       })

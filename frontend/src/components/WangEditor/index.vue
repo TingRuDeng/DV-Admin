@@ -9,7 +9,11 @@
 -->
 
 <template>
-  <div style="z-index: 999; border: 1px solid var(--el-border-color)">
+  <div
+    ref="editorRootRef"
+    class="ff-rich-editor"
+    style="z-index: 999; border: 1px solid var(--el-border-color)"
+  >
     <!-- 工具栏 -->
     <Toolbar
       :editor="editorRef"
@@ -40,6 +44,11 @@ import type {
 
 // 文件上传 API
 import FileAPI from "@/api/file-api";
+import { bindEditorIcons } from "./editor-icons";
+import { syncEditorLanguage } from "./editor-language";
+import { useI18n } from "vue-i18n";
+
+const { t, locale } = useI18n();
 
 type InsertImageFn =
   NonNullable<IUploadConfig["customUpload"]> extends (
@@ -68,9 +77,30 @@ const modelValue = defineModel("modelValue", {
 
 // 编辑器实例，必须用 shallowRef，重要！
 const editorRef = shallowRef<IDomEditor>();
+const editorRootRef = ref<HTMLElement>();
+let icons: ReturnType<typeof bindEditorIcons> | undefined;
+const refreshIcons = () => icons?.refresh();
+
+onMounted(() => {
+  if (editorRootRef.value) {
+    icons = bindEditorIcons(
+      editorRootRef.value,
+      () => editorRef.value?.isFullScreen ?? false,
+      (key) => {
+        if (key === "group-image") return t("upload.image");
+        if (key === "fullScreen") {
+          return t(
+            editorRef.value?.isFullScreen ? "navbar.exitFullscreen" : "navbar.enterFullscreen"
+          );
+        }
+        return undefined;
+      }
+    );
+  }
+});
 
 // 工具栏配置
-const toolbarConfig = ref<Partial<IToolbarConfig>>({});
+const toolbarConfig = ref<Partial<IToolbarConfig>>({ excludeKeys: ["emotion"] });
 
 // 编辑器配置
 const uploadImageConfig: UploadImageConfig = {
@@ -88,21 +118,65 @@ const uploadImageConfig: UploadImageConfig = {
 };
 
 const editorConfig = ref<Partial<IEditorConfig>>({
-  placeholder: "请输入内容...",
+  placeholder: t("common.editorPlaceholder"),
   MENU_CONF: {
     uploadImage: uploadImageConfig,
   },
 });
 
+watch(
+  locale,
+  () => {
+    syncEditorLanguage(locale.value);
+    const placeholder = t("common.editorPlaceholder");
+    editorConfig.value.placeholder = placeholder;
+    const editor = editorRef.value;
+    if (editor && !editor.isDestroyed) {
+      editor.getConfig().placeholder = placeholder;
+      // The native placeholder is cached outside the editable document. Updating
+      // defaultConfig or the editor view does not update an existing label.
+      const label = editorRootRef.value?.querySelector(
+        ".w-e-text-container > .w-e-text-placeholder"
+      );
+      if (label) label.textContent = placeholder;
+      refreshIcons();
+    }
+  },
+  { immediate: true, flush: "post" }
+);
+
 // 记录 editor 实例，重要！
 const handleCreated = (editor: IDomEditor) => {
   editorRef.value = editor;
+  editor.on("fullscreen", refreshIcons);
+  editor.on("unFullScreen", refreshIcons);
 };
 
 // 组件销毁时，也及时销毁编辑器，重要！
 onBeforeUnmount(() => {
+  icons?.dispose();
   const editor = editorRef.value;
   if (editor == null) return;
+  editor.off("fullscreen", refreshIcons);
+  editor.off("unFullScreen", refreshIcons);
   editor.destroy();
 });
 </script>
+
+<style scoped lang="scss">
+.ff-rich-editor {
+  border-radius: var(--ff-radius-control);
+
+  :deep(.w-e-bar svg[data-editor-lucide]),
+  :deep(.w-e-hover-bar svg[data-editor-lucide]) {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+  }
+
+  :deep(.w-e-bar button:focus-visible) {
+    outline: 2px solid var(--el-color-primary);
+    outline-offset: -2px;
+  }
+}
+</style>

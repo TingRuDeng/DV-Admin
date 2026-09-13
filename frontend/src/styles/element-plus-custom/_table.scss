@@ -50,7 +50,7 @@
 
       // 选中行
       &.current-row > td {
-        background-color: rgba(99, 102, 241, 0.08);
+        background-color: rgba(255, 112, 92, 0.08);
       }
     }
   }
@@ -129,7 +129,7 @@ html.dark {
         }
 
         &.current-row > td {
-          background-color: rgba(129, 140, 248, 0.15);
+          background-color: rgba(255, 112, 92, 0.15);
         }
       }
     }

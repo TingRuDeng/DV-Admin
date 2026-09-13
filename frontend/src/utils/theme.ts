@@ -65,8 +65,7 @@ export function generateThemeColors(primary: string, theme: ThemeMode) {
   }
 
   // 生成深色变体
-  colors["primary-dark-2"] =
-    theme === ThemeMode.LIGHT ? `${getLightColor(primary, 0.2)}` : `${getDarkColor(primary, 0.3)}`;
+  colors["primary-dark-2"] = getDarkColor(primary, theme === ThemeMode.LIGHT ? 0.2 : 0.3);
 
   return colors;
 }
@@ -76,7 +75,22 @@ export function applyTheme(colors: Record<string, string>) {
 
   Object.entries(colors).forEach(([key, value]) => {
     el.style.setProperty(`--el-color-${key}`, value);
+    el.style.setProperty(`--color-${key}`, value);
   });
+
+  if (colors.primary) {
+    el.style.setProperty("--ff-accent", colors.primary);
+    const luminance = hexToRgb(colors.primary).reduce((total, channel, index) => {
+      const srgb = channel / 255;
+      const linear = srgb <= 0.04045 ? srgb / 12.92 : ((srgb + 0.055) / 1.055) ** 2.4;
+      return total + linear * [0.2126, 0.7152, 0.0722][index];
+    }, 0);
+    el.style.setProperty("--ff-accent-text", luminance > 0.179 ? "#000000" : "#ffffff");
+    el.style.setProperty(
+      "--ff-accent-strong",
+      colors["primary-dark-2"] ?? getDarkColor(colors.primary, 0.2)
+    );
+  }
 
   // 确保主题色立即生效，强制重新渲染
   requestAnimationFrame(() => {

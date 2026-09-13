@@ -1,8 +1,11 @@
 <template>
-  <SwaggerFrame :src="swaggerApi" />
+  <PageShell class="ff-tool-page">
+    <SwaggerFrame :src="swaggerApi" />
+  </PageShell>
 </template>
 <script setup lang="ts">
 // Import the required component
+import PageShell from "@/components/PageShell/index.vue";
 import SwaggerFrame from "./components/SwaggerFrame.vue";
 
 defineOptions({

@@ -6,105 +6,151 @@
       @submit="handleQuery"
       @reset="handleResetQuery"
     >
-      <el-form-item prop="operation" label="关键字" class="mb-0">
+      <el-form-item prop="operation" :label="t('common.keyword')" class="mb-0">
         <el-input
           v-model="queryParams.operation"
-          placeholder="日志内容"
+          :placeholder="t('system.logContent')"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
 
-      <el-form-item prop="username" label="操作人" class="mb-0">
+      <el-form-item prop="username" :label="t('system.operator')" class="mb-0">
         <el-input
           v-model="queryParams.username"
-          placeholder="用户名"
+          :placeholder="t('system.username')"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
 
-      <el-form-item prop="requestId" label="请求 ID" class="mb-0">
+      <el-form-item prop="requestId" :label="t('system.requestId')" class="mb-0">
         <el-input
           v-model="queryParams.requestId"
-          placeholder="完整请求 ID"
+          :placeholder="t('system.fullRequestId')"
           maxlength="64"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
 
-      <el-form-item prop="objectType" label="对象类型" class="mb-0">
+      <el-form-item prop="objectType" :label="t('system.objectType')" class="mb-0">
         <el-input
           v-model="queryParams.objectType"
-          placeholder="如 system.users"
+          :placeholder="t('system.objectTypePlaceholder')"
           maxlength="100"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
 
-      <el-form-item prop="objectId" label="对象 ID" class="mb-0">
+      <el-form-item prop="objectId" :label="t('system.objectId')" class="mb-0">
         <el-input
           v-model="queryParams.objectId"
-          placeholder="完整对象 ID"
+          :placeholder="t('system.objectIdPlaceholder')"
           maxlength="255"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
 
-      <el-form-item prop="method" label="请求方法" class="mb-0">
-        <el-select v-model="queryParams.method" placeholder="全部" clearable style="width: 120px">
+      <el-form-item prop="method" :label="t('system.method')" class="mb-0">
+        <el-select
+          v-model="queryParams.method"
+          :placeholder="t('common.all')"
+          clearable
+          style="width: 120px"
+        >
           <el-option v-for="method in HTTP_METHODS" :key="method" :label="method" :value="method" />
         </el-select>
       </el-form-item>
 
-      <el-form-item prop="status" label="执行状态" class="mb-0">
-        <el-select v-model="queryParams.status" placeholder="全部" clearable style="width: 120px">
-          <el-option label="成功" :value="1" />
-          <el-option label="失败" :value="0" />
+      <el-form-item prop="status" :label="t('system.executionStatus')" class="mb-0">
+        <el-select
+          v-model="queryParams.status"
+          :placeholder="t('common.all')"
+          clearable
+          style="width: 120px"
+        >
+          <el-option :label="t('system.successStatus')" :value="1" />
+          <el-option :label="t('system.failedStatus')" :value="0" />
         </el-select>
       </el-form-item>
 
-      <el-form-item prop="createTime" label="操作时间" class="mb-0">
+      <el-form-item prop="createTime" :label="t('system.operationTime')" class="mb-0">
         <el-date-picker
           v-model="queryParams.createTime"
           :editable="false"
           type="daterange"
           range-separator="~"
-          start-placeholder="开始时间"
-          end-placeholder="截止时间"
+          :start-placeholder="t('common.startTime')"
+          :end-placeholder="t('common.endTime')"
           value-format="YYYY-MM-DD"
           style="width: 200px"
         />
       </el-form-item>
     </ProSearch>
 
-    <ProTable ref="tableRef" title="操作日志" :request="requestTableData" :params="queryParams">
-      <el-table-column label="操作时间" prop="createdAt" width="180" />
-      <el-table-column label="操作人" prop="username" width="120" />
-      <el-table-column label="请求方法" prop="method" width="100" />
-      <el-table-column label="对象类型" prop="objectType" width="150" show-overflow-tooltip />
-      <el-table-column label="对象 ID" prop="objectId" width="150" show-overflow-tooltip />
-      <el-table-column label="执行状态" prop="status" width="100" align="center">
+    <ProTable
+      ref="tableRef"
+      :title="t('system.logData')"
+      :request="requestTableData"
+      :params="queryParams"
+    >
+      <el-table-column :label="t('system.operationTime')" prop="createdAt" width="180" />
+      <el-table-column :label="t('system.operator')" prop="username" width="120" />
+      <el-table-column :label="t('system.method')" prop="method" width="100" />
+      <el-table-column
+        :label="t('system.objectType')"
+        prop="objectType"
+        width="150"
+        show-overflow-tooltip
+      />
+      <el-table-column
+        :label="t('system.objectId')"
+        prop="objectId"
+        width="150"
+        show-overflow-tooltip
+      />
+      <el-table-column
+        :label="t('system.executionStatus')"
+        prop="status"
+        width="100"
+        align="center"
+      >
         <template #default="{ row }">
           <el-tag :type="row.status === 1 ? 'success' : 'danger'" effect="light">
-            {{ row.status === 1 ? "成功" : "失败" }}
+            {{ row.status === 1 ? t("system.successStatus") : t("system.failedStatus") }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="响应码" prop="responseStatus" width="100" align="center" />
-      <el-table-column label="日志内容" prop="operation" min-width="180" />
-      <el-table-column label="请求路径" prop="path" min-width="220" show-overflow-tooltip />
-      <el-table-column label="IP 地址" prop="ip" width="150" />
-      <el-table-column label="浏览器" prop="browser" width="150" />
-      <el-table-column label="终端系统" prop="os" width="200" show-overflow-tooltip />
-      <el-table-column label="执行时间(ms)" prop="executionTime" width="150" align="center" />
-      <el-table-column label="操作" fixed="right" width="100" align="center">
+      <el-table-column
+        :label="t('system.responseCode')"
+        prop="responseStatus"
+        width="100"
+        align="center"
+      />
+      <el-table-column :label="t('system.logContent')" prop="operation" min-width="180" />
+      <el-table-column
+        :label="t('system.requestPath')"
+        prop="path"
+        min-width="220"
+        show-overflow-tooltip
+      />
+      <el-table-column :label="t('system.ipAddress')" prop="ip" width="150" />
+      <el-table-column :label="t('system.browser')" prop="browser" width="150" />
+      <el-table-column :label="t('system.os')" prop="os" width="200" show-overflow-tooltip />
+      <el-table-column
+        :label="t('system.executionTime')"
+        prop="executionTime"
+        width="150"
+        align="center"
+      />
+      <el-table-column :label="t('common.actions')" fixed="right" width="100" align="center">
         <template #default="{ row }">
-          <el-button type="primary" link :icon="View" @click="openDetailDialog(row.id)">
-            查看
+          <el-button type="primary" link @click="openDetailDialog(row.id)">
+            <AppIcon name="eye" :size="16" />
+            {{ t("common.view") }}
           </el-button>
         </template>
       </el-table-column>
@@ -115,6 +161,9 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 defineOptions({
   name: "Log",
   inheritAttrs: false,
@@ -123,7 +172,7 @@ defineOptions({
 import LogAPI, { LogPageQuery, LogPageVO } from "@/api/system/log-api";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
-import { View } from "@element-plus/icons-vue";
+import AppIcon from "@/components/AppIcon/index.vue";
 import LogDetailDialog from "./components/LogDetailDialog.vue";
 
 const HTTP_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;

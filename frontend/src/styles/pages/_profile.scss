@@ -1,3 +1,7 @@
+.ff-profile-page {
+  position: relative;
+}
+
 .ff-profile-page__grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -11,31 +15,72 @@
 }
 
 .ff-profile-page__sidebar {
-  padding: 1.5rem;
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 20% 0%,
+      color-mix(in srgb, var(--ff-accent) 15%, transparent),
+      transparent 52%
+    ),
+    var(--ff-color-bg-panel);
+  border-color: color-mix(in srgb, var(--ff-accent) 20%, var(--ff-color-border-soft));
+}
+
+.ff-profile-page__sidebar::after {
+  position: absolute;
+  right: -70px;
+  bottom: -90px;
+  width: 180px;
+  height: 180px;
+  pointer-events: none;
+  content: "";
+  border: 1px solid color-mix(in srgb, var(--ff-accent) 24%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 24px color-mix(in srgb, var(--ff-accent) 5%, transparent),
+    0 0 0 48px color-mix(in srgb, var(--ff-accent) 3%, transparent);
 }
 
 .ff-profile-user {
-  padding: 1.25rem 0;
+  position: relative;
+  z-index: 1;
+  padding: 2.5rem 1.5rem 2rem;
   text-align: center;
 }
 
 .ff-profile-user__avatar {
   position: relative;
   display: inline-block;
-  margin-bottom: 1rem;
+  padding: 5px;
+  margin-bottom: 1.25rem;
+  background: color-mix(in srgb, var(--ff-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ff-accent) 40%, transparent);
+  border-radius: 50%;
+  box-shadow: 0 18px 42px -26px color-mix(in srgb, var(--ff-accent) 90%, transparent);
+}
+
+.ff-profile-user__avatar .el-avatar {
+  display: block;
+  border: 2px solid var(--ff-color-bg-panel);
 }
 
 .ff-profile-user__avatar-button {
   position: absolute;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  border: none;
-  transition: all 0.3s ease;
+  color: var(--ff-ink);
+  background: var(--ff-accent);
+  border: 2px solid var(--ff-color-bg-panel);
+  transition:
+    transform var(--ff-duration-base) var(--ff-ease-spring),
+    background-color var(--ff-duration-fast) ease;
 }
 
 .ff-profile-user__avatar-button:hover {
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--ff-accent-strong);
+  transform: translateY(-2px) rotate(-6deg);
 }
 
 .ff-profile-user__name {
@@ -43,9 +88,10 @@
 }
 
 .ff-profile-user__display-name {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
+  font-size: 1.3rem;
+  font-weight: 650;
+  color: var(--ff-color-text-primary);
+  letter-spacing: -0.04em;
 }
 
 .ff-profile-user__edit {
@@ -53,44 +99,60 @@
   height: 32px;
   margin-left: 0.25rem;
   vertical-align: middle;
-  color: var(--el-text-color-secondary);
+  color: var(--ff-color-text-secondary);
 }
 
 .ff-profile-user__edit:hover {
-  color: var(--el-color-primary);
+  color: var(--ff-accent);
 }
 
 .ff-profile-user__role {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 0.65rem;
+  margin-top: 0.4rem;
   font-size: 0.875rem;
-  color: var(--el-text-color-secondary);
+  color: var(--ff-color-text-secondary);
+  background: color-mix(in srgb, var(--ff-accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ff-accent) 16%, transparent);
+  border-radius: 999px;
 }
 
 .ff-profile-security-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 0;
+  min-height: 58px;
+  padding: 0.9rem 0;
 }
 
 .ff-profile-security-item__title {
-  margin-bottom: 0.25rem;
   font-size: 1rem;
-  font-weight: 500;
-  color: var(--el-text-color-primary);
-}
-
-.ff-profile-security-item__desc {
-  font-size: 0.875rem;
-  color: var(--el-text-color-secondary);
+  font-weight: 600;
+  color: var(--ff-color-text-primary);
+  letter-spacing: -0.02em;
 }
 
 .ff-profile-page .el-descriptions__label {
-  font-weight: 500;
-  color: var(--el-text-color-regular);
+  font-weight: 600;
+  color: var(--ff-color-text-secondary);
 }
 
 .ff-profile-page .el-descriptions__content {
-  color: var(--el-text-color-primary);
+  color: var(--ff-color-text-primary);
+}
+
+.ff-profile-page .ff-data-panel__header {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--ff-color-border-soft);
+}
+
+.ff-profile-page .ff-data-panel__title {
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--ff-color-text-primary);
+  letter-spacing: -0.03em;
 }
 
 .ff-profile-gender {
@@ -114,11 +176,11 @@
 
 @media (max-width: 767px) {
   .ff-profile-page__sidebar {
-    padding: 1rem;
+    padding: 0;
   }
 
   .ff-profile-user {
-    padding: 0.75rem 0;
+    padding: 1.75rem 1rem 1.5rem;
   }
 
   .ff-profile-security-item {
@@ -128,5 +190,11 @@
 
   .ff-profile-security-item__copy {
     min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ff-profile-user__avatar-button {
+    transition: none;
   }
 }

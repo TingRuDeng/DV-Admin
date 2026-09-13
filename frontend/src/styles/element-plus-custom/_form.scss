@@ -14,11 +14,11 @@
     transition: all var(--duration-base, 200ms) var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
 
     &:hover {
-      box-shadow: 0 0 0 1px var(--color-primary-light, #818cf8) inset;
+      box-shadow: 0 0 0 1px var(--color-primary-light, #ff9e8f) inset;
     }
 
     &.is-focus {
-      box-shadow: 0 0 0 2px var(--color-primary, #6366f1) inset;
+      box-shadow: 0 0 0 2px var(--color-primary, #ff705c) inset;
     }
   }
 }
@@ -32,11 +32,11 @@
     transition: all var(--duration-base, 200ms) var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
 
     &:hover {
-      box-shadow: 0 0 0 1px var(--color-primary-light, #818cf8) inset;
+      box-shadow: 0 0 0 1px var(--color-primary-light, #ff9e8f) inset;
     }
 
     &.is-focused {
-      box-shadow: 0 0 0 2px var(--color-primary, #6366f1) inset;
+      box-shadow: 0 0 0 2px var(--color-primary, #ff705c) inset;
     }
   }
 }
@@ -70,11 +70,11 @@ html.dark {
   .el-input {
     .el-input__wrapper {
       &:hover {
-        box-shadow: 0 0 0 1px var(--color-primary-lighter, #a5b4fc) inset;
+        box-shadow: 0 0 0 1px var(--color-primary-lighter, #ffc4ba) inset;
       }
 
       &.is-focus {
-        box-shadow: 0 0 0 2px var(--color-primary-light, #818cf8) inset;
+        box-shadow: 0 0 0 2px var(--color-primary-light, #ff9e8f) inset;
       }
     }
   }
@@ -82,11 +82,11 @@ html.dark {
   .el-select {
     .el-select__wrapper {
       &:hover {
-        box-shadow: 0 0 0 1px var(--color-primary-lighter, #a5b4fc) inset;
+        box-shadow: 0 0 0 1px var(--color-primary-lighter, #ffc4ba) inset;
       }
 
       &.is-focused {
-        box-shadow: 0 0 0 2px var(--color-primary-light, #818cf8) inset;
+        box-shadow: 0 0 0 2px var(--color-primary-light, #ff9e8f) inset;
       }
     }
   }

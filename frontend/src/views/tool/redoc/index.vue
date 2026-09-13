@@ -1,7 +1,10 @@
 <template>
-  <RedocFrame :src="redocApi" />
+  <PageShell class="ff-tool-page">
+    <RedocFrame :src="redocApi" />
+  </PageShell>
 </template>
 <script setup>
+import PageShell from "@/components/PageShell/index.vue";
 import RedocFrame from "./components/RedocFrame.vue";
 import { ref } from "vue";
 // 明确指定组件名称

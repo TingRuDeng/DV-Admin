@@ -82,6 +82,7 @@ describe("壳层审计回归约束", () => {
       readProjectFile("src/components/Fullscreen/index.vue"),
       readProjectFile("src/components/SizeSelect/index.vue"),
       readProjectFile("src/components/LangSelect/index.vue"),
+      readProjectFile("src/components/DarkModeSwitch/index.vue"),
       readProjectFile("src/components/Notification/index.vue"),
     ];
 

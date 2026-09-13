@@ -26,7 +26,7 @@
       class="layout__mobile-menu"
       tabindex="-1"
       :class="{ 'layout__mobile-menu--collapsed': !isSidebarOpen }"
-      aria-label="主导航"
+      :aria-label="t('navbar.mainNavigation')"
       :aria-hidden="!isSidebarOpen ? 'true' : undefined"
       :inert="!isSidebarOpen"
     >
@@ -53,6 +53,8 @@ import NavbarActions from "../../components/NavBar/components/NavbarActions.vue"
 import TagsView from "../../components/TagsView/index.vue";
 import AppMain from "../../components/AppMain/index.vue";
 import Hamburger from "@/components/Hamburger/index.vue";
+
+const { t } = useI18n();
 
 // 布局相关参数
 const { isShowTagsView, isShowLogo, isMobile, isSidebarOpen, toggleSidebar } = useLayout();

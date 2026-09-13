@@ -2,7 +2,9 @@
 import { defineComponent, nextTick, type PropType } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
+import { createI18n } from "vue-i18n";
 import TableSelect from "@/components/TableSelect/index.vue";
+import zhCn from "@/lang/package/zh-cn.json";
 
 const pageRows = [
   { id: 1, name: "admin" },
@@ -10,6 +12,7 @@ const pageRows = [
 ];
 
 const globalConfig = {
+  plugins: [createI18n({ legacy: false, locale: "zh-cn", messages: { "zh-cn": zhCn } })],
   directives: {
     loading: () => undefined,
   },
@@ -162,10 +165,10 @@ describe("TableSelect behavior", () => {
 
     await wrapper
       .findAll("button")
-      .find((button) => button.text() === "清 空")
+      .find((button) => button.text() === "清空")
       ?.trigger("click");
     await nextTick();
 
-    expect(wrapper.text()).toContain("确 定");
+    expect(wrapper.text()).toContain("确定");
   });
 });

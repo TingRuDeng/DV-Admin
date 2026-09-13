@@ -1,0 +1,36 @@
+.ff-doc-page {
+  height: 100%;
+  min-height: 100%;
+  padding: 0;
+  overflow: hidden;
+  background: var(--ff-shell-bg);
+}
+
+.ff-doc-page__empty {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  min-height: 65vh;
+  color: var(--ff-shell-text-muted);
+
+  h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--ff-shell-text);
+  }
+}
+
+.ff-doc-page__back {
+  padding: 12px 20px;
+  color: var(--ff-accent);
+  border: 1px solid var(--ff-shell-border);
+  border-radius: var(--ff-radius-control);
+
+  &:focus-visible {
+    outline: 2px solid var(--ff-accent);
+    outline-offset: 4px;
+  }
+}

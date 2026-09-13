@@ -18,14 +18,19 @@
           :preview-src-list="[modelValue]"
           @click.stop="handlePreview"
         />
-        <el-icon class="single-upload__delete-btn" @click.stop="handleDelete">
-          <CircleCloseFilled />
-        </el-icon>
+        <button
+          type="button"
+          class="single-upload__delete-btn"
+          :aria-label="t('upload.deleteImage')"
+          :title="t('upload.deleteImage')"
+          @click.stop="handleDelete"
+        >
+          <AppIcon name="x" :size="16" />
+        </button>
       </template>
       <template v-else>
-        <el-icon>
-          <Plus />
-        </el-icon>
+        <AppIcon name="plus" :size="24" />
+        <span class="sr-only">{{ t("upload.image") }}</span>
       </template>
     </template>
   </el-upload>
@@ -35,6 +40,9 @@
 import { UploadRawFile, UploadRequestOptions } from "element-plus";
 import FileAPI, { FileInfo } from "@/api/file-api";
 import { getUploadErrorMessage } from "@/components/Upload/uploadError";
+import AppIcon from "@/components/AppIcon/index.vue";
+
+const { t } = useI18n();
 
 const props = defineProps({
   /**
@@ -110,13 +118,13 @@ function handleBeforeUpload(file: UploadRawFile) {
   });
 
   if (!isValidType) {
-    ElMessage.warning(`上传文件的格式不正确，仅支持：${props.accept}`);
+    ElMessage.warning(t("upload.invalidFormat", { types: props.accept }));
     return false;
   }
 
   // 限制文件大小
   if (file.size > props.maxFileSize * 1024 * 1024) {
-    ElMessage.warning("上传图片不能大于" + props.maxFileSize + "M");
+    ElMessage.warning(t("upload.imageTooLarge", { size: props.maxFileSize }));
     return false;
   }
   return true;
@@ -167,7 +175,7 @@ function handleDelete() {
  * @param fileInfo 上传成功后的文件信息
  */
 const onSuccess = (fileInfo: FileInfo) => {
-  ElMessage.success("上传成功");
+  ElMessage.success(t("upload.success"));
   modelValue.value = fileInfo.url;
 };
 
@@ -175,7 +183,7 @@ const onSuccess = (fileInfo: FileInfo) => {
  * 上传失败回调
  */
 const onError = (error: unknown) => {
-  ElMessage.error("上传失败: " + getUploadErrorMessage(error));
+  ElMessage.error(`${t("upload.failed")}: ${getUploadErrorMessage(error)}`);
 };
 </script>
 
@@ -195,14 +203,20 @@ const onError = (error: unknown) => {
     position: absolute;
     top: 1px;
     right: 1px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px;
     font-size: 16px;
-    color: #ff7901;
+    color: var(--el-text-color-primary);
     cursor: pointer;
-    background: #fff;
+    background: var(--el-bg-color-overlay);
+    border: 0;
     border-radius: 100%;
 
-    :hover {
-      color: #ff4500;
+    &:hover,
+    &:focus-visible {
+      color: var(--el-color-danger);
     }
   }
 }

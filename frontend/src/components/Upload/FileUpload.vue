@@ -14,20 +14,26 @@
     >
       <!-- 上传文件按钮 -->
       <el-button type="primary" :disabled="fileList.length >= props.limit">
-        {{ props.uploadBtnText }}
+        {{ props.uploadBtnText || t("upload.file") }}
       </el-button>
 
       <!-- 文件列表 -->
       <template #file="{ file }">
         <template v-if="file.status === 'success'">
           <div class="el-upload-list__item-info">
-            <a class="el-upload-list__item-name" @click="handleDownload(file)">
+            <button type="button" class="el-upload-list__item-name" @click="handleDownload(file)">
               <AppIcon name="file-text" :size="16" />
               <span class="el-upload-list__item-file-name">{{ file.name }}</span>
-              <span class="el-icon--close" @click.stop="handleRemove(file)">
-                <AppIcon name="close" :size="16" />
-              </span>
-            </a>
+            </button>
+            <button
+              type="button"
+              class="el-icon--close"
+              :aria-label="t('upload.deleteFile')"
+              :title="t('upload.deleteFile')"
+              @click="handleRemove(file)"
+            >
+              <AppIcon name="close" :size="16" />
+            </button>
           </div>
         </template>
         <template v-else>
@@ -62,6 +68,7 @@ import {
 } from "./fileUploadHelpers";
 
 const fileUploadLogger = createLogger("FileUpload");
+const { t } = useI18n();
 
 const props = defineProps({
   /**
@@ -106,7 +113,7 @@ const props = defineProps({
    */
   uploadBtnText: {
     type: String,
-    default: "上传文件",
+    default: "",
   },
 
   /**
@@ -146,7 +153,7 @@ watch(
 function handleBeforeUpload(file: UploadRawFile) {
   // 限制文件大小
   if (file.size > props.maxFileSize * 1024 * 1024) {
-    ElMessage.warning("上传文件不能大于" + props.maxFileSize + "M");
+    ElMessage.warning(t("upload.fileTooLarge", { size: props.maxFileSize }));
     return false;
   }
   return true;
@@ -185,7 +192,7 @@ function handleUpload(options: UploadRequestOptions) {
  * 上传成功
  */
 const handleSuccess = (_response: unknown, _uploadFile: UploadFile, files: UploadFiles) => {
-  ElMessage.success("上传成功");
+  ElMessage.success(t("upload.success"));
   //只有当状态为success或者fail，代表文件上传全部完成了，失败也算完成
   if (isUploadBatchFinished(files)) {
     const { fileInfos, failedUids, uploadedPathsByUid } = collectSuccessfulFileInfos(files);
@@ -205,7 +212,7 @@ const handleSuccess = (_response: unknown, _uploadFile: UploadFile, files: Uploa
  */
 const handleError = (error: unknown) => {
   fileUploadLogger.error("文件上传失败:", error);
-  ElMessage.error("上传失败");
+  ElMessage.error(t("upload.failed"));
 };
 
 /**
@@ -214,7 +221,7 @@ const handleError = (error: unknown) => {
 function handleRemove(file: UploadedFile) {
   const filePath = resolveFileDeletePath(file, modelValue.value);
   if (!filePath) {
-    ElMessage.warning("缺少文件路径，无法删除");
+    ElMessage.warning(t("upload.missingFilePath"));
     return;
   }
   FileAPI.delete(filePath).then(() => {
@@ -239,11 +246,30 @@ function handleDownload(file: UploadUserFile) {
   position: absolute;
   top: 50%;
   right: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   color: var(--el-text-color-regular);
   cursor: pointer;
+  background: transparent;
+  border: 0;
   opacity: 0.75;
   transform: translateY(-50%);
   transition: opacity var(--el-transition-duration);
+}
+
+.el-upload-list__item-name {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  max-width: calc(100% - 30px);
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
 }
 
 :deep(.el-upload-list) {

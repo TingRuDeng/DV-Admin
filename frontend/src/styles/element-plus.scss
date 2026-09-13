@@ -87,14 +87,14 @@ $border: 1px solid var(--el-border-color-light);
     }
   }
 
-  /* 3. 当前激活的页码 - 微晶体蓝宝石 (核心！) */
+  /* 3. 当前激活的页码 - 珊瑚晶体 */
   .el-pager li.is-active {
     font-weight: 700 !important;
     color: #ffffff !important;
-    /* 与搜索按钮同款的渐变晶体底色 */
+    /* 与主操作按钮同款的渐变晶体底色 */
     background: linear-gradient(
       135deg,
-      rgba(99, 102, 241, 0.9) 0%,
+      rgba(255, 112, 92, 0.9) 0%,
       rgba(59, 130, 246, 0.8) 100%
     ) !important;
 
@@ -105,7 +105,7 @@ $border: 1px solid var(--el-border-color-light);
     /* 内发光与外弥散阴影 */
     box-shadow:
       inset 0 2px 4px rgba(255, 255, 255, 0.3),
-      0 4px 10px -2px rgba(59, 130, 246, 0.4) !important;
+      0 4px 10px -2px rgba(255, 112, 92, 0.4) !important;
     transform: translateY(-1px); /* 默认保持微微浮起 */
   }
 

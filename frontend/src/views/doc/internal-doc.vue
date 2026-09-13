@@ -1,26 +1,15 @@
 <template>
-  <div class="app-container">
-    <iframe src="https://baidu.com" />
-  </div>
+  <PageShell class="ff-doc-page">
+    <section class="ff-doc-page__empty">
+      <AppIcon name="book-open" :size="48" />
+      <h1>{{ t("documentation.empty") }}</h1>
+      <RouterLink to="/dashboard" class="ff-doc-page__back">{{ t("error.home") }}</RouterLink>
+    </section>
+  </PageShell>
 </template>
-<style lang="scss" scoped>
-/** 关闭tag标签  */
-.app-container {
-  /* 50px = navbar = 50px */
-  height: calc(100vh - 50px);
-}
 
-/** 开启tag标签  */
-.hasTagsView {
-  .app-container {
-    /* 84px = navbar + tags-view = 50px + 34px */
-    height: calc(100vh - 84px);
-  }
-}
-
-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-</style>
+<script setup lang="ts">
+import PageShell from "@/components/PageShell/index.vue";
+import AppIcon from "@/components/AppIcon/index.vue";
+const { t } = useI18n();
+</script>

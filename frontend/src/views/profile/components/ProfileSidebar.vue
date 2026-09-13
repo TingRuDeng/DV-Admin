@@ -8,7 +8,8 @@
           class="ff-profile-user__avatar-button"
           circle
           size="small"
-          aria-label="上传头像"
+          :aria-label="t('profile.uploadAvatar')"
+          :title="t('profile.uploadAvatar')"
           @click="emit('upload-avatar')"
         >
           <AppIcon name="camera" :size="15" />
@@ -28,7 +29,8 @@
           link
           circle
           class="ff-profile-user__edit"
-          aria-label="编辑账号资料"
+          :aria-label="t('profile.editAccount')"
+          :title="t('profile.editAccount')"
           @click="emit('edit-account')"
         >
           <AppIcon name="pencil" :size="15" />
@@ -42,6 +44,8 @@
 <script setup lang="ts">
 import AppIcon from "@/components/AppIcon/index.vue";
 import type { UserProfile } from "@/api/information-api";
+
+const { t } = useI18n();
 
 defineProps<{
   avatar?: string;

@@ -47,12 +47,13 @@ import { ProfileDialogType, type ProfileDialogState } from "./types";
 
 const profileLogger = createLogger("Profile");
 const userStore = useUserStoreHook();
+const { t } = useI18n();
 
 const userProfile = ref<UserProfile>({});
 
 const dialog = reactive<ProfileDialogState>({
   visible: false,
-  title: "",
+  titleKey: "",
   type: "",
 });
 
@@ -80,12 +81,12 @@ const handleOpenDialog = async (type: ProfileDialogType) => {
   dialog.visible = true;
   switch (type) {
     case ProfileDialogType.ACCOUNT:
-      dialog.title = "账号资料";
+      dialog.titleKey = "profile.accountDialog";
       userProfileForm.name = userProfile.value.name;
       userProfileForm.gender = userProfile.value.gender;
       break;
     case ProfileDialogType.PASSWORD:
-      dialog.title = "修改密码";
+      dialog.titleKey = "profile.passwordDialog";
       break;
   }
 };
@@ -96,7 +97,7 @@ const handleOpenDialog = async (type: ProfileDialogType) => {
 const handleSubmit = async () => {
   if (dialog.type === ProfileDialogType.ACCOUNT) {
     await InformationAPI.updateProfile(userProfileForm);
-    ElMessage.success("账号资料修改成功");
+    ElMessage.success(t("profile.accountUpdated"));
     handleCancel();
     await loadUserProfile();
   } else if (dialog.type === ProfileDialogType.PASSWORD) {
@@ -105,11 +106,11 @@ const handleSubmit = async () => {
       return;
     }
     if (passwordChangeForm.newPassword !== passwordChangeForm.confirmPassword) {
-      ElMessage.error("两次输入的密码不一致");
+      ElMessage.error(t("profile.passwordMismatch"));
       return;
     }
     await InformationAPI.changePassword(passwordChangeForm);
-    ElMessage.success("密码修改成功");
+    ElMessage.success(t("profile.passwordUpdated"));
     handleCancel();
   }
 };
@@ -141,7 +142,7 @@ const handleFileChange = async (event: Event) => {
       userProfile.value.avatar = avatarUrl;
     } catch (error) {
       profileLogger.error("头像上传失败:", error);
-      ElMessage.error("头像上传失败");
+      ElMessage.error(t("profile.avatarUploadFailed"));
     }
   }
 };

@@ -3,10 +3,23 @@
   <PageShell class="ff-user-page">
     <div class="ff-user-page__grid">
       <aside class="ff-side-panel">
+        <button
+          v-if="isCompact"
+          type="button"
+          class="ff-user-page__dept-toggle"
+          :aria-expanded="deptFilterOpen"
+          aria-controls="user-department-filter"
+          @click="deptFilterOpen = !deptFilterOpen"
+        >
+          <span>{{ selectedDepartment || t("user.department") }}</span>
+          <AppIcon :name="deptFilterOpen ? 'chevron-up' : 'chevron-down'" :size="18" />
+        </button>
         <DeptTree
+          v-show="!isCompact || deptFilterOpen"
+          id="user-department-filter"
           v-model="queryParams.deptId"
           class="ff-user-page__dept-tree"
-          @node-click="handleQuery"
+          @node-click="handleDepartmentQuery"
         />
       </aside>
 
@@ -17,31 +30,31 @@
           @submit="handleQuery"
           @reset="handleResetQuery"
         >
-          <el-form-item label="关键字" prop="search">
+          <el-form-item :label="t('user.keyword')" prop="search">
             <el-input
               v-model="queryParams.search"
-              placeholder="用户名/昵称/手机号"
+              :placeholder="t('user.searchPlaceholder')"
               clearable
               @keyup.enter="handleQuery"
             />
           </el-form-item>
 
-          <el-form-item label="状态" prop="isActive">
+          <el-form-item :label="t('user.status')" prop="isActive">
             <el-select
               v-model="queryParams.isActive"
-              placeholder="全部"
+              :placeholder="t('user.all')"
               clearable
               style="width: 100px"
             >
-              <el-option label="正常" :value="1" />
-              <el-option label="禁用" :value="0" />
+              <el-option :label="t('user.active')" :value="1" />
+              <el-option :label="t('user.inactive')" :value="0" />
             </el-select>
           </el-form-item>
         </ProSearch>
 
         <ProTable
           ref="tableRef"
-          title="用户数据"
+          :title="t('user.title')"
           :request="requestTableData"
           :params="queryParams"
           @selection-change="handleSelectionChange"
@@ -51,87 +64,115 @@
               <el-button
                 v-hasPerm="['system:users:add']"
                 type="primary"
-                icon="plus"
+                :icon="resolveAppIcon('plus')"
                 class="ff-button-primary"
                 @click="handleOpenDialog()"
               >
-                新增用户
+                {{ t("user.create") }}
               </el-button>
               <el-button
                 v-hasPerm="['system:users:import']"
-                icon="upload"
+                :icon="resolveAppIcon('upload')"
                 @click="importDialogVisible = true"
               >
-                导入用户
+                {{ t("user.import") }}
               </el-button>
               <el-button
                 v-hasPerm="['system:users:export']"
-                icon="download"
+                :icon="resolveAppIcon('download')"
                 :loading="exporting"
                 @click="handleExport"
               >
-                导出用户
+                {{ t("user.export") }}
               </el-button>
               <el-button
                 v-hasPerm="['system:users:delete']"
                 type="danger"
                 plain
-                icon="delete"
+                :icon="resolveAppIcon('delete')"
                 class="ff-button-danger"
                 :loading="loading"
                 :disabled="selectIds.length === 0 || loading"
                 @click="handleDelete()"
               >
-                批量删除
+                {{ t("user.batchDelete") }}
               </el-button>
             </div>
           </template>
 
           <template #default>
-            <el-table-column type="selection" width="50" align="center" />
-            <el-table-column label="用户名" prop="username" />
-            <el-table-column label="昵称" width="150" align="center" prop="name" />
-            <el-table-column label="部门" width="120" align="center" prop="deptName" />
-            <el-table-column label="手机号码" align="center" prop="mobile" width="120" />
-            <el-table-column label="邮箱" align="center" prop="email" min-width="160" />
-            <el-table-column label="状态" align="center" prop="isActive" width="80">
+            <el-table-column v-if="canDelete" type="selection" width="50" align="center" />
+            <el-table-column
+              :label="t('user.username')"
+              prop="username"
+              min-width="140"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              :label="t('user.name')"
+              width="120"
+              align="center"
+              prop="name"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              :label="t('user.department')"
+              width="120"
+              align="center"
+              prop="deptName"
+              show-overflow-tooltip
+            />
+            <el-table-column :label="t('user.mobile')" align="center" prop="mobile" width="120" />
+            <el-table-column
+              :label="t('user.email')"
+              align="center"
+              prop="email"
+              min-width="190"
+              show-overflow-tooltip
+            />
+            <el-table-column :label="t('user.status')" align="center" prop="isActive" width="80">
               <template #default="scope">
                 <UserStatusTag :value="scope.row.isActive" />
               </template>
             </el-table-column>
-            <el-table-column label="操作" fixed="right" width="280">
+            <el-table-column
+              v-if="canManageUser"
+              :label="t('user.actions')"
+              fixed="right"
+              width="280"
+            >
               <template #default="scope">
                 <el-button
                   v-hasPerm="'system:users:password:reset'"
                   type="primary"
-                  icon="RefreshLeft"
+                  :icon="resolveAppIcon('RefreshLeft')"
                   size="small"
                   link
                   @click="hancleResetPassword(scope.row)"
                 >
-                  重置密码
+                  {{ t("user.resetPassword") }}
                 </el-button>
                 <el-button
                   v-hasPerm="'system:users:edit'"
                   type="primary"
-                  icon="edit"
+                  :icon="resolveAppIcon('edit')"
                   link
                   size="small"
                   @click="handleOpenDialog(scope.row.id)"
                 >
-                  编辑
+                  {{ t("user.edit") }}
                 </el-button>
                 <el-button
                   v-hasPerm="'system:users:delete'"
                   type="danger"
-                  icon="delete"
+                  :icon="resolveAppIcon('delete')"
                   link
                   :loading="loading"
                   :disabled="loading"
                   size="small"
                   @click="handleDelete(scope.row.id)"
                 >
-                  删除
+                  {{ t("user.delete") }}
                 </el-button>
               </template>
             </el-table-column>
@@ -157,6 +198,10 @@
 </template>
 
 <script setup lang="ts">
+import { resolveAppIcon } from "@/components/AppIcon/icon-map";
+import AppIcon from "@/components/AppIcon/index.vue";
+import { useMediaQuery } from "@vueuse/core";
+import { hasPerm } from "@/utils/auth";
 import BatchDeleteResultDialog from "@/components/BatchDeleteResultDialog/index.vue";
 import PageShell from "@/components/PageShell/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
@@ -180,6 +225,14 @@ import UserStatusTag from "./components/UserStatusTag.vue";
 import { useUserStore } from "@/store";
 const userBatchDeleteLogger = createLogger("UserBatchDelete");
 const userStore = useUserStore();
+const { t } = useI18n();
+const isCompact = useMediaQuery("(max-width: 1023px)");
+const deptFilterOpen = ref(false);
+const selectedDepartment = ref("");
+const canDelete = computed(() => hasPerm("system:users:delete"));
+const canManageUser = computed(() =>
+  hasPerm(["system:users:password:reset", "system:users:edit", "system:users:delete"])
+);
 defineOptions({
   name: "User",
   inheritAttrs: false,
@@ -204,7 +257,7 @@ async function handleExport() {
   exporting.value = true;
   try {
     downloadEncodedFile(await UserAPI.export());
-    ElMessage.success("导出成功");
+    ElMessage.success(t("user.exportSuccess"));
   } finally {
     exporting.value = false;
   }
@@ -217,10 +270,17 @@ function handleQuery() {
   tableRef.value?.reload(true);
 }
 
+function handleDepartmentQuery(label?: string) {
+  selectedDepartment.value = label ?? "";
+  deptFilterOpen.value = false;
+  handleQuery();
+}
+
 // 重置查询
 function handleResetQuery() {
   queryFormRef.value?.resetFields();
   queryParams.deptId = undefined;
+  selectedDepartment.value = "";
   tableRef.value?.reload(true);
 }
 
@@ -238,19 +298,27 @@ async function hancleResetPassword(row: UserPageVO) {
   } catch {
     return;
   }
-  ElMessageBox.prompt("请输入用户【" + row.username + "】的新密码", "重置密码", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    inputType: "password",
-    inputValidator: (value) => passwordLengthError(value ?? "", policy) ?? true,
-  }).then(
+  ElMessageBox.prompt(
+    t("user.resetPasswordPrompt", { username: row.username }),
+    t("user.resetPassword"),
+    {
+      confirmButtonText: t("user.confirm"),
+      cancelButtonText: t("user.cancel"),
+      inputType: "password",
+      inputValidator: (value) =>
+        passwordLengthError(value ?? "", policy, {
+          policyUnavailable: t("user.passwordPolicyUnavailable"),
+          invalidLength: (min, max) => t("user.passwordLength", { min, max }),
+        }) ?? true,
+    }
+  ).then(
     ({ value }) => {
       UserAPI.resetPassword(row.id, value, value).then(() => {
-        ElMessage.success("密码重置成功");
+        ElMessage.success(t("user.resetPasswordSuccess"));
       });
     },
     () => {
-      ElMessage.info("已取消重置密码");
+      ElMessage.info(t("user.resetPasswordCanceled"));
     }
   );
 }
@@ -302,11 +370,14 @@ function presentBatchDeleteResult(result: BatchDeleteResult) {
   }
 
   if (result.failedCount === 0) {
-    ElMessage.success(`删除成功，共 ${result.successCount} 条`);
+    ElMessage.success(t("user.batchDeleteSuccess", { count: result.successCount }));
     return;
   }
 
-  const message = `删除完成：成功 ${result.successCount} 条，失败 ${result.failedCount} 条`;
+  const message = t("user.batchDeleteSummary", {
+    success: result.successCount,
+    failed: result.failedCount,
+  });
   if (result.successCount > 0) {
     ElMessage.warning(message);
   } else {
@@ -323,26 +394,26 @@ function presentBatchDeleteResult(result: BatchDeleteResult) {
 function handleDelete(id?: string) {
   const userIds = id !== undefined ? [id] : selectIds.value;
   if (userIds.length === 0) {
-    ElMessage.warning("请勾选删除项");
+    ElMessage.warning(t("user.selectDeleteItems"));
     return;
   }
 
   // 安全检查：防止删除当前登录用户
   const currentUserInfo = userStore.userInfo;
   if (isDeletingCurrentUser(id, selectIds.value, currentUserInfo)) {
-    ElMessage.error("不能删除当前登录用户");
+    ElMessage.error(t("user.cannotDeleteCurrentUser"));
     return;
   }
 
   void runExclusive(loading, async () => {
     try {
-      await ElMessageBox.confirm("确认删除用户?", "警告", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
+      await ElMessageBox.confirm(t("user.deleteConfirm"), t("user.warning"), {
+        confirmButtonText: t("user.confirm"),
+        cancelButtonText: t("user.cancel"),
         type: "warning",
       });
     } catch {
-      ElMessage.info("已取消删除");
+      ElMessage.info(t("user.deleteCanceled"));
       return;
     }
 

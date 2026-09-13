@@ -11,6 +11,9 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 defineOptions({
   name: "NoticeStatusTag",
 });
@@ -24,17 +27,19 @@ interface NoticeStatusMeta {
   className: string;
 }
 
-const STATUS_META_MAP: Record<NoticeStatusKind, Record<number, NoticeStatusMeta>> = {
-  target: {
-    1: { label: "全体", type: "warning", className: "warning" },
-    2: { label: "指定", type: "success", className: "success" },
-  },
-  publish: {
-    [-1]: { label: "已撤回", type: "warning", className: "warning" },
-    0: { label: "未发布", type: "info", className: "info" },
-    1: { label: "已发布", type: "success", className: "success" },
-  },
-};
+const STATUS_META_MAP = computed<Record<NoticeStatusKind, Record<number, NoticeStatusMeta>>>(
+  () => ({
+    target: {
+      1: { label: t("system.allUsers"), type: "warning", className: "warning" },
+      2: { label: t("system.specifiedUsers"), type: "success", className: "success" },
+    },
+    publish: {
+      [-1]: { label: t("system.revokedStatus"), type: "warning", className: "warning" },
+      0: { label: t("system.unpublished"), type: "info", className: "info" },
+      1: { label: t("system.publishedStatus"), type: "success", className: "success" },
+    },
+  })
+);
 
 const props = defineProps<{
   kind: NoticeStatusKind;
@@ -47,6 +52,6 @@ const statusMeta = computed(() => {
     return undefined;
   }
 
-  return STATUS_META_MAP[props.kind][props.value];
+  return STATUS_META_MAP.value[props.kind][props.value];
 });
 </script>

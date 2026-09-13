@@ -6,10 +6,10 @@
       @submit="handleQuery"
       @reset="handleResetQuery"
     >
-      <el-form-item prop="search" label="关键字">
+      <el-form-item prop="search" :label="t('common.keyword')">
         <el-input
           v-model="queryParams.search"
-          placeholder="角色名称"
+          :placeholder="t('system.roleName')"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -18,7 +18,7 @@
 
     <ProTable
       ref="tableRef"
-      title="角色数据"
+      :title="t('system.roleData')"
       :request="requestTableData"
       :params="queryParams"
       @selection-change="handleSelectionChange"
@@ -28,11 +28,11 @@
           <el-button
             v-hasPerm="['system:roles:add']"
             type="primary"
-            icon="plus"
+            :icon="resolveAppIcon('plus')"
             class="ff-button-primary"
             @click="handleOpenDialog()"
           >
-            新增角色
+            {{ t("system.addRole") }}
           </el-button>
           <el-button
             v-hasPerm="['system:roles:delete']"
@@ -40,81 +40,81 @@
             plain
             :loading="loading"
             :disabled="ids.length === 0 || loading"
-            icon="delete"
+            :icon="resolveAppIcon('delete')"
             class="ff-button-danger"
             @click="handleDelete()"
           >
-            批量删除
+            {{ t("system.batchDelete") }}
           </el-button>
         </div>
       </template>
 
       <template #default>
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="排序" align="center" width="80" prop="sort">
+        <el-table-column :label="t('common.sort')" align="center" width="80" prop="sort">
           <template #default="{ row }">
             <span class="text-slate-400 font-mono bg-slate-50 px-2 py-0.5 rounded-md">
               {{ row.sort }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="角色名称" prop="name" min-width="100" />
-        <el-table-column label="状态" align="center" width="100">
+        <el-table-column :label="t('system.roleName')" prop="name" min-width="100" />
+        <el-table-column :label="t('common.status')" align="center" width="100">
           <template #default="scope">
             <el-tag
               :type="scope.row.status === 1 ? 'success' : 'info'"
               class="ff-status-tag"
               :class="scope.row.status === 1 ? 'success' : 'info'"
             >
-              {{ scope.row.status === 1 ? "正常" : "禁用" }}
+              {{ scope.row.status === 1 ? t("common.normal") : t("common.disabled") }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="是否默认角色" align="center" width="120">
+        <el-table-column :label="t('system.defaultRole')" align="center" width="120">
           <template #default="scope">
             <el-tag
               :type="scope.row.isDefault ? 'success' : 'info'"
               class="ff-status-tag"
               :class="scope.row.isDefault ? 'success' : 'info'"
             >
-              {{ scope.row.isDefault ? "是" : "否" }}
+              {{ scope.row.isDefault ? t("common.yes") : t("common.no") }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="备注" prop="desc" min-width="200" />
-        <el-table-column fixed="right" label="操作" width="280">
+        <el-table-column :label="t('system.roleRemark')" prop="desc" min-width="200" />
+        <el-table-column fixed="right" :label="t('common.actions')" width="280">
           <template #default="scope">
             <el-button
               v-hasPerm="'system:roles:edit'"
               type="primary"
               link
-              icon="position"
+              :icon="resolveAppIcon('position')"
               size="small"
               @click="handleOpenAssignPermDialog(scope.row)"
             >
-              分配权限
+              {{ t("system.assignPermission") }}
             </el-button>
             <el-button
               v-hasPerm="'system:roles:edit'"
               type="primary"
               link
-              icon="edit"
+              :icon="resolveAppIcon('edit')"
               size="small"
               @click="handleOpenDialog(scope.row.id)"
             >
-              编辑
+              {{ t("common.edit") }}
             </el-button>
             <el-button
               v-hasPerm="'system:roles:delete'"
               type="danger"
               link
-              icon="delete"
+              :icon="resolveAppIcon('delete')"
               :loading="loading"
               :disabled="loading"
               size="small"
               @click="handleDelete(scope.row.id)"
             >
-              删除
+              {{ t("common.delete") }}
             </el-button>
           </template>
         </el-table-column>
@@ -134,6 +134,10 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
+import { resolveAppIcon } from "@/components/AppIcon/icon-map";
 import BatchDeleteResultDialog from "@/components/BatchDeleteResultDialog/index.vue";
 import PageShell from "@/components/PageShell/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
@@ -199,11 +203,14 @@ function presentBatchDeleteResult(result: BatchDeleteResult) {
   }
 
   if (result.failedCount === 0) {
-    ElMessage.success(`删除成功，共 ${result.successCount} 条`);
+    ElMessage.success(t("system.deleteSummary", { count: result.successCount }));
     return;
   }
 
-  const message = `删除完成：成功 ${result.successCount} 条，失败 ${result.failedCount} 条`;
+  const message = t("system.deleteComplete", {
+    success: result.successCount,
+    failed: result.failedCount,
+  });
   if (result.successCount > 0) {
     ElMessage.warning(message);
   } else {
@@ -216,19 +223,19 @@ function presentBatchDeleteResult(result: BatchDeleteResult) {
 function handleDelete(roleId?: number) {
   const roleIds = roleId !== undefined ? [roleId] : ids.value;
   if (roleIds.length === 0) {
-    ElMessage.warning("请勾选删除项");
+    ElMessage.warning(t("system.selectDelete"));
     return;
   }
 
   void runExclusive(loading, async () => {
     try {
-      await ElMessageBox.confirm("确认删除已选中的数据项?", "警告", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
+      await ElMessageBox.confirm(t("system.confirmDelete"), t("common.warning"), {
+        confirmButtonText: t("common.confirm"),
+        cancelButtonText: t("common.cancel"),
         type: "warning",
       });
     } catch {
-      ElMessage.info("已取消删除");
+      ElMessage.info(t("system.cancelDelete"));
       return;
     }
 

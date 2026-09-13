@@ -6,12 +6,12 @@
 
 **Architecture:** 新增 `AppIcon` 作为 Lucide 语义图标适配层，壳层和登录页通过它使用图标；仪表盘拆成 Hero、指标卡和快捷入口三个展示组件，页面只读取 Pinia 用户/权限数据并派生视图模型。全局 token 负责背景、边框、排版和动效，亮色主题复用同一套色相关系。
 
-**Tech Stack:** Vue 3 `<script setup lang="ts">`, Pinia, Element Plus, SCSS tokens, `lucide-vue-next`, Vitest, vue-tsc, Vite.
+**Tech Stack:** Vue 3 `<script setup lang="ts">`, Pinia, Element Plus, SCSS tokens, `@lucide/vue`, Vitest, vue-tsc, Vite.
 
 ## Global Constraints
 
 - API 路径、请求参数、响应格式和后端实现不变。
-- 登录页、壳层和首页图标统一来自 `lucide-vue-next`，界面禁止表情符号。
+- 登录页、壳层和首页图标统一来自 `@lucide/vue`，界面禁止表情符号。
 - 页面只呈现帮助当前任务、理解当前数据或决定下一步操作的信息。
 - 所有动效在 `prefers-reduced-motion: reduce` 下禁用或降级。
 - 保留当前工作区无关文件 `.pnpm-store/`，不覆盖来源不明的配置。
@@ -31,15 +31,15 @@
 - `AppIcon` props: `{ name: string; size?: number | string; strokeWidth?: number; label?: string }`.
 - `icon-map.ts` exports `resolveAppIcon(name: string): Component` and a typed fallback.
 
-- [ ] **Step 1: Add the dependency**
+- [x] **Step 1: Add the dependency**
 
 Run from `frontend/`:
 
 ```bash
-pnpm add lucide-vue-next
+pnpm add @lucide/vue
 ```
 
-- [ ] **Step 2: Write the adapter test**
+- [x] **Step 2: Write the adapter test**
 
 ```ts
 it("resolves known names and falls back for unknown names", () => {
@@ -48,11 +48,11 @@ it("resolves known names and falls back for unknown names", () => {
 })
 ```
 
-- [ ] **Step 3: Implement the map and wrapper**
+- [x] **Step 3: Implement the map and wrapper**
 
 Map semantic names used by the shell and login (`command`, `search`, `maximize`, `minimize`, `sliders-horizontal`, `languages`, `bell`, `settings`, `user-round`, `lock-keyhole`, `loader-circle`, `arrow-right`, `circle-help`, `layout-dashboard`, `users-round`, `shield-check`, `panel-left-close`, `panel-left-open`) to Lucide components. Render `aria-hidden` unless `label` is supplied.
 
-- [ ] **Step 4: Run the focused test**
+- [x] **Step 4: Run the focused test**
 
 Run: `pnpm vitest run src/components/__tests__/app-icon.spec.ts`
 Expected: PASS.
@@ -80,19 +80,19 @@ Expected: PASS.
 - Existing route metadata and Pinia stores remain unchanged.
 - Existing menu and navbar events continue to call current handlers.
 
-- [ ] **Step 1: Replace shell icon markup**
+- [x] **Step 1: Replace shell icon markup**
 
 Use `<AppIcon>` for logo, menu fallback, search, fullscreen, layout size, language, bell, theme and settings. Keep existing labels and handlers; only icon rendering changes.
 
-- [ ] **Step 2: Apply the visual token layer**
+- [x] **Step 2: Apply the visual token layer**
 
 Set dark-first shell variables, bright-theme overrides, grid background, coral active state, translucent navbar and tighter focus rings. Keep existing layout dimensions and responsive breakpoints.
 
-- [ ] **Step 3: Add reduced-motion rules**
+- [x] **Step 3: Add reduced-motion rules**
 
 Wrap shell hover transforms and background motion in a media query that disables transitions and transforms for reduced-motion users.
 
-- [ ] **Step 4: Run shell governance checks**
+- [x] **Step 4: Run shell governance checks**
 
 Run: `pnpm vitest run src/layouts/components/__tests__ src/views/__tests__/dashboard-style-migration.spec.ts`
 Expected: PASS; no route or event behavior changes.
@@ -112,19 +112,19 @@ Expected: PASS; no route or event behavior changes.
 - `DashboardMetricCard` props: `{ label: string; value: string | number; icon: string; accent: "coral" | "blue" | "neutral" }`.
 - `DashboardQuickActions` props: `{ items: Array<{ title: string; path: string; icon?: string }> }`; emits `navigate(path: string)`.
 
-- [ ] **Step 1: Add focused component tests**
+- [x] **Step 1: Add focused component tests**
 
 Cover: metric values render, quick action emits its route, empty actions render a concise empty state, and dashboard source contains no emoji or GithubCorner.
 
-- [ ] **Step 2: Implement the components**
+- [x] **Step 2: Implement the components**
 
 Use actual `useUserStore` info, permission route count, role count and permission count. Flatten only visible route entries for shortcuts. Use `router.push` in the page event handler.
 
-- [ ] **Step 3: Implement the visual composition**
+- [x] **Step 3: Implement the visual composition**
 
 Create a split hero with a time marker, identity block, metric rail and route shortcuts. Use CSS grid, pseudo-element grid lines, subtle pointer hover variables and staggered entry animation; remove external document/video links.
 
-- [ ] **Step 4: Run dashboard tests**
+- [x] **Step 4: Run dashboard tests**
 
 Run: `pnpm vitest run src/views/__tests__/dashboard-style-migration.spec.ts src/views/dashboard`
 Expected: PASS.
@@ -142,19 +142,19 @@ Expected: PASS.
 - Existing login/register/reset form `v-model`, validation rules and submit functions remain unchanged.
 - Existing theme and language controls remain available.
 
-- [ ] **Step 1: Replace form and action icons**
+- [x] **Step 1: Replace form and action icons**
 
 Use `AppIcon`/Lucide for user, lock, captcha, loading, theme and language affordances. Preserve `aria-label`s and keyboard submit behavior.
 
-- [ ] **Step 2: Implement the split entrance layout**
+- [x] **Step 2: Implement the split entrance layout**
 
 Make the left canvas visual-only with concise product identity, and the right panel the only interactive form surface. Keep existing async component switching and footer behavior.
 
-- [ ] **Step 3: Add responsive and reduced-motion states**
+- [x] **Step 3: Add responsive and reduced-motion states**
 
 Collapse to a single form column below tablet width and disable canvas movement under reduced motion.
 
-- [ ] **Step 4: Run login focused checks**
+- [x] **Step 4: Run login focused checks**
 
 Run: `pnpm vitest run src/views/login src/views/__tests__`
 Expected: PASS.
@@ -164,22 +164,34 @@ Expected: PASS.
 **Files:**
 - Modify if needed: `docs/DOC_SYNC_CHECKLIST.md` or `docs/ARCHITECTURE.md` only if the final implementation changes documented architecture.
 
-- [ ] **Step 1: Run type checking**
+- [x] **Step 1: Run type checking**
 
 Run: `pnpm type-check`
 Expected: exit code 0.
 
-- [ ] **Step 2: Run lint checks**
+- [x] **Step 2: Run lint checks**
 
 Run: `pnpm lint:check`
 Expected: exit code 0.
 
-- [ ] **Step 3: Run the production build**
+- [x] **Step 3: Run the production build**
 
 Run: `pnpm build`
 Expected: exit code 0 and generated dist assets.
 
-- [ ] **Step 4: Review the diff and worktree**
+- [x] **Step 4: Review the diff and worktree**
 
 Run: `git diff --stat && git diff --check && git status --short --branch`.
 Confirm only the planned files and the pre-existing `.pnpm-store/` are present; report the `.git` write restriction separately.
+
+
+## Follow-up validation boundary
+
+**Recorded:** 2026-09-11
+
+- Implementation tasks, Lucide adapter migration, dark canvas visual layer, dashboard composition, login entrance, reduced-motion handling, focused tests, type checks, lint checks and production build are complete.
+- The icon dependency uses maintained `@lucide/vue` instead of deprecated `lucide-vue-next`; the compatibility alias for historical `@element-plus/icons-vue` imports remains intentionally isolated in `AppIcon`.
+- Chromium acceptance now passes 30/30 tests, including desktop/mobile layouts, both themes, menu search and history, icon selection, notification retry, upload preview and editor fullscreen transitions. Login and query actions pass a 4.5:1 text contrast check; reduced-motion and mobile overflow checks pass. Generated login/dashboard/user screenshots were visually reviewed.
+- Final quality checks pass 109 test files / 357 tests, along with the production build, production dependency audit (0 high/critical, 3 moderate), docs/API/route-component checks and diff checks.
+- Both isolated real-backend browser gates pass: Django 1/1 in 41.16s, FastAPI 1/1 in 43.82s. Each pytest gate invokes the shared browser business flows against temporary test data. Existing local databases and credentials were not modified.
+- Browser startup is no longer blocked. Work remains on `codex/immersive-shell-followup`; no commit, remote write, merge or deployment was performed. Full system localization, public registration/password recovery, captcha parity and actual internal documentation remain separate product work.

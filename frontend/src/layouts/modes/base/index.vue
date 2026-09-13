@@ -5,7 +5,7 @@
       v-if="isMobile && isSidebarOpen"
       type="button"
       class="layout__overlay"
-      aria-label="关闭导航"
+      :aria-label="t('navbar.closeNavigation')"
       @click="closeSidebar"
     />
 
@@ -19,6 +19,8 @@ import { nextTick, ref, watch } from "vue";
 import { useEventListener, useScrollLock } from "@vueuse/core";
 import { useRoute } from "vue-router";
 import { useLayout, useDeviceDetection } from "@/composables";
+
+const { t } = useI18n();
 
 /// Layout-related functionality and state management
 const { layoutClass, isSidebarOpen, closeSidebar } = useLayout();

@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <PageShell class="ff-demo-page">
     <el-card class="box-card">
       <template #header>
         <div class="card-header">
@@ -9,10 +9,6 @@
           </el-tag>
         </div>
       </template>
-
-      <el-alert type="info" :closable="false" class="mb-4">
-        本示例展示WebSocket实时更新字典缓存的效果。您可以编辑"男"性别字典项，保存后后端将通过WebSocket通知所有客户端刷新缓存。
-      </el-alert>
 
       <el-row :gutter="16">
         <el-col :span="8">
@@ -38,10 +34,11 @@
         </el-col>
       </el-row>
     </el-card>
-  </div>
+  </PageShell>
 </template>
 
 <script setup lang="ts">
+import PageShell from "@/components/PageShell/index.vue";
 import { useDictStoreHook } from "@/store/modules/dict-store";
 import { useDateFormat } from "@vueuse/core";
 import { DictItemForm } from "@/api/system/dict-items-api";
@@ -136,7 +133,7 @@ const saveDict = async () => {
     // 更新时间
     lastUpdateTime.value = useDateFormat(new Date(), "YYYY-MM-DD HH:mm:ss").value;
 
-    ElMessage.success("保存成功，后端将通过WebSocket通知所有客户端");
+    ElMessage.success("保存成功");
   } catch (error) {
     dictSyncDemoLogger.error("保存字典项失败:", error);
     ElMessage.error("保存失败");

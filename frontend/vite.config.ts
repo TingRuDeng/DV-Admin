@@ -30,6 +30,7 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
     resolve: {
       alias: {
         "@": pathSrc,
+        "@element-plus/icons-vue": resolve(pathSrc, "components/AppIcon/element-plus-icons.ts"),
       },
     },
     css: {
@@ -100,6 +101,8 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
         "pinia",
         "axios",
         "@vueuse/core",
+        "@wangeditor-next/editor",
+        "@wangeditor-next/editor-for-vue",
         "codemirror-editor-vue3",
         "default-passive-events",
         "exceljs",
@@ -114,7 +117,6 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
         "qs",
         "path-browserify",
         "@stomp/stompjs",
-        "@element-plus/icons-vue",
         "element-plus/es",
         "element-plus/es/locale/lang/en",
         "element-plus/es/locale/lang/zh-cn",

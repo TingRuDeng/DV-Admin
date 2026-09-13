@@ -1,4 +1,4 @@
-import { useElementHover } from "@vueuse/core";
+import { useElementHover, useMediaQuery } from "@vueuse/core";
 import { sanitizeHtml } from "@/utils/safe-html";
 import type { TextScrollProps } from "./types";
 
@@ -6,6 +6,7 @@ export function useTextScroll(props: Required<TextScrollProps>) {
   const containerRef = ref<HTMLElement | null>(null);
   const scrollContent = ref<HTMLElement | null>(null);
   const isHovered = useElementHover(containerRef);
+  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const animationDuration = ref(0);
   const currentText = ref("");
   const isTypewriterComplete = ref(false);
@@ -45,6 +46,12 @@ export function useTextScroll(props: Required<TextScrollProps>) {
     currentText.value = "";
     isTypewriterComplete.value = false;
 
+    if (prefersReducedMotion.value) {
+      currentText.value = props.text;
+      isTypewriterComplete.value = true;
+      return;
+    }
+
     const type = () => {
       if (index < props.text.length) {
         currentText.value += props.text[index];
@@ -81,6 +88,17 @@ export function useTextScroll(props: Required<TextScrollProps>) {
       startTypewriter();
     }
   );
+
+  watch(prefersReducedMotion, (reduced) => {
+    if (!props.typewriter) return;
+    clearTypewriterTimer();
+    if (reduced) {
+      currentText.value = props.text;
+      isTypewriterComplete.value = true;
+      return;
+    }
+    startTypewriter();
+  });
 
   return {
     containerRef,

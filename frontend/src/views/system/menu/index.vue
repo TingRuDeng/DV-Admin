@@ -6,10 +6,10 @@
       @submit="handleQuery"
       @reset="handleResetQuery"
     >
-      <el-form-item label="关键字" prop="search" class="mb-0">
+      <el-form-item :label="t('common.keyword')" prop="search" class="mb-0">
         <el-input
           v-model="queryParams.search"
-          placeholder="菜单名称"
+          :placeholder="t('system.menuName')"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -18,7 +18,7 @@
 
     <ProTable
       ref="tableRef"
-      title="菜单数据"
+      :title="t('system.menuData')"
       :request="requestTableData"
       :params="queryParams"
       :show-pagination="false"
@@ -37,45 +37,65 @@
             @click="handleOpenDialog('0')"
           >
             <template #icon><AppIcon name="plus" :size="15" /></template>
-            新增菜单
+            {{ t("system.addMenu") }}
           </el-button>
         </div>
       </template>
 
       <template #default>
-        <el-table-column label="菜单名称" min-width="200">
+        <el-table-column :label="t('system.menuName')" min-width="200">
           <template #default="scope">
             <AppIcon v-if="scope.row.icon" :name="scope.row.icon" :size="16" />
             {{ scope.row.name }}
           </template>
         </el-table-column>
 
-        <el-table-column label="类型" align="center" width="100">
+        <el-table-column :label="t('system.menuType')" align="center" width="100">
           <template #default="scope">
-            <el-tag v-if="scope.row.type === 'CATALOG'" class="ff-status-tag warning">目录</el-tag>
-            <el-tag v-if="scope.row.type === 'MENU'" class="ff-status-tag success">菜单</el-tag>
-            <el-tag v-if="scope.row.type === 'BUTTON'" class="ff-status-tag danger">按钮</el-tag>
-            <el-tag v-if="scope.row.type === 'EXTLINK'" class="ff-status-tag info">外链</el-tag>
+            <el-tag v-if="scope.row.type === 'CATALOG'" class="ff-status-tag warning">
+              {{ t("system.catalog") }}
+            </el-tag>
+            <el-tag v-if="scope.row.type === 'MENU'" class="ff-status-tag success">
+              {{ t("system.menu") }}
+            </el-tag>
+            <el-tag v-if="scope.row.type === 'BUTTON'" class="ff-status-tag danger">
+              {{ t("system.button") }}
+            </el-tag>
+            <el-tag v-if="scope.row.type === 'EXTLINK'" class="ff-status-tag info">
+              {{ t("system.externalLink") }}
+            </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="路由名称" align="left" width="150" prop="routeName" />
-        <el-table-column label="路由路径" align="left" width="150" prop="routePath" />
-        <el-table-column label="组件路径" align="left" width="250" prop="component" />
-        <el-table-column label="权限标识" align="center" width="200" prop="perm" />
-        <el-table-column label="状态" align="center" width="80">
+        <el-table-column :label="t('system.routeName')" align="left" width="150" prop="routeName" />
+        <el-table-column :label="t('system.routePath')" align="left" width="150" prop="routePath" />
+        <el-table-column
+          :label="t('system.componentPath')"
+          align="left"
+          width="250"
+          prop="component"
+        />
+        <el-table-column
+          :label="t('system.permissionKey')"
+          align="center"
+          width="200"
+          prop="perm"
+        />
+        <el-table-column :label="t('common.status')" align="center" width="80">
           <template #default="scope">
-            <el-tag v-if="scope.row.visible === 1" class="ff-status-tag success">显示</el-tag>
-            <el-tag v-else class="ff-status-tag info">隐藏</el-tag>
+            <el-tag v-if="scope.row.visible === 1" class="ff-status-tag success">
+              {{ t("system.display") }}
+            </el-tag>
+            <el-tag v-else class="ff-status-tag info">{{ t("system.hidden") }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="排序" align="center" width="80" prop="sort">
+        <el-table-column :label="t('common.sort')" align="center" width="80" prop="sort">
           <template #default="{ row }">
             <span class="text-slate-400 font-mono bg-slate-50 px-2 py-0.5 rounded-md">
               {{ row.sort }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="操作" width="280">
+        <el-table-column fixed="right" :label="t('common.actions')" width="280">
           <template #default="scope">
             <el-button
               v-if="scope.row.type === 'CATALOG' || scope.row.type === 'MENU'"
@@ -86,7 +106,7 @@
               @click.stop="handleOpenDialog(scope.row.id)"
             >
               <template #icon><AppIcon name="plus" :size="14" /></template>
-              新增
+              {{ t("common.add") }}
             </el-button>
 
             <el-button
@@ -96,7 +116,7 @@
               @click.stop="handleOpenDialog(undefined, scope.row.id)"
             >
               <template #icon><AppIcon name="pencil" :size="14" /></template>
-              编辑
+              {{ t("common.edit") }}
             </el-button>
             <el-button
               v-hasPerm="['system:permissions:delete']"
@@ -105,7 +125,7 @@
               @click.stop="handleDelete(scope.row.id)"
             >
               <template #icon><AppIcon name="delete" :size="14" /></template>
-              删除
+              {{ t("common.delete") }}
             </el-button>
           </template>
         </el-table-column>
@@ -117,6 +137,9 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 import AppIcon from "@/components/AppIcon/index.vue";
 import PageShell from "@/components/PageShell/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
@@ -179,20 +202,20 @@ async function handleOpenDialog(parent?: string, menuId?: string) {
 // 删除菜单
 function handleDelete(menuId: string) {
   if (!menuId) {
-    ElMessage.warning("请勾选删除项");
+    ElMessage.warning(t("system.selectDelete"));
     return false;
   }
 
-  ElMessageBox.confirm("确认删除已选中的数据项?", "警告", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
+  ElMessageBox.confirm(t("system.confirmDelete"), t("common.warning"), {
+    confirmButtonText: t("common.confirm"),
+    cancelButtonText: t("common.cancel"),
     type: "warning",
   }).then(
     () => {
       loading.value = true;
       MenuAPI.deleteById(menuId)
         .then(() => {
-          ElMessage.success("删除成功");
+          ElMessage.success(t("system.deleteSuccess"));
           tableRef.value?.reload(true);
         })
         .finally(() => {
@@ -200,7 +223,7 @@ function handleDelete(menuId: string) {
         });
     },
     () => {
-      ElMessage.info("已取消删除");
+      ElMessage.info(t("system.cancelDelete"));
     }
   );
 }

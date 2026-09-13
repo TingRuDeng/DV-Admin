@@ -3,6 +3,7 @@
     type="button"
     class="navbar-icon-button"
     :aria-label="t('navbar.search')"
+    :title="t('menuSearch.shortcutHint', { key: shortcutKey })"
     @click="openSearchModal"
   >
     <AppIcon name="search" :size="18" />
@@ -10,19 +11,22 @@
 
   <ProDialog
     v-model="isModalVisible"
-    width="30%"
+    :title="t('navbar.search')"
+    width="min(640px, calc(100vw - 24px))"
     :append-to-body="true"
     :show-close="false"
     :show-confirm-button="false"
-    cancel-text="关闭"
+    :cancel-text="t('menuSearch.close')"
     @close="closeSearchModal"
+    @opened="searchInputRef?.focus()"
   >
     <template #header>
       <el-input
         ref="searchInputRef"
         v-model="searchKeyword"
         size="large"
-        placeholder="输入菜单名称关键字搜索"
+        :placeholder="t('menuSearch.placeholder')"
+        :aria-label="t('navbar.search')"
         clearable
         @keyup.enter="selectActiveResult"
         @input="updateSearchResults"
@@ -30,16 +34,17 @@
         @keydown.down.prevent="navigateResults('down')"
         @keydown.esc="closeSearchModal"
       >
-        <template #prepend>
-          <el-button icon="Search" :aria-label="t('navbar.search')" />
+        <template #prefix>
+          <AppIcon name="search" :size="18" />
         </template>
       </el-input>
     </template>
 
-    <div class="search-result">
+    <div ref="resultsRef" class="search-result">
       <MenuSearchHistory
         v-if="searchKeyword === '' && searchHistory.length > 0"
         :items="searchHistory"
+        :active-index="activeIndex"
         @clear="clearHistory"
         @remove="removeHistoryItem"
         @select="navigateToRoute"
@@ -52,9 +57,15 @@
         @select="navigateToRoute"
       />
 
-      <!-- 无搜索历史显示 -->
       <div v-if="searchKeyword === '' && searchHistory.length === 0" class="no-history">
-        <p class="no-history__text">没有搜索历史</p>
+        <p class="no-history__text">{{ t("menuSearch.noHistory") }}</p>
+      </div>
+      <div
+        v-else-if="searchKeyword !== '' && displayResults.length === 0"
+        class="no-history"
+        role="status"
+      >
+        <p class="no-history__text">{{ t("menuSearch.noResults") }}</p>
       </div>
     </div>
 
@@ -65,6 +76,7 @@
 </template>
 
 <script setup lang="ts">
+import type { InputInstance } from "element-plus";
 import ProDialog from "@/components/ProDialog/index.vue";
 import AppIcon from "@/components/AppIcon/index.vue";
 import router from "@/router";
@@ -81,9 +93,10 @@ const permissionStore = usePermissionStore();
 const { t } = useI18n();
 const isModalVisible = ref(false);
 const searchKeyword = ref("");
-const searchInputRef = ref();
-const menuItems = ref<SearchItem[]>([]);
-const searchResults = ref<SearchItem[]>([]);
+const searchInputRef = ref<InputInstance>();
+const resultsRef = ref<HTMLElement>();
+const menuItems = computed(() => buildMenuSearchItems(permissionStore.routes));
+const shortcutKey = /Mac|iPhone|iPad/.test(navigator.platform) ? "Cmd" : "Ctrl";
 const activeIndex = ref(-1);
 
 const { addToHistory, clearHistory, loadSearchHistory, removeHistoryItem, searchHistory } =
@@ -100,7 +113,6 @@ function handleKeyDown(e: KeyboardEvent) {
 
 // 添加键盘事件监听
 onMounted(() => {
-  menuItems.value = buildMenuSearchItems(permissionStore.routes);
   loadSearchHistory();
   document.addEventListener("keydown", handleKeyDown);
 });
@@ -115,9 +127,6 @@ function openSearchModal() {
   searchKeyword.value = "";
   activeIndex.value = -1;
   isModalVisible.value = true;
-  setTimeout(() => {
-    searchInputRef.value.focus();
-  }, 100);
 }
 
 // 关闭搜索模态框
@@ -127,25 +136,26 @@ function closeSearchModal() {
 
 // 更新搜索结果
 function updateSearchResults() {
-  activeIndex.value = -1;
-  if (searchKeyword.value) {
-    const keyword = searchKeyword.value.toLowerCase();
-    searchResults.value = menuItems.value.filter((item) =>
-      item.title.toLowerCase().includes(keyword)
-    );
-  } else {
-    searchResults.value = [];
-  }
+  activeIndex.value = displayResults.value.length > 0 ? 0 : -1;
 }
 
 // 显示搜索结果
-const displayResults = computed(() => searchResults.value);
+const displayResults = computed(() => {
+  const keyword = searchKeyword.value.trim().toLowerCase();
+  return keyword
+    ? menuItems.value.filter((item) => item.title.toLowerCase().includes(keyword))
+    : searchHistory.value;
+});
+
+watch(activeIndex, async () => {
+  await nextTick();
+  resultsRef.value?.querySelector('[data-active="true"]')?.scrollIntoView({ block: "nearest" });
+});
 
 // 执行搜索
 function selectActiveResult() {
-  if (displayResults.value.length > 0 && activeIndex.value >= 0) {
-    navigateToRoute(displayResults.value[activeIndex.value]);
-  }
+  const item = displayResults.value[Math.max(0, activeIndex.value)];
+  if (item) navigateToRoute(item);
 }
 
 // 导航搜索结果
