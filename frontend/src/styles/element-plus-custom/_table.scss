@@ -1,8 +1,9 @@
 // ============================================
 // Element Plus 表格定制
 // ============================================
-// 优化表格视觉清晰度和交互体验
-// 创建日期：2026-04-09
+// 行 hover、斑马纹、选中行都与 --el-bg-color 混成不透明色：
+// 固定列单元格是 sticky 的，背景一旦半透明，横向滚动时下面的内容会透出来。
+// EP 在 .el-table 自身定义这些变量，且组件样式可能晚于本文件加载，所以变量挂在 html .el-table 上。
 // ============================================
 
 // ============================================
@@ -10,11 +11,13 @@
 // ============================================
 .el-table {
   overflow: hidden;
-  border-radius: 8px;
-  box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
+  border-radius: var(--ff-radius-control);
+}
 
-  // 表格内部边框优化
-  --el-table-border-color: var(--border-base, #e5e7eb);
+html .el-table {
+  --el-table-border-color: var(--ff-line);
+  --el-table-row-hover-bg-color: color-mix(in srgb, var(--ff-ink) 4%, var(--el-bg-color));
+  --el-table-current-row-bg-color: color-mix(in srgb, var(--ff-iri-b) 10%, var(--el-bg-color));
 }
 
 // ============================================
@@ -23,12 +26,12 @@
 .el-table__header-wrapper {
   .el-table__header {
     th {
-      font-weight: 600;
-      color: var(--text-primary, #111827);
-      background-color: var(--gray-50, #f9fafb);
+      font-weight: 500;
+      color: var(--ff-color-text-secondary);
+      background-color: var(--el-bg-color);
 
       .cell {
-        font-size: 14px;
+        font-size: 13px;
       }
     }
   }
@@ -40,17 +43,14 @@
 .el-table__body-wrapper {
   .el-table__body {
     tr {
-      transition: background-color var(--duration-fast, 150ms)
-        var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
+      transition: background-color var(--ff-duration-fast) var(--ff-ease-standard);
 
-      // 悬停效果
       &:hover > td {
-        background-color: var(--gray-50, #f9fafb);
+        background-color: var(--el-table-row-hover-bg-color);
       }
 
-      // 选中行
       &.current-row > td {
-        background-color: rgba(99, 102, 241, 0.08);
+        background-color: var(--el-table-current-row-bg-color);
       }
     }
   }
@@ -59,11 +59,12 @@
 // ============================================
 // 4. 斑马纹样式
 // ============================================
-.el-table--striped {
+// EP 的斑马纹直接用半透明的 --el-fill-color-lighter，这里用更高优先级换成不透明色
+.el-table.el-table--striped {
   .el-table__body {
     tr.el-table__row--striped {
-      td {
-        background-color: var(--gray-50, #f9fafb);
+      td.el-table__cell {
+        background-color: color-mix(in srgb, var(--ff-ink) 2.5%, var(--el-bg-color));
       }
     }
   }
@@ -77,7 +78,7 @@
 
   .el-table__empty-text {
     font-size: 14px;
-    color: var(--text-secondary, #6b7280);
+    color: var(--ff-color-text-secondary);
   }
 }
 
@@ -101,7 +102,7 @@
 // ============================================
 .el-table__loading {
   .el-loading-mask {
-    border-radius: 8px;
+    border-radius: var(--ff-radius-control);
   }
 }
 
@@ -110,36 +111,15 @@
 // ============================================
 html.dark {
   .el-table {
-    box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.3));
+    --el-table-row-hover-bg-color: color-mix(in srgb, #ffffff 5%, var(--el-bg-color));
+    --el-table-current-row-bg-color: color-mix(in srgb, var(--ff-iri-b) 14%, var(--el-bg-color));
   }
 
-  .el-table__header-wrapper {
-    .el-table__header {
-      th {
-        background-color: var(--gray-800, #1f2937);
-      }
-    }
-  }
-
-  .el-table__body-wrapper {
-    .el-table__body {
-      tr {
-        &:hover > td {
-          background-color: var(--gray-800, #1f2937);
-        }
-
-        &.current-row > td {
-          background-color: rgba(129, 140, 248, 0.15);
-        }
-      }
-    }
-  }
-
-  .el-table--striped {
+  .el-table.el-table--striped {
     .el-table__body {
       tr.el-table__row--striped {
-        td {
-          background-color: var(--gray-800, #1f2937);
+        td.el-table__cell {
+          background-color: color-mix(in srgb, #ffffff 3%, var(--el-bg-color));
         }
       }
     }

@@ -16,7 +16,13 @@ body,
 #app,
 .app-wrapper {
   color: var(--ff-shell-text);
-  background: var(--ff-shell-bg);
+}
+
+// 画布色由 foundation/_base.scss 画在 html 上，其余外层保持透明以透出背景光池
+body,
+#app,
+.app-wrapper {
+  background: transparent;
 }
 
 .app-container {

@@ -6,14 +6,11 @@
 // ============================================
 
 // ============================================
-// 1. 字体家族
+// 1. 字体家族：引用 tokens/_typography.scss 的 Geist 字体栈
 // ============================================
-$font-family-base:
-  -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans",
-  sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+$font-family-base: var(--ff-font-sans);
 
-$font-family-mono:
-  SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+$font-family-mono: var(--ff-font-mono);
 
 // ============================================
 // 2. 字号阶梯

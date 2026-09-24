@@ -81,7 +81,7 @@ const appMainHeight = computed(() => {
   position: relative;
   overflow-y: auto;
   scrollbar-gutter: stable;
-  background: var(--ff-shell-bg);
+  background: transparent;
 
   /* 布局切换动画优化 */
   &.animate__animated {

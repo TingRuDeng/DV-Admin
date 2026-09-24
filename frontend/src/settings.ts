@@ -24,9 +24,9 @@ export const defaultSettings: AppSettings = {
   size: ComponentSize.DEFAULT,
   // 语言
   language: LanguageEnum.ZH_CN,
-  // 主题颜色 - 荧光珊瑚色 - 暗色画布的主操作色
+  // 主题颜色 - Liquid Chrome 紫，同时驱动虹彩渐变的三个色标
   // 修改此值时需同步修改 src/styles/variables.scss
-  themeColor: "#FF705C",
+  themeColor: "#6E36D6",
   // 是否显示水印
   showWatermark: false,
   // 水印内容
@@ -55,12 +55,12 @@ export const authConfig = {
 // 主题色预设 - 经典配色方案
 // 注意：修改默认主题色时，需要同步修改 src/styles/variables.scss 中的 primary.base 值
 export const themeColorPresets = [
-  "#FF705C", // 荧光珊瑚色 - 暗色画布默认
+  "#6E36D6", // Liquid Chrome 紫 - 默认
   "#4080FF", // Arco Design 蓝 - 现代感强
   "#1890FF", // Ant Design 蓝 - 经典商务
   "#409EFF", // Element Plus 蓝 - 清新自然
   "#FA8C16", // 活力橙 - 温暖友好
-  "#722ED1", // 优雅紫 - 高端大气
+  "#FF705C", // 荧光珊瑚色 - 旧版默认
   "#13C2C2", // 青色 - 科技感
   "#52C41A", // 成功绿 - 活力清新
   "#F5222D", // 警示红 - 醒目强烈

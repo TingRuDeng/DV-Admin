@@ -152,9 +152,10 @@
   border-bottom-color: var(--ff-shell-border) !important;
 }
 
+// 内容区透明，透出 html 画布与背景光池
 .app-main,
 .layout__main {
-  background: var(--ff-shell-bg) !important;
+  background: transparent !important;
 }
 
 html.sidebar-color-blue {

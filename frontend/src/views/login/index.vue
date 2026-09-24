@@ -83,7 +83,7 @@ const formComponents = {
 
 .fade-slide-leave-active,
 .fade-slide-enter-active {
-  transition: all var(--ff-duration-base) var(--ff-ease-spring);
+  transition: all var(--ff-duration-base) var(--ff-ease-out);
 }
 
 .fade-slide-enter-from {
