@@ -377,6 +377,31 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 
 ---
 
+### 12. 前端视觉 token 仍有三套来源
+
+**级别：** 🟢 低
+
+**描述：**
+[ADR-0002](./ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md) 把视觉值收敛到 `styles/tokens/` 的 `--ff-*` 变量，但另外两套来源仍在样式图里：`styles/variables.scss` 的 Sass 变量（Element Plus `@forward with` 主色与圆角），以及 `styles/design-system/` 的 Sass 色板、阴影和动画变量（只被 `element-plus-custom/` 与排版类消费）。
+
+**具体问题：**
+- `tokens/_color.scss` 里旧的 `--ff-accent*`、`--ff-shell-*` 名称保留为新值的别名，约 18 个样式文件仍在引用
+- `design-system/_colors.scss` 的中性色已改为引用 `--ff-*`，但状态色、阴影阶梯和动画时长仍是独立的 Sass 字面量
+- `element-plus.scss`、`element-plus-custom/` 与 `_minimal-saas.scss` 仍是冻结的历史兼容层，改视觉时要同时确认三处没有回流旧色值
+
+**影响范围：**
+- 新增视觉值时容易写进旧来源，造成深浅模式或预设色切换时不同步
+- style-governance 只拦截 indigo 字面量和 hover 位移，不拦截所有独立色值
+
+**计划解决方案：**
+1. 新代码只引用 `--ff-*` token，不再使用 `--ff-accent*`、`--ff-shell-*` 别名和 `design-system` 变量
+2. 逐个文件把别名引用替换为新 token 名，替换完再删除别名
+3. `element-plus-custom/` 退场后删除 `design-system/`，Element Plus 主色继续由 `variables.scss` 与运行时 `applyTheme` 提供
+
+**预计工作量：** 1-2 天，需要深浅两种模式与三种布局的截图回归
+
+---
+
 ### ✅ 2026-08 前端生产依赖安全升级
 
 **级别：** 🟡 中
@@ -612,10 +637,10 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 |------|------|
 | 🔴 高优先级 | 0 |
 | 🟡 中优先级 | 4 |
-| 🟢 低优先级 | 6 |
+| 🟢 低优先级 | 7 |
 | ✅ 已解决 | 14 |
-| **当前未解决** | **10** |
-| **累计记录** | **24** |
+| **当前未解决** | **11** |
+| **累计记录** | **25** |
 
 ---
 
@@ -628,5 +653,5 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 
 ---
 
-**最后更新：** 2026-09-06
+**最后更新：** 2026-09-25
 **维护者：** DV-Admin Team
