@@ -127,7 +127,7 @@ API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
     ),
     FieldContract(
         key="user_import_result",
-        canonical=frozenset({"validCount", "invalidCount", "messageList"}),
+        canonical=frozenset({"validCount", "skippedCount", "invalidCount", "messageList"}),
         django_source="drf_admin.apps.system.services.user_import_export.import_users",
         fastapi_source="app.schemas.system_common.UserImportResult",
     ),

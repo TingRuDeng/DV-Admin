@@ -272,7 +272,7 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
         auth_required=True,
         query_params=("deptId",),
         request_fields=("file",),
-        response_fields=("validCount", "invalidCount", "messageList"),
+        response_fields=("validCount", "skippedCount", "invalidCount", "messageList"),
         permissions=("system:users:import",),
         evidence=(
             ContractEvidence(

@@ -400,6 +400,7 @@
       ],
       "response_fields": [
         "validCount",
+        "skippedCount",
         "invalidCount",
         "messageList"
       ]

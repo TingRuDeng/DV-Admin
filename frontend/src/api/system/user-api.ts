@@ -154,6 +154,7 @@ export interface EncodedFile {
 
 export interface UserImportResult {
   invalidCount: number;
+  skippedCount: number;
   validCount: number;
   messageList: string[];
 }

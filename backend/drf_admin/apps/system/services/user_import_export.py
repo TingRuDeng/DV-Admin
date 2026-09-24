@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from typing import Any, BinaryIO
 
 from django.conf import settings
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from drf_admin.apps.system.models import Departments, Roles, Users
@@ -134,6 +134,7 @@ def import_users(
         visible_dept_ids = get_visible_department_ids(current_user)
         can_write_sensitive = can_write_sensitive_user_fields(current_user)
         valid_count = 0
+        skipped_count = 0
         invalid_count = 0
         messages: list[str] = []
 
@@ -141,6 +142,7 @@ def import_users(
             worksheet.iter_rows(min_row=2, values_only=True),
             start=2,
         ):
+            duplicate_before_parse = _row_has_existing_unique_value(row, columns, context)
             parsed = _parse_row(
                 row_idx,
                 row,
@@ -152,7 +154,10 @@ def import_users(
                 can_write_sensitive,
             )
             if parsed is None:
-                invalid_count += 1
+                if duplicate_before_parse:
+                    skipped_count += 1
+                else:
+                    invalid_count += 1
                 continue
             roles = [context.all_roles[rid] for rid in parsed.role_ids] or default_roles
             try:
@@ -161,23 +166,34 @@ def import_users(
                 messages.append(f"第{row_idx}行: {exc.detail}")
                 invalid_count += 1
                 continue
-            user = Users.objects.create_user(
-                username=parsed.username,
-                password=password,
-                name=parsed.name,
-                email=parsed.email,
-                mobile=parsed.mobile,
-                gender=parsed.gender,
-                is_active=1,
-                dept_id=parsed.dept_id,
-            )
-            user.roles.set(roles)
+            _remember_imported_user(parsed, context)
+            try:
+                with transaction.atomic():
+                    user = Users.objects.create_user(
+                        username=parsed.username,
+                        password=password,
+                        name=parsed.name,
+                        email=parsed.email,
+                        mobile=parsed.mobile,
+                        gender=parsed.gender,
+                        is_active=1,
+                        dept_id=parsed.dept_id,
+                    )
+                    user.roles.set(roles)
+            except IntegrityError:
+                # 预查询与写入之间可能有并发提交；唯一约束仍是最终边界。
+                if not _user_unique_value_exists(parsed):
+                    raise
+                messages.append(f"第{row_idx}行: 用户名 '{parsed.username}' 已存在，已跳过")
+                skipped_count += 1
+                continue
             valid_count += 1
     finally:
         workbook.close()
 
     return {
         "validCount": valid_count,
+        "skippedCount": skipped_count,
         "invalidCount": invalid_count,
         "messageList": messages,
     }
@@ -257,13 +273,13 @@ def _parse_row(
         messages.append(f"第{row_idx}行: 用户名不能为空")
         return None
     if username in context.existing_usernames:
-        messages.append(f"第{row_idx}行: 用户名 '{username}' 已存在")
+        messages.append(f"第{row_idx}行: 用户名 '{username}' 已存在，已跳过")
         return None
 
     email = _optional_text(row, columns.email)
     mobile = _optional_text(row, columns.mobile)
     if mobile and mobile in context.existing_mobiles:
-        messages.append(f"第{row_idx}行: 手机号 '{mobile}' 已存在")
+        messages.append(f"第{row_idx}行: 手机号 '{mobile}' 已存在，已跳过")
         return None
     if not can_write_sensitive and any((email, mobile)):
         messages.append(f"第{row_idx}行: 缺少字段写入权限，不能写入手机号或邮箱")
@@ -284,9 +300,6 @@ def _parse_row(
         messages.append(f"第{row_idx}行: 目标部门超出当前用户数据范围")
         return None
 
-    context.existing_usernames.add(username)
-    if mobile:
-        context.existing_mobiles.add(mobile)
     return ImportRow(
         username=username,
         name=_optional_text(row, columns.name) or username,
@@ -357,3 +370,34 @@ def _optional_text(row: tuple[Any, ...], column: int | None) -> str | None:
     if column is None or not row[column]:
         return None
     return str(row[column]).strip()
+
+
+def _row_has_existing_unique_value(
+    row: tuple[Any, ...],
+    columns: ImportColumns,
+    context: ImportContext,
+) -> bool:
+    """判断解析前是否已命中用户名或手机号，供区分跳过与校验失败。"""
+    username = _optional_text(row, columns.username)
+    mobile = _optional_text(row, columns.mobile)
+    if not username:
+        return False
+    return bool(
+        username in context.existing_usernames
+        or (mobile and mobile in context.existing_mobiles)
+    )
+
+
+def _user_unique_value_exists(row: ImportRow) -> bool:
+    """确认唯一约束冲突确实对应用户字段，避免吞掉其他完整性错误。"""
+    return bool(
+        Users.objects.filter(username=row.username).exists()
+        or (row.mobile and Users.objects.filter(mobile=row.mobile).exists())
+    )
+
+
+def _remember_imported_user(row: ImportRow, context: ImportContext) -> None:
+    """仅在行通过权限边界后记录唯一字段，避免无效行污染同文件去重状态。"""
+    context.existing_usernames.add(row.username)
+    if row.mobile:
+        context.existing_mobiles.add(row.mobile)

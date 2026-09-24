@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from typing import Any, BinaryIO, cast
 
+from tortoise.exceptions import IntegrityError
 from tortoise.transactions import in_transaction
 
 from app.core.config import settings
@@ -43,6 +44,7 @@ class ImportRowResult:
 
     user: Users
     role_ids: list[int]
+    row_idx: int
 
 
 class UserImportParserMixin:
@@ -53,6 +55,10 @@ class UserImportParserMixin:
         from openpyxl import load_workbook
 
         try:
+            # Python 3.10 的 SpooledTemporaryFile 缺少 seekable，zipfile 会直接读取该属性。
+            # 该文件已由 copy_upload_file 写入并回退到起始位置，声明其可随机读取即可。
+            if not hasattr(file, "seekable"):
+                setattr(file, "seekable", lambda: True)
             wb = load_workbook(file, read_only=True, data_only=True)
         except Exception as exc:
             raise ValidationError(f"Excel 文件解析失败: {str(exc)}") from exc
@@ -141,7 +147,7 @@ class UserImportParserMixin:
 
         mobile = self._read_optional_text(row, columns.mobile)
         if mobile and mobile in context.existing_mobiles:
-            messages.append(f"第{row_idx}行: 手机号 '{mobile}' 已存在")
+            messages.append(f"第{row_idx}行: 手机号 '{mobile}' 已存在，已跳过")
             return None
         email = self._read_optional_text(row, columns.email)
         if not can_write_sensitive and any(value for value in (email, mobile)):
@@ -173,8 +179,7 @@ class UserImportParserMixin:
             dept_id=resolved_dept_id,
             avatar="avatar/default.png",
         )
-        self._remember_imported_user(username, mobile, context)
-        return ImportRowResult(user=user, role_ids=role_ids)
+        return ImportRowResult(user=user, role_ids=role_ids, row_idx=row_idx)
 
     def _read_required_username(
         self,
@@ -190,7 +195,7 @@ class UserImportParserMixin:
             messages.append(f"第{row_idx}行: 用户名不能为空")
             return None
         if username in context.existing_usernames:
-            messages.append(f"第{row_idx}行: 用户名 '{username}' 已存在")
+            messages.append(f"第{row_idx}行: 用户名 '{username}' 已存在，已跳过")
             return None
         return username
 
@@ -254,17 +259,40 @@ class UserImportParserMixin:
         rows: list[ImportRowResult],
         all_roles: dict[int, Roles],
         default_role: Roles | None = None,
-    ) -> None:
-        """在单一事务内保存导入用户及角色关联。"""
-        async with in_transaction() as connection:
+        messages: list[str] | None = None,
+    ) -> tuple[int, int]:
+        """在单一事务内保存导入用户及角色关联，并返回成功/跳过数量。"""
+        valid_count = 0
+        skipped_count = 0
+        async with in_transaction():
             for row in rows:
-                row.user.password = await hash_new_password(settings.default_password)
-                await row.user.save(using_db=connection)
-                roles = [all_roles[role_id] for role_id in row.role_ids]
-                if not roles and default_role is not None:
-                    roles = [default_role]
-                if roles:
-                    await row.user.roles.add(*roles, using_db=connection)
+                try:
+                    async with in_transaction() as row_connection:
+                        row.user.password = await hash_new_password(settings.default_password)
+                        await row.user.save(using_db=row_connection)
+                        roles = [all_roles[role_id] for role_id in row.role_ids]
+                        if not roles and default_role is not None:
+                            roles = [default_role]
+                        if roles:
+                            await row.user.roles.add(*roles, using_db=row_connection)
+                except IntegrityError:
+                    if not await self._user_unique_value_exists(row.user):
+                        raise
+                    if messages is not None:
+                        messages.append(
+                            f"第{row.row_idx}行: 用户名 '{row.user.username}' 已存在，已跳过"
+                        )
+                    skipped_count += 1
+                    continue
+                valid_count += 1
+        return valid_count, skipped_count
+
+    async def _user_unique_value_exists(self, user: Users) -> bool:
+        """确认唯一约束冲突对应用户名或手机号，避免吞掉其他完整性错误。"""
+        return bool(
+            await Users.filter(username=user.username).exists()
+            or (user.mobile and await Users.filter(mobile=user.mobile).exists())
+        )
 
     def _remember_imported_user(
         self,

@@ -104,6 +104,7 @@ describe("用户导入结果反馈", () => {
   it("全部成功时刷新一次并关闭导入抽屉", async () => {
     vi.mocked(UserAPI.import).mockResolvedValue({
       validCount: 2,
+      skippedCount: 0,
       invalidCount: 0,
       messageList: [],
     });
@@ -118,15 +119,16 @@ describe("用户导入结果反馈", () => {
   it("部分成功时警告并刷新一次，保留失败明细", async () => {
     vi.mocked(UserAPI.import).mockResolvedValue({
       validCount: 1,
+      skippedCount: 0,
       invalidCount: 1,
       messageList: ["第3行：用户名已存在"],
     });
     await submit();
-    expect(ElMessage.warning).toHaveBeenCalledWith("部分导入成功：成功1条，失败1条");
+    expect(ElMessage.warning).toHaveBeenCalledWith("部分导入成功：成功1条，跳过0条，失败1条");
     expect(ElMessage.error).not.toHaveBeenCalled();
     expect(wrapper.emitted("import-success")).toHaveLength(1);
     expect(wrapper.emitted("update:modelValue")).toBeUndefined();
-    expect(wrapper.get('[role="dialog"]').text()).toContain("成功1条，失败1条");
+    expect(wrapper.get('[role="dialog"]').text()).toContain("成功1条，跳过0条，失败1条");
     expect(wrapper.get('[role="dialog"]').text()).toContain("第3行：用户名已存在");
     await wrapper.get('[role="dialog"] button').trigger("click");
     await wrapper
@@ -140,11 +142,12 @@ describe("用户导入结果反馈", () => {
   it("全部失败时显示失败结果且不刷新", async () => {
     vi.mocked(UserAPI.import).mockResolvedValue({
       validCount: 0,
+      skippedCount: 0,
       invalidCount: 2,
       messageList: ["第2行：无权限", "第3行：用户名已存在"],
     });
     await submit();
-    expect(ElMessage.error).toHaveBeenCalledWith("导入失败：成功0条，失败2条");
+    expect(ElMessage.error).toHaveBeenCalledWith("导入失败：成功0条，跳过0条，失败2条");
     expect(wrapper.emitted("import-success")).toBeUndefined();
     expect(wrapper.get('[role="dialog"]').text()).toContain("第2行：无权限");
     expect(wrapper.get('[role="dialog"]').text()).toContain("第3行：用户名已存在");
@@ -153,6 +156,7 @@ describe("用户导入结果反馈", () => {
   it("零条记录提示没有数据且不刷新或关闭", async () => {
     vi.mocked(UserAPI.import).mockResolvedValue({
       validCount: 0,
+      skippedCount: 0,
       invalidCount: 0,
       messageList: [],
     });
@@ -161,6 +165,20 @@ describe("用户导入结果反馈", () => {
     expect(ElMessage.success).not.toHaveBeenCalled();
     expect(wrapper.emitted("import-success")).toBeUndefined();
     expect(wrapper.emitted("update:modelValue")).toBeUndefined();
+  });
+
+  it("重复提交只跳过时显示幂等提示而不是失败", async () => {
+    vi.mocked(UserAPI.import).mockResolvedValue({
+      validCount: 0,
+      skippedCount: 1,
+      invalidCount: 0,
+      messageList: ["第2行：用户名已存在，已跳过"],
+    });
+    await submit();
+    expect(ElMessage.warning).toHaveBeenCalledWith("未新增数据：成功0条，跳过1条，失败0条");
+    expect(ElMessage.error).not.toHaveBeenCalled();
+    expect(wrapper.getComponent(Alert).attributes("type")).toBe("warning");
+    expect(wrapper.get('[role="dialog"]').text()).toContain("成功0条，跳过1条，失败0条");
   });
 
   it("请求异常不触发刷新或伪造结果", async () => {
@@ -174,7 +192,12 @@ describe("用户导入结果反馈", () => {
 
   it("再次提交遇到异常时不残留上一次失败明细，也不重复刷新", async () => {
     vi.mocked(UserAPI.import)
-      .mockResolvedValueOnce({ validCount: 1, invalidCount: 1, messageList: ["上次失败行"] })
+      .mockResolvedValueOnce({
+        validCount: 1,
+        skippedCount: 0,
+        invalidCount: 1,
+        messageList: ["上次失败行"],
+      })
       .mockRejectedValueOnce(new Error("网络异常"));
     await submit();
     await wrapper.get('[role="dialog"] button').trigger("click");

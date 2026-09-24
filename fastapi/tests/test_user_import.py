@@ -50,6 +50,7 @@ async def test_user_import(test_import_setup):
     """
     测试用户导入功能
     """
+    from app.db.models.oauth import Users
     from app.services.system.user_service import user_service
 
     dept = test_import_setup["dept"]
@@ -95,7 +96,9 @@ async def test_user_import(test_import_setup):
     print(f"错误信息: {result.message_list}")
 
     assert result.valid_count == 4, f"应该成功导入 4 条数据，实际: {result.valid_count}"
-    assert result.invalid_count == 2, f"应该失败 2 条数据，实际: {result.invalid_count}"
+    assert result.skipped_count == 1, f"应该跳过 1 条重复数据，实际: {result.skipped_count}"
+    assert result.invalid_count == 1, f"应该失败 1 条数据，实际: {result.invalid_count}"
+    assert await Users.filter(username="user001").count() == 1
     assert len(result.message_list) == 3, f"应该有 3 条错误信息，实际: {len(result.message_list)}"
 
 
