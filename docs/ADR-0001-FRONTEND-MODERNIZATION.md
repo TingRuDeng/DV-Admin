@@ -51,6 +51,7 @@ ai_summary:
 - 现有后端动态菜单、手写路由、RouteMeta、KeepAlive/cacheKey、字典、WebSocket、JWT 刷新和 Pro 组件协议属于业务核心，必须保留。
 - `frontend/package.json`、`frontend/pnpm-lock.yaml` 与 `frontend/vite.config.ts` 当前未使用 `unplugin-vue-router`，本次不引入文件路由。
 - 具体阶段、状态和验收证据只在 `docs/FRONTEND_OPTIMIZATION_BACKLOG.md` 跟踪，不另建重复 roadmap。
+- 视觉系统的后续替换由 [ADR-0002](./ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md) 记录；它只换 tokens、skins 和少量页面样式，仍受本 ADR 的兼容边界约束。
 
 ## How to verify
 
