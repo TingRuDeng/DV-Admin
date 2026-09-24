@@ -346,7 +346,11 @@ class UserImportAPIView(AutoPermissionAPIView):
         )
         set_audit_context(
             request,
-            batch_count=result.get("validCount", 0) + result.get("invalidCount", 0),
+            batch_count=(
+                result.get("validCount", 0)
+                + result.get("skippedCount", 0)
+                + result.get("invalidCount", 0)
+            ),
             success_count=result.get("validCount", 0),
             failed_count=result.get("invalidCount", 0),
         )

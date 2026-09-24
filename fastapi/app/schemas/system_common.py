@@ -61,6 +61,7 @@ class UserImportResult(BaseSchema):
     """用户导入结果"""
 
     valid_count: int = Field(default=0, description="成功导入数量")
+    skipped_count: int = Field(default=0, description="因唯一字段已存在而跳过数量")
     invalid_count: int = Field(default=0, description="失败数量")
     message_list: list[str] = Field(default_factory=list, description="错误信息列表")
 

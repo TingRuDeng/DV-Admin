@@ -380,7 +380,7 @@ POST /api/v1/system/users/export/               # 导出用户
 > 模板和导出响应统一返回 `{ filename, content, contentType }`，其中 `content` 是 Base64 编码；模板为 `.xlsx`，导出文件为带 UTF-8 BOM 的 CSV。前端不得把该 JSON 响应当作 Blob。
 > 用户导出仅包含当前操作者范围内的用户，并复用 `mobile/email` 脱敏规则；用户导入仅接受 `.xlsx`，逐行校验目标部门、敏感字段写入权限和全部角色 ID，失败行不会创建用户。
 
-用户导入的唯一字段、部门和角色预加载只查询当前文件引用值，每批最多 500 项；同文件重复、逐行拒绝和意外失败事务回滚语义不变。本项不改响应/分页，不新增异步导入任务。
+用户导入的唯一字段、部门和角色预加载只查询当前文件引用值，每批最多 500 项；用户名或手机号已存在的行按幂等重试语义计入 `skippedCount`，业务校验失败计入 `invalidCount`，唯一约束竞态也会转换为跳过结果。`validCount`、`skippedCount`、`invalidCount` 和 `messageList` 同时返回；事务失败仍整体回滚。本项不新增异步导入任务，导入失败由调用方按相同文件重试。
 
 ---
 
@@ -658,6 +658,11 @@ GET /api/openapi.json   # OpenAPI JSON（FastAPI 非生产环境）
 | 403 | 无权限 |
 | 404 | 资源不存在 |
 | 500 | 服务器内部错误 |
+
+用户导入行级重复不会返回 HTTP 409：用户名或手机号已存在时响应仍为成功包裹，
+该行计入 `skippedCount`；行级字段、权限和业务校验错误计入 `invalidCount` 并保留在
+`messageList`。请求级文件格式、解析或认证/权限失败使用对应 HTTP 错误包裹。前端不得把
+`skippedCount` 当作新建成功数，也不得因为跳过行触发重复创建。
 
 ---
 

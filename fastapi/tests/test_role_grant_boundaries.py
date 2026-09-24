@@ -162,6 +162,29 @@ async def test_import_rejects_only_forbidden_rows(grants):
     assert not await Users.filter(username="denied-import").exists()
 
 
+async def test_import_permission_rejection_does_not_reserve_unique_value(grants):
+    """权限拒绝行不能污染同文件后续行的唯一字段判定。"""
+    from io import BytesIO
+
+    from openpyxl import Workbook
+
+    g = grants
+    username = "perm-retry-import"
+    book = Workbook()
+    book.active.append(["用户名*", "部门ID", "角色ID(多个用逗号分隔)"])
+    book.active.append([username, g["shared"].id, str(g["high"].id)])
+    book.active.append([username, g["shared"].id, str(g["low"].id)])
+    buffer = BytesIO()
+    book.save(buffer)
+    book.close()
+    buffer.seek(0)
+
+    result = await user_service.import_users(buffer, current_user=g["actor"])
+
+    assert (result.valid_count, result.invalid_count, result.skipped_count) == (1, 1, 0)
+    assert await Users.filter(username=username).count() == 1
+
+
 async def test_role_scalar_and_relation_changes_rollback_together(grants, monkeypatch):
     from tortoise.fields.relational import ManyToManyRelation
 

@@ -44,12 +44,18 @@ class UserImportExportMixin(UserImportParserMixin):
             can_write_sensitive = await can_write_sensitive_user_fields(current_user)
             users_to_create: list[ImportRowResult] = []
             messages: list[str] = []
+            skipped_count = 0
             invalid_count = 0
 
             for row_idx, row in enumerate(
                 worksheet.iter_rows(min_row=2, values_only=True),
                 start=2,
             ):
+                duplicate_before_parse = self._row_has_existing_unique_value(
+                    row,
+                    columns,
+                    context,
+                )
                 row_result = self._parse_import_row(
                     row_idx,
                     row,
@@ -70,17 +76,26 @@ class UserImportExportMixin(UserImportParserMixin):
                         messages.append(f"第{row_idx}行: {exc.message}")
                         row_result = None
                 if row_result:
+                    self._remember_imported_user(
+                        row_result.user.username,
+                        row_result.user.mobile,
+                        context,
+                    )
                     users_to_create.append(row_result)
+                elif duplicate_before_parse:
+                    skipped_count += 1
                 else:
                     invalid_count += 1
 
-            await self._save_import_users(
+            valid_count, save_skipped_count = await self._save_import_users(
                 users_to_create,
                 context.all_roles,
                 context.default_role,
+                messages,
             )
             return UserImportResult(
-                valid_count=len(users_to_create),
+                valid_count=valid_count,
+                skipped_count=skipped_count + save_skipped_count,
                 invalid_count=invalid_count,
                 message_list=messages,
             )
@@ -156,6 +171,17 @@ class UserImportExportMixin(UserImportParserMixin):
             "F": 10,
             "G": 25,
         }
+
+    def _row_has_existing_unique_value(self, row: tuple[Any, ...], columns, context) -> bool:
+        """判断解析前是否已命中用户名或手机号，供区分跳过与校验失败。"""
+        username = self._read_optional_text(row, columns.username)
+        mobile = self._read_optional_text(row, columns.mobile)
+        if not username:
+            return False
+        return bool(
+            username in context.existing_usernames
+            or (mobile and mobile in context.existing_mobiles)
+        )
 
     def _build_export_row(
         self,

@@ -11,6 +11,7 @@ from openpyxl import Workbook
 from app.core.exceptions import ValidationError
 from app.db.models.oauth import Users
 from app.services.system.user_service import user_service
+from app.services.system.user_services.import_parser import ImportContext
 
 pytest_plugins = ["user_service_fixtures"]
 
@@ -62,6 +63,14 @@ class TestUserServiceImportExport:
         assert result["content_type"] == "text/csv;charset=utf-8"
 
     @pytest.mark.asyncio
+    async def test_export_is_repeatable_without_writes(self, db, test_user_for_service):
+        """相同数据期间重复导出保持只读且结果稳定。"""
+        first = await user_service.export_users()
+        second = await user_service.export_users()
+
+        assert first == second
+
+    @pytest.mark.asyncio
     async def test_export_users_filters_scope_and_masks_contacts(
         self,
         db,
@@ -105,6 +114,41 @@ class TestUserServiceImportExport:
 
         assert result.valid_count >= 1
         assert result.invalid_count == 0
+
+    @pytest.mark.asyncio
+    async def test_retrying_same_import_skips_existing_rows_without_duplicates(self, db):
+        """重复提交同一文件时只报告跳过，不重复创建用户。"""
+        username = f"idempotent_import_{uuid.uuid4().hex[:8]}"
+        rows = [[username, "幂等用户", "", "", "0", "", ""]]
+
+        first = await user_service.import_users(build_import_file(rows))
+        second = await user_service.import_users(build_import_file(rows))
+
+        assert first.valid_count == 1
+        assert first.skipped_count == 0
+        assert second.valid_count == 0
+        assert second.skipped_count == 1
+        assert second.invalid_count == 0
+        assert await Users.filter(username=username).count() == 1
+
+    @pytest.mark.asyncio
+    async def test_import_unique_constraint_race_is_reported_as_skip(self, db, monkeypatch):
+        """预查询之后发生唯一约束冲突时也返回幂等跳过结果。"""
+        username = f"raced_import_{uuid.uuid4().hex[:8]}"
+        await Users.create(username=username, password="!")
+
+        async def empty_context(*_args):
+            return ImportContext({}, {}, set(), set(), None)
+
+        monkeypatch.setattr(user_service, "_build_import_context", empty_context)
+        result = await user_service.import_users(
+            build_import_file([[username, "竞态用户", "", "", "0", "", ""]])
+        )
+
+        assert result.valid_count == 0
+        assert result.skipped_count == 1
+        assert result.invalid_count == 0
+        assert any("已跳过" in message for message in result.message_list)
 
     @pytest.mark.asyncio
     async def test_import_users_rolls_back_when_second_save_fails(

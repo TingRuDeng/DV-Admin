@@ -14,6 +14,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from drf_admin.apps.system.models import Departments, Permissions, Roles, Users
+from drf_admin.apps.system.services.user_import_export import ImportContext
 from drf_admin.apps.system.test_helpers import create_admin_user
 
 
@@ -136,6 +137,15 @@ class UserImportExportTestCase(TestCase):
         self.assertEqual(exported[visible_user.username][2], "v******@example.com")
         self.assertEqual(exported[visible_user.username][3], "138****8000")
 
+    def test_export_is_repeatable_without_writes(self):
+        grant_permission(self.user, "system:users:export")
+        first = self.client.post("/api/v1/system/users/export/")
+        second = self.client.post("/api/v1/system/users/export/")
+
+        self.assertEqual(first.status_code, status.HTTP_200_OK)
+        self.assertEqual(second.status_code, status.HTTP_200_OK)
+        self.assertEqual(first.data["data"], second.data["data"])
+
     def test_import_creates_valid_user_with_roles(self):
         grant_permission(self.user, "system:users:import")
         grant_permission(self.user, "system:users:field:write")
@@ -167,6 +177,51 @@ class UserImportExportTestCase(TestCase):
         created = Users.objects.get(username="xlsx_import_user")
         self.assertEqual(created.dept_id, department.id)
         self.assertEqual(list(created.roles.values_list("id", flat=True)), [role.id])
+
+    def test_retrying_same_import_skips_existing_rows_without_duplicates(self):
+        """重复提交同一文件时只报告跳过，不重复创建用户。"""
+        grant_permission(self.user, "system:users:import")
+        username = "idempotent_import_user"
+        first = self.client.post(
+            "/api/v1/system/users/import",
+            {"file": build_import_file([[username, "幂等用户", "", "", "0", "", ""]])},
+            format="multipart",
+        )
+        second = self.client.post(
+            "/api/v1/system/users/import",
+            {"file": build_import_file([[username, "幂等用户", "", "", "0", "", ""]])},
+            format="multipart",
+        )
+
+        self.assertEqual(first.status_code, status.HTTP_200_OK)
+        self.assertEqual(first.data["data"]["validCount"], 1)
+        self.assertEqual(first.data["data"]["skippedCount"], 0)
+        self.assertEqual(second.status_code, status.HTTP_200_OK)
+        self.assertEqual(second.data["data"]["validCount"], 0)
+        self.assertEqual(second.data["data"]["skippedCount"], 1)
+        self.assertEqual(second.data["data"]["invalidCount"], 0)
+        self.assertEqual(Users.objects.filter(username=username).count(), 1)
+
+    def test_import_unique_constraint_race_is_reported_as_skip(self):
+        """预查询之后发生唯一约束冲突时也返回幂等跳过结果。"""
+        grant_permission(self.user, "system:users:import")
+        username = "raced_import_user"
+        Users.objects.create_user(username=username, password="admin123")
+        empty_context = ImportContext({}, {}, set(), set())
+        with patch(
+            "drf_admin.apps.system.services.user_import_export._build_context",
+            return_value=empty_context,
+        ):
+            response = self.client.post(
+                "/api/v1/system/users/import",
+                {"file": build_import_file([[username, "竞态用户", "", "", "0", "", ""]])},
+                format="multipart",
+            )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["data"]["validCount"], 0)
+        self.assertEqual(response.data["data"]["skippedCount"], 1)
+        self.assertEqual(response.data["data"]["invalidCount"], 0)
 
     def test_import_rolls_back_when_second_save_fails(self):
         """意外保存失败时不能留下前面已写入的部分用户。"""
@@ -223,6 +278,42 @@ class UserImportExportTestCase(TestCase):
         self.assertEqual(response.data["data"]["invalidCount"], 1)
         self.assertIn("目标部门超出", response.data["data"]["messageList"][0])
         self.assertFalse(Users.objects.filter(username="hidden_import_user").exists())
+
+    def test_import_permission_rejection_does_not_reserve_unique_value(self):
+        """权限拒绝行不能污染同文件后续行的唯一字段判定。"""
+        context = create_dept_scoped_user_context(("system:users:import",))
+        self.client.force_authenticate(user=context["operator"])
+        denied_permission = Permissions.objects.create(
+            name="导入越权权限",
+            perm="outside:write",
+            type="BUTTON",
+        )
+        denied_role = Roles.objects.create(
+            name="导入越权角色",
+            code="import_outside_role",
+            status=1,
+            data_scope=Roles.DATA_SCOPE_DEPT,
+        )
+        denied_role.permissions.add(denied_permission)
+        username = "permission_retry_import"
+        uploaded = build_import_file(
+            [
+                [username, "拒绝行", "", "", "0", str(context["visible_dept"].id), str(denied_role.id)],
+                [username, "有效行", "", "", "0", str(context["visible_dept"].id), ""],
+            ]
+        )
+
+        response = self.client.post(
+            "/api/v1/system/users/import",
+            {"file": uploaded},
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["data"]["validCount"], 1)
+        self.assertEqual(response.data["data"]["invalidCount"], 1)
+        self.assertEqual(response.data["data"]["skippedCount"], 0)
+        self.assertEqual(Users.objects.filter(username=username).count(), 1)
 
     def test_import_rejects_legacy_xls(self):
         grant_permission(self.user, "system:users:import")
