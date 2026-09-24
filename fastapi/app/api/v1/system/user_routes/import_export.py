@@ -69,13 +69,14 @@ Excel 文件必须包含以下列：
 ### 响应数据
 返回导入结果：
 - `validCount`: 成功导入数量
+- `skippedCount`: 用户名或手机号已存在、按幂等重试语义跳过的数量
 - `invalidCount`: 失败数量
 - `messageList`: 错误信息列表
 
 ### 业务规则
-1. 用户名重复的记录将跳过
-2. 部门或角色不匹配的记录将跳过
-3. 格式错误的记录将跳过
+1. 用户名或手机号重复的记录计入 `skippedCount`，不会重复创建
+2. 角色无效、目标部门或字段写入权限不足的记录计入 `invalidCount`
+3. 部门ID不存在或格式错误时沿用默认部门并记录提示；无法通过行级校验的记录计入 `invalidCount`
 4. 导入的用户默认密码为系统默认密码
 
 ### 错误码
@@ -93,9 +94,10 @@ Excel 文件必须包含以下列：
                         "message": "导入完成",
                         "data": {
                             "validCount": 95,
+                            "skippedCount": 2,
                             "invalidCount": 5,
                             "messageList": [
-                                "第3行：用户名 'test' 已存在",
+                                "第3行：用户名 'test' 已存在，已跳过",
                                 "第5行：部门 '测试部' 不存在",
                                 "第8行：邮箱格式错误",
                                 "第12行：手机号格式错误",
@@ -148,7 +150,7 @@ async def import_users(
 
     set_audit_context(
         request,
-        batch_count=result.valid_count + result.invalid_count,
+        batch_count=result.valid_count + result.skipped_count + result.invalid_count,
         success_count=result.valid_count,
         failed_count=result.invalid_count,
     )

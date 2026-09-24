@@ -6,6 +6,7 @@ import {
   type Page,
   type Response,
 } from "@playwright/test";
+import ExcelJS from "exceljs";
 
 const backendName = requireEnv("REAL_BACKEND_NAME");
 const username = requireEnv("REAL_BACKEND_USERNAME");
@@ -201,6 +202,67 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     const noticeDrawer = page.locator(".el-drawer", { hasText: "新增公告" });
     await expect(noticeDrawer).toBeVisible();
     await noticeDrawer.getByRole("button", { name: /取\s*消/ }).click();
+    expect(failedApiResponses).toEqual([]);
+  });
+
+  test("同一用户文件重复导入只创建一次并显示跳过结果", async ({ page }) => {
+    const failedApiResponses = collectFailedApiResponses(page);
+    await loginWithRoutes(page, username, password, "/runtime-contract/user");
+    const userTable = page.locator(".ff-user-page .ff-table");
+
+    const importedUsername = `${backendName.toLowerCase()}_import_${Date.now()}`;
+    const importWorkbook = new ExcelJS.Workbook();
+    const importSheet = importWorkbook.addWorksheet("用户导入模板");
+    importSheet.addRow([
+      "用户名*",
+      "姓名",
+      "邮箱",
+      "手机号",
+      "性别",
+      "部门ID",
+      "角色ID(多个用逗号分隔)",
+    ]);
+    importSheet.addRow([importedUsername, "真实导入用户", "", "", "0", "", ""]);
+    const importBuffer = Buffer.from(await importWorkbook.xlsx.writeBuffer());
+    await page.getByRole("button", { name: "导入用户" }).click();
+    const importDrawer = page.locator(".el-drawer", { hasText: "导入数据" });
+    await importDrawer.locator('input[type="file"]').setInputFiles({
+      name: "users.xlsx",
+      mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      buffer: importBuffer,
+    });
+    await importDrawer.getByRole("button", { name: /确\s*定/ }).click();
+    await expect(page.locator(".el-message--success")).toContainText("导入成功");
+    await expect(userTable.getByText(importedUsername, { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "导入用户" }).click();
+    const retryImportDrawer = page.locator(".el-drawer", { hasText: "导入数据" });
+    await retryImportDrawer.locator('input[type="file"]').setInputFiles({
+      name: "users.xlsx",
+      mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      buffer: importBuffer,
+    });
+    await retryImportDrawer.getByRole("button", { name: /确\s*定/ }).click();
+    await expect(page.locator(".el-message--warning")).toContainText(
+      "未新增数据：成功0条，跳过1条，失败0条"
+    );
+    await expect(page.getByRole("dialog", { name: "导入结果", exact: true })).toContainText(
+      "成功0条，跳过1条，失败0条"
+    );
+    await page
+      .getByRole("dialog", { name: "导入结果", exact: true })
+      .getByRole("button", { name: "关闭", exact: true })
+      .click();
+    await retryImportDrawer.getByRole("button", { name: /取\s*消/ }).click();
+
+    const token = await readAccessToken(page);
+    const response = await page.request.get(`${apiBasePath}/system/users/`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { pageNum: 1, pageSize: 10, search: importedUsername },
+    });
+    const users = await expectApiSuccess<UserPageResult>(response);
+    expect(users.total).toBe(1);
+    expect(users.list[0]?.username).toBe(importedUsername);
     expect(failedApiResponses).toEqual([]);
   });
 
