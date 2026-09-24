@@ -150,7 +150,7 @@
   border-radius: 20px;
   box-shadow: var(--ff-shadow-panel);
   transition:
-    transform var(--ff-duration-base) var(--ff-ease-spring),
+    transform var(--ff-duration-base) var(--ff-ease-out),
     border-color var(--ff-duration-fast) ease;
 }
 
@@ -259,7 +259,7 @@
     color var(--ff-duration-fast) ease,
     background-color var(--ff-duration-fast) ease,
     border-color var(--ff-duration-fast) ease,
-    transform var(--ff-duration-base) var(--ff-ease-spring);
+    transform var(--ff-duration-base) var(--ff-ease-out);
 }
 
 .dashboard-action:hover,

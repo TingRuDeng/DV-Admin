@@ -42,9 +42,9 @@ $shadow-dropdown: 0 4px 12px rgba(0, 0, 0, 0.15);
 // 模态框阴影
 $shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.2);
 
-// 主色调阴影（用于按钮等）
-$shadow-primary: 0 2px 8px rgba(99, 102, 241, 0.3);
-$shadow-primary-hover: 0 4px 12px rgba(99, 102, 241, 0.4);
+// 主色调阴影（用于按钮等），跟随预设色
+$shadow-primary: 0 2px 8px color-mix(in srgb, var(--el-color-primary) 30%, transparent);
+$shadow-primary-hover: 0 4px 12px color-mix(in srgb, var(--el-color-primary) 40%, transparent);
 
 // ============================================
 // 4. CSS 变量定义

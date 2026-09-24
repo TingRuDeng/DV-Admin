@@ -1,7 +1,76 @@
+// Element Plus 全局变量桥接。index.scss 在 EP dark/css-vars.css 之后引入，同选择器下这里生效。
+// EP 在组件自身（如 .el-input）上定义组件级变量，所以这里只覆盖全局变量。
+// --el-bg-color 保持不透明：表格行、固定列、粘性表头依赖它遮住下方滚动内容。
 :root {
+  --el-font-family: var(--ff-font-sans);
+
+  --el-bg-color: #f6f6f8;
   --el-bg-color-page: var(--ff-color-bg-page);
   --el-bg-color-overlay: var(--ff-color-bg-panel-strong);
+
+  --el-fill-color: rgba(11, 11, 16, 0.05);
+  --el-fill-color-light: rgba(11, 11, 16, 0.035);
+  --el-fill-color-lighter: rgba(11, 11, 16, 0.025);
+  --el-fill-color-extra-light: rgba(11, 11, 16, 0.015);
+  --el-fill-color-dark: rgba(11, 11, 16, 0.08);
+  --el-fill-color-darker: rgba(11, 11, 16, 0.11);
+  --el-fill-color-blank: var(--ff-field-bg);
+
+  --el-border-color: rgba(11, 11, 16, 0.14);
+  --el-border-color-light: rgba(11, 11, 16, 0.1);
+  --el-border-color-lighter: rgba(11, 11, 16, 0.08);
+  --el-border-color-extra-light: rgba(11, 11, 16, 0.05);
+  --el-border-color-dark: rgba(11, 11, 16, 0.18);
+  --el-border-color-darker: rgba(11, 11, 16, 0.22);
+
   --el-text-color-primary: var(--ff-color-text-primary);
-  --el-text-color-regular: var(--ff-color-text-secondary);
-  --el-border-color: var(--ff-color-border-soft);
+  --el-text-color-regular: var(--ff-color-text-regular);
+  --el-text-color-secondary: var(--ff-color-text-secondary);
+  --el-text-color-placeholder: var(--ff-color-text-dim);
+  --el-text-color-disabled: var(--ff-color-text-disabled);
+
+  --el-mask-color: rgba(234, 234, 238, 0.72);
+  --el-mask-color-extra-light: rgba(234, 234, 238, 0.3);
+  --el-overlay-color-lighter: var(--ff-shell-overlay);
+
+  --el-box-shadow: var(--ff-shadow-overlay);
+  --el-box-shadow-light: var(--ff-shadow-popover);
+
+  --el-border-radius-base: 12px;
+  --el-border-radius-small: 6px;
+  --el-border-radius-round: 999px;
+}
+
+html.dark {
+  --el-bg-color: #0e0e14;
+  --el-bg-color-page: var(--ff-color-bg-page);
+  --el-bg-color-overlay: var(--ff-color-bg-panel-strong);
+
+  --el-fill-color: rgba(255, 255, 255, 0.06);
+  --el-fill-color-light: rgba(255, 255, 255, 0.045);
+  --el-fill-color-lighter: rgba(255, 255, 255, 0.03);
+  --el-fill-color-extra-light: rgba(255, 255, 255, 0.02);
+  --el-fill-color-dark: rgba(255, 255, 255, 0.09);
+  --el-fill-color-darker: rgba(255, 255, 255, 0.12);
+  --el-fill-color-blank: var(--ff-field-bg);
+
+  --el-border-color: rgba(255, 255, 255, 0.16);
+  --el-border-color-light: rgba(255, 255, 255, 0.12);
+  --el-border-color-lighter: rgba(255, 255, 255, 0.08);
+  --el-border-color-extra-light: rgba(255, 255, 255, 0.05);
+  --el-border-color-dark: rgba(255, 255, 255, 0.2);
+  --el-border-color-darker: rgba(255, 255, 255, 0.24);
+
+  --el-text-color-primary: var(--ff-color-text-primary);
+  --el-text-color-regular: var(--ff-color-text-regular);
+  --el-text-color-secondary: var(--ff-color-text-secondary);
+  --el-text-color-placeholder: var(--ff-color-text-dim);
+  --el-text-color-disabled: var(--ff-color-text-disabled);
+
+  --el-mask-color: rgba(6, 6, 10, 0.72);
+  --el-mask-color-extra-light: rgba(6, 6, 10, 0.3);
+  --el-overlay-color-lighter: var(--ff-shell-overlay);
+
+  --el-box-shadow: var(--ff-shadow-overlay);
+  --el-box-shadow-light: var(--ff-shadow-popover);
 }

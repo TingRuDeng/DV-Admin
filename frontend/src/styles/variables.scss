@@ -1,9 +1,9 @@
 @forward "element-plus/theme-chalk/src/common/var.scss" with (
   $colors: (
     "primary": (
-      // 默认主题色 - 荧光珊瑚色 - 暗色画布主色
+      // 默认主题色 - Liquid Chrome 紫
       // 修改此值时需同步修改 src/settings.ts 中的 themeColor
-      "base": #ff705c,
+      "base": #6e36d6,
     ),
     "success": (
       "base": #10b981,
@@ -20,28 +20,30 @@
   ),
 
   $bg-color: (
-    "page": #f9fafb,
+    "page": #eaeaee,
   ),
 
-  // 统一圆角设置
-  $button: (
-      "border-radius": 8px,
+  // 统一圆角设置：按钮与标签为胶囊形
+  $button-border-radius: (
+      "large": 999px,
+      "default": 999px,
+      "small": 999px,
     ),
 
   $input: (
-    "border-radius": 8px,
-  ),
-
-  $tag: (
-    "border-radius": 6px,
-  ),
-
-  $card: (
     "border-radius": 12px,
   ),
 
+  $tag: (
+    "border-radius": 999px,
+  ),
+
+  $card: (
+    "border-radius": 22px,
+  ),
+
   $dialog: (
-    "border-radius": 16px,
+    "border-radius": 28px,
   )
 );
 
@@ -63,14 +65,15 @@
   --sidebar-logo-text-color: var(--ff-shell-text); // 侧边栏 Logo 文字颜色
 }
 
-/** 浅色主题-深蓝色侧边栏配色 */
+/** 浅色主题-经典蓝侧边栏配色：蓝调玻璃 */
 html.sidebar-color-blue {
-  --menu-background: #304156; // 菜单背景色
-  --menu-text: #bfcbd9; // 菜单文字颜色
+  --menu-background: rgba(31, 58, 120, 0.82); // 菜单背景色
+  --menu-text: rgba(232, 238, 255, 0.88); // 菜单文字颜色
   --menu-active-text: var(--el-menu-active-color); // 菜单激活文字颜色
-  --menu-hover: #263445; // 菜单悬停背景色
-  --sidebar-logo-background: #2d3748; // 侧边栏 Logo 背景色
+  --menu-hover: rgba(255, 255, 255, 0.08); // 菜单悬停背景色
+  --sidebar-logo-background: transparent; // 侧边栏 Logo 背景色，透出侧栏底色
   --sidebar-logo-text-color: #fff; // 侧边栏 Logo 文字颜色
+  --ff-sidebar-glass-tint: rgba(31, 58, 120, 0.62); // 侧栏玻璃层的蓝调
 }
 
 /** 暗黑主题 */

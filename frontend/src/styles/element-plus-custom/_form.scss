@@ -1,93 +1,27 @@
 // ============================================
 // Element Plus 表单定制
 // ============================================
-// 优化表单和搜索区域的视觉风格
-// 创建日期：2026-04-09
+// 输入框圆角由 variables.scss 的 $input 提供，描边与聚焦态由 skins/_form.scss 负责。
 // ============================================
 
 // ============================================
-// 1. 输入框样式
+// 1. 输入框与选择器过渡
 // ============================================
-.el-input {
-  .el-input__wrapper {
-    border-radius: 8px;
-    transition: all var(--duration-base, 200ms) var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
-
-    &:hover {
-      box-shadow: 0 0 0 1px var(--color-primary-light, #818cf8) inset;
-    }
-
-    &.is-focus {
-      box-shadow: 0 0 0 2px var(--color-primary, #6366f1) inset;
-    }
-  }
+.el-input .el-input__wrapper,
+.el-select .el-select__wrapper {
+  transition:
+    background-color var(--ff-duration-fast) var(--ff-ease-standard),
+    box-shadow var(--ff-duration-fast) var(--ff-ease-standard);
 }
 
 // ============================================
-// 2. 选择器样式
-// ============================================
-.el-select {
-  .el-select__wrapper {
-    border-radius: 8px;
-    transition: all var(--duration-base, 200ms) var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
-
-    &:hover {
-      box-shadow: 0 0 0 1px var(--color-primary-light, #818cf8) inset;
-    }
-
-    &.is-focused {
-      box-shadow: 0 0 0 2px var(--color-primary, #6366f1) inset;
-    }
-  }
-}
-
-// ============================================
-// 3. 日期选择器样式
-// ============================================
-.el-date-editor {
-  // stylelint-disable-next-line no-descending-specificity
-  .el-input__wrapper {
-    border-radius: 8px;
-  }
-}
-
-// ============================================
-// 4. 表单项样式
+// 2. 表单项样式
 // ============================================
 .el-form-item {
   margin-bottom: 20px;
 
   .el-form-item__label {
     font-weight: 500;
-    color: var(--text-regular, #374151);
-  }
-}
-
-// ============================================
-// 5. 深色模式适配
-// ============================================
-html.dark {
-  .el-input {
-    .el-input__wrapper {
-      &:hover {
-        box-shadow: 0 0 0 1px var(--color-primary-lighter, #a5b4fc) inset;
-      }
-
-      &.is-focus {
-        box-shadow: 0 0 0 2px var(--color-primary-light, #818cf8) inset;
-      }
-    }
-  }
-
-  .el-select {
-    .el-select__wrapper {
-      &:hover {
-        box-shadow: 0 0 0 1px var(--color-primary-lighter, #a5b4fc) inset;
-      }
-
-      &.is-focused {
-        box-shadow: 0 0 0 2px var(--color-primary-light, #818cf8) inset;
-      }
-    }
+    color: var(--ff-color-text-regular);
   }
 }

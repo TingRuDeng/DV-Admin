@@ -1,0 +1,30 @@
+// 玻璃材质与背景光池。模糊只通过 foundation/_glass.scss 的 ff-glass mixin 使用。
+:root {
+  --ff-glass: rgba(255, 255, 255, 0.55);
+  --ff-glass-strong: rgba(255, 255, 255, 0.72);
+  --ff-glass-tint: rgba(244, 244, 246, 0.2);
+  --ff-glass-edge: rgba(255, 255, 255, 0.9);
+  --ff-glass-hi: #ffffff;
+  --ff-glass-fx: blur(28px) saturate(1.6) brightness(1.06);
+  --ff-glass-fx-thick: blur(36px) saturate(1.7) brightness(1.08);
+  --ff-glass-fallback: rgba(246, 246, 249, 0.94);
+
+  --ff-glow-a: color-mix(in srgb, var(--ff-iri-a) 12%, transparent);
+  --ff-glow-c: color-mix(in srgb, var(--ff-iri-c) 9%, transparent);
+  --ff-glow-core: #ffffff;
+}
+
+html.dark {
+  --ff-glass: rgba(255, 255, 255, 0.055);
+  --ff-glass-strong: rgba(255, 255, 255, 0.09);
+  --ff-glass-tint: rgba(9, 9, 14, 0.46);
+  --ff-glass-edge: rgba(255, 255, 255, 0.09);
+  --ff-glass-hi: rgba(255, 255, 255, 0.2);
+  --ff-glass-fx: blur(28px) saturate(1.6) brightness(0.74);
+  --ff-glass-fx-thick: blur(36px) saturate(1.6) brightness(0.7);
+  --ff-glass-fallback: rgba(14, 14, 20, 0.94);
+
+  --ff-glow-a: color-mix(in srgb, var(--ff-iri-a) 16%, transparent);
+  --ff-glow-c: color-mix(in srgb, var(--ff-iri-c) 12%, transparent);
+  --ff-glow-core: #1c1c26;
+}

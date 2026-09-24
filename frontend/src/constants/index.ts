@@ -22,6 +22,7 @@ export const STORAGE_KEYS = {
   SIDEBAR_COLOR_SCHEME: `${APP_PREFIX}:ui:sidebar_color_scheme`, // 侧边栏配色方案
   THEME: `${APP_PREFIX}:ui:theme`, // 主题模式
   THEME_COLOR: `${APP_PREFIX}:ui:theme_color`, // 主题色
+  THEME_COLOR_MIGRATION: `${APP_PREFIX}:ui:theme_color_migration`, // 主题色默认值迁移标记
 
   // 应用状态相关
   DEVICE: `${APP_PREFIX}:app:device`, // 设备类型
@@ -51,6 +52,7 @@ export const SETTINGS_KEYS = {
   SIDEBAR_COLOR_SCHEME: STORAGE_KEYS.SIDEBAR_COLOR_SCHEME,
   LAYOUT: STORAGE_KEYS.LAYOUT,
   THEME_COLOR: STORAGE_KEYS.THEME_COLOR,
+  THEME_COLOR_MIGRATION: STORAGE_KEYS.THEME_COLOR_MIGRATION,
   THEME: STORAGE_KEYS.THEME,
 } as const;
 
