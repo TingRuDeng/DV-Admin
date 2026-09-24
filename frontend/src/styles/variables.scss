@@ -61,7 +61,7 @@
   --menu-hover: var(
     --ff-shell-hover
   ); // 菜单悬停背景色 浅色主题-白色侧边栏配色下仅占位，实际颜色由 el-menu-item 组件决定
-  --sidebar-logo-background: var(--ff-shell-surface); // 侧边栏 Logo 背景色
+  --sidebar-logo-background: transparent; // 侧边栏 Logo 背景色，透出壳层玻璃
   --sidebar-logo-text-color: var(--ff-shell-text); // 侧边栏 Logo 文字颜色
 }
 
@@ -73,7 +73,12 @@ html.sidebar-color-blue {
   --menu-hover: rgba(255, 255, 255, 0.08); // 菜单悬停背景色
   --sidebar-logo-background: transparent; // 侧边栏 Logo 背景色，透出侧栏底色
   --sidebar-logo-text-color: #fff; // 侧边栏 Logo 文字颜色
-  --ff-sidebar-glass-tint: rgba(31, 58, 120, 0.62); // 侧栏玻璃层的蓝调
+  --ff-sidebar-glass-tint: rgba(
+    30,
+    58,
+    138,
+    0.88
+  ); // 侧栏玻璃层的蓝调，透明度再低白字对比度就不到 4.5:1
 }
 
 /** 暗黑主题 */
@@ -82,7 +87,7 @@ html.dark {
   --menu-text: var(--ff-shell-text);
   --menu-active-text: var(--el-menu-active-color);
   --menu-hover: var(--ff-shell-hover);
-  --sidebar-logo-background: var(--ff-shell-surface);
+  --sidebar-logo-background: transparent;
   --sidebar-logo-text-color: var(--ff-shell-text);
 
   /** WangEditor Dark */

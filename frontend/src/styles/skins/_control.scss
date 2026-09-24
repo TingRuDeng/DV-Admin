@@ -1,0 +1,104 @@
+/* stylelint-disable no-descending-specificity */
+// 开关、复选、单选、徽标、头像的全局皮肤。EP 组件样式按需加载、可能晚于本文件，
+// 选择器以 html 开头抬高一级；颜色尽量改 EP 组件变量，禁用态沿用 EP 自己的规则。
+
+// 开关：轨道凹陷，选中后铺虹彩；拨钮是金属球，只有这里用回弹缓动。
+html .el-switch {
+  --el-switch-on-color: var(--ff-iri-b);
+  --el-switch-off-color: var(--ff-press);
+  --el-switch-border-color: transparent;
+}
+
+html .el-switch__core {
+  box-shadow:
+    inset 0 0 0 1px var(--ff-line-strong),
+    inset 0 2px 4px rgba(0, 0, 0, 0.18);
+  transition:
+    background-color var(--ff-duration-fast) var(--ff-ease-standard),
+    box-shadow var(--ff-duration-fast) var(--ff-ease-standard);
+}
+
+html .el-switch.is-checked .el-switch__core {
+  background-image: var(--ff-iri);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+html .el-switch__core .el-switch__action {
+  background: radial-gradient(circle at 32% 28%, #ffffff, #d4d4dc 45%, #8a8a96 100%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  transition: left var(--ff-duration-base) var(--ff-ease-spring);
+}
+
+// inline-prompt 文字：未选中在凹槽上用次级文字色，选中在虹彩上用 --ff-on-iri
+html .el-switch__core .el-switch__inner .is-text,
+html .el-switch__core .el-switch__inner .is-icon {
+  color: var(--ff-color-text-secondary);
+}
+
+html .el-switch.is-checked .el-switch__core .el-switch__inner .is-text,
+html .el-switch.is-checked .el-switch__core .el-switch__inner .is-icon {
+  color: var(--ff-on-iri);
+}
+
+// 复选框：小圆角方块，选中 / 半选铺虹彩，勾用 --ff-on-iri
+html .el-checkbox {
+  --el-checkbox-border-radius: 5px;
+  --el-checkbox-input-border: 1px solid var(--ff-line-strong);
+  --el-checkbox-input-border-color-hover: var(--ff-iri-b);
+  --el-checkbox-checked-bg-color: var(--ff-iri-b);
+  --el-checkbox-checked-input-border-color: transparent;
+  --el-checkbox-checked-icon-color: var(--ff-on-iri);
+  --el-checkbox-checked-text-color: var(--ff-color-text-primary);
+}
+
+html .el-checkbox__input.is-checked .el-checkbox__inner,
+html .el-checkbox__input.is-indeterminate .el-checkbox__inner {
+  background-image: var(--ff-iri);
+}
+
+html .el-checkbox__input.is-disabled .el-checkbox__inner {
+  background-image: none;
+}
+
+// 单选：选中时外圈换成虹彩中段色，中心圆点铺虹彩
+html .el-radio {
+  --el-radio-input-border-color-hover: var(--ff-iri-b);
+  --el-radio-checked-text-color: var(--ff-color-text-primary);
+}
+
+html .el-radio__input.is-checked .el-radio__inner {
+  background: var(--ff-field-bg);
+  border-color: var(--ff-iri-b);
+}
+
+html .el-radio__input.is-checked .el-radio__inner::after {
+  width: 6px;
+  height: 6px;
+  background-color: var(--ff-iri-b);
+  background-image: var(--ff-iri);
+}
+
+html .el-radio__input.is-disabled .el-radio__inner::after {
+  background-image: none;
+}
+
+// 徽标：虹彩底，描边用不透明底色把它从图标上“切”出来
+html .el-badge__content {
+  --el-badge-text-color: var(--ff-on-iri);
+
+  color: var(--ff-on-iri);
+  background-image: var(--ff-iri);
+  border-color: var(--el-bg-color);
+  box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--ff-iri-b) 70%, transparent);
+}
+
+// 头像：没有图片时露出金属球底；有图片时图片盖住底色
+html .el-avatar {
+  --el-avatar-text-color: #0b0b10;
+
+  color: #0b0b10;
+  background: radial-gradient(circle at 32% 28%, #ffffff 0 12%, #e4e6ee 34%, #a9abba 72%, #7b7d8c);
+  box-shadow:
+    inset 0 -2px 4px rgba(0, 0, 0, 0.2),
+    0 2px 6px rgba(0, 0, 0, 0.3);
+}

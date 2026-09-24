@@ -83,20 +83,16 @@ function handleLayoutChange(layout: LayoutMode) {
   height: 80px;
   overflow: hidden;
   cursor: pointer;
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-  border: 2px solid var(--el-border-color-light);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--ff-field-bg);
+  border: 2px solid var(--ff-line);
+  border-radius: 14px;
+  transition:
+    background-color var(--ff-duration-fast) ease,
+    border-color var(--ff-duration-fast) ease;
 
   &:hover {
-    background: linear-gradient(145deg, #ffffff 0%, var(--el-color-primary-light-9) 100%);
-    border-color: var(--el-color-primary-light-3);
-    transform: translateY(-4px) scale(1.05);
-  }
-
-  &:active {
-    transform: translateY(-2px) scale(1.02);
+    background: var(--ff-hover);
+    border-color: color-mix(in srgb, var(--ff-iri-b) 40%, transparent);
   }
 
   .layout-preview {
@@ -112,11 +108,7 @@ function handleLayoutChange(layout: LayoutMode) {
     right: 4px;
     left: 4px;
     height: 8px;
-    background: linear-gradient(
-      90deg,
-      var(--el-color-primary) 0%,
-      var(--el-color-primary-light-3) 100%
-    );
+    background: var(--ff-iri);
     border-radius: 2px;
   }
 
@@ -124,18 +116,14 @@ function handleLayoutChange(layout: LayoutMode) {
     position: absolute;
     left: 4px;
     width: 12px;
-    background: linear-gradient(
-      180deg,
-      var(--el-color-primary-dark-2) 0%,
-      var(--el-color-primary) 100%
-    );
+    background: linear-gradient(180deg, var(--ff-iri-a) 0%, var(--ff-iri-b) 100%);
     border-radius: 2px;
   }
 
   .layout-main {
     position: absolute;
-    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-    border: 1px solid var(--el-border-color-lighter);
+    background: linear-gradient(135deg, var(--ff-hover) 0%, var(--ff-press) 100%);
+    border: 1px solid var(--ff-line);
     border-radius: 2px;
   }
 
@@ -148,7 +136,7 @@ function handleLayoutChange(layout: LayoutMode) {
     font-weight: 500;
     color: var(--el-text-color-regular);
     text-align: center;
-    transition: color 0.3s ease;
+    transition: color var(--ff-duration-fast) ease;
   }
 
   .layout-check {
@@ -161,8 +149,8 @@ function handleLayoutChange(layout: LayoutMode) {
     width: 16px;
     height: 16px;
     font-size: 10px;
-    color: white;
-    background: var(--el-color-success);
+    color: var(--ff-on-iri);
+    background: var(--ff-iri);
     border-radius: 50%;
   }
 
@@ -211,45 +199,16 @@ function handleLayoutChange(layout: LayoutMode) {
     }
   }
 
+  // 当前布局：面板底色 + 虹彩描边
   &.is-active {
-    background: linear-gradient(
-      145deg,
-      var(--el-color-primary-light-9) 0%,
-      var(--el-color-primary-light-8) 100%
-    );
-    border-color: var(--el-color-primary);
-    transform: translateY(-2px) scale(1.08);
+    background:
+      linear-gradient(var(--ff-color-bg-panel-strong), var(--ff-color-bg-panel-strong)) padding-box,
+      var(--ff-iri) border-box;
+    border-color: transparent;
 
     .layout-name {
       font-weight: 600;
-      color: var(--el-color-primary);
-    }
-  }
-}
-
-:global(.dark) {
-  .layout-item {
-    background: linear-gradient(145deg, var(--el-bg-color) 0%, var(--el-bg-color-page) 100%);
-    border-color: var(--el-border-color);
-
-    &:hover {
-      background: linear-gradient(
-        145deg,
-        var(--el-bg-color-page) 0%,
-        var(--el-color-primary-light-9) 100%
-      );
-    }
-
-    &.is-active {
-      background: linear-gradient(
-        145deg,
-        var(--el-color-primary-light-9) 0%,
-        var(--el-color-primary-light-8) 100%
-      );
-    }
-
-    .layout-main {
-      background: linear-gradient(135deg, var(--el-fill-color) 0%, var(--el-fill-color-light) 100%);
+      color: var(--ff-accent);
     }
   }
 }

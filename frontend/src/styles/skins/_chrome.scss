@@ -1,20 +1,44 @@
 /* stylelint-disable no-descending-specificity */
 // Shared application shell skin. Layout components keep structure; this layer owns chrome.
+// 壳层外框尺寸不变（侧栏 216 / 64px、顶栏 56px），玻璃面板画在 ::before 上并向内收一圈，形成悬浮效果。
+@use "../foundation/glass" as *;
+
+// 顶栏面板高 44px：上留 --ff-shell-gap，下留 4px；宿主加 4px 上内边距，让内容与面板垂直居中
+$ff-navbar-panel-bottom: 4px;
 
 .navbar,
 .layout__header {
   color: var(--ff-shell-text);
-  background: color-mix(in srgb, var(--ff-shell-surface) 88%, transparent) !important;
-  border-bottom: 1px solid var(--ff-shell-border) !important;
-  box-shadow: var(--ff-shadow-shell) !important;
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
+  background: transparent !important;
+  border-bottom: 0 !important;
+  box-shadow: none !important;
 }
 
 .navbar {
+  @include ff-glass(
+    "panel",
+    relative,
+    var(--ff-shell-gap) var(--ff-shell-gutter) $ff-navbar-panel-bottom
+  );
+
   height: var(--ff-shell-navbar-height) !important;
+  padding-top: calc(var(--ff-shell-gap) - #{$ff-navbar-panel-bottom}) !important;
   margin: 0 !important;
   border-radius: 0 !important;
+
+  &::before {
+    border-radius: var(--ff-radius-panel);
+  }
+}
+
+.layout__header {
+  @include ff-glass("panel", null, var(--ff-shell-gap) var(--ff-shell-gap) $ff-navbar-panel-bottom);
+
+  padding: calc(var(--ff-shell-gap) - #{$ff-navbar-panel-bottom}) 16px 0 !important;
+
+  &::before {
+    border-radius: var(--ff-radius-panel);
+  }
 }
 
 .el-breadcrumb__inner {
@@ -22,8 +46,9 @@
   color: var(--ff-shell-text-muted) !important;
 }
 
-.el-breadcrumb__item:last-child .el-breadcrumb__inner {
-  font-weight: 600 !important;
+.el-breadcrumb__item:last-child .el-breadcrumb__inner,
+.el-breadcrumb__item:last-child .el-breadcrumb__inner > span {
+  font-weight: 500 !important;
   color: var(--ff-shell-text) !important;
 }
 
@@ -32,12 +57,24 @@
   color: var(--el-color-primary) !important;
 }
 
+// 分隔符画成圆点，原来的 "/" 字符只隐藏不删除
+.el-breadcrumb__separator {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin: 0 10px !important;
+  font-size: 0;
+  background: var(--ff-color-text-dim);
+  border-radius: 50%;
+}
+
 .layout__sidebar,
 .layout__sidebar--left,
 .layout__mobile-menu {
   color: var(--ff-shell-text);
-  background: var(--menu-background) !important;
-  border-color: var(--ff-shell-border) !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
 }
 
 .layout__sidebar,
@@ -46,7 +83,37 @@
   margin: 0 !important;
   overflow: hidden !important;
   border-radius: 0 !important;
-  box-shadow: var(--ff-shadow-shell) !important;
+}
+
+// left 布局：玻璃画在内层 .layout-sidebar 上（尺寸由 left 布局组件给出），外层 fixed 容器保持 216 / 64px
+.layout__sidebar .layout-sidebar {
+  @include ff-glass("panel", null);
+
+  overflow: hidden;
+  border-radius: var(--ff-radius-panel);
+}
+
+// mix 左栏和 top 移动端菜单本身就是定位元素，面板用 $inset 收进去，内容用同样的内边距留在面板里
+.layout__sidebar--left,
+.layout__mobile-menu {
+  @include ff-glass("panel", null, var(--ff-shell-gap) 0 var(--ff-shell-gap) var(--ff-shell-gap));
+
+  padding: var(--ff-shell-gap) 0 var(--ff-shell-gap) var(--ff-shell-gap);
+
+  &::before {
+    border-radius: var(--ff-radius-panel);
+  }
+}
+
+// 窄栏里菜单宽度跟随面板，否则 el-menu--collapse 固定的 64px 会溢出面板
+.layout__sidebar--collapsed .el-menu--collapse {
+  width: 100%;
+}
+
+.layout__sidebar--collapsed .el-menu--collapse > .el-menu-item,
+.layout__sidebar--collapsed .el-menu--collapse > .el-sub-menu > .el-sub-menu__title {
+  margin-right: 8px !important;
+  margin-left: 8px !important;
 }
 
 .layout-sidebar,
@@ -62,10 +129,6 @@
   background: transparent !important;
 }
 
-.sidebar-logo-container {
-  background: var(--sidebar-logo-background) !important;
-}
-
 .sidebar-logo-link {
   border-radius: var(--ff-radius-nav);
 }
@@ -75,9 +138,16 @@
   outline-offset: -2px;
 }
 
+// 与顶栏面板等高，悬停底色刚好填满面板
+.navbar__actions,
+.layout__header-right,
+.layout__header-actions {
+  height: var(--ff-shell-bar-height) !important;
+}
+
 .right-menu-item,
 .navbar-actions__item {
-  border-radius: var(--ff-radius-nav) !important;
+  border-radius: var(--ff-radius-chip) !important;
   transition:
     color var(--ff-duration-fast) ease,
     background-color var(--ff-duration-fast) ease !important;
@@ -113,7 +183,7 @@
   cursor: pointer;
   background: transparent;
   border: 0;
-  border-radius: var(--ff-radius-nav);
+  border-radius: var(--ff-radius-chip);
 }
 
 .navbar-icon-button,
@@ -129,27 +199,31 @@
 }
 
 .user-profile__name {
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   color: var(--ff-shell-text);
 }
 
+// 头像是金属球：图片加载失败或没有头像时也不会露出空白
 .user-profile__avatar {
-  border: 2px solid var(--ff-shell-surface) !important;
+  background: radial-gradient(circle at 32% 28%, #ffffff, #d4d4dc 45%, #8a8a96 100%);
+  border: 1px solid var(--ff-glass-edge) !important;
   border-radius: 50% !important;
-  box-shadow: 0 0 0 1px var(--ff-shell-border) !important;
-  transition:
-    border-color var(--ff-duration-fast) ease,
-    box-shadow var(--ff-duration-fast) ease !important;
+  box-shadow:
+    inset 0 -2px 4px rgba(11, 11, 16, 0.25),
+    0 2px 6px -2px rgba(11, 11, 16, 0.35) !important;
+  transition: box-shadow var(--ff-duration-fast) ease !important;
 }
 
 .user-profile__avatar:hover {
-  border-color: var(--ff-accent) !important;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ff-accent) 55%, transparent) !important;
+  box-shadow:
+    inset 0 -2px 4px rgba(11, 11, 16, 0.25),
+    0 0 0 2px color-mix(in srgb, var(--ff-iri-b) 55%, transparent) !important;
 }
 
 .tags-container {
   background: var(--ff-shell-surface-muted) !important;
   border-bottom-color: var(--ff-shell-border) !important;
+  box-shadow: none !important;
 }
 
 // 内容区透明，透出 html 画布与背景光池
@@ -158,27 +232,52 @@
   background: transparent !important;
 }
 
+// 经典蓝：侧栏（top / mix 布局连同顶栏）换成蓝调玻璃，文字用白色
 html.sidebar-color-blue {
+  .layout__sidebar,
+  .layout__sidebar--left,
+  .layout__mobile-menu,
   .layout__header {
+    --ff-glass: rgba(255, 255, 255, 0.04);
+    --ff-glass-strong: rgba(255, 255, 255, 0.12);
+    --ff-glass-tint: var(--ff-sidebar-glass-tint);
+    --ff-glass-edge: rgba(255, 255, 255, 0.16);
+    --ff-glass-hi: rgba(255, 255, 255, 0.28);
+    --ff-glass-fallback: var(--menu-background);
+    --ff-shell-border: rgba(255, 255, 255, 0.12);
+
     color: var(--menu-text);
-    background: var(--menu-background) !important;
-    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
   }
 
   .sidebar-title,
   .user-profile__name {
     color: var(--menu-text) !important;
   }
+
+  .layout__header .el-breadcrumb__inner {
+    color: var(--menu-text) !important;
+  }
 }
 
+// 窄屏下侧栏盖在内容上，给面板加投影；投影写在 ::before 上，宿主不能用 filter（会成为 fixed 后代的包含块）
 @media (max-width: 991px) {
-  .layout__sidebar,
-  .layout__sidebar--left,
-  .layout__mobile-menu {
-    box-shadow: var(--ff-shadow-shell-raised) !important;
+  .layout__sidebar .layout-sidebar::before,
+  .layout__sidebar--left::before,
+  .layout__mobile-menu::before {
+    box-shadow:
+      inset 0 0 0 1px var(--ff-glass-edge),
+      inset 0 1px 0 var(--ff-glass-hi),
+      0 22px 44px -18px rgba(11, 11, 16, 0.45);
   }
 
   .user-profile__name {
     display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .layout__header {
+    padding-right: 8px !important;
+    padding-left: 8px !important;
   }
 }

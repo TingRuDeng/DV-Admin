@@ -63,12 +63,14 @@ const platformName = import.meta.env.VITE_APP_TITLE || "DV-Admin";
   width: 32px;
   height: 32px;
   font-size: 12px;
-  font-weight: 800;
-  color: #ffffff;
+  font-weight: 700;
+  color: var(--ff-on-iri);
   letter-spacing: -0.02em;
-  background: linear-gradient(135deg, var(--el-color-primary), var(--el-color-primary-light-3));
-  border-radius: 9px;
-  box-shadow: 0 6px 14px -8px var(--el-color-primary);
+  background: var(--ff-iri);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 6px 16px -8px color-mix(in srgb, var(--ff-iri-b) 80%, transparent);
 }
 
 .sidebar-title {
@@ -76,9 +78,9 @@ const platformName = import.meta.env.VITE_APP_TITLE || "DV-Admin";
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ff-shell-text);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   white-space: nowrap;
 }
 
@@ -97,9 +99,15 @@ const platformName = import.meta.env.VITE_APP_TITLE || "DV-Admin";
 .layout-top,
 .layout-mix {
   .sidebar-logo-container {
+    height: 100%;
     background: transparent;
     border-bottom: 0;
   }
+}
+
+// left 布局的 Logo 行与顶栏玻璃面板等高，分隔线和顶栏面板底边对齐
+.layout-left .layout__sidebar .sidebar-logo-container {
+  height: var(--ff-shell-bar-height);
 }
 
 .openSidebar {

@@ -119,9 +119,6 @@ const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
     z-index: 999;
     width: 100%;
     height: $navbar-height;
-    background: var(--ff-shell-surface);
-    border-bottom: 1px solid var(--ff-shell-border);
-    box-shadow: var(--ff-shadow-shell);
 
     &-content {
       display: flex;
@@ -152,21 +149,11 @@ const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
         border: none;
       }
 
+      // 水平菜单项的胶囊形状和激活态由 skins/_menu.scss 统一提供
       :deep(.el-menu--horizontal) {
         display: flex;
         align-items: center;
         height: 100%;
-
-        .el-menu-item {
-          height: 100%;
-          line-height: $navbar-height;
-          border-bottom: none;
-
-          &.is-active {
-            background-color: rgba(255, 255, 255, 0.12);
-            border-bottom: 2px solid var(--el-color-primary);
-          }
-        }
       }
     }
 
@@ -188,16 +175,15 @@ const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
       position: relative;
       width: $sidebar-width;
       height: 100%;
-      background: var(--ff-shell-surface);
-      border-right: 1px solid var(--ff-shell-border);
       transition: width 0.28s;
 
       &.layout__sidebar--collapsed {
         width: $sidebar-width-collapsed !important;
       }
 
+      // 宿主上下各有 --ff-shell-gap 内边距，把玻璃面板让出来
       :deep(.el-scrollbar) {
-        height: calc(100vh - $navbar-height - 50px);
+        height: calc(100vh - $navbar-height - 50px - 2 * var(--ff-shell-gap));
       }
 
       :deep(.el-menu) {
@@ -207,15 +193,16 @@ const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
 
       .layout__sidebar-toggle {
         position: absolute;
-        bottom: 0;
+        bottom: var(--ff-shell-gap);
+        left: var(--ff-shell-gap);
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 100%;
+        width: calc(100% - var(--ff-shell-gap));
         height: 50px;
         line-height: 50px;
-        background: var(--ff-shell-surface-muted);
         border-top: 1px solid var(--ff-shell-border);
+        border-radius: 0 0 var(--ff-radius-panel) var(--ff-radius-panel);
       }
     }
 
@@ -241,7 +228,6 @@ const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
       z-index: 1000;
       width: $sidebar-width !important;
       height: auto;
-      box-shadow: var(--ff-shadow-shell-raised);
       transition: transform 0.28s;
     }
   }
