@@ -66,7 +66,6 @@
     "@vueuse/core": "^12.8.2",
     "@wangeditor-next/editor": "^5.6.46",
     "@wangeditor-next/editor-for-vue": "^5.1.14",
-    "animate.css": "^4.1.1",
     "axios": "^1.18.1",
     "codemirror": "^5.65.20",
     "codemirror-editor-vue3": "^2.8.0",

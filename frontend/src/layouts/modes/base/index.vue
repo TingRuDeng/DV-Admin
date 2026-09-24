@@ -154,8 +154,6 @@ watch(
     cursor: pointer;
     background: var(--ff-shell-overlay);
     border: 0;
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
   }
 }
 </style>

@@ -85,7 +85,7 @@ describe("theme form and shell chrome", () => {
     const label = document.querySelector(".el-form-item__label") as HTMLElement;
     const input = document.querySelector(".el-input__inner") as HTMLInputElement;
 
-    expect(getComputedStyle(drawer).backgroundColor).toBe("#1e293b");
+    expect(getComputedStyle(drawer).backgroundColor).toBe("#101016");
     expect(getComputedStyle(label).color).toBe("#d6d6dc");
     expect(getComputedStyle(input).color).toBe("#f4f4f6");
     expect(getComputedStyle(input).getPropertyValue("-webkit-text-fill-color")).toBe(

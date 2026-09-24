@@ -2,7 +2,7 @@
   <main class="app-main" :style="{ height: appMainHeight }">
     <router-view>
       <template #default="{ Component, route }">
-        <transition enter-active-class="animate__animated animate__fadeIn" mode="out-in">
+        <transition name="ff-route" mode="out-in">
           <keep-alive :include="cachedViews">
             <component :is="currentComponent(Component, route)" :key="getComponentKey(route)" />
           </keep-alive>
@@ -82,25 +82,39 @@ const appMainHeight = computed(() => {
   overflow-y: auto;
   scrollbar-gutter: stable;
   background: transparent;
+}
+</style>
 
-  /* 布局切换动画优化 */
-  &.animate__animated {
-    animation-duration: 0.4s;
-    animation-fill-mode: forwards;
-  }
+<style lang="scss">
+// 路由过渡类加在页面组件根节点上，不走 scoped；进场淡入并上移 8px，离场只淡出。
+// 过渡结束后类名移除、不残留 transform，页面内 fixed 元素不会被带偏。
+.ff-route-enter-active {
+  transition:
+    opacity 0.32s var(--ff-ease-out),
+    transform 0.32s var(--ff-ease-out);
+}
 
-  &.animate__fadeOut {
-    animation-timing-function: ease-in;
-  }
+.ff-route-leave-active {
+  transition: opacity 0.16s ease;
+}
 
-  &.animate__fadeIn {
-    animation-timing-function: ease-out;
-  }
+.ff-route-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.ff-route-leave-to {
+  opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :global(.app-main .animate__animated) {
-    animation: none !important;
+  .ff-route-enter-active,
+  .ff-route-leave-active {
+    transition: none;
+  }
+
+  .ff-route-enter-from {
+    transform: none;
   }
 }
 </style>

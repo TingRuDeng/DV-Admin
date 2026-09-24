@@ -62,24 +62,24 @@ const { routes } = useLayoutMenu();
     left: 0;
     z-index: 999;
     width: $sidebar-width;
-    background: var(--ff-shell-surface);
-    border-right: 1px solid var(--ff-shell-border);
-    box-shadow: var(--ff-shadow-shell);
     transition: width var(--ff-duration-base) var(--ff-ease-standard);
 
     &--collapsed {
       width: $sidebar-width-collapsed;
     }
 
+    // 悬浮面板：左、上、下各留 --ff-shell-gap，玻璃材质由 skins/_chrome.scss 提供
     .layout-sidebar {
       position: relative;
-      height: 100%;
+      width: calc(100% - var(--ff-shell-gap));
+      height: calc(100% - 2 * var(--ff-shell-gap));
+      margin: var(--ff-shell-gap) 0 var(--ff-shell-gap) var(--ff-shell-gap);
       background: transparent;
       transition: width var(--ff-duration-base) var(--ff-ease-standard);
 
       &.has-logo {
         .el-scrollbar {
-          height: calc(100vh - $navbar-height);
+          height: calc(100% - var(--ff-shell-bar-height));
         }
       }
 
@@ -114,7 +114,6 @@ const { routes } = useLayoutMenu();
 .mobile {
   .layout__sidebar {
     width: $sidebar-width !important;
-    box-shadow: var(--ff-shadow-shell-raised);
     transition:
       transform var(--ff-duration-base) var(--ff-ease-standard),
       width 0s;

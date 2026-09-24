@@ -1,3 +1,6 @@
+/* stylelint-disable no-descending-specificity */
+// 按钮只做颜色与虹彩位移，不做位移动效。EP 组件样式按需加载、可能晚于本文件，
+// 所以用 html 前缀抬高优先级，颜色优先改 --el-button-* 变量，让 EP 自己的 hover / active / disabled 规则继续生效。
 .ff-button-primary,
 .ff-button-secondary,
 .ff-button-danger,
@@ -5,111 +8,113 @@
   border-radius: var(--ff-radius-control);
 }
 
-.ff-button-primary {
+// 主按钮：虹彩底按 220% 铺开，hover 只平移 background-position
+html .ff-button-primary,
+html .el-button--primary:not(.is-link):not(.is-text):not(.is-plain) {
+  --el-button-text-color: var(--ff-on-iri);
+  --el-button-hover-text-color: var(--ff-on-iri);
+  --el-button-active-text-color: var(--ff-on-iri);
+  --el-button-disabled-text-color: var(--ff-on-iri);
+  --el-button-bg-color: var(--ff-iri-b);
+  --el-button-hover-bg-color: var(--ff-iri-b);
+  --el-button-active-bg-color: var(--ff-iri-b);
+  --el-button-disabled-bg-color: var(--ff-iri-b);
+  --el-button-border-color: transparent;
+  --el-button-hover-border-color: transparent;
+  --el-button-active-border-color: transparent;
+  --el-button-disabled-border-color: transparent;
+
   font-weight: 600;
-  color: #ffffff !important;
-  letter-spacing: 1px;
-  background: linear-gradient(
-    135deg,
-    rgba(99, 102, 241, 0.8) 0%,
-    rgba(59, 130, 246, 0.7) 100%
-  ) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  border-top-color: rgba(255, 255, 255, 0.7) !important;
+  color: var(--ff-on-iri) !important;
+  background-image: var(--ff-iri) !important;
+  background-position: 0% 50%;
+  background-size: 220% 100%;
+  border-color: transparent !important;
   box-shadow:
-    inset 0 2px 6px rgba(255, 255, 255, 0.2),
-    0 4px 10px -4px rgba(59, 130, 246, 0.3) !important;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  transition: all 0.3s ease;
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 10px 24px -12px color-mix(in srgb, var(--ff-iri-b) 70%, transparent);
+  transition:
+    background-position var(--ff-duration-base) var(--ff-ease-out),
+    box-shadow var(--ff-duration-fast) var(--ff-ease-standard),
+    opacity var(--ff-duration-fast) var(--ff-ease-standard);
 
-  &:hover {
-    background: linear-gradient(
-      135deg,
-      rgba(99, 102, 241, 0.95) 0%,
-      rgba(59, 130, 246, 0.85) 100%
-    ) !important;
+  &:not(.is-disabled):hover,
+  &:not(.is-disabled):focus-visible {
+    background-position: 100% 50%;
     box-shadow:
-      inset 0 2px 8px rgba(255, 255, 255, 0.3),
-      0 6px 14px -4px rgba(59, 130, 246, 0.4) !important;
-    transform: translateY(-1px);
+      inset 0 1px 0 rgba(255, 255, 255, 0.4),
+      0 14px 30px -12px color-mix(in srgb, var(--ff-iri-b) 85%, transparent);
   }
 
-  &:active {
+  &:not(.is-disabled):active {
+    background-position: 60% 50%;
     box-shadow:
-      inset 0 2px 4px rgba(255, 255, 255, 0.1),
-      0 2px 4px rgba(59, 130, 246, 0.2) !important;
-    transform: translateY(1px);
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      0 6px 16px -10px color-mix(in srgb, var(--ff-iri-b) 70%, transparent);
+  }
+
+  &.is-disabled {
+    box-shadow: none;
+    opacity: 0.5;
   }
 }
 
-.ff-button-secondary {
-  font-weight: 500;
-  color: var(--el-text-color-regular) !important;
-  background: rgba(255, 255, 255, 0.4) !important;
-  border: 1px solid rgba(255, 255, 255, 0.6) !important;
-  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05) !important;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  transition: all 0.3s ease;
-
-  &:hover {
-    color: var(--el-color-primary) !important;
-    background: rgba(255, 255, 255, 0.8) !important;
-    border-color: rgba(255, 255, 255, 0.9) !important;
-    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08) !important;
-    transform: translateY(-1px);
-  }
+// 默认按钮与次按钮：透明底 + 强描边，hover 只加一层 --ff-hover。
+// :where 把排除条件的优先级归零，页面自己给默认按钮改 --el-button-* 时不必和这里拼优先级。
+html
+  .el-button:where(
+    :not(
+      .el-button--primary,
+      .el-button--success,
+      .el-button--warning,
+      .el-button--danger,
+      .el-button--info,
+      .is-link,
+      .is-text
+    )
+  ),
+html .ff-button-secondary {
+  --el-button-text-color: var(--ff-color-text-regular);
+  --el-button-bg-color: transparent;
+  --el-button-border-color: var(--ff-line-strong);
+  --el-button-hover-text-color: var(--ff-color-text-primary);
+  --el-button-hover-bg-color: var(--ff-hover);
+  --el-button-hover-border-color: var(--ff-line-strong);
+  --el-button-active-text-color: var(--ff-color-text-primary);
+  --el-button-active-bg-color: var(--ff-press);
+  --el-button-active-border-color: var(--ff-line-strong);
+  --el-button-disabled-text-color: var(--ff-color-text-disabled);
+  --el-button-disabled-bg-color: transparent;
+  --el-button-disabled-border-color: var(--ff-line);
 }
 
-.ff-button-danger {
+html .ff-button-secondary {
   font-weight: 500;
-  color: #ef4444 !important;
-  background: rgba(239, 68, 68, 0.08) !important;
-  border: 1px solid rgba(239, 68, 68, 0.3) !important;
-  backdrop-filter: blur(8px);
-  transition: all 0.3s ease;
-
-  &:not(.is-disabled):hover {
-    color: #ffffff !important;
-    background: linear-gradient(
-      135deg,
-      rgba(248, 113, 113, 0.9) 0%,
-      rgba(239, 68, 68, 0.8) 100%
-    ) !important;
-    border-color: rgba(255, 255, 255, 0.4) !important;
-    border-top-color: rgba(255, 255, 255, 0.8) !important;
-    box-shadow:
-      inset 0 2px 6px rgba(255, 255, 255, 0.2),
-      0 4px 12px -4px rgba(239, 68, 68, 0.4) !important;
-    transform: translateY(-1px);
-  }
 }
 
-.ff-button-success {
+html .ff-button-danger {
+  --el-button-text-color: var(--ff-danger);
+  --el-button-bg-color: transparent;
+  --el-button-border-color: color-mix(in srgb, var(--ff-danger) 45%, transparent);
+  --el-button-hover-text-color: var(--ff-danger);
+  --el-button-hover-bg-color: color-mix(in srgb, var(--ff-danger) 12%, transparent);
+  --el-button-hover-border-color: color-mix(in srgb, var(--ff-danger) 60%, transparent);
+  --el-button-active-text-color: var(--ff-danger);
+  --el-button-active-bg-color: color-mix(in srgb, var(--ff-danger) 18%, transparent);
+  --el-button-active-border-color: color-mix(in srgb, var(--ff-danger) 60%, transparent);
+  --el-button-disabled-text-color: color-mix(in srgb, var(--ff-danger) 45%, transparent);
+  --el-button-disabled-bg-color: transparent;
+  --el-button-disabled-border-color: color-mix(in srgb, var(--ff-danger) 20%, transparent);
+
   font-weight: 500;
-  transition: all 0.2s ease;
 }
 
-.ff-button-success:hover {
-  transform: translateY(-1px);
+html .ff-button-success {
+  font-weight: 500;
 }
 
 .ff-button-group {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-}
-
-html.dark {
-  .ff-button-secondary {
-    color: #e2e8f0 !important;
-    background: rgba(30, 41, 59, 0.6) !important;
-    border-color: rgba(255, 255, 255, 0.15) !important;
-  }
-
-  .ff-button-secondary:hover {
-    color: #f8fafc !important;
-    background: rgba(51, 65, 85, 0.8) !important;
-  }
 }

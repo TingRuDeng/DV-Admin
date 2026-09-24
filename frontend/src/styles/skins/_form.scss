@@ -5,85 +5,34 @@
 
 .ff-form .el-form-item__label {
   font-weight: 500;
-  color: var(--el-text-color-regular);
+  color: var(--ff-color-text-regular);
 }
 
+// 字段：半透明底 + 1px 强描边；聚焦时描边换成虹彩中段色并外扩一圈柔光。
+// 不加 !important，EP 的 is-error / is-disabled 规则优先级更高，校验与禁用态照常显示。
 .ff-form .el-input__wrapper,
 .ff-form .el-select__wrapper,
-.ff-form .el-textarea__inner,
-.ff-form .el-tree-select__wrapper {
+.ff-form .el-textarea__inner {
+  background-color: var(--ff-field-bg);
   border-radius: var(--ff-radius-control);
-  box-shadow: var(--ff-shadow-control);
+  box-shadow: inset 0 0 0 1px var(--ff-line-strong);
 }
 
-.ff-form .el-input__wrapper {
-  background-color: rgba(255, 255, 255, 0.6);
-  transition: all 0.2s ease;
+.ff-form .el-textarea__inner {
+  transition:
+    background-color var(--ff-duration-fast) var(--ff-ease-standard),
+    box-shadow var(--ff-duration-fast) var(--ff-ease-standard);
 }
 
-.ff-form .el-input__wrapper:hover {
-  background-color: rgba(255, 255, 255, 0.8);
-}
-
-.ff-form .el-input__wrapper.is-focus {
-  background-color: #ffffff;
-  box-shadow:
-    0 0 0 1px var(--el-color-primary) inset,
-    0 0 0 3px rgba(64, 128, 255, 0.1) !important;
-}
-
-.ff-form .el-select__wrapper,
-.ff-form .el-tree-select .el-select__wrapper {
-  background-color: rgba(255, 255, 255, 0.6);
-  transition: all 0.2s ease;
-}
-
-.ff-form .el-select__wrapper:hover,
-.ff-form .el-tree-select .el-select__wrapper:hover {
-  background-color: rgba(255, 255, 255, 0.8);
-}
-
+.ff-form .el-input__wrapper.is-focus,
 .ff-form .el-select__wrapper.is-focused,
-.ff-form .el-tree-select .el-select__wrapper.is-focused {
-  background-color: #ffffff;
+.ff-form .el-textarea__inner:focus {
   box-shadow:
-    0 0 0 1px var(--el-color-primary) inset,
-    0 0 0 3px rgba(64, 128, 255, 0.1) !important;
+    inset 0 0 0 1px var(--ff-iri-b),
+    0 0 0 4px color-mix(in srgb, var(--ff-iri-b) 18%, transparent);
 }
 
-html.dark {
-  .ff-form .el-input__wrapper {
-    background-color: rgba(30, 41, 59, 0.6);
-    box-shadow: 0 0 0 1px #475569 inset !important;
-  }
-
-  .ff-form .el-input__wrapper:hover {
-    background-color: rgba(30, 41, 59, 0.8);
-  }
-
-  .ff-form .el-input__wrapper.is-focus {
-    background-color: #1e293b;
-    box-shadow:
-      0 0 0 1px var(--el-color-primary) inset,
-      0 0 0 3px rgba(129, 140, 248, 0.2) !important;
-  }
-
-  .ff-form .el-select__wrapper,
-  .ff-form .el-tree-select .el-select__wrapper {
-    background-color: rgba(30, 41, 59, 0.6);
-    box-shadow: 0 0 0 1px #475569 inset !important;
-  }
-
-  .ff-form .el-select__wrapper:hover,
-  .ff-form .el-tree-select .el-select__wrapper:hover {
-    background-color: rgba(30, 41, 59, 0.8);
-  }
-
-  .ff-form .el-select__wrapper.is-focused,
-  .ff-form .el-tree-select .el-select__wrapper.is-focused {
-    background-color: #1e293b;
-    box-shadow:
-      0 0 0 1px var(--el-color-primary) inset,
-      0 0 0 3px rgba(129, 140, 248, 0.2) !important;
-  }
+.ff-form .el-input__inner,
+.ff-form .el-textarea__inner {
+  color: var(--ff-color-text-primary);
 }

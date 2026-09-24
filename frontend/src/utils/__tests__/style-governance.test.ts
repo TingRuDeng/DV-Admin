@@ -163,6 +163,21 @@ describe("liquid chrome visual system governance", () => {
     }
   });
 
+  it("confines backdrop-filter to the glass mixin and the popper skin", () => {
+    // 登录页的玻璃在 PR3 改用 ff-glass mixin 后移出白名单
+    const allowed = new Set([
+      "styles/foundation/_glass.scss",
+      "styles/skins/_popper.scss",
+      "styles/pages/_login.scss",
+    ]);
+    const offenders = sourceFiles()
+      .filter(({ source }) => /backdrop-filter\s*:/.test(source))
+      .map(({ file }) => file.split("\\").join("/"))
+      .filter((file) => !allowed.has(file));
+
+    expect(offenders).toEqual([]);
+  });
+
   it("keeps legacy element-plus overrides free of indigo literals and hover lifts", () => {
     const legacyFiles = [
       "src/styles/element-plus.scss",
