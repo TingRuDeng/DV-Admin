@@ -101,7 +101,7 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
     FrontendFieldContract(
         key="users_import_result_type",
         frontend_source="frontend/src/api/system/user-api.ts",
-        required_fields=frozenset({"validCount", "invalidCount", "messageList"}),
+        required_fields=frozenset({"validCount", "skippedCount", "invalidCount", "messageList"}),
         tracked_backend_contract="user_import_result",
     ),
     FrontendFieldContract(

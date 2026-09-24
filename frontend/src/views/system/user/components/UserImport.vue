@@ -66,8 +66,8 @@
       cancel-text="关闭"
     >
       <el-alert
-        :title="`导入结果：成功${validCount}条，失败${invalidCount}条`"
-        :type="validCount > 0 ? 'warning' : 'error'"
+        :title="`导入结果：成功${validCount}条，跳过${skippedCount}条，失败${invalidCount}条`"
+        :type="invalidCount > 0 && validCount === 0 ? 'error' : 'warning'"
         :closable="false"
       />
       <el-table :data="resultData" style="width: 100%; max-height: 400px">
@@ -113,6 +113,7 @@ const visible = defineModel("modelValue", {
 const resultVisible = ref(false);
 const resultData = ref<string[]>([]);
 const invalidCount = ref(0);
+const skippedCount = ref(0);
 const validCount = ref(0);
 const uploading = ref(false);
 
@@ -130,6 +131,7 @@ watch(visible, (newValue) => {
     resultData.value = [];
     resultVisible.value = false;
     invalidCount.value = 0;
+    skippedCount.value = 0;
     validCount.value = 0;
   }
 });
@@ -164,22 +166,26 @@ const handleUpload = async () => {
   resultVisible.value = false;
   resultData.value = [];
   invalidCount.value = 0;
+  skippedCount.value = 0;
   validCount.value = 0;
   try {
     const result = await UserAPI.import(props.deptId, importFormData.files[0].raw as File);
     if (result.validCount > 0) {
       emit("import-success");
     }
-    if (result.invalidCount > 0) {
-      const summary = `成功${result.validCount}条，失败${result.invalidCount}条`;
+    if (result.invalidCount > 0 || result.skippedCount > 0) {
+      const summary = `成功${result.validCount}条，跳过${result.skippedCount}条，失败${result.invalidCount}条`;
       if (result.validCount > 0) {
         ElMessage.warning("部分导入成功：" + summary);
-      } else {
+      } else if (result.invalidCount > 0) {
         ElMessage.error("导入失败：" + summary);
+      } else {
+        ElMessage.warning("未新增数据：" + summary);
       }
       resultVisible.value = true;
       resultData.value = result.messageList;
       invalidCount.value = result.invalidCount;
+      skippedCount.value = result.skippedCount;
       validCount.value = result.validCount;
     } else if (result.validCount > 0) {
       ElMessage.success("导入成功，导入数据：" + result.validCount + "条");

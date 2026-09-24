@@ -256,6 +256,7 @@ test.describe("用户管理核心业务 smoke", () => {
           route,
           success({
             validCount: 1,
+            skippedCount: 0,
             invalidCount: 1,
             messageList: ["第3行：用户名已存在"],
           })
@@ -265,6 +266,7 @@ test.describe("用户管理核心业务 smoke", () => {
           route,
           success({
             validCount: 0,
+            skippedCount: 1,
             invalidCount: 1,
             messageList: ["第2行：无权限"],
           })
@@ -277,7 +279,13 @@ test.describe("用户管理核心业务 smoke", () => {
     await page.goto("/login?redirect=%2Fsystem%2Fusers");
     await page.getByLabel("用户名").fill("admin");
     await page.getByLabel("密码").fill("123456");
+    const userListResponse = page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname === `${API_PREFIX}${USERS_PATH}` &&
+        response.request().method() === "GET"
+    );
     await page.getByRole("button", { name: /登\s*录|Login/i }).click();
+    await userListResponse;
     await expect(page.getByText("admin_mock", { exact: true })).toBeVisible();
     const queriesBeforeImport = state.pageQueries.length;
     await page.getByRole("button", { name: "导入用户" }).click();
@@ -292,9 +300,9 @@ test.describe("用户管理核心业务 smoke", () => {
     const result = page.getByRole("dialog", { name: "导入结果", exact: true });
     await submit.click();
     await expect(page.locator(".el-message--warning")).toContainText(
-      "部分导入成功：成功1条，失败1条"
+      "部分导入成功：成功1条，跳过0条，失败1条"
     );
-    await expect(result).toContainText("导入结果：成功1条，失败1条");
+    await expect(result).toContainText("导入结果：成功1条，跳过0条，失败1条");
     await expect(result).toContainText("第3行：用户名已存在");
     await expect.poll(() => state.pageQueries.length).toBe(queriesBeforeImport + 1);
     await expect(page.getByText("imported_user", { exact: true })).toBeVisible();
@@ -304,7 +312,9 @@ test.describe("用户管理核心业务 smoke", () => {
     await result.getByRole("button", { name: "关闭", exact: true }).click();
 
     await submit.click();
-    await expect(page.locator(".el-message--error")).toContainText("导入失败：成功0条，失败1条");
+    await expect(page.locator(".el-message--error")).toContainText(
+      "导入失败：成功0条，跳过1条，失败1条"
+    );
     await expect(result).toContainText("第2行：无权限");
     await expect(result).not.toContainText("第3行：用户名已存在");
     expect(state.pageQueries).toHaveLength(queriesBeforeImport + 1);
