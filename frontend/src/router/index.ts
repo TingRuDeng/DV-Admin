@@ -24,6 +24,12 @@ export const constantRoutes: RouteRecordRaw[] = [
   },
 
   {
+    path: "/oidc/callback",
+    component: () => import("@/views/login/oidc-callback.vue"),
+    meta: { hidden: true },
+  },
+
+  {
     path: "/",
     name: "/",
     component: Layout,

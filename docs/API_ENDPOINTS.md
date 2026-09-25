@@ -7,6 +7,8 @@ ai_summary:
   source_of_truth:
     - "backend/drf_admin/apps/oauth/urls.py"
     - "backend/drf_admin/apps/oauth/views/oauth.py"
+    - "backend/drf_admin/apps/oauth/views/oidc.py"
+    - "backend/drf_admin/apps/oauth/oidc_policy.py"
     - "backend/drf_admin/apps/system/urls.py"
     - "backend/drf_admin/apps/system/views/health.py"
     - "backend/drf_admin/apps/system/views/logs.py"
@@ -17,6 +19,8 @@ ai_summary:
     - "fastapi/app/api/v1/oauth/routes/profile.py"
     - "fastapi/app/api/v1/oauth/routes/menus.py"
     - "fastapi/app/api/v1/oauth/routes/captcha.py"
+    - "fastapi/app/api/v1/oauth/routes/oidc.py"
+    - "fastapi/app/core/oidc_policy.py"
     - "fastapi/app/api/v1/system/__init__.py"
     - "fastapi/app/api/v1/system/log_routes/query.py"
     - "fastapi/app/api/v1/system/log_routes/mutation.py"
@@ -51,6 +55,7 @@ ai_summary:
 
 - `backend/drf_admin/apps/oauth/urls.py`
 - `backend/drf_admin/apps/oauth/views/oauth.py`
+- `backend/drf_admin/apps/oauth/views/oidc.py`
 - `backend/drf_admin/apps/system/urls.py`
 - `backend/drf_admin/utils/middleware.py`
 - `fastapi/app/api/v1/oauth/auth.py`
@@ -59,6 +64,7 @@ ai_summary:
 - `fastapi/app/api/v1/oauth/routes/profile.py`
 - `fastapi/app/api/v1/oauth/routes/menus.py`
 - `fastapi/app/api/v1/oauth/routes/captcha.py`
+- `fastapi/app/api/v1/oauth/routes/oidc.py`
 - `fastapi/app/api/v1/system/users.py`
 - `fastapi/app/api/health.py`
 - `fastapi/app/schemas/base.py`
@@ -230,6 +236,50 @@ POST /api/v1/oauth/login/
 ```
 
 以上为 FastAPI 默认有效期示例，不是不可配置的常量。两端 Access Token 默认均为 1800 秒（30 分钟）；FastAPI Refresh Token 默认 604800 秒（7 天），Django 默认 86400 秒（1 天）。FastAPI 使用 `ACCESS_TOKEN_EXPIRE_MINUTES` / `REFRESH_TOKEN_EXPIRE_DAYS`，Django 使用 `JWT_ACCESS_TOKEN_LIFETIME`（分钟）/ `JWT_REFRESH_TOKEN_LIFETIME`（天）覆盖；以实际响应和运行配置为准。
+
+---
+
+### 单点登录（OIDC）
+
+**Django & FastAPI：** 授权码 + PKCE（S256），由 SPA 接收回调，两端共享逐字节一致的 `oidc_policy.py`。默认关闭（`OIDC_ENABLED=false`）；关闭时两个接口仍注册，调用返回 40000「未启用单点登录」。两个接口都是公开接口，与密码登录共用按 IP 的限速桶，超限返回 429，Redis 不可用返回 503。
+
+```
+POST /api/v1/oauth/oidc/authorize/
+```
+
+无请求体。后端生成 `state`、`nonce`、PKCE verifier 和 `flowSecret`，在 Redis 保存 `{nonce, codeVerifier, sha256(flowSecret)}`（键 `oidc:state:<sha256(state)>`，600 秒过期）。
+
+**响应：**
+```json
+{
+  "code": 20000,
+  "data": {
+    "authorizationUrl": "https://idp.example.com/authorize?response_type=code&...",
+    "state": "随机值",
+    "flowSecret": "随机值，只下发给发起方"
+  }
+}
+```
+
+```
+POST /api/v1/oauth/oidc/login/
+```
+
+**请求体：**
+```json
+{
+  "authorizationCode": "身份提供方回调的 code",
+  "state": "身份提供方回调的 state",
+  "flowSecret": "发起时下发的流程密钥",
+  "iss": "身份提供方回调的 iss（可选，RFC 9207）"
+}
+```
+
+后端原子取出并删除 state 记录，比对 `flowSecret` 哈希，然后用授权码和 verifier 换取 ID Token，校验签名（仅 RS256/ES256/PS256）、`iss`、`aud`、`azp`、`exp`、`iat` 和 `nonce`，最后解析或开通本地账号。成功响应与密码登录相同：`accessToken`、`refreshToken`、`tokenType`、`expiresIn`，之后的刷新、登出和 RBAC 完全复用本地令牌。
+
+失败统一返回 40000，文案包括「登录状态无效或已过期，请重新发起单点登录」「身份提供方校验失败」「该账号未开通，请联系管理员」「该邮箱对应多个本地账号，请联系管理员」「用户已被禁用，请联系管理员」。Django 的具体文案在 `errors` 字段，FastAPI 在 `message` 字段。
+
+`redirect_uri` 只由服务端 `OIDC_REDIRECT_URI` 决定，必须与身份提供方登记值完全一致；前端回调路由为 `/oidc/callback`。请求体字段名 `authorizationCode`、`flowSecret` 命中两端现有的脱敏关键词，操作日志不会保存明文。
 
 ---
 
@@ -638,6 +688,8 @@ GET /api/openapi.json   # OpenAPI JSON（FastAPI 非生产环境）
 
 - `POST /api/v1/oauth/login/`
 - `POST /api/v1/oauth/refresh-token/`
+- `POST /api/v1/oauth/oidc/authorize/`
+- `POST /api/v1/oauth/oidc/login/`
 - `GET /api/v1/oauth/captcha/`（仅 FastAPI）
 - `GET /api/v1/system/dict-items/`
 - `GET /health`

@@ -289,6 +289,72 @@ WHITE_LIST = [
 
 ---
 
+### 单点登录回调报 redirect_uri 不匹配
+
+**问题描述：**
+点"企业账号"后身份提供方直接报 `redirect_uri` 无效，或回调后兑换授权码返回"身份提供方校验失败"。
+
+**原因：**
+授权请求和换 token 请求都使用服务端 `OIDC_REDIRECT_URI`，身份提供方要求它与客户端登记的回调地址逐字符一致，协议、端口、末尾斜杠任何一处不同都会拒绝。
+
+**解决方案：**
+在身份提供方登记前端回调地址 `<前端域名>/oidc/callback`，并把同一个值写入 `OIDC_REDIRECT_URI`。前端不传 `redirect_uri`，所以不能靠前端配置修正。
+
+**相关代码：**
+- `backend/drf_admin/apps/oauth/oidc_policy.py`、`fastapi/app/core/oidc_policy.py`
+- `frontend/src/router/index.ts`
+
+---
+
+### 不要把 code 加进日志脱敏关键词
+
+**问题描述：**
+为了隐藏授权码，想把 `code` 加进操作日志的敏感关键词列表。
+
+**原因：**
+关键词按子串匹配，`code` 会让角色、字典、权限等业务对象的 `code` 字段全部被脱敏，操作日志失去排查价值。
+
+**解决方案：**
+单点登录接口的请求字段命名为 `authorizationCode` 和 `flowSecret`，它们已经命中现有的 `authorization`、`secret` 关键词，不需要修改脱敏列表。新增敏感字段时优先调整字段名，而不是扩大关键词。
+
+**相关代码：**
+- `backend/drf_admin/utils/middleware.py`、`backend/drf_admin/utils/audit.py`
+- `fastapi/app/utils/audit.py`
+
+---
+
+### 退出后点"企业账号"会直接登录回来
+
+**问题描述：**
+用户退出后在登录页点"企业账号"，没有输入密码就又登录进来了。
+
+**原因：**
+本地退出只撤销本系统的令牌，没有实现 RP-initiated logout，身份提供方的会话仍然有效，所以授权请求会被直接批准。
+
+**解决方案：**
+这是当前设计的已知行为。需要彻底退出时，到身份提供方退出；如果以后要支持，需要在 discovery 里读取 `end_session_endpoint` 并在前端退出后跳转。
+
+**相关代码：**
+- `frontend/src/store/modules/user-store.ts`
+
+---
+
+### 迁移数据时漏掉单点登录绑定
+
+**问题描述：**
+用 `dumpdata system` 导出 Django 数据再导入 FastAPI（或反过来）后，已经绑定过的单点登录用户首次登录又被当成新用户，开通了一个带后缀的重复账号。
+
+**原因：**
+身份绑定表 `oauth_oidc_identities` 属于 `oauth` 应用，只导出 `system` 应用会漏掉它。
+
+**解决方案：**
+导出时同时包含 `oauth` 应用（`dumpdata system oauth`）；FastAPI 导入顺序已把 `oauth.oidcidentity` 排在 `system.users` 之后。
+
+**相关代码：**
+- `fastapi/app/db/django_import_config.py`
+
+---
+
 ## 前端开发陷阱
 
 ### 陷阱 7：动态路由缓存

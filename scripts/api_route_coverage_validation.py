@@ -12,6 +12,7 @@ FASTAPI_ROUTE_BASES = {
     "fastapi/app/api/v1/information/profile.py": "information",
     "fastapi/app/api/v1/oauth/routes/login.py": "oauth",
     "fastapi/app/api/v1/oauth/routes/menus.py": "oauth",
+    "fastapi/app/api/v1/oauth/routes/oidc.py": "oauth",
     "fastapi/app/api/v1/oauth/routes/profile.py": "oauth",
     "fastapi/app/api/v1/oauth/routes/session.py": "oauth",
     "fastapi/app/api/v1/system/depts.py": "system/departments",

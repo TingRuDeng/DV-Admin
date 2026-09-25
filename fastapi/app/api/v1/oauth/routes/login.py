@@ -1,6 +1,6 @@
 """OAuth 登录相关 API 路由。"""
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
@@ -9,21 +9,27 @@ from app.core.config import settings
 from app.core.error_codes import ERROR_CODE
 from app.core.exceptions import AuthenticationError
 from app.core.login_throttle_policy import trusted_client_ip
-from app.core.security import create_access_token, create_refresh_token, verify_password_async
+from app.core.security import verify_password_async
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
 from app.schemas.oauth import Token, UserLogin
 from app.services.login_throttle import enforce_login_limit
+from app.services.login_tokens import issue_login_tokens
 
 router = APIRouter()
 
 
-async def _begin_login(request: Request, username: str) -> str:
-    client_ip = trusted_client_ip(
+def login_client_ip(request: Request) -> str:
+    """登录限速使用的客户端 IP，只信任 TRUSTED_PROXY_IPS 转发的 X-Forwarded-For。"""
+    return trusted_client_ip(
         request.client.host if request.client else "",
         request.headers.get("X-Forwarded-For", ""),
         settings.trusted_proxy_ips,
     )
+
+
+async def _begin_login(request: Request, username: str) -> str:
+    client_ip = login_client_ip(request)
     await enforce_login_limit("check", username, client_ip)
     return client_ip
 
@@ -114,31 +120,7 @@ async def login_access_token(
     user.last_login = datetime.now(timezone.utc)
     await user.save()
 
-    # 生成令牌
-    access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
-    refresh_token_expires = timedelta(days=settings.refresh_token_expire_days)
-
-    access_token = create_access_token(
-        subject=str(user.id),
-        expires_delta=access_token_expires,
-        extra_claims={"username": user.username, "name": user.name,
-                      "session_iat": session_started_at.timestamp()},
-    )
-    refresh_token = create_refresh_token(
-        subject=str(user.id),
-        expires_delta=refresh_token_expires,
-        session_started_at=session_started_at,
-    )
-
-    return ResponseModel.success(
-        data=Token(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            token_type="bearer",
-            expires_in=settings.access_token_expire_minutes * 60,
-            refresh_expires_in=settings.refresh_token_expire_days * 24 * 60 * 60,
-        )
-    )
+    return ResponseModel.success(data=issue_login_tokens(user, session_started_at))
 
 
 @router.post(
@@ -230,28 +212,4 @@ async def login(
     user.last_login = datetime.now(timezone.utc)
     await user.save()
 
-    # 生成令牌
-    access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
-    refresh_token_expires = timedelta(days=settings.refresh_token_expire_days)
-
-    access_token = create_access_token(
-        subject=str(user.id),
-        expires_delta=access_token_expires,
-        extra_claims={"username": user.username, "name": user.name,
-                      "session_iat": session_started_at.timestamp()},
-    )
-    refresh_token = create_refresh_token(
-        subject=str(user.id),
-        expires_delta=refresh_token_expires,
-        session_started_at=session_started_at,
-    )
-
-    return ResponseModel.success(
-        data=Token(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            token_type="bearer",
-            expires_in=settings.access_token_expire_minutes * 60,
-            refresh_expires_in=settings.refresh_token_expire_days * 24 * 60 * 60,
-        )
-    )
+    return ResponseModel.success(data=issue_login_tokens(user, session_started_at))

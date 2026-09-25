@@ -82,12 +82,20 @@ FASTAPI_MODEL_INDEX_CONTRACTS: tuple[FastapiModelIndexContract, ...] = (
             ("dept_id", "is_active"),
         ),
     ),
+    FastapiModelIndexContract(
+        fastapi_model="OidcIdentity",
+        indexes=(("user_id",),),
+    ),
 )
 
 FASTAPI_UNIQUE_TOGETHER_CONTRACTS: tuple[FastapiUniqueTogetherContract, ...] = (
     FastapiUniqueTogetherContract(
         fastapi_model="NoticeReads",
         fields=("notice", "user_id"),
+    ),
+    FastapiUniqueTogetherContract(
+        fastapi_model="OidcIdentity",
+        fields=("issuer", "subject"),
     ),
 )
 

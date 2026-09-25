@@ -11,6 +11,29 @@ const AuthAPI = {
     });
   },
 
+  /** 发起单点登录：后端生成 state、nonce 和 PKCE，返回身份提供方授权地址 */
+  oidcAuthorize() {
+    return request<unknown, OidcAuthorization>({
+      url: `${AUTH_BASE_URL}/oidc/authorize/`,
+      method: "post",
+      headers: {
+        Authorization: "no-auth",
+      },
+    });
+  },
+
+  /** 用授权码完成单点登录，返回与密码登录相同的本地令牌 */
+  oidcLogin(data: OidcLoginData) {
+    return request<unknown, LoginResult>({
+      url: `${AUTH_BASE_URL}/oidc/login/`,
+      method: "post",
+      data,
+      headers: {
+        Authorization: "no-auth",
+      },
+    });
+  },
+
   /** 刷新 token 接口*/
   refreshToken(refreshToken: string) {
     return request<unknown, LoginResult>({
@@ -119,6 +142,26 @@ export interface LoginResult {
   tokenType: string;
   /** 过期时间(秒) */
   expiresIn: number;
+}
+
+/** 单点登录发起结果 */
+export interface OidcAuthorization {
+  /** 身份提供方授权地址 */
+  authorizationUrl: string;
+  /** 回调时用于校验的 state */
+  state: string;
+  /** 只下发给发起方的流程密钥，兑换授权码时必须回传 */
+  flowSecret: string;
+}
+
+/** 单点登录兑换参数 */
+export interface OidcLoginData {
+  /** 身份提供方回调的授权码 */
+  authorizationCode: string;
+  state: string;
+  flowSecret: string;
+  /** 身份提供方回调携带的 iss（RFC 9207） */
+  iss?: string;
 }
 
 /** 验证码信息 */

@@ -36,6 +36,9 @@
       }
     },
     "otherLoginMethods": "Other",
+    "oidcProvider": "Enterprise account",
+    "oidcBack": "Back to sign in",
+    "oidcPending": "Completing single sign-on",
     "resetPassword": "Reset password",
     "thinkOfPasswd": "Remember your password?",
     "register": "Register account",

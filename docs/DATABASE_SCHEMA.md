@@ -8,6 +8,7 @@ ai_summary:
     - "backend/drf_admin/apps/system/models.py"
     - "fastapi/app/db/models/system.py"
     - "fastapi/app/db/models/oauth.py"
+    - "backend/drf_admin/apps/oauth/models.py"
     - "fastapi/app/db/migrations/0001_initial.py"
     - "fastapi/scripts/validate_migrations.py"
     - "backend/dev.sh"
@@ -297,6 +298,28 @@ ai_summary:
 
 **索引：**
 - `user_id`
+
+---
+
+### 单点登录身份 (OidcIdentity，Django & FastAPI)
+
+**表名：** `oauth_oidc_identities`
+
+> 记录身份提供方账号（`issuer` + `subject`）与本地用户的绑定，不修改 `system_users`。Django 模型见 `backend/drf_admin/apps/oauth/models.py`（迁移 `apps/oauth/migrations/0001_initial.py`），FastAPI 见 `fastapi/app/db/models/oauth.py`（迁移 `0004_oidc_identities.py`）。只在首次登录时写入 `email`，之后仅更新 `last_login_at`。
+
+| 字段 | 类型 | 说明 | 约束 |
+|------|------|------|------|
+| id | int | 主键 | PK, Auto |
+| issuer | varchar(255) | 身份提供方 issuer | Not Null |
+| subject | varchar(255) | 身份提供方用户标识 `sub` | Not Null |
+| user_id | int | 本地用户ID | FK → Users，级联删除 |
+| email | varchar(254) | 首次登录时的邮箱 | 默认空串 |
+| last_login_at | datetime | 最近一次单点登录时间 | Null |
+| create_time / created_at | datetime | 创建时间 | Django / FastAPI |
+| update_time / updated_at | datetime | 更新时间 | Django / FastAPI |
+
+**约束：**
+- `UNIQUE(issuer, subject)`
 
 ---
 

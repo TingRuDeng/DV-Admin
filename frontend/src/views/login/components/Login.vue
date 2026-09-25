@@ -84,6 +84,8 @@
         </el-button>
       </el-form-item>
     </el-form>
+
+    <OidcLoginButton />
   </div>
 </template>
 <script setup lang="ts">
@@ -93,9 +95,11 @@ import router from "@/router";
 import { useUserStore } from "@/store";
 import { AuthStorage } from "@/utils/auth";
 import { createLogger } from "@/utils/logger";
+import { resolveSafeRedirect } from "@/utils/safe-redirect";
 import { defaultSettings } from "@/settings";
 import { getLoginDefaultCredentials } from "./login-defaults";
 import AppIcon from "@/components/AppIcon/index.vue";
+import OidcLoginButton from "./OidcLoginButton.vue";
 
 const loginLogger = createLogger("Login");
 const { t } = useI18n();
@@ -188,9 +192,8 @@ async function handleLoginSubmit() {
     // 2. 执行登录
     await userStore.login(loginFormData.value);
 
-    const redirectPath = (route.query.redirect as string) || "/";
-
-    await router.push(decodeURIComponent(redirectPath));
+    // vue-router 已解码过 query，这里只做站内路径校验，不能再解码
+    await router.push(resolveSafeRedirect(route.query.redirect));
   } catch (error) {
     // 4. 统一错误处理
     if (enableCaptcha) {

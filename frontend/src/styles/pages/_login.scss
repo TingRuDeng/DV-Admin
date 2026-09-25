@@ -283,9 +283,100 @@ html .ff-login-page .login-form__submit.is-loading::after {
   }
 }
 
+// 单点登录入口：一条细分隔线加半透明次级按钮，和虹彩主按钮区分主次
+.ff-login-page .login-form__sso {
+  display: grid;
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.ff-login-page .login-form__divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ff-line-strong), transparent);
+}
+
+html .ff-login-page .login-form__sso-button {
+  width: 100%;
+  height: 52px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ff-color-text-primary);
+  background: var(--ff-field-bg);
+  border: 0;
+  border-radius: var(--ff-radius-control);
+  box-shadow: inset 0 0 0 1px var(--ff-line-strong);
+  transition:
+    background-color var(--ff-duration-fast) ease,
+    box-shadow var(--ff-duration-fast) ease;
+}
+
+html .ff-login-page .login-form__sso-button:hover,
+html .ff-login-page .login-form__sso-button:focus-visible {
+  color: var(--ff-color-text-primary);
+  background: var(--ff-hover);
+  box-shadow: inset 0 0 0 1px var(--ff-iri-b);
+}
+
+// 单点登录回调页：复用登录页画布和玻璃板，只放状态与返回按钮
+.ff-login-page .ff-oidc-callback__main {
+  grid-template-rows: 1fr;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  padding: 24px 20px;
+}
+
+.ff-login-page .ff-oidc-callback__main .ff-login-page__slab {
+  grid-row: 1;
+  grid-column: 1;
+  align-self: center;
+  margin: 0;
+}
+
+.ff-login-page .ff-oidc-callback {
+  display: grid;
+  gap: 22px;
+  justify-items: center;
+  width: min(420px, 100%);
+  text-align: center;
+}
+
+.ff-oidc-callback__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--ff-color-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.ff-oidc-callback__status {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  color: var(--ff-iri-b);
+}
+
+.ff-oidc-callback__status .is-loading {
+  animation: ff-oidc-spin 0.9s linear infinite;
+}
+
+.ff-oidc-callback__error {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--el-color-danger);
+}
+
+@keyframes ff-oidc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ff-login-page__glyph,
   .ff-login-page__slab,
+  .ff-oidc-callback__status .is-loading,
   html .ff-login-page .login-form__submit.is-loading::after {
     animation: none;
   }

@@ -11,6 +11,8 @@ REQUIRED_SYSTEM_MIGRATIONS = (
     "backend/drf_admin/apps/system/migrations/0001_initial.py",
     "backend/drf_admin/apps/system/migrations/0002_alter_dictitems_options_remove_dictitems_sort_and_more.py",
     "backend/drf_admin/apps/system/migrations/0003_notices.py",
+    "backend/drf_admin/apps/oauth/migrations/__init__.py",
+    "backend/drf_admin/apps/oauth/migrations/0001_initial.py",
 )
 
 REQUIRED_GITIGNORE_SNIPPETS = (
@@ -35,10 +37,10 @@ def validate_required_migrations(root: Path, tracked_files: set[str]) -> list[st
     for rel in REQUIRED_SYSTEM_MIGRATIONS:
         path = root / rel
         if not path.exists():
-            issues.append(f"{rel}: 缺少 Django system 迁移文件")
+            issues.append(f"{rel}: 缺少 Django 迁移文件")
             continue
         if rel not in tracked_files:
-            issues.append(f"{rel}: Django system 迁移文件未被 Git 跟踪")
+            issues.append(f"{rel}: Django 迁移文件未被 Git 跟踪")
     return issues
 
 

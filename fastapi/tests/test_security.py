@@ -65,3 +65,14 @@ class TestSecurity:
         hashed = get_password_hash(password)
 
         assert verify_password(password, hashed) is True
+
+    def test_unusable_password_hash_never_matches(self):
+        """单点登录开通账号的 "!" 哈希无法被 passlib 识别，必须判为不匹配而不是抛异常。"""
+        for unusable in ("!", "!random-unusable-secret", ""):
+            assert verify_password("any-password", unusable) is False
+            assert verify_password(unusable, unusable) is False
+
+    async def test_async_verify_rejects_unusable_password_hash(self):
+        from app.core.security import verify_password_async
+
+        assert await verify_password_async("any-password", "!random-unusable-secret") is False
