@@ -33,11 +33,15 @@
       <el-dropdown trigger="click">
         <button type="button" class="user-profile" :aria-label="t('navbar.userMenu')">
           <img
+            v-if="avatarUrl && !avatarLoadFailed"
             class="user-profile__avatar"
-            :src="userStore.userInfo.avatar"
+            :src="avatarUrl"
             alt=""
             aria-hidden="true"
+            @error="avatarLoadFailed = true"
           />
+          <!-- 没有头像或加载失败时只显示金属球，不露出浏览器的破图标记 -->
+          <span v-else class="user-profile__avatar" aria-hidden="true" />
           <span class="user-profile__name">{{ userStore.userInfo.username }}</span>
         </button>
         <template #dropdown>
@@ -92,6 +96,14 @@ const router = useRouter();
 
 // 是否为桌面设备
 const isDesktop = computed(() => appStore.device === DeviceEnum.DESKTOP);
+
+const avatarUrl = computed(() => userStore.userInfo.avatar);
+const avatarLoadFailed = ref(false);
+
+// 更换头像后重新尝试加载
+watch(avatarUrl, () => {
+  avatarLoadFailed.value = false;
+});
 
 /**
  * 打开个人中心页面
