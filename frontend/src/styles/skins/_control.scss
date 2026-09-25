@@ -24,7 +24,7 @@ html .el-switch.is-checked .el-switch__core {
 }
 
 html .el-switch__core .el-switch__action {
-  background: radial-gradient(circle at 32% 28%, #ffffff, #d4d4dc 45%, #8a8a96 100%);
+  background: var(--ff-orb);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
   transition: left var(--ff-duration-base) var(--ff-ease-spring);
 }

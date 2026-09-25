@@ -27,6 +27,8 @@
   --ff-press: rgba(11, 11, 16, 0.09);
   --ff-danger: #c62828;
   --ff-ok: #1e7a52;
+  // 金属球：开关旋钮、头像占位和登录页标识共用，两种模式同值
+  --ff-orb: radial-gradient(circle at 32% 28%, #ffffff, #d4d4dc 45%, #8a8a96 100%);
 
   --ff-color-bg-page: var(--ff-canvas);
   --ff-color-bg-panel: rgba(255, 255, 255, 0.55);
