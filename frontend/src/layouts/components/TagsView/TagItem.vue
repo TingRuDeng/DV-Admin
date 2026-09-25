@@ -37,12 +37,12 @@ const emit = defineEmits<{
 <style lang="scss" scoped>
 .tags-view-item {
   height: 30px;
-  padding: 0 11px;
-  margin: 0 3px;
+  padding: 0 12px;
+  margin: 0 2px;
   font-size: 12px;
   font-weight: 500;
   border: 1px solid var(--ff-shell-border);
-  border-radius: 6px;
+  border-radius: var(--ff-radius-chip);
   transition:
     color var(--ff-duration-fast) ease,
     background-color var(--ff-duration-fast) ease,
@@ -51,25 +51,24 @@ const emit = defineEmits<{
 
   &.el-tag--info {
     color: var(--ff-shell-text-muted);
-    background: var(--ff-shell-surface);
+    background: var(--ff-shell-surface-muted);
 
     &:hover {
-      color: var(--el-color-primary);
+      color: var(--ff-shell-text);
       background: var(--ff-shell-hover);
-      border-color: var(--el-color-primary-light-5);
+      border-color: var(--ff-line-strong);
     }
   }
 
+  // 当前页：面板底色 + 虹彩描边（padding-box / border-box 双层背景），边框保持 solid 以便键盘与测试识别
   &.el-tag--primary {
-    color: #ffffff;
-    background: var(--el-color-primary);
-    border-color: var(--el-color-primary);
-    box-shadow: 0 6px 14px -9px var(--el-color-primary);
-
-    &:hover {
-      background: var(--el-color-primary-light-3);
-      border-color: var(--el-color-primary-light-3);
-    }
+    font-weight: 600;
+    color: var(--ff-shell-text);
+    background:
+      linear-gradient(var(--ff-color-bg-panel-strong), var(--ff-color-bg-panel-strong)) padding-box,
+      var(--ff-iri) border-box;
+    border-color: transparent;
+    box-shadow: 0 6px 16px -10px color-mix(in srgb, var(--ff-iri-b) 70%, transparent);
   }
 
   &:focus-visible {

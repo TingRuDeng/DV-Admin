@@ -1,60 +1,113 @@
-.ff-table {
-  background: transparent !important;
-  --el-table-border-color: rgba(0, 0, 0, 0.04);
-  --el-table-header-bg-color: rgba(0, 0, 0, 0.02);
-  --el-table-header-text-color: var(--el-text-color-regular);
-  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.6);
+/* stylelint-disable no-descending-specificity */
+// 普通单元格保持透明，透出数据面板的玻璃；固定列是 sticky 的，横向滚动时会压在其他列上，
+// 所以固定列（含表头、hover、选中行）一律用不透明色，hover / 选中沿用 element-plus-custom/_table.scss 里混好的不透明变量。
+// EP 组件样式可能晚于本文件加载，选择器统一以 html 开头抬高优先级。
+// 固定列底色取数据面板玻璃在画布上的实际观感，直接用 --el-bg-color 在深色下会是一条黑块
+html .ff-table.el-table {
+  --ff-table-fixed-bg: color-mix(in srgb, #ffffff 55%, var(--el-bg-color));
+  --el-table-row-hover-bg-color: color-mix(in srgb, var(--ff-ink) 4%, var(--ff-table-fixed-bg));
+  --el-table-current-row-bg-color: color-mix(
+    in srgb,
+    var(--ff-iri-b) 10%,
+    var(--ff-table-fixed-bg)
+  );
+  --el-table-bg-color: transparent;
   --el-table-tr-bg-color: transparent;
+  --el-table-header-bg-color: transparent;
+  --el-table-border-color: var(--ff-line);
+  --el-table-header-text-color: var(--ff-color-text-secondary);
+  --el-table-text-color: var(--ff-color-text-regular);
+
+  color: var(--ff-color-text-regular);
+  background: transparent !important;
+}
+
+html.dark .ff-table.el-table {
+  --ff-table-fixed-bg: color-mix(in srgb, #ffffff 6%, var(--el-bg-color));
+  --el-table-row-hover-bg-color: color-mix(in srgb, #ffffff 5%, var(--ff-table-fixed-bg));
+  --el-table-current-row-bg-color: color-mix(
+    in srgb,
+    var(--ff-iri-b) 14%,
+    var(--ff-table-fixed-bg)
+  );
 }
 
 .ff-table .el-table__inner-wrapper::before {
   display: none;
 }
 
-.ff-table th.el-table__cell {
-  font-weight: 600;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.06) !important;
+html .ff-table th.el-table__cell {
+  font-weight: 500;
+  color: var(--ff-color-text-secondary);
+  background-color: transparent;
+  border-bottom: 1px solid var(--ff-line) !important;
 }
 
-.ff-table td.el-table__cell {
-  border-bottom: 1px dashed rgba(0, 0, 0, 0.04) !important;
+html .ff-table td.el-table__cell {
+  background-color: transparent;
+  border-bottom: 1px solid var(--ff-line) !important;
+  transition: background-color var(--ff-duration-fast) var(--ff-ease-standard);
+}
+
+html .ff-table .el-table__body tr:hover > td.el-table__cell {
+  background-color: var(--ff-hover);
+}
+
+html .ff-table .el-table__body tr.current-row > td.el-table__cell {
+  background-color: color-mix(in srgb, var(--ff-iri-b) 10%, transparent);
+}
+
+html .ff-table .el-table__header tr > th.el-table__cell.el-table-fixed-column--left,
+html .ff-table .el-table__header tr > th.el-table__cell.el-table-fixed-column--right,
+html .ff-table .el-table__body tr > td.el-table__cell.el-table-fixed-column--left,
+html .ff-table .el-table__body tr > td.el-table__cell.el-table-fixed-column--right,
+html .ff-table .el-table__fixed-right-patch {
+  background-color: var(--ff-table-fixed-bg);
+}
+
+html .ff-table .el-table__body tr:hover > td.el-table__cell.el-table-fixed-column--left,
+html .ff-table .el-table__body tr:hover > td.el-table__cell.el-table-fixed-column--right {
+  background-color: var(--el-table-row-hover-bg-color);
+}
+
+html .ff-table .el-table__body tr.current-row > td.el-table__cell.el-table-fixed-column--left,
+html .ff-table .el-table__body tr.current-row > td.el-table__cell.el-table-fixed-column--right {
+  background-color: var(--el-table-current-row-bg-color);
 }
 
 .ff-table-wrap {
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid var(--ff-color-border-soft);
-  border-radius: calc(var(--ff-radius-panel) - 2px);
-}
-
-html.dark .ff-table-wrap {
-  background: rgba(15, 23, 42, 0.28);
+  background: transparent;
+  border: 1px solid var(--ff-line);
+  border-radius: var(--ff-radius-control);
 }
 
 .ff-table .el-button.is-link {
   height: auto !important;
   padding: 6px 10px !important;
   font-weight: 500 !important;
-  border-radius: 8px !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-radius: var(--ff-radius-chip) !important;
+  transition:
+    color var(--ff-duration-fast) var(--ff-ease-standard),
+    background-color var(--ff-duration-fast) var(--ff-ease-standard) !important;
 }
 
 .ff-table .el-button--primary.is-link {
-  color: var(--el-text-color-regular) !important;
+  color: var(--ff-color-text-regular) !important;
 }
 
 .ff-table .el-button--primary.is-link:hover {
   color: var(--el-color-primary) !important;
-  background-color: rgba(64, 128, 255, 0.1) !important;
+  background-color: var(--ff-hover) !important;
 }
 
 .ff-table .el-button--danger.is-link {
-  color: var(--el-text-color-secondary) !important;
+  color: var(--ff-color-text-secondary) !important;
 }
 
 .ff-table .el-button--danger.is-link:hover {
-  color: #ef4444 !important;
-  background-color: rgba(239, 68, 68, 0.1) !important;
+  color: var(--ff-danger) !important;
+  background-color: color-mix(in srgb, var(--ff-danger) 10%, transparent) !important;
 }
 
 .ff-table .el-table__cell .cell {
@@ -67,48 +120,5 @@ html.dark .ff-table-wrap {
 @media (max-width: 767px) {
   .ff-page-shell .ff-table .el-table-fixed-column--right {
     position: static !important;
-  }
-}
-
-html.dark {
-  .ff-table {
-    --el-table-bg-color: transparent;
-    --el-table-tr-bg-color: transparent;
-    --el-table-border-color: rgba(255, 255, 255, 0.1);
-    --el-table-header-bg-color: rgba(255, 255, 255, 0.05);
-    --el-table-header-text-color: #e2e8f0;
-    --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.08);
-    --el-table-text-color: #e2e8f0;
-    color: #e2e8f0 !important;
-  }
-
-  .ff-table th.el-table__cell {
-    color: #f1f5f9 !important;
-    background-color: rgba(30, 41, 59, 0.8) !important;
-    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
-  }
-
-  .ff-table td.el-table__cell {
-    color: #e2e8f0 !important;
-    background-color: transparent !important;
-    border-bottom-color: rgba(255, 255, 255, 0.05) !important;
-  }
-
-  .ff-table .el-button--primary.is-link {
-    color: #cbd5e1 !important;
-  }
-
-  .ff-table .el-button--primary.is-link:hover {
-    color: #818cf8 !important;
-    background-color: rgba(129, 140, 248, 0.15) !important;
-  }
-
-  .ff-table .el-button--danger.is-link {
-    color: #94a3b8 !important;
-  }
-
-  .ff-table .el-button--danger.is-link:hover {
-    color: #f87171 !important;
-    background-color: rgba(239, 68, 68, 0.15) !important;
   }
 }

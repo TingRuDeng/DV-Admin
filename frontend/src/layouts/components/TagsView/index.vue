@@ -199,10 +199,10 @@ useRouteTagSync();
   align-items: center;
   width: 100%;
   height: $tags-view-height;
-  padding: 0 12px;
+  // 左右与顶栏面板、页面内容对齐
+  padding: 0 var(--ff-shell-gutter);
   background: var(--ff-shell-surface-muted);
   border-bottom: 1px solid var(--ff-shell-border);
-  box-shadow: var(--ff-shadow-shell);
 
   .scroll-container {
     width: 100%;

@@ -1,9 +1,12 @@
+@use "../foundation/glass" as *;
+
+// 面板材质来自 ff-glass：宿主透明，玻璃、描边、高光都画在 ::before 上
 .ff-filter-panel,
 .ff-data-panel,
 .ff-side-panel {
-  background: var(--ff-color-bg-panel, #ffffff);
-  background-color: var(--ff-color-bg-panel, #ffffff);
-  border: 1px solid var(--ff-color-border-soft);
+  @include ff-glass("panel");
+
+  background-color: transparent;
   border-radius: var(--ff-radius-panel);
   box-shadow: var(--ff-shadow-panel);
 }
@@ -35,13 +38,6 @@
 
 .ff-data-panel__footer {
   margin-top: 1rem;
-}
-
-html.dark .ff-filter-panel,
-html.dark .ff-data-panel,
-html.dark .ff-side-panel {
-  background: var(--ff-color-bg-panel, #111827);
-  background-color: var(--ff-color-bg-panel, #111827);
 }
 
 @media (max-width: 767px) {

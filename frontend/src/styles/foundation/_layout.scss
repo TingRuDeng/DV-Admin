@@ -4,7 +4,8 @@
   gap: var(--ff-page-gap);
   min-width: 0;
   min-height: 100%;
-  padding: 1rem;
+  // 与顶栏面板左右对齐（--ff-shell-gutter 在 768px 以上为 1.5rem）
+  padding: var(--ff-shell-gutter);
   background: linear-gradient(
     135deg,
     color-mix(in srgb, var(--ff-iri-a) 4%, transparent),
@@ -12,8 +13,33 @@
   );
 }
 
-@media (min-width: 768px) {
-  .ff-page-shell {
-    padding: 1.5rem;
+// 进场：侧栏、筛选区、数据区依次淡入上移。fill-mode 用 backwards，动画结束后不残留 transform，
+// 否则面板会一直是 fixed 后代的包含块。
+@keyframes ff-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.ff-page-shell .ff-side-panel,
+.ff-page-shell .ff-filter-panel,
+.ff-page-shell .ff-data-panel {
+  animation: ff-panel-enter 0.5s var(--ff-ease-out) backwards;
+}
+
+.ff-page-shell .ff-filter-panel {
+  animation-delay: 60ms;
+}
+
+.ff-page-shell .ff-data-panel {
+  animation-delay: 120ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ff-page-shell .ff-side-panel,
+  .ff-page-shell .ff-filter-panel,
+  .ff-page-shell .ff-data-panel {
+    animation: none;
   }
 }

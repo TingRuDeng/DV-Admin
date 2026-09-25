@@ -31,6 +31,8 @@
   --ff-color-bg-page: var(--ff-canvas);
   --ff-color-bg-panel: rgba(255, 255, 255, 0.55);
   --ff-color-bg-panel-strong: rgba(248, 248, 251, 0.94);
+  // 对话框、抽屉必须完全不透明，否则下方表格文字会透到表单上
+  --ff-color-bg-sheet: #f8f8fb;
   --ff-color-border-soft: var(--ff-line);
   --ff-field-bg: rgba(255, 255, 255, 0.6);
   --ff-popper-bg: rgba(248, 248, 251, 0.9);
@@ -44,7 +46,8 @@
   --ff-shell-text-muted: var(--ff-color-text-secondary);
   --ff-shell-hover: var(--ff-hover);
   --ff-shell-active: color-mix(in srgb, var(--ff-iri-b) 12%, transparent);
-  --ff-shell-overlay: rgba(200, 200, 212, 0.42);
+  // 遮罩不加模糊，浅色下只靠压暗区分层级，浅灰雾色在浅色画布上几乎看不出来
+  --ff-shell-overlay: rgba(20, 20, 30, 0.28);
 }
 
 html.dark {
@@ -72,6 +75,7 @@ html.dark {
 
   --ff-color-bg-panel: rgba(255, 255, 255, 0.055);
   --ff-color-bg-panel-strong: rgba(16, 16, 22, 0.94);
+  --ff-color-bg-sheet: #101016;
   --ff-field-bg: rgba(255, 255, 255, 0.045);
   --ff-popper-bg: rgba(16, 16, 22, 0.92);
   --ff-popper-edge: rgba(255, 255, 255, 0.1);
