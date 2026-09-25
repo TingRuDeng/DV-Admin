@@ -178,11 +178,11 @@ function getCaptcha() {
  * 登录提交
  */
 async function handleLoginSubmit() {
-  try {
-    // 1. 表单验证
-    const valid = await loginFormRef.value?.validate();
-    if (!valid) return;
+  // 1. 表单验证：校验失败时 validate() 会 reject，字段下方已有提示，不当作登录失败处理
+  const valid = await loginFormRef.value?.validate().catch(() => false);
+  if (!valid) return;
 
+  try {
     loading.value = true;
 
     // 2. 执行登录
