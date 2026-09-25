@@ -15,7 +15,10 @@ async function fulfillJson(route: Route, data: unknown, status = 200) {
   });
 }
 
-async function installShellMocks(page: Page) {
+const EMPTY_SVG_AVATAR =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'/%3E";
+
+async function installShellMocks(page: Page, { avatar = EMPTY_SVG_AVATAR } = {}) {
   await page.route(`**${API_PREFIX}/api/v1/**`, async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname.replace(API_PREFIX, "");
@@ -41,8 +44,7 @@ async function installShellMocks(page: Page) {
           id: "1",
           username: "admin",
           name: "管理员",
-          avatar:
-            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'/%3E",
+          avatar,
           roles: ["admin"],
           perms: USER_PERMS,
         })
@@ -376,4 +378,20 @@ test.describe("现代化壳层 smoke", () => {
     await expect(page.locator(".layout-left .layout__sidebar")).not.toHaveAttribute("aria-hidden");
     await expect(page.locator(".layout-left .layout__overlay")).toBeVisible();
   });
+
+  for (const [scenario, avatar] of [
+    ["头像地址为空", ""],
+    ["头像文件 404", "/media/avatar/missing.png"],
+  ] as const) {
+    test(`${scenario}时顶栏显示金属球占位，不露出破图`, async ({ page }) => {
+      await page.route("**/media/avatar/missing.png", (route) => route.fulfill({ status: 404 }));
+      await installShellMocks(page, { avatar });
+      await setPreferences(page, { "vea:ui:layout": "left", "vea:ui:theme": "light" });
+      await login(page);
+
+      const userMenu = page.getByRole("button", { name: "用户菜单" });
+      await expect(userMenu.locator(".user-profile__avatar")).toBeVisible();
+      await expect(userMenu.locator("img")).toHaveCount(0);
+    });
+  }
 });
