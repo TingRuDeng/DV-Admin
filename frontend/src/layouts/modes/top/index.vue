@@ -78,9 +78,6 @@ const isLogoCollapsed = computed(() => isMobile.value || width.value < 768);
     justify-content: space-between;
     width: 100%;
     height: $navbar-height;
-    background: var(--ff-shell-surface);
-    border-bottom: 1px solid var(--ff-shell-border);
-    box-shadow: var(--ff-shadow-shell);
 
     &-left {
       display: flex;
@@ -92,7 +89,7 @@ const isLogoCollapsed = computed(() => isMobile.value || width.value < 768);
       // Logo样式由AppLogo组件的全局样式控制
       :deep(.logo) {
         flex-shrink: 0; // 防止Logo被压缩
-        height: $navbar-height;
+        height: 100%;
       }
     }
 
@@ -104,39 +101,14 @@ const isLogoCollapsed = computed(() => isMobile.value || width.value < 768);
       padding: 0 8px;
     }
 
-    // 菜单样式
+    // 菜单容器；菜单项的胶囊形状和激活态由 skins/_menu.scss 统一提供
     :deep(.el-menu--horizontal) {
       flex: 1;
       min-width: 0; // 允许菜单收缩
-      height: $navbar-height;
+      height: 100%;
       overflow: hidden; // 防止菜单溢出
-      line-height: $navbar-height;
       background-color: transparent;
       border: none;
-
-      .el-menu-item {
-        height: $navbar-height;
-        line-height: $navbar-height;
-      }
-
-      .el-sub-menu {
-        .el-sub-menu__title {
-          height: $navbar-height;
-          line-height: $navbar-height;
-        }
-
-        // 父菜单激活状态 - 水平布局专用
-        &.has-active-child {
-          .el-sub-menu__title {
-            color: var(--el-color-primary) !important;
-            border-bottom: 2px solid var(--el-color-primary) !important;
-
-            .menu-icon {
-              color: var(--el-color-primary) !important;
-            }
-          }
-        }
-      }
 
       // 修复子菜单弹出位置
       .el-menu--popup {
@@ -159,9 +131,6 @@ const isLogoCollapsed = computed(() => isMobile.value || width.value < 768);
     z-index: 1001;
     width: $sidebar-width;
     overflow: hidden;
-    background: var(--ff-shell-surface);
-    border-right: 1px solid var(--ff-shell-border);
-    box-shadow: var(--ff-shadow-shell-raised);
     transition: transform var(--ff-duration-base) var(--ff-ease-standard);
 
     &--collapsed {

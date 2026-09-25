@@ -1,7 +1,18 @@
 :root {
   --ff-shell-navbar-height: 56px;
+  // 悬浮壳层面板与视口边缘的间距；gutter 与 .ff-page-shell 的内边距保持一致，让顶栏与内容左右对齐
+  --ff-shell-gap: 8px;
+  --ff-shell-gutter: 1rem;
+  // 顶栏玻璃面板的可见高度：navbar 高度减去上方 gap 和下方 4px
+  --ff-shell-bar-height: calc(var(--ff-shell-navbar-height) - var(--ff-shell-gap) - 4px);
   --ff-page-gap: 1rem;
   --ff-panel-padding: 1.25rem;
   --ff-panel-padding-lg: 1.5rem;
   --ff-toolbar-gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --ff-shell-gutter: 1.5rem;
+  }
 }

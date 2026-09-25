@@ -1,0 +1,81 @@
+/* stylelint-disable no-descending-specificity */
+// 浮层玻璃：下拉、选择器、气泡卡片、日期面板、消息、通知、消息框。
+// 浮层都挂在 body 下，不会有 position:fixed 后代受包含块影响，所以这里是唯一直接在宿主上写 backdrop-filter 的地方。
+// 深色模式由 theme/_dark.scss 用 !important 兜底同样的 token，这里不去抢。
+html .el-popper.is-light,
+html .el-dropdown__popper.el-popper,
+html .el-popover.el-popper,
+html .el-picker__popper.el-popper {
+  --el-popover-bg-color: var(--ff-popper-bg);
+  --el-popover-border-color: var(--ff-popper-edge);
+  --el-popover-border-radius: calc(var(--ff-radius-control) + 4px);
+
+  background: var(--ff-popper-bg);
+  border: 1px solid var(--ff-popper-edge);
+  border-radius: calc(var(--ff-radius-control) + 4px);
+  box-shadow: var(--ff-shadow-popover);
+  -webkit-backdrop-filter: var(--ff-glass-fx);
+  backdrop-filter: var(--ff-glass-fx);
+}
+
+html .el-popper.is-light .el-popper__arrow::before {
+  background: var(--ff-popper-bg);
+  border-color: var(--ff-popper-edge);
+}
+
+// 浮层内部的面板本身不再铺底，统一透出外层玻璃
+html .el-select-dropdown,
+html .el-picker__popper .el-picker-panel,
+html .el-dropdown__popper .el-dropdown-menu {
+  background: transparent;
+}
+
+// 选项：外层 16px 圆角减去 6px 内边距，选项取 10px，保持同心
+html .el-select-dropdown__list {
+  padding: 6px;
+}
+
+html .el-select-dropdown__item {
+  border-radius: 10px;
+  transition:
+    color var(--ff-duration-fast) var(--ff-ease-standard),
+    background-color var(--ff-duration-fast) var(--ff-ease-standard);
+}
+
+html .el-select-dropdown__item.is-hovering {
+  background-color: var(--ff-hover);
+}
+
+html .el-select-dropdown__item.is-selected {
+  font-weight: 500;
+  color: var(--el-color-primary);
+}
+
+html .el-dropdown__popper.el-popper {
+  --el-dropdown-menuItem-hover-fill: var(--ff-hover);
+  --el-dropdown-menuItem-hover-color: var(--ff-color-text-primary);
+}
+
+html .el-dropdown-menu {
+  padding: 6px;
+}
+
+html .el-dropdown-menu__item {
+  border-radius: 10px;
+}
+
+// 消息、通知、消息框：同一套浮层底色与玻璃，语义色图标与文字保持 EP 原样
+html .el-message,
+html .el-notification,
+html .el-message-box {
+  background-color: var(--ff-popper-bg);
+  border-color: var(--ff-popper-edge);
+  -webkit-backdrop-filter: var(--ff-glass-fx);
+  backdrop-filter: var(--ff-glass-fx);
+}
+
+html .el-message,
+html .el-notification {
+  border-radius: calc(var(--ff-radius-control) + 4px);
+  box-shadow: var(--ff-shadow-popover);
+}

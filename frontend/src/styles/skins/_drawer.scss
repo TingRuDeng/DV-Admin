@@ -1,59 +1,90 @@
+/* stylelint-disable no-descending-specificity */
+// 抽屉是不透明浮层：底色用 bg-sheet，顶部叠一层高光。
+// 容器规则放在最前，表头 / 表尾只改描边，底色交给 element-plus-custom/_dialog.scss 的全局渐变。
+.ff-drawer,
+.ff-drawer.el-drawer {
+  overflow: hidden;
+  color: var(--ff-color-text-regular);
+  background-color: var(--ff-color-bg-sheet);
+  background-image: linear-gradient(165deg, var(--ff-glass-strong), transparent 38%);
+  border: 1px solid var(--ff-popper-edge);
+  border-radius: var(--ff-radius-overlay);
+  box-shadow:
+    inset 0 1px 0 var(--ff-glass-hi),
+    var(--ff-shadow-overlay);
+  transition:
+    transform var(--ff-duration-base) var(--ff-ease-out),
+    opacity var(--ff-duration-base) var(--ff-ease-out);
+}
+
+.el-drawer.ff-drawer.is-dragging {
+  transition: none;
+}
+
+// 桌面端：右侧抽屉离视口四边留 12px，悬浮成一张圆角面板；进出场只做平移 + 淡入
+.el-drawer.ff-drawer.rtl {
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  max-width: calc(100vw - 24px);
+  height: calc(100% - 24px);
+  border-radius: var(--ff-radius-sheet);
+}
+
+.el-drawer-fade-enter-from .el-drawer.ff-drawer.rtl,
+.el-drawer-fade-leave-to .el-drawer.ff-drawer.rtl {
+  opacity: 0;
+  transform: translateX(calc(100% + 24px));
+}
+
 .ff-drawer .el-drawer__header,
 .ff-drawer.el-drawer .el-drawer__header {
   padding-bottom: 1rem;
   margin-bottom: 0;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--ff-line);
 }
 
 .ff-drawer .el-drawer__body,
 .ff-drawer.el-drawer .el-drawer__body {
-  color: var(--el-text-color-primary);
+  color: var(--ff-color-text-primary);
 }
 
 .ff-drawer .el-drawer__footer,
 .ff-drawer.el-drawer .el-drawer__footer {
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--ff-line);
 }
 
-html.dark .el-drawer__title {
-  color: #f1f5f9 !important;
-}
-
-html.dark .ff-drawer,
-html.dark .ff-drawer.el-drawer {
-  color: #e2e8f0 !important;
-  background: #1e293b;
-  background-color: #1e293b;
-}
-
-html.dark .ff-drawer,
-html.dark .ff-drawer * {
-  -webkit-text-fill-color: currentColor !important;
-}
-
-html.dark .ff-drawer .el-drawer__header,
-html.dark .ff-drawer.el-drawer .el-drawer__header {
-  background: rgba(30, 41, 59, 0.92);
-  background-color: rgba(30, 41, 59, 0.92);
-  border-bottom-color: #334155;
-}
-
-html.dark .ff-drawer .el-drawer__body,
-html.dark .ff-drawer.el-drawer .el-drawer__body {
-  color: #e2e8f0;
-}
-
-html.dark .ff-drawer .el-drawer__footer,
-html.dark .ff-drawer.el-drawer .el-drawer__footer {
-  background: rgba(30, 41, 59, 0.96);
-  background-color: rgba(30, 41, 59, 0.96);
-  border-top-color: #334155;
-}
-
+// 移动端：右侧抽屉改成底部面板，贴底铺满宽度，顶部圆角 + 拖拽把手，从下方滑入
 @media (max-width: 767px) {
-  .ff-drawer,
-  .ff-drawer.el-drawer {
-    max-width: calc(100vw - 12px);
+  .el-drawer.ff-drawer.rtl {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100% !important;
+    max-width: none;
+    height: auto;
+    max-height: 92vh;
+    border-bottom: 0;
+    border-radius: 28px 28px 0 0;
+  }
+
+  .el-drawer.ff-drawer.rtl::after {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    width: 40px;
+    height: 4px;
+    pointer-events: none;
+    content: "";
+    background-color: var(--ff-line-strong);
+    border-radius: var(--ff-radius-chip);
+    transform: translateX(-50%);
+  }
+
+  .el-drawer-fade-enter-from .el-drawer.ff-drawer.rtl,
+  .el-drawer-fade-leave-to .el-drawer.ff-drawer.rtl {
+    transform: translateY(calc(100% + 30px));
   }
 
   .ff-drawer .el-drawer__header,
@@ -65,4 +96,10 @@ html.dark .ff-drawer.el-drawer .el-drawer__footer {
     padding-right: 16px;
     padding-left: 16px;
   }
+}
+
+// 深色模式下 EP 与浏览器自动填充会写死 text-fill 颜色，统一跟随 currentColor
+html.dark .ff-drawer,
+html.dark .ff-drawer * {
+  -webkit-text-fill-color: currentColor !important;
 }

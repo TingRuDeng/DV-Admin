@@ -40,7 +40,8 @@ function toggleSideBar() {
   align-items: center;
   justify-content: space-between;
   height: $navbar-height;
-  padding: 0 12px;
+  // 玻璃面板左右各收进 --ff-shell-gutter，内容再往里留一点，不贴面板边缘
+  padding: 0 calc(var(--ff-shell-gutter) + 8px);
 
   &__primary {
     display: flex;
@@ -58,7 +59,7 @@ function toggleSideBar() {
 
 @media (max-width: 767px) {
   .navbar {
-    padding: 0 6px;
+    padding: 0 calc(var(--ff-shell-gutter) + 2px);
 
     :deep(.el-breadcrumb) {
       display: none;
