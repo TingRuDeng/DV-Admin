@@ -264,9 +264,7 @@ $ff-menu-search-width-focus: 260px;
   color: var(--ff-shell-text-muted);
   cursor: text;
   // 展开时会盖住左侧的面包屑和菜单，字段底色下垫一层不透明底，免得下面的文字透上来
-  background:
-    linear-gradient(var(--ff-field-bg), var(--ff-field-bg)),
-    var(--ff-color-bg-sheet);
+  background: linear-gradient(var(--ff-field-bg), var(--ff-field-bg)), var(--ff-color-bg-sheet);
   border-radius: var(--ff-radius-chip);
   box-shadow: inset 0 0 0 1px var(--ff-line-strong);
   transition:
@@ -487,8 +485,7 @@ html.sidebar-color-blue {
     color: var(--menu-text);
     background:
       linear-gradient(rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.12)),
-      linear-gradient(var(--ff-sidebar-glass-tint), var(--ff-sidebar-glass-tint)),
-      var(--ff-canvas);
+      linear-gradient(var(--ff-sidebar-glass-tint), var(--ff-sidebar-glass-tint)), var(--ff-canvas);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.24);
   }
 
