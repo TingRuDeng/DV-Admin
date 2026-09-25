@@ -1,22 +1,12 @@
 // ============================================
-// DV-Admin 设计系统 - 色彩系统
+// DV-Admin 设计系统 - 色彩系统（旧版兼容层）
 // ============================================
-// 主色调：蓝紫色系 (#6366F1) - 现代科技感
-// 创建日期：2026-04-09
+// 只被 element-plus-custom 与排版类消费。主色跟随 --el-color-primary（即当前预设色），
+// 中性色、文本、背景、边框全部引用 Liquid Chrome tokens，不再定义独立色板。
 // ============================================
 
 // ============================================
-// 1. 主色调 - 蓝紫色系
-// ============================================
-$color-primary-base: #6366f1; // 主色 - 蓝紫色
-$color-primary-light: #818cf8; // 浅色
-$color-primary-lighter: #a5b4fc; // 更浅
-$color-primary-lightest: #e0e7ff; // 最浅
-$color-primary-dark: #4f46e5; // 深色
-$color-primary-darker: #4338ca; // 更深
-
-// ============================================
-// 2. 功能色 - 状态色
+// 1. 功能色 - 状态色
 // ============================================
 $color-success: #10b981; // 成功 - 绿色
 $color-success-light: #34d399;
@@ -35,30 +25,16 @@ $color-info-light: #60a5fa;
 $color-info-lighter: #93c5fd;
 
 // ============================================
-// 3. 中性色 - 灰色阶梯
-// ============================================
-$gray-50: #f9fafb;
-$gray-100: #f3f4f6;
-$gray-200: #e5e7eb;
-$gray-300: #d1d5db;
-$gray-400: #9ca3af;
-$gray-500: #6b7280;
-$gray-600: #4b5563;
-$gray-700: #374151;
-$gray-800: #1f2937;
-$gray-900: #111827;
-
-// ============================================
-// 4. CSS 变量定义
+// 2. CSS 变量定义
 // ============================================
 :root {
-  // 主色调
-  --color-primary: #{$color-primary-base};
-  --color-primary-light: #{$color-primary-light};
-  --color-primary-lighter: #{$color-primary-lighter};
-  --color-primary-lightest: #{$color-primary-lightest};
-  --color-primary-dark: #{$color-primary-dark};
-  --color-primary-darker: #{$color-primary-darker};
+  // 主色调：跟随预设色
+  --color-primary: var(--el-color-primary);
+  --color-primary-light: var(--el-color-primary-light-3);
+  --color-primary-lighter: var(--el-color-primary-light-5);
+  --color-primary-lightest: var(--el-color-primary-light-9);
+  --color-primary-dark: var(--el-color-primary-dark-2);
+  --color-primary-darker: var(--el-color-primary-dark-2);
 
   // 功能色
   --color-success: #{$color-success};
@@ -77,45 +53,40 @@ $gray-900: #111827;
   --color-info-light: #{$color-info-light};
   --color-info-lighter: #{$color-info-lighter};
 
-  // 中性色
-  --gray-50: #{$gray-50};
-  --gray-100: #{$gray-100};
-  --gray-200: #{$gray-200};
-  --gray-300: #{$gray-300};
-  --gray-400: #{$gray-400};
-  --gray-500: #{$gray-500};
-  --gray-600: #{$gray-600};
-  --gray-700: #{$gray-700};
-  --gray-800: #{$gray-800};
-  --gray-900: #{$gray-900};
+  // 中性色：Liquid Chrome 冷灰阶梯
+  --gray-50: #f4f4f6;
+  --gray-100: #ececf0;
+  --gray-200: #dedee4;
+  --gray-300: #c6c6ce;
+  --gray-400: #9a9aa6;
+  --gray-500: #74747f;
+  --gray-600: #5a5a66;
+  --gray-700: #3e3e48;
+  --gray-800: #24242c;
+  --gray-900: #0b0b10;
 
   // 文本色
-  --text-primary: #{$gray-900};
-  --text-regular: #{$gray-700};
-  --text-secondary: #{$gray-500};
-  --text-placeholder: #{$gray-400};
+  --text-primary: var(--ff-color-text-primary);
+  --text-regular: var(--ff-color-text-regular);
+  --text-secondary: var(--ff-color-text-secondary);
+  --text-placeholder: var(--ff-color-text-dim);
 
   // 背景色
-  --bg-page: #{$gray-50};
-  --bg-container: #ffffff;
-  --bg-overlay: #ffffff;
-  --bg-hover: #{$gray-100};
+  --bg-page: var(--ff-canvas);
+  --bg-container: var(--ff-color-bg-panel-strong);
+  --bg-overlay: var(--ff-color-bg-panel-strong);
+  --bg-hover: var(--ff-hover);
 
   // 边框色
-  --border-base: #{$gray-200};
-  --border-light: #{$gray-100};
-  --border-lighter: #{$gray-50};
+  --border-base: var(--ff-line-strong);
+  --border-light: var(--ff-line);
+  --border-lighter: var(--ff-line);
 }
 
 // ============================================
-// 5. 深色模式适配
+// 3. 深色模式适配
 // ============================================
 html.dark {
-  // 主色调 - 深色模式下使用浅色
-  --color-primary: #{$color-primary-light};
-  --color-primary-light: #{$color-primary-lighter};
-  --color-primary-lighter: #{$color-primary-lightest};
-
   // 功能色 - 深色模式下使用浅色
   --color-success: #{$color-success-light};
   --color-warning: #{$color-warning-light};
@@ -123,31 +94,14 @@ html.dark {
   --color-info: #{$color-info-light};
 
   // 中性色 - 反转
-  --gray-50: #{$gray-900};
-  --gray-100: #{$gray-800};
-  --gray-200: #{$gray-700};
-  --gray-300: #{$gray-600};
-  --gray-400: #{$gray-500};
-  --gray-500: #{$gray-400};
-  --gray-600: #{$gray-300};
-  --gray-700: #{$gray-200};
-  --gray-800: #{$gray-100};
-  --gray-900: #{$gray-50};
-
-  // 文本色 - 深色模式
-  --text-primary: #f9fafb;
-  --text-regular: #e5e7eb;
-  --text-secondary: #9ca3af;
-  --text-placeholder: #6b7280;
-
-  // 背景色 - 深色模式
-  --bg-page: #0f172a;
-  --bg-container: #1e293b;
-  --bg-overlay: #1e293b;
-  --bg-hover: #334155;
-
-  // 边框色 - 深色模式
-  --border-base: #334155;
-  --border-light: #1e293b;
-  --border-lighter: #0f172a;
+  --gray-50: #101016;
+  --gray-100: #16161e;
+  --gray-200: #22222c;
+  --gray-300: #34343f;
+  --gray-400: #6b6b78;
+  --gray-500: #9a9aa6;
+  --gray-600: #b4b4be;
+  --gray-700: #cfcfd6;
+  --gray-800: #e4e4ea;
+  --gray-900: #f4f4f6;
 }

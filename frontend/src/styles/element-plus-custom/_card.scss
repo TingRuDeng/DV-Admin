@@ -1,24 +1,17 @@
 // ============================================
 // Element Plus 卡片定制
 // ============================================
-// 优化卡片视觉层次和交互效果
-// 创建日期：2026-04-09
+// 卡片 hover 只变阴影，不做位移。颜色全部来自 tokens。
 // ============================================
 
 // ============================================
 // 1. 基础卡片样式
 // ============================================
 .el-card {
-  border: 1px solid var(--border-light, #f3f4f6);
-  border-radius: 12px;
-  box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
-  transition: all var(--duration-base, 200ms) var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
-
-  // 悬停效果
-  &:hover {
-    box-shadow: var(--shadow-card-hover, 0 4px 16px rgba(0, 0, 0, 0.12));
-    transform: translateY(-2px);
-  }
+  border: 1px solid var(--ff-line);
+  border-radius: var(--ff-radius-panel);
+  box-shadow: var(--ff-shadow-panel);
+  transition: box-shadow var(--ff-duration-base) var(--ff-ease-standard);
 }
 
 // ============================================
@@ -27,9 +20,9 @@
 .el-card__header {
   padding: 16px 20px;
   font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary, #111827);
-  border-bottom: 1px solid var(--border-light, #f3f4f6);
+  font-weight: 500;
+  color: var(--ff-color-text-primary);
+  border-bottom: 1px solid var(--ff-line);
 }
 
 // ============================================
@@ -44,16 +37,11 @@
 // ============================================
 .data-card {
   padding: 20px;
-  background: var(--bg-container, #ffffff);
-  border: 1px solid var(--border-light, #f3f4f6);
-  border-radius: 12px;
-  box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
-  transition: all var(--duration-base, 200ms) var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
-
-  &:hover {
-    box-shadow: var(--shadow-card-hover, 0 4px 16px rgba(0, 0, 0, 0.12));
-    transform: translateY(-2px);
-  }
+  background: var(--ff-color-bg-panel);
+  border: 1px solid var(--ff-line);
+  border-radius: var(--ff-radius-panel);
+  box-shadow: var(--ff-shadow-panel);
+  transition: box-shadow var(--ff-duration-base) var(--ff-ease-standard);
 
   &__icon {
     display: flex;
@@ -63,20 +51,22 @@
     height: 48px;
     margin-bottom: 12px;
     font-size: 24px;
-    border-radius: 12px;
+    border-radius: var(--ff-radius-control);
   }
 
   &__value {
     margin-bottom: 4px;
+    font-family: var(--ff-font-mono);
     font-size: 28px;
-    font-weight: 700;
+    font-weight: 300;
+    font-variant-numeric: tabular-nums;
     line-height: 1.2;
-    color: var(--text-primary, #111827);
+    color: var(--ff-color-text-primary);
   }
 
   &__label {
     font-size: 14px;
-    color: var(--text-secondary, #6b7280);
+    color: var(--ff-color-text-secondary);
   }
 }
 
@@ -87,32 +77,4 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
-}
-
-// ============================================
-// 6. 深色模式适配
-// ============================================
-html.dark {
-  .el-card {
-    border-color: var(--border-base, #334155);
-    box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.3));
-
-    &:hover {
-      box-shadow: var(--shadow-card-hover, 0 4px 16px rgba(0, 0, 0, 0.4));
-    }
-  }
-
-  .el-card__header {
-    border-bottom-color: var(--border-base, #334155);
-  }
-
-  .data-card {
-    background: var(--bg-container, #1e293b);
-    border-color: var(--border-base, #334155);
-    box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.3));
-
-    &:hover {
-      box-shadow: var(--shadow-card-hover, 0 4px 16px rgba(0, 0, 0, 0.4));
-    }
-  }
 }

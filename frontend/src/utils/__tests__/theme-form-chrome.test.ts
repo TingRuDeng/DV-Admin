@@ -24,7 +24,7 @@ describe("theme form and shell chrome", () => {
     const filterPanel = document.querySelector(".ff-filter-panel") as HTMLElement;
     const dataPanel = document.querySelector(".ff-data-panel") as HTMLElement;
 
-    expect(getComputedStyle(filterPanel).borderRadius).toBe("16px");
+    expect(getComputedStyle(filterPanel).borderRadius).toBe("22px");
     expect(getComputedStyle(dataPanel).backgroundColor).not.toBe("");
   });
 
@@ -86,8 +86,8 @@ describe("theme form and shell chrome", () => {
     const input = document.querySelector(".el-input__inner") as HTMLInputElement;
 
     expect(getComputedStyle(drawer).backgroundColor).toBe("#1e293b");
-    expect(getComputedStyle(label).color).toBe("#cbd5e1");
-    expect(getComputedStyle(input).color).toBe("#f1f5f9");
+    expect(getComputedStyle(label).color).toBe("#d6d6dc");
+    expect(getComputedStyle(input).color).toBe("#f4f4f6");
     expect(getComputedStyle(input).getPropertyValue("-webkit-text-fill-color")).toBe(
       "currentColor"
     );
@@ -107,7 +107,7 @@ describe("theme form and shell chrome", () => {
     const drawerLightSkin = drawerSkin.split("html.dark")[0];
 
     expect(css).toContain(
-      "background: linear-gradient(135deg, var(--gray-50, #f9fafb) 0%, #ffffff 100%);"
+      "background: linear-gradient(135deg, var(--ff-glass-strong) 0%, transparent 100%);"
     );
     expect(dialogLightSkin).not.toMatch(
       /\.ff-dialog[\s\S]*?\.el-dialog__header[\s\S]*?\{[^}]*background:/

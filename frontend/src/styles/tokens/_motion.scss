@@ -3,7 +3,9 @@
   --ff-duration-base: 0.3s;
   --ff-duration-slow: 0.7s;
   --ff-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  --ff-ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ff-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  // 带回弹，只用于开关旋钮这类小位移
+  --ff-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {

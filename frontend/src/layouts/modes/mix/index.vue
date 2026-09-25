@@ -225,7 +225,7 @@ const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
       height: 100%;
       margin-left: 0;
       overflow-y: auto;
-      background: var(--ff-shell-bg);
+      background: transparent;
     }
   }
 }

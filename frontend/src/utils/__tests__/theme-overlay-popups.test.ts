@@ -5,9 +5,11 @@ describe("dark theme overlay popups", () => {
   afterEach(resetThemeTestDom);
 
   it("keeps teleported dropdown items readable in dark mode", () => {
+    const tokensCss = compileStyle("src/styles/tokens/index.scss");
     const resetCss = compileStyle("src/styles/reset.scss");
     const darkThemeCss = compileStyle("src/styles/theme/_dark.scss");
 
+    injectStyle(tokensCss);
     injectStyle(resetCss);
     injectStyle(darkThemeCss);
 
@@ -25,8 +27,8 @@ describe("dark theme overlay popups", () => {
     const item = document.querySelector(".el-dropdown-menu__item") as HTMLLIElement;
     const dividedItem = document.querySelector(".el-dropdown-menu__item--divided") as HTMLLIElement;
 
-    expect(getComputedStyle(popper).backgroundColor).toBe("rgba(15, 23, 42, 0.96)");
-    expect(getComputedStyle(item).color).toBe("#e2e8f0");
+    expect(getComputedStyle(popper).backgroundColor).toBe("rgba(16, 16, 22, 0.92)");
+    expect(getComputedStyle(item).color).toBe("#d6d6dc");
     expect(getComputedStyle(item).getPropertyValue("-webkit-text-fill-color")).toBe("currentColor");
     expect(getComputedStyle(dividedItem).borderTopColor).toBe("rgba(255, 255, 255, 0.08)");
   });
@@ -62,7 +64,7 @@ describe("dark theme overlay popups", () => {
     expect(getComputedStyle(box).backgroundColor).not.toBe("");
     expect(getComputedStyle(title).color).not.toBe("");
     expect(getComputedStyle(message).color).not.toBe("");
-    expect(getComputedStyle(input).color).toBe("#f1f5f9");
+    expect(getComputedStyle(input).color).toBe("#f4f4f6");
     expect(getComputedStyle(input).getPropertyValue("-webkit-text-fill-color")).toBe(
       "currentColor"
     );
@@ -82,8 +84,8 @@ describe("dark theme overlay popups", () => {
     const message = document.querySelector(".el-message") as HTMLElement;
     const content = document.querySelector(".el-message__content") as HTMLElement;
 
-    expect(getComputedStyle(message).backgroundColor).toBe("rgba(15, 23, 42, 0.96)");
-    expect(getComputedStyle(content).color).toBe("#e2e8f0");
+    expect(getComputedStyle(message).backgroundColor).toBe("rgba(16, 16, 22, 0.92)");
+    expect(getComputedStyle(content).color).toBe("#d6d6dc");
     expect(getComputedStyle(content).getPropertyValue("-webkit-text-fill-color")).toBe(
       "currentColor"
     );

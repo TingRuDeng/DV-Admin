@@ -148,7 +148,7 @@ const isLogoCollapsed = computed(() => isMobile.value || width.value < 768);
   &__main {
     height: calc(100vh - $navbar-height);
     overflow-y: auto;
-    background: var(--ff-shell-bg);
+    background: transparent;
   }
 
   &__mobile-menu {

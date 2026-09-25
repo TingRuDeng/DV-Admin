@@ -1,0 +1,37 @@
+// 玻璃材质 mixin。模糊画在 ::before 上：backdrop-filter 放在宿主上会让它成为 position:fixed 后代的包含块。
+// 宿主需要 isolation:isolate，::before 的 z-index:-1 才会留在宿主内部而不是沉到页面背后。
+// $position 传 null 时不改宿主定位，用于本身已经 fixed / absolute / sticky 的元素。
+@mixin ff-glass($variant: "panel", $position: relative) {
+  @if $position {
+    position: $position;
+  }
+
+  isolation: isolate;
+
+  &::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    content: "";
+    background:
+      linear-gradient(160deg, var(--ff-glass-strong), var(--ff-glass) 40%, var(--ff-glass)),
+      var(--ff-glass-tint);
+    border-radius: inherit;
+    box-shadow:
+      inset 0 0 0 1px var(--ff-glass-edge),
+      inset 0 1px 0 var(--ff-glass-hi);
+
+    @if $variant == "thick" {
+      -webkit-backdrop-filter: var(--ff-glass-fx-thick);
+      backdrop-filter: var(--ff-glass-fx-thick);
+    } @else {
+      -webkit-backdrop-filter: var(--ff-glass-fx);
+      backdrop-filter: var(--ff-glass-fx);
+    }
+
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+      background: var(--ff-glass-fallback);
+    }
+  }
+}

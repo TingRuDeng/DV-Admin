@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { compile } from "sass";
 import { describe, expect, it } from "vitest";
@@ -127,5 +127,55 @@ describe("style governance entrypoint", () => {
     );
 
     expect(tableSkinSource).not.toContain(".minimal-table");
+  });
+});
+
+describe("liquid chrome visual system governance", () => {
+  const sourceFiles = () =>
+    (readdirSync(resolve(process.cwd(), "src"), { recursive: true }) as string[])
+      .filter((file) => /\.(vue|ts|scss|css)$/.test(file) && !file.includes("__tests__"))
+      .map((file) => ({ file, source: readFileSync(resolve(process.cwd(), "src", file), "utf8") }));
+
+  it("exposes iridescent and glass tokens from the entry stylesheet", () => {
+    const css = compile(resolve(process.cwd(), "src/styles/index.scss")).css;
+
+    expect(css).toContain("--ff-iri-a");
+    expect(css).toContain("--ff-iri:");
+    expect(css).toContain("--ff-on-iri");
+    expect(css).toContain("--ff-glass-fx");
+    expect(css).toMatch(/@font-face\s*\{\s*font-family: "?Geist"?;/);
+  });
+
+  it("self-hosts the Geist fonts together with their license", () => {
+    for (const asset of [
+      "geist-latin-wght-normal.woff2",
+      "geist-mono-latin-wght-normal.woff2",
+      "OFL.txt",
+    ]) {
+      expect(existsSync(resolve(process.cwd(), "src/assets/fonts", asset)), asset).toBe(true);
+    }
+  });
+
+  it("keeps custom cursors and WebGL canvases out of the app", () => {
+    for (const { file, source } of sourceFiles()) {
+      expect(source, file).not.toMatch(/cursor:\s*url\(/);
+      expect(source, file).not.toMatch(/getContext\(\s*["']webgl/);
+    }
+  });
+
+  it("keeps legacy element-plus overrides free of indigo literals and hover lifts", () => {
+    const legacyFiles = [
+      "src/styles/element-plus.scss",
+      ...readdirSync(resolve(process.cwd(), "src/styles/element-plus-custom")).map(
+        (file) => `src/styles/element-plus-custom/${file}`
+      ),
+    ];
+
+    for (const file of legacyFiles) {
+      const source = readFileSync(resolve(process.cwd(), file), "utf8");
+
+      expect(source, file).not.toMatch(/#6366f1|#4f46e5|#818cf8|99,\s*102,\s*241/i);
+      expect(source, file).not.toContain("translateY(-");
+    }
   });
 });
