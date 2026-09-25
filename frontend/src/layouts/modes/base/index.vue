@@ -141,7 +141,7 @@ watch(
 .layout {
   width: 100%;
   min-height: 100%;
-  background: var(--ff-shell-bg);
+  background: transparent;
 
   &__overlay {
     position: fixed;

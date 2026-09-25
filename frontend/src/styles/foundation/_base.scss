@@ -4,11 +4,29 @@ body,
   min-height: 100%;
 }
 
-body {
-  color: var(--ff-color-text-primary);
-  background: linear-gradient(135deg, #e2e8f0 0%, #f8fafc 100%);
+html {
+  background: var(--ff-canvas);
 }
 
-html.dark body {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+body {
+  color: var(--ff-color-text-primary);
+  background: transparent;
+}
+
+// 静态虹彩光池：固定在视口背后，玻璃面板透过它取色。不动画、不跟随指针。
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  background:
+    radial-gradient(56% 48% at 82% 12%, var(--ff-glow-a), transparent 70%),
+    radial-gradient(48% 44% at 8% 92%, var(--ff-glow-c), transparent 72%),
+    radial-gradient(60% 50% at 62% 64%, var(--ff-glow-core), transparent 62%);
+}
+
+::selection {
+  color: var(--ff-on-iri);
+  background: var(--ff-iri-b);
 }

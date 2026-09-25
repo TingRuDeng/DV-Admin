@@ -1,10 +1,20 @@
 import { defaultSettings } from "@/settings";
 import { SidebarColor, ThemeMode } from "@/enums/settings/theme-enum";
 import type { LayoutMode } from "@/enums/settings/layout-enum";
-import { applyTheme, generateThemeColors, toggleDarkMode, toggleSidebarColor } from "@/utils/theme";
+import {
+  applyIridescence,
+  applyTheme,
+  generateIridescentStops,
+  generateThemeColors,
+  toggleDarkMode,
+  toggleSidebarColor,
+} from "@/utils/theme";
 import { STORAGE_KEYS } from "@/constants";
 
 type SidebarColorScheme = AppSettings["sidebarColorScheme"];
+
+const LEGACY_DEFAULT_THEME_COLOR = "#FF705C";
+const THEME_COLOR_MIGRATION_VERSION = "liquid-chrome";
 
 // 🎯 设置项类型定义
 interface SettingsState {
@@ -66,6 +76,15 @@ export const useSettingsStore = defineStore("setting", () => {
   // 主题颜色
   const themeColor = useStorage<string>(STORAGE_KEYS.THEME_COLOR, defaultSettings.themeColor);
 
+  // useStorage 会把旧默认色写进本地存储，这里一次性换成新默认色；之后用户主动选回珊瑚色不受影响
+  const themeColorMigration = useStorage<string>(STORAGE_KEYS.THEME_COLOR_MIGRATION, "");
+  if (themeColorMigration.value !== THEME_COLOR_MIGRATION_VERSION) {
+    if (themeColor.value?.toUpperCase() === LEGACY_DEFAULT_THEME_COLOR) {
+      themeColor.value = defaultSettings.themeColor;
+    }
+    themeColorMigration.value = THEME_COLOR_MIGRATION_VERSION;
+  }
+
   // 主题模式（亮色/暗色）
   const theme = useStorage<ThemeMode>(STORAGE_KEYS.THEME, defaultSettings.theme);
 
@@ -85,6 +104,7 @@ export const useSettingsStore = defineStore("setting", () => {
       toggleDarkMode(newTheme === ThemeMode.DARK);
       const colors = generateThemeColors(newThemeColor, newTheme);
       applyTheme(colors);
+      applyIridescence(generateIridescentStops(newThemeColor, newTheme));
     },
     { immediate: true }
   );

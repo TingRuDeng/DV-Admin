@@ -94,7 +94,7 @@ const { routes } = useLayoutMenu();
     height: 100%;
     margin-left: $sidebar-width;
     overflow-y: auto;
-    background: var(--ff-shell-bg);
+    background: transparent;
     transition: margin-left var(--ff-duration-base) var(--ff-ease-standard);
 
     &--collapsed {

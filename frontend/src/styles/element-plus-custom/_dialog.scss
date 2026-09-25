@@ -1,8 +1,7 @@
 // ============================================
 // Element Plus 对话框和抽屉定制
 // ============================================
-// 优化对话框和抽屉的视觉风格
-// 创建日期：2026-04-09
+// 颜色全部来自 tokens，深浅两种模式共用同一套规则。
 // ============================================
 
 // ============================================
@@ -10,21 +9,20 @@
 // ============================================
 .el-dialog {
   overflow: hidden;
-  border-radius: 16px;
-  box-shadow: var(--shadow-modal, 0 8px 32px rgba(0, 0, 0, 0.2));
-
-  // 动画
-  animation: scaleIn var(--duration-slow, 300ms) var(--ease-out, cubic-bezier(0, 0, 0.2, 1));
+  border-radius: var(--ff-radius-overlay);
+  box-shadow: var(--ff-shadow-overlay);
+  animation: ff-dialog-in var(--ff-duration-base) var(--ff-ease-out);
 }
 
-@keyframes scaleIn {
+@keyframes ff-dialog-in {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: translateY(8px);
   }
+
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: none;
   }
 }
 
@@ -33,13 +31,13 @@
 // ============================================
 .el-dialog__header {
   padding: 20px 24px;
-  background: linear-gradient(135deg, var(--gray-50, #f9fafb) 0%, #ffffff 100%);
-  border-bottom: 1px solid var(--border-light, #f3f4f6);
+  background: linear-gradient(135deg, var(--ff-glass-strong) 0%, transparent 100%);
+  border-bottom: 1px solid var(--ff-line);
 
   .el-dialog__title {
     font-size: 18px;
-    font-weight: 600;
-    color: var(--text-primary, #111827);
+    font-weight: 500;
+    color: var(--ff-color-text-primary);
   }
 }
 
@@ -48,7 +46,7 @@
 // ============================================
 .el-dialog__body {
   padding: 24px;
-  color: var(--text-regular, #374151);
+  color: var(--ff-color-text-regular);
 }
 
 // ============================================
@@ -56,8 +54,8 @@
 // ============================================
 .el-dialog__footer {
   padding: 16px 24px;
-  background: var(--gray-50, #f9fafb);
-  border-top: 1px solid var(--border-light, #f3f4f6);
+  background: transparent;
+  border-top: 1px solid var(--ff-line);
 
   .dialog-footer {
     display: flex;
@@ -72,13 +70,13 @@
 .el-drawer {
   .el-drawer__header {
     padding: 20px 24px;
-    background: linear-gradient(135deg, var(--gray-50, #f9fafb) 0%, #ffffff 100%);
-    border-bottom: 1px solid var(--border-light, #f3f4f6);
+    background: linear-gradient(135deg, var(--ff-glass-strong) 0%, transparent 100%);
+    border-bottom: 1px solid var(--ff-line);
 
     .el-drawer__title {
       font-size: 18px;
-      font-weight: 600;
-      color: var(--text-primary, #111827);
+      font-weight: 500;
+      color: var(--ff-color-text-primary);
     }
   }
 
@@ -88,8 +86,8 @@
 
   .el-drawer__footer {
     padding: 16px 24px;
-    background: var(--gray-50, #f9fafb);
-    border-top: 1px solid var(--border-light, #f3f4f6);
+    background: transparent;
+    border-top: 1px solid var(--ff-line);
   }
 }
 
@@ -97,8 +95,8 @@
 // 6. 消息框样式
 // ============================================
 .el-message-box {
-  border-radius: 16px;
-  box-shadow: var(--shadow-modal, 0 8px 32px rgba(0, 0, 0, 0.2));
+  border-radius: var(--ff-radius-overlay);
+  box-shadow: var(--ff-shadow-overlay);
 
   .el-message-box__header {
     padding: 20px 24px 0;
@@ -117,36 +115,10 @@
 // 7. 深色模式适配
 // ============================================
 html.dark {
-  .el-dialog__header {
-    background: linear-gradient(135deg, var(--gray-800, #1f2937) 0%, var(--gray-900, #111827) 100%);
-    border-bottom-color: var(--border-base, #334155);
-  }
-
-  .el-dialog__footer {
-    background: var(--gray-800, #1f2937);
-    border-top-color: var(--border-base, #334155);
-  }
-
-  .el-drawer {
-    .el-drawer__header {
-      background: linear-gradient(
-        135deg,
-        var(--gray-800, #1f2937) 0%,
-        var(--gray-900, #111827) 100%
-      );
-      border-bottom-color: var(--border-base, #334155);
-    }
-
-    .el-drawer__footer {
-      background: var(--gray-800, #1f2937);
-      border-top-color: var(--border-base, #334155);
-    }
-  }
-
   .el-message-box {
-    color: #e2e8f0 !important;
-    background: #1e293b;
-    border-color: #334155;
+    color: var(--ff-color-text-regular) !important;
+    background: var(--ff-color-bg-panel-strong);
+    border-color: var(--ff-popper-edge);
   }
 
   .el-message-box,
@@ -155,19 +127,19 @@ html.dark {
   }
 
   .el-message-box__header {
-    color: #f1f5f9;
+    color: var(--ff-color-text-primary);
   }
 
   .el-message-box__title {
-    color: #f1f5f9 !important;
+    color: var(--ff-color-text-primary) !important;
   }
 
   .el-message-box__content,
   .el-message-box__message {
-    color: #e2e8f0 !important;
+    color: var(--ff-color-text-regular) !important;
   }
 
   .el-message-box__btns {
-    border-top-color: #334155;
+    border-top-color: var(--ff-line);
   }
 }

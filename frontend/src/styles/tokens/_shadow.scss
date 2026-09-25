@@ -1,12 +1,20 @@
 :root {
-  --ff-shadow-panel: 0 18px 48px -28px rgba(12, 18, 32, 0.42);
-  --ff-shadow-control: 0 0 0 1px rgba(148, 163, 184, 0.18) inset;
-  --ff-shadow-shell: 0 1px 0 rgba(12, 18, 32, 0.08);
-  --ff-shadow-shell-raised: 0 22px 48px -24px rgba(12, 18, 32, 0.48);
+  --ff-shadow-panel:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 30px 60px -28px rgba(40, 40, 70, 0.28),
+    0 6px 16px -8px rgba(40, 40, 70, 0.18);
+  --ff-shadow-control: 0 0 0 1px var(--ff-line-strong) inset;
+  --ff-shadow-shell: 0 1px 0 var(--ff-line);
+  --ff-shadow-shell-raised: 0 22px 48px -24px rgba(40, 40, 70, 0.32);
+  --ff-shadow-popover:
+    0 18px 40px -16px rgba(40, 40, 70, 0.3), 0 4px 12px -6px rgba(40, 40, 70, 0.16);
+  --ff-shadow-overlay: 0 40px 90px -30px rgba(40, 40, 70, 0.4);
 }
 
 html.dark {
-  --ff-shadow-panel: 0 20px 60px -28px rgba(0, 0, 0, 0.76);
-  --ff-shadow-shell: 0 1px 0 rgba(255, 255, 255, 0.03);
+  --ff-shadow-panel:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 30px 60px -24px rgba(0, 0, 0, 0.7),
+    0 8px 18px -10px rgba(0, 0, 0, 0.6);
   --ff-shadow-shell-raised: 0 24px 64px -28px rgba(0, 0, 0, 0.7);
+  --ff-shadow-popover: 0 18px 44px -14px rgba(0, 0, 0, 0.7), 0 4px 12px -6px rgba(0, 0, 0, 0.5);
+  --ff-shadow-overlay: 0 40px 100px -30px rgba(0, 0, 0, 0.8);
 }

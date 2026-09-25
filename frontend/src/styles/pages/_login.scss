@@ -9,6 +9,11 @@
   isolation: isolate;
 }
 
+// 登录页两种模式都是深色画布，浅色模式半透明的 --el-fill-color-blank 会把输入框透成灰色，这里保持白底
+html:not(.dark) .login-container {
+  --el-fill-color-blank: #ffffff;
+}
+
 .login-grid {
   position: absolute;
   inset: 0;
@@ -71,7 +76,7 @@
   transition:
     color var(--ff-duration-fast) ease,
     border-color var(--ff-duration-fast) ease,
-    transform var(--ff-duration-base) var(--ff-ease-spring);
+    transform var(--ff-duration-base) var(--ff-ease-out);
 }
 
 .action-bar .el:hover,
@@ -141,7 +146,7 @@
   box-shadow: 0 34px 80px -34px rgba(0, 0, 0, 0.86);
   -webkit-backdrop-filter: blur(24px) saturate(125%);
   backdrop-filter: blur(24px) saturate(125%);
-  animation: login-card-in 0.8s var(--ff-ease-spring) both;
+  animation: login-card-in 0.8s var(--ff-ease-out) both;
 }
 
 .login-card::before {
@@ -251,7 +256,7 @@
   border: 0;
   border-radius: 14px;
   transition:
-    transform var(--ff-duration-base) var(--ff-ease-spring),
+    transform var(--ff-duration-base) var(--ff-ease-out),
     box-shadow var(--ff-duration-fast) ease;
 }
 
