@@ -214,8 +214,8 @@ test.describe("现代化壳层 smoke", () => {
     await expect(userTag).toBeFocused();
     await expect(userTag).toHaveCSS("outline-style", "solid");
 
+    await expect(page.getByRole("combobox", { name: "搜索菜单" })).toBeVisible();
     for (const accessibleName of [
-      "搜索菜单",
       "进入全屏",
       "布局大小",
       "切换语言",
@@ -267,6 +267,77 @@ test.describe("现代化壳层 smoke", () => {
     expect(
       await sidebarTitle.evaluate((element) => getComputedStyle(element).webkitTextFillColor)
     ).not.toBe("rgba(0, 0, 0, 0)");
+  });
+
+  test("导航栏内联菜单搜索支持快捷键和键盘选择，聚焦展开不挤压顶部菜单", async ({ page }) => {
+    await installShellMocks(page);
+    await setPreferences(page, {
+      "vea:ui:layout": "left",
+      "vea:ui:show_tags_view": "true",
+      "vea:ui:theme": "light",
+    });
+    await login(page);
+
+    const search = page.getByRole("combobox", { name: "搜索菜单" });
+    const results = page.getByRole("listbox", { name: "搜索结果" });
+    const history = page.getByRole("listbox", { name: "搜索历史" });
+    await expect(search).toHaveAttribute("aria-expanded", "false");
+
+    await page.keyboard.press("ControlOrMeta+k");
+    await expect(search).toBeFocused();
+
+    await search.fill("角色");
+    await expect(results.getByRole("option", { name: "角色管理" })).toBeVisible();
+    await expect(search).toHaveAttribute("aria-expanded", "true");
+    await search.press("Enter");
+    await expect(page).toHaveURL(/\/system\/roles/);
+    await expect(search).toHaveValue("");
+    await expect(results).toBeHidden();
+
+    // 空关键字展示历史，Delete 删除高亮的历史项
+    await search.click();
+    await expect(history.getByRole("option", { name: "角色管理" })).toBeVisible();
+    await search.press("ArrowDown");
+    await search.press("Delete");
+    await expect(history).toBeHidden();
+
+    await search.fill("用户");
+    await expect(results).toBeVisible();
+    await search.press("Escape");
+    await expect(results).toBeHidden();
+    await expect(search).toBeFocused();
+    await expect(search).toHaveValue("用户");
+
+    // 隐藏路由（个人中心）不进菜单搜索
+    await search.fill("个人中心");
+    await expect(page.getByText("无匹配菜单")).toBeVisible();
+    await expect(search).toHaveAttribute("aria-expanded", "false");
+
+    // 鼠标点选项：按下不会让输入框先失焦把面板收掉
+    await search.fill("用户");
+    await results.getByRole("option", { name: "用户管理" }).click();
+    await expect(page).toHaveURL(/\/system\/users/);
+    await expect(results).toBeHidden();
+
+    await switchLayout(page, "top");
+    const topMenuItem = page.locator(
+      ".layout-top .el-menu--horizontal > .el-sub-menu > .el-sub-menu__title",
+      { hasText: "系统管理" }
+    );
+    const searchSlot = page.locator(".layout-top .navbar-actions__search");
+    await expect(topMenuItem).toBeVisible();
+    const menuItemBox = await topMenuItem.boundingBox();
+    const searchSlotBox = await searchSlot.boundingBox();
+
+    await page.keyboard.press("ControlOrMeta+k");
+    await expect(search).toBeFocused();
+    // 胶囊向左展开盖住左侧内容，文档流里的占位和顶部菜单都不动
+    expect(await settledCss(page.locator(".layout-top .menu-search__field"), "width")).toBe(
+      "260px"
+    );
+    await expect(topMenuItem).toBeVisible();
+    expect(await topMenuItem.boundingBox()).toEqual(menuItemBox);
+    expect(await searchSlot.boundingBox()).toEqual(searchSlotBox);
   });
 
   test("移动端三种布局提供可访问的抽屉导航", async ({ page }) => {

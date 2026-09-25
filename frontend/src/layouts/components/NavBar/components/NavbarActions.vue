@@ -2,8 +2,8 @@
   <div :class="['navbar-actions', navbarActionsClass]">
     <!-- 桌面端工具项 -->
     <template v-if="isDesktop">
-      <!-- 搜索 -->
-      <div class="navbar-actions__item">
+      <!-- 搜索：输入框本身可点击，不套 __item 的指针光标和悬停底色 -->
+      <div class="navbar-actions__search">
         <MenuSearch />
       </div>
 
@@ -204,6 +204,13 @@ function handleSettingsClick() {
         color: var(--el-color-primary);
       }
     }
+  }
+
+  &__search {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 8px 0 4px;
   }
 
   .user-profile {
