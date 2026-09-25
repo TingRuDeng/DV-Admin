@@ -8,6 +8,7 @@ from typing import NamedTuple
 DJANGO_MODEL_FILES = (
     "backend/drf_admin/apps/system/models.py",
     "backend/drf_admin/apps/system/models_notice.py",
+    "backend/drf_admin/apps/oauth/models.py",
 )
 
 ABSTRACT_USER_FIELD_METADATA = {
@@ -32,7 +33,7 @@ def load_django_model_tables(root: Path) -> dict[str, str]:
     tables: dict[str, str] = {}
     for rel in DJANGO_MODEL_FILES:
         module = ast.parse(read_text(root / rel))
-        tables.update(extract_module_tables(module))
+        tables.update(extract_module_tables(module, django_app_label(rel)))
     return tables
 
 
@@ -41,7 +42,7 @@ def load_django_field_metadata(root: Path) -> dict[str, dict[str, DjangoFieldMet
     metadata: dict[str, dict[str, DjangoFieldMetadata]] = {}
     for rel in DJANGO_MODEL_FILES:
         module = ast.parse(read_text(root / rel))
-        metadata.update(extract_module_field_metadata(module))
+        metadata.update(extract_module_field_metadata(module, django_app_label(rel)))
     return metadata
 
 
@@ -50,40 +51,49 @@ def load_django_relation_through_tables(root: Path) -> dict[str, dict[str, str]]
     relations: dict[str, dict[str, str]] = {}
     for rel in DJANGO_MODEL_FILES:
         module = ast.parse(read_text(root / rel))
-        relations.update(extract_module_relation_through_tables(module))
+        relations.update(extract_module_relation_through_tables(module, django_app_label(rel)))
     return relations
 
 
-def extract_module_tables(module: ast.Module) -> dict[str, str]:
+def django_app_label(relative_path: str) -> str:
+    """从 backend/drf_admin/apps/<app>/models*.py 推导 Django app label。"""
+    return Path(relative_path).parts[3]
+
+
+def extract_module_tables(module: ast.Module, app_label: str = "system") -> dict[str, str]:
     """提取单个 Django 模型模块内所有 class Meta.db_table。"""
     tables: dict[str, str] = {}
     for node in module.body:
         if isinstance(node, ast.ClassDef):
             table = extract_meta_db_table(node)
             if table:
-                tables[f"system.{node.name.lower()}"] = table
+                tables[f"{app_label}.{node.name.lower()}"] = table
     return tables
 
 
-def extract_module_field_metadata(module: ast.Module) -> dict[str, dict[str, DjangoFieldMetadata]]:
+def extract_module_field_metadata(
+    module: ast.Module, app_label: str = "system"
+) -> dict[str, dict[str, DjangoFieldMetadata]]:
     """提取单个 Django 模型模块内的字段元数据。"""
     metadata_by_model: dict[str, dict[str, DjangoFieldMetadata]] = {}
     for node in module.body:
         if isinstance(node, ast.ClassDef):
             model_metadata = extract_class_field_metadata(node)
             if model_metadata:
-                metadata_by_model[f"system.{node.name.lower()}"] = model_metadata
+                metadata_by_model[f"{app_label}.{node.name.lower()}"] = model_metadata
     return metadata_by_model
 
 
-def extract_module_relation_through_tables(module: ast.Module) -> dict[str, dict[str, str]]:
+def extract_module_relation_through_tables(
+    module: ast.Module, app_label: str = "system"
+) -> dict[str, dict[str, str]]:
     """提取单个 Django 模型模块内的多对多 through 表声明。"""
     relations_by_model: dict[str, dict[str, str]] = {}
     for node in module.body:
         if isinstance(node, ast.ClassDef):
             through_tables = extract_class_relation_through_tables(node)
             if through_tables:
-                relations_by_model[f"system.{node.name.lower()}"] = through_tables
+                relations_by_model[f"{app_label}.{node.name.lower()}"] = through_tables
     return relations_by_model
 
 

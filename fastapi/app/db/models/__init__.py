@@ -4,7 +4,7 @@
 包含所有 Tortoise ORM 模型定义。
 """
 
-from app.db.models.oauth import Users
+from app.db.models.oauth import OidcIdentity, Users
 from app.db.models.system import (
     Departments,
     DictData,
@@ -15,6 +15,7 @@ from app.db.models.system import (
 
 __all__ = [
     "Users",
+    "OidcIdentity",
     "Roles",
     "Permissions",
     "Departments",

@@ -169,7 +169,7 @@ def assert_field_constraint_contract_catalog() -> None:
         assert contract.field_name
         assert has_field_constraint(contract)
     for contract in DJANGO_FIELD_CONSTRAINT_CONTRACTS:
-        assert contract.django_model.startswith("system.")
+        assert contract.django_model.startswith(("system.", "oauth."))
         assert contract.field_name
         assert has_field_constraint(contract)
 

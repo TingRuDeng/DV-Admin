@@ -12,6 +12,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from tortoise.backends.base.config_generator import expand_db_url
 
+from app.core.oidc_policy import DEFAULT_SCOPES, settings_errors
 from app.core.password_policy import validate_bounds
 from app.core.security_validator import SecurityValidator
 
@@ -98,9 +99,27 @@ class Settings(BaseSettings):
     # 缓存配置
     cache_ttl: int = Field(default=300, alias="CACHE_TTL")  # 5分钟
 
+    # OIDC 单点登录配置；未启用时两个端点仍注册，但统一返回 40000
+    oidc_enabled: bool = Field(default=False, alias="OIDC_ENABLED")
+    oidc_issuer: str = Field(default="", alias="OIDC_ISSUER")
+    oidc_client_id: str = Field(default="", alias="OIDC_CLIENT_ID")
+    # 为空表示公开客户端，令牌端点认证方式为 none
+    oidc_client_secret: str = Field(default="", alias="OIDC_CLIENT_SECRET")
+    oidc_redirect_uri: str = Field(default="", alias="OIDC_REDIRECT_URI")
+    oidc_scopes: str = Field(default=DEFAULT_SCOPES, alias="OIDC_SCOPES")
+    oidc_auto_provision: bool = Field(default=True, alias="OIDC_AUTO_PROVISION")
+    oidc_match_existing_by_email: bool = Field(
+        default=False, alias="OIDC_MATCH_EXISTING_BY_EMAIL"
+    )
+    oidc_allowed_email_domains: str = Field(default="", alias="OIDC_ALLOWED_EMAIL_DOMAINS")
+
     def model_post_init(self, __context) -> None:
         """模型初始化后的验证"""
         validate_bounds(self.password_min_length, self.password_max_length)
+        oidc_errors = self.oidc_config_errors
+        if oidc_errors and self.is_production:
+            # 生产环境启用单点登录但配置不完整时拒绝启动，而不是只打印警告。
+            raise ValueError("OIDC 单点登录配置无效：" + "；".join(oidc_errors))
         # 处理密钥
         if self.secret_key:
             # 使用环境变量设置的密钥
@@ -134,6 +153,18 @@ class Settings(BaseSettings):
         # 打印安全警告
         if security_warnings:
             SecurityValidator.print_security_warnings(security_warnings)
+
+    @property
+    def oidc_config_errors(self) -> list[str]:
+        """启用单点登录时的配置问题；未启用时恒为空。"""
+        if not self.oidc_enabled:
+            return []
+        return settings_errors(
+            self.oidc_issuer,
+            self.oidc_client_id,
+            self.oidc_redirect_uri,
+            self.is_production,
+        )
 
     @property
     def allowed_origins(self) -> list[str]:

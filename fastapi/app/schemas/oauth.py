@@ -7,8 +7,9 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import Field, field_validator
+from pydantic import Field, JsonValue, field_validator
 
+from app.core.oidc_policy import MESSAGE_FLOW_INVALID, OidcError
 from app.schemas.base import BaseSchema, TimestampSchema
 from app.schemas.password import NewPassword, Password
 
@@ -138,3 +139,48 @@ class AvatarInfo(BaseSchema):
 
     avatar: str = Field(description="头像存储标识")
     url: str = Field(description="可直接展示的头像URL")
+
+
+OIDC_FIELD_MAX_LENGTH = 2048
+_OIDC_TEXT_SCHEMA: dict[str, JsonValue] = {"type": "string", "maxLength": OIDC_FIELD_MAX_LENGTH}
+
+
+class OidcAuthorization(BaseSchema):
+    """单点登录发起结果；flowSecret 只下发给发起方，回调时原样带回。"""
+
+    authorization_url: str = Field(description="跳转到身份提供方的授权地址")
+    state: str = Field(description="本次登录流程的 state")
+    flow_secret: str = Field(description="与 state 绑定的一次性流程密钥")
+
+
+class OidcLogin(BaseSchema):
+    """
+    单点登录回调请求模型
+
+    字段一律可缺省且不做框架类型校验，由端点统一校验并返回 40000，
+    避免框架校验返回与其它单点登录失败不同的错误结构。
+    """
+
+    authorization_code: Any = Field(
+        default="", description="身份提供方回调的授权码", json_schema_extra=_OIDC_TEXT_SCHEMA
+    )
+    state: Any = Field(default="", description="回调携带的 state", json_schema_extra=_OIDC_TEXT_SCHEMA)
+    flow_secret: Any = Field(
+        default="", description="发起时下发的 flowSecret", json_schema_extra=_OIDC_TEXT_SCHEMA
+    )
+    iss: Any = Field(
+        default=None, description="回调携带的 iss（RFC 9207，可选）", json_schema_extra=_OIDC_TEXT_SCHEMA
+    )
+
+    def flow_fields(self) -> tuple[str, str, str, str | None]:
+        """返回 (授权码, state, flowSecret, iss)；必填项须为非空且不超长的字符串。"""
+        required = (self.authorization_code, self.state, self.flow_secret)
+        if not all(_bounded_text(value) and value for value in required):
+            raise OidcError(MESSAGE_FLOW_INVALID)
+        if self.iss is not None and not _bounded_text(self.iss):
+            raise OidcError(MESSAGE_FLOW_INVALID)
+        return self.authorization_code, self.state, self.flow_secret, self.iss
+
+
+def _bounded_text(value: object) -> bool:
+    return isinstance(value, str) and len(value) <= OIDC_FIELD_MAX_LENGTH

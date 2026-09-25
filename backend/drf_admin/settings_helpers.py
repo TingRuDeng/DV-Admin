@@ -2,6 +2,11 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
+from django.core.exceptions import ImproperlyConfigured
+
+from drf_admin.apps.oauth.oidc_policy import settings_errors
+
+PRODUCTION_ENVIRONMENTS = frozenset({"pro", "prod", "production"})
 CACHE_ALIASES = {
     "default": 0,
     "session": 1,
@@ -77,6 +82,21 @@ def build_white_list(base_api: str) -> list[str]:
         f"/{base_api}system/users/profile/",
         f"/{base_api}system/dict-items/",
     ]
+
+
+def is_production_environment(environment: str) -> bool:
+    return environment in PRODUCTION_ENVIRONMENTS
+
+
+def validate_oidc_startup(
+    enabled: bool, issuer: str, client_id: str, redirect_uri: str, environment: str
+) -> None:
+    """生产环境启用单点登录但配置无效时拒绝启动；非生产环境延迟到请求时报错。"""
+    if not enabled or not is_production_environment(environment):
+        return
+    errors = settings_errors(issuer, client_id, redirect_uri, production=True)
+    if errors:
+        raise ImproperlyConfigured("单点登录配置无效: " + "，".join(errors))
 
 
 def build_redis_auth_segment(redis_pwd: str) -> str:

@@ -8,7 +8,7 @@ import { createLogger } from "@/utils/logger";
 const permissionLogger = createLogger("permission");
 
 export function setupPermission() {
-  const whiteList = ["/login", "/401", "/403", "/404"];
+  const whiteList = ["/login", "/oidc/callback", "/401", "/403", "/404"];
 
   router.beforeEach(async (to) => {
     NProgress.start();

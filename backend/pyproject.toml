@@ -30,6 +30,7 @@ dependencies = [
     "pillow>=11.3.0",
     "psutil>=7.0.0",
     "pycryptodome==3.23.0",
+    "pyjwt[crypto]>=2.10.1",
     "pymysql>=1.1.2",
     "redis==6.4.0",
     "requests>=2.32.5",

@@ -133,6 +133,6 @@ def assert_field_contract_catalog() -> None:
         assert contract.field_name
         assert contract.field_type.endswith("Field")
     for contract in DJANGO_FIELD_METADATA_CONTRACTS:
-        assert contract.django_model.startswith("system.")
+        assert contract.django_model.startswith(("system.", "oauth."))
         assert contract.field_name
         assert contract.field_type.endswith("Field")

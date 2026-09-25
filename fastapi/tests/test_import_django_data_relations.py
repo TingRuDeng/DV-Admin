@@ -94,3 +94,44 @@ async def test_import_self_referencing_fk(db):
     )
 
     assert child_perm.parent_id == parent_perm.id
+
+
+@pytest.mark.asyncio
+async def test_import_oidc_identity_after_users(db):
+    """单点登录身份在用户之后导入，Django 的 user 外键与时间字段映射到 FastAPI 字段。"""
+    from app.db.django_import_config import IMPORT_ORDER, MODEL_MAPPING
+    from app.db.django_import_state import ImportTasks, ModelImportContext
+    from app.db.django_import_writer import import_model_items
+    from app.db.models.oauth import OidcIdentity, Users
+
+    assert IMPORT_ORDER.index("oauth.oidcidentity") > IMPORT_ORDER.index("system.users")
+    user = await Users.create(username=f"sso_{uuid.uuid4().hex[:8]}", password="!unusable")
+    context = ModelImportContext("oauth.oidcidentity", MODEL_MAPPING["oauth.oidcidentity"], ImportTasks())
+    await import_model_items(
+        context,
+        [
+            {
+                "model": "oauth.oidcidentity",
+                "pk": 7,
+                "fields": {
+                    "create_time": "2026-09-01T08:00:00",
+                    "update_time": "2026-09-02T08:00:00",
+                    "issuer": "https://idp.example.test",
+                    "subject": "subject-7",
+                    "user": user.id,
+                    "email": "sso@example.com",
+                    "last_login_at": None,
+                },
+            }
+        ],
+    )
+
+    identity = await OidcIdentity.get(id=7)
+    assert identity.user_id == user.id
+    assert (identity.issuer, identity.subject, identity.email) == (
+        "https://idp.example.test",
+        "subject-7",
+        "sso@example.com",
+    )
+    assert identity.last_login_at is None
+    assert identity.created_at.date().isoformat() == "2026-09-01"

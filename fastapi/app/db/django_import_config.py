@@ -1,5 +1,5 @@
 from app.db.models.base import BaseModel
-from app.db.models.oauth import Users
+from app.db.models.oauth import OidcIdentity, Users
 from app.db.models.system import (
     Departments,
     DictData,
@@ -20,6 +20,7 @@ MODEL_MAPPING: dict[str, type[BaseModel]] = {
     "system.dictitems": DictItems,
     "system.notices": Notices,
     "system.noticereads": NoticeReads,
+    "oauth.oidcidentity": OidcIdentity,
 }
 
 # 字段名映射只登记真实跨实现差异，业务同名字段不做额外别名。
@@ -40,6 +41,7 @@ IMPORT_ORDER = (
     "system.noticereads",
     "system.roles",
     "system.users",
+    "oauth.oidcidentity",
 )
 
 SELF_REFERENCING_MODELS = {"system.departments", "system.permissions"}

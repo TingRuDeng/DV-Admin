@@ -128,6 +128,10 @@ async def create_user(...):
 - `GET /api/v1/oauth/info/` - 获取用户信息
 - `GET /api/v1/oauth/menus/routes/` - 获取用户路由
 - `GET /api/v1/oauth/captcha/` - 获取验证码
+- `POST /api/v1/oauth/oidc/authorize/` - 发起 OIDC 单点登录，返回 `authorizationUrl`、`state`、`flowSecret`（无需登录，按 IP 限速）
+- `POST /api/v1/oauth/oidc/login/` - 提交 `authorizationCode`、`state`、`flowSecret`（可选 `iss`）换取与密码登录相同的本地令牌（无需登录，按 IP 限速）
+
+OIDC 由 `OIDC_*` 环境变量控制，未启用时两个端点仍注册但返回 `40000`；state 只存 Redis 且只能使用一次，Redis 不可用返回 `503`。
 
 ### System 模块
 

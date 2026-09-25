@@ -10,6 +10,7 @@ from uuid import uuid4
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from passlib.exc import UnknownHashError
 from starlette.concurrency import run_in_threadpool
 
 from app.core.config import settings
@@ -33,9 +34,12 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         hashed_password: 哈希密码
 
     Returns:
-        验证结果
+        验证结果；无法识别的哈希（如单点登录开通账号的 "!" 不可用密码）一律视为不匹配
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except UnknownHashError:
+        return False
 
 
 def get_password_hash(password: str) -> str:
