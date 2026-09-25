@@ -51,7 +51,7 @@
             :active-text-color="variables['menu-active-text']"
           >
             <MenuItem
-              v-for="item in sideMenuRoutes"
+              v-for="item in sidebarMenuRoutes"
               :key="item.path"
               :item="item"
               :base-path="resolvePath(item.path)"
@@ -99,15 +99,18 @@ const route = useRoute();
 const { isShowTagsView, isShowLogo, isSidebarOpen, isMobile, toggleSidebar } = useLayout();
 
 // 菜单相关
-const { sideMenuRoutes, activeTopMenuPath } = useLayoutMenu();
+const { routes, sideMenuRoutes, activeTopMenuPath } = useLayoutMenu();
 
 // 响应式窗口尺寸
 const { width } = useWindowSize();
 
-const { activeLeftMenuPath, isLogoCollapsed, resolvePath } = useMixLayoutState({
+const { activeLeftMenuPath, isLogoCollapsed, sidebarMenuRoutes, resolvePath } = useMixLayoutState({
   route,
   activeTopMenuPath,
   viewportWidth: width,
+  isMobile,
+  routes,
+  sideMenuRoutes,
 });
 </script>
 
