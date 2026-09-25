@@ -415,6 +415,23 @@ scoped 编译会给每条选择器的最后一段追加 `[data-v-xxx]`。子组�
 
 ---
 
+### mix 布局移动端抽屉菜单为空
+
+**问题描述：**
+mix 布局在移动端打开导航抽屉，侧栏里没有任何菜单项，也没法切到其他一级菜单。
+
+**原因：**
+移动端不渲染 `MixTopMenu`，而 `permissionStore.mixLayoutSideMenus` 只在它挂载和切换时写入；`useMixLayoutState` 的同步逻辑在 `activeTopMenuPath` 为空或为 `/` 时直接跳过。即使侧栏拿到数据，也只有当前一级菜单的子项。
+
+**解决方案：**
+移动端侧栏改用完整菜单树 `permissionStore.routes`，一级路由已是绝对路径，不再拼接顶部菜单前缀（`resolveMixSidebarItemPath`）；桌面端仍用 `mixLayoutSideMenus`。
+
+**相关代码：**
+- `frontend/src/layouts/modes/mix/useMixLayoutState.ts`
+- `frontend/e2e/shell-layout.spec.ts`
+
+---
+
 ## 后端开发陷阱
 
 ### 陷阱 10：Django 和 FastAPI API 不一致

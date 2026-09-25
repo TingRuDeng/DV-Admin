@@ -110,17 +110,23 @@ const platformName = import.meta.env.VITE_APP_TITLE || "DV-Admin";
   height: var(--ff-shell-bar-height);
 }
 
-.openSidebar {
-  &.layout-top .layout__header-left .sidebar-logo-container,
-  &.layout-mix .layout__header-logo .sidebar-logo-container {
-    width: $sidebar-width;
-  }
-}
-
 .hideSidebar {
   &.layout-top .layout__header-left .sidebar-logo-container,
   &.layout-mix .layout__header-logo .sidebar-logo-container {
     width: $sidebar-width-collapsed;
+  }
+}
+
+// 只显示图标时（移动端）保持收起宽度，打开导航抽屉也不撑开顶栏
+.layout-top .layout__header-left .sidebar-logo-container.collapse,
+.layout-mix .layout__header-logo .sidebar-logo-container.collapse {
+  width: $sidebar-width-collapsed;
+}
+
+.openSidebar {
+  &.layout-top .layout__header-left .sidebar-logo-container:not(.collapse),
+  &.layout-mix .layout__header-logo .sidebar-logo-container:not(.collapse) {
+    width: $sidebar-width;
   }
 }
 </style>

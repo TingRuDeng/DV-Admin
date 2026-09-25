@@ -6,6 +6,7 @@ import {
   getActiveLeftMenuPath,
   getMixTopMenuPath,
   resolveMixSideMenuPath,
+  resolveMixSidebarItemPath,
 } from "../useMixLayoutState";
 
 type MixLayoutRoute = Pick<RouteLocationNormalizedLoaded, "meta" | "path">;
@@ -25,6 +26,12 @@ describe("useMixLayoutState", () => {
     expect(resolveMixSideMenuPath("/user", "/system")).toBe("/system/user");
     expect(resolveMixSideMenuPath("role", "/system")).toBe("/system/role");
     expect(resolveMixSideMenuPath("https://example.com", "/system")).toBe("https://example.com");
+  });
+
+  it("keeps top-level paths absolute when the mobile drawer shows the full menu tree", () => {
+    expect(resolveMixSidebarItemPath("/system", "/system", true)).toBe("/system");
+    expect(resolveMixSidebarItemPath("/", "/system", true)).toBe("/");
+    expect(resolveMixSidebarItemPath("users", "/system", false)).toBe("/system/users");
   });
 
   it("uses route meta activeMenu before current path", () => {
