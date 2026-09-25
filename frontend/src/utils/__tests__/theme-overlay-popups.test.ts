@@ -33,6 +33,41 @@ describe("dark theme overlay popups", () => {
     expect(getComputedStyle(dividedItem).borderTopColor).toBe("rgba(255, 255, 255, 0.08)");
   });
 
+  it("keeps the teleported navbar menu search panel opaque in dark mode", () => {
+    const tokensCss = compileStyle("src/styles/tokens/index.scss");
+    const resetCss = compileStyle("src/styles/reset.scss");
+    const darkThemeCss = compileStyle("src/styles/theme/_dark.scss");
+
+    injectStyle(tokensCss);
+    injectStyle(resetCss);
+    injectStyle(darkThemeCss);
+
+    document.body.innerHTML = `
+      <div class="menu-search__panel">
+        <ul role="listbox" class="menu-search__listbox">
+          <li role="option" class="menu-search__option">角色管理</li>
+        </ul>
+      </div>
+    `;
+    document.documentElement.classList.add("dark");
+
+    const panel = document.querySelector(".menu-search__panel") as HTMLDivElement;
+
+    expect(getComputedStyle(panel).backgroundColor).toBe("rgba(16, 16, 22, 0.92)");
+    expect(getComputedStyle(panel).color).toBe("#d6d6dc");
+    expect(getComputedStyle(panel).getPropertyValue("-webkit-text-fill-color")).toBe(
+      "currentColor"
+    );
+  });
+
+  it("gives the navbar menu search panel the shared popper glass skin", () => {
+    const popperSkin = compileStyle("src/styles/skins/_popper.scss");
+
+    expect(popperSkin).toMatch(
+      /html \.menu-search__panel\s*\{[^}]*background: var\(--ff-popper-bg\);[^}]*backdrop-filter: var\(--ff-glass-fx\);/
+    );
+  });
+
   it("keeps message box prompts readable in dark mode", () => {
     const css = compileStyle("src/styles/index.scss");
 

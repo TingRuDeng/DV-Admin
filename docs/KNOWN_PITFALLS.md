@@ -432,6 +432,43 @@ mix 布局在移动端打开导航抽屉，侧栏里没有任何菜单项，也�
 
 ---
 
+### `@mousedown.prevent` 拦不住失焦
+
+**问题描述：**
+下拉面板里给选项写 `@mousedown.prevent`，想让点击选项时输入框保持焦点，结果按下鼠标输入框就失焦、面板收起，`click` 落空，选项点了没反应。
+
+**原因：**
+`frontend/src/main.ts` 引入了 `default-passive-events`，它改写 `EventTarget.prototype.addEventListener`，给 `mousedown`、`mouseup`、`mousemove`、`wheel`、`touchstart` 等事件默认加上 `{ passive: true }`。passive 监听里调用 `preventDefault()` 不生效，Chrome 只在控制台打一条警告。
+
+**解决方案：**
+1. 阻止失焦改写在 `pointerdown` 上（`@pointerdown.prevent`），它不在 passive 默认列表里；取消 `pointerdown` 同时会抑制随后的兼容 `mousedown`
+2. 选中动作仍放在 `click` 上，键盘和辅助技术触发的点击也能走到
+3. 确实要用 `mousedown` 时，用 `addEventListener(..., { passive: false })` 显式声明
+
+**相关代码：**
+- `frontend/src/main.ts`
+- `frontend/src/components/MenuSearch/index.vue`
+- `frontend/src/components/__tests__/menu-search-governance.spec.ts`
+
+---
+
+### Element Plus 浮层做不了 WAI-ARIA combobox
+
+**问题描述：**
+用 `el-popover` 或 `el-autocomplete` 做“输入框 + 结果列表”，读屏软件报出的角色和结构不对：输入框不是 combobox，或者列表被当成 tooltip。
+
+**原因：**
+Element Plus 的 popper 默认 `role="tooltip"`，并把 `role`、`aria-label`、`id` 写到浮层内容元素上；`el-autocomplete` 用的是 ARIA 1.0 写法，`role="combobox"` 和 `aria-owns` 在外层 div 上，内部 `<input>` 被设成 `role="textbox"`。
+
+**解决方案：**
+需要 combobox 语义时直接在原生 `<input>` 上写 `role="combobox"`、`aria-expanded`、`aria-controls`、`aria-activedescendant`，结果面板用 `<Teleport to="body">` 自己渲染 `role="listbox"` / `role="option"`，定位用 `useElementBounding`，玻璃底色加入 `skins/_popper.scss` 的浮层列表。option 内不放可聚焦控件。
+
+**相关代码：**
+- `frontend/src/components/MenuSearch/index.vue`
+- `frontend/src/styles/skins/_popper.scss`
+
+---
+
 ## 后端开发陷阱
 
 ### 陷阱 10：Django 和 FastAPI API 不一致
