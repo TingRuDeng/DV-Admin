@@ -177,6 +177,15 @@ async function focusWithKeyboard(page: Page, target: Locator) {
   throw new Error("无法通过键盘 Tab 顺序聚焦目标元素");
 }
 
+// 等元素上的过渡动画结束再读样式，避免读到过渡开始前的旧值
+async function settledCss(target: Locator, property: string) {
+  return target.evaluate(async (element, name) => {
+    getComputedStyle(element).getPropertyValue(name);
+    await Promise.all(element.getAnimations().map((animation) => animation.finished));
+    return getComputedStyle(element).getPropertyValue(name);
+  }, property);
+}
+
 test.describe("现代化壳层 smoke", () => {
   test("桌面端保持三种布局、TagsView、动态路由和暗色主题", async ({ page }) => {
     await installShellMocks(page);
@@ -279,6 +288,13 @@ test.describe("现代化壳层 smoke", () => {
     await expect(page.locator(".layout-top .layout__mobile-menu")).not.toHaveAttribute(
       "aria-hidden"
     );
+    // 打开抽屉时 Logo 只显示图标，宽度不能跟着侧栏展开到 216px
+    expect(
+      await settledCss(
+        page.locator(".layout-top .layout__header-left .sidebar-logo-container"),
+        "width"
+      )
+    ).toBe("64px");
     await expect(page.getByRole("button", { name: "关闭导航" })).toBeVisible();
     await page.getByRole("button", { name: "关闭导航" }).click();
     await expect(page.locator(".layout-top .layout__mobile-menu")).toHaveClass(/collapsed/);
@@ -304,6 +320,15 @@ test.describe("现代化壳层 smoke", () => {
     await expect
       .poll(async () => (await mixSidebar.boundingBox())?.x ?? -1)
       .toBeGreaterThanOrEqual(0);
+    // 移动端没有顶部菜单，抽屉要给出完整菜单树，才能切到其他一级菜单
+    await expect(mixSidebar.getByText("首页")).toBeVisible();
+    await expect(mixSidebar.getByText("系统管理")).toBeVisible();
+    expect(
+      await settledCss(
+        page.locator(".layout-mix .layout__header-logo .sidebar-logo-container"),
+        "width"
+      )
+    ).toBe("64px");
     const sidebarToggle = mixSidebar.locator(".layout__sidebar-toggle button");
     await expect(sidebarToggle).toHaveAttribute("aria-label", "收起侧边导航");
     await expect
