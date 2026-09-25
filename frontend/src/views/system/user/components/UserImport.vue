@@ -98,7 +98,7 @@ import { downloadEncodedFile } from "@/utils/file-download";
 
 const userImportLogger = createLogger("UserImport");
 const props = defineProps<{
-  deptId?: string;
+  deptId?: string | number;
 }>();
 
 const emit = defineEmits<{

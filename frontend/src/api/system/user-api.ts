@@ -169,8 +169,8 @@ export interface UserPageQuery extends PageQuery {
   /** 用户状态 */
   isActive?: number;
 
-  /** 部门ID */
-  deptId?: string;
+  /** 部门ID（部门树节点 ID 为数字） */
+  deptId?: string | number;
 
   /** 开始时间 */
 }
