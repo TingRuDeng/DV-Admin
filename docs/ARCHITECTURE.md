@@ -6,6 +6,7 @@ ai_summary:
     - "修改鉴权、路由、缓存、响应包裹或替代后端兼容逻辑时"
   source_of_truth:
     - "docs/ADR-0001-FRONTEND-MODERNIZATION.md"
+    - "docs/ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md"
     - "frontend/src/utils/route-meta.ts"
     - "frontend/src/utils/view-cache.ts"
     - "frontend/src/store/modules/tags-view-store.ts"
@@ -166,8 +167,11 @@ frontend/src/
 - `frontend/src/styles` 采用分层结构：`tokens -> theme -> foundation -> skins -> pages`
 - 路由页应优先组合 `PageShell`、`FilterPanel`、`DataPanel`，而不是在页面内重复拼接 `glass-panel` 或 `minimal-*` 视觉类
 - `UnoCSS` 主要用于布局和局部原子样式，共享视觉皮肤统一放在 `skins/*`
-- 登录页、全局壳层和首页仪表盘共享暗色画布与荧光珊瑚色 token；这些首屏范围内的图标通过 `components/AppIcon` 统一映射到 Lucide，页面层不直接新增手绘 SVG 或表情符号。
-- 首页仪表盘由 `views/dashboard/components` 下的 Hero、指标卡和快捷入口组成，只从用户信息与权限路由派生数据，不新增首页专用 API。
+- 视觉系统按 [ADR-0002](./ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md) 采用 Liquid Chrome：深浅两种模式的玻璃面板、静态虹彩光池、自托管 Geist 极细展示字和金属球控件。虹彩色标 `--ff-iri-a/b/c` 由 `utils/theme.ts` 的 `generateIridescentStops` 按当前预设色推导，在 settings-store 的主题监听里紧跟 `applyTheme` 写入；设置面板和 store 字段不变。
+- 玻璃统一用 `foundation/_glass.scss` 的 `ff-glass` mixin，模糊画在 `::before` 上，避免宿主成为 fixed 后代的包含块；`backdrop-filter` 只允许出现在该 mixin 与 `skins/_popper.scss`，自定义光标和 WebGL 由 style-governance 测试禁止。
+- 路由切换用 `AppMain` 的 `ff-route` 过渡（淡入加 8px 位移，离场只淡出），`prefers-reduced-motion` 下关闭；项目不再依赖 `animate.css`。
+- 登录页、全局壳层和首页仪表盘的图标通过 `components/AppIcon` 统一映射到 Lucide，页面层不直接新增手绘 SVG 或表情符号。登录页样式是以 `.ff-login-page` 为根的全局 `styles/pages/_login.scss`，这样才能改到 Element Plus 内部元素。
+- 首页仪表盘由 `views/dashboard/components` 下的 Hero（极细大号时钟与玻璃身份卡）、指标带和快捷入口组成，只从用户信息与权限路由派生数据，不新增首页专用 API。
 - `_minimal-saas.scss` 仅作为未迁移页面的兼容层，不再作为新增样式的主入口
 - `components/CURD` 作为历史兼容层保留；新页面/重构页面统一使用 `ProSearch`、`ProTable`、`ProFormDrawer`
 - `ProTable` 支持受控模式与 `request(params)=>{list,total}` 请求驱动模式，对外分页参数统一为 `pageNum/pageSize`
@@ -194,6 +198,7 @@ frontend/src/
 - `frontend/e2e/profile.spec.ts` 与用户/通知 smoke 固化三个代表页的响应式、权限和关键业务行为；无 API Mock 的真实后端 smoke 同时覆盖 Django/FastAPI 下的共享页面流程和 RBAC 授权闭环。
 - 阶段 7 已停止批量页面迁移：登录、错误、文档承载和 Demo 等特殊页保持各自语义，只在有具体缺陷或产品需求时逐页改进；重新启动多页批量迁移必须先通过新 ADR 授权。
 - 七个串行阶段、阶段状态、性能预算和停止条件只在 [FRONTEND_OPTIMIZATION_BACKLOG.md](./FRONTEND_OPTIMIZATION_BACKLOG.md) 跟踪。
+- [ADR-0002](./ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md) 在 ADR-0001 的边界内替换视觉系统：只改 tokens、skins、壳层样式和登录页、首页 hero 模板，不改菜单字段、组件路径、共享 API、store 或 Pro 组件协议。
 
 ---
 

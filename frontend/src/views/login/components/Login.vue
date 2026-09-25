@@ -9,60 +9,57 @@
     >
       <!-- 用户名 -->
       <el-form-item prop="username">
-        <label class="sr-only" for="login-username-input">{{ t("login.username") }}</label>
+        <label class="login-field__label" for="login-username-input">
+          {{ t("login.username") }}
+        </label>
         <el-input
           id="login-username-input"
           v-model.trim="loginFormData.username"
           :aria-label="t('login.username')"
-          :placeholder="t('login.username')"
-        >
-          <template #prefix>
-            <AppIcon name="user-round" :size="17" />
-          </template>
-        </el-input>
+          autocomplete="username"
+        />
       </el-form-item>
 
       <!-- 密码 -->
       <el-tooltip :visible="isCapsLock" :content="t('login.capsLock')" placement="right">
         <el-form-item prop="password">
-          <label class="sr-only" for="login-password-input">{{ t("login.password") }}</label>
+          <label class="login-field__label" for="login-password-input">
+            {{ t("login.password") }}
+          </label>
           <el-input
             id="login-password-input"
             v-model="loginFormData.password"
             :aria-label="t('login.password')"
-            :placeholder="t('login.password')"
+            autocomplete="current-password"
             type="password"
             show-password
             @keyup="checkCapsLock"
             @keyup.enter="handleLoginSubmit"
-          >
-            <template #prefix>
-              <AppIcon name="lock" :size="17" />
-            </template>
-          </el-input>
+          />
         </el-form-item>
       </el-tooltip>
 
       <!-- 验证码 - 根据配置显示 -->
       <el-form-item v-if="enableCaptcha" prop="captchaCode">
-        <div flex items-center gap-10px>
+        <label class="login-field__label" for="login-captcha-input">
+          {{ t("login.captchaCode") }}
+        </label>
+        <div flex items-center gap-10px w-full>
           <el-input
+            id="login-captcha-input"
             v-model.trim="loginFormData.captchaCode"
-            :placeholder="t('login.captchaCode')"
+            :aria-label="t('login.captchaCode')"
+            autocomplete="off"
             clearable
             class="flex-1"
             @keyup.enter="handleLoginSubmit"
-          >
-            <template #prefix>
-              <AppIcon name="captcha" :size="17" />
-            </template>
-          </el-input>
-          <div cursor-pointer h-48px w-120px flex-center @click="getCaptcha">
+          />
+          <div cursor-pointer h-52px w-120px flex-center @click="getCaptcha">
             <AppIcon v-if="codeLoading" name="loader-circle" :size="20" class="is-loading" />
 
             <img
               v-else-if="captchaBase64"
-              border-rd-12px
+              border-rd-16px
               w-full
               h-full
               object-cover
@@ -77,7 +74,12 @@
 
       <!-- 登录按钮 -->
       <el-form-item>
-        <el-button :loading="loading" type="primary" class="w-full" @click="handleLoginSubmit">
+        <el-button
+          :loading="loading"
+          type="primary"
+          class="login-form__submit"
+          @click="handleLoginSubmit"
+        >
           {{ t("login.login") }}
         </el-button>
       </el-form-item>
@@ -208,17 +210,3 @@ function checkCapsLock(event: KeyboardEvent) {
   }
 }
 </script>
-
-<style scoped>
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  white-space: nowrap;
-  border: 0;
-  clip: rect(0, 0, 0, 0);
-}
-</style>

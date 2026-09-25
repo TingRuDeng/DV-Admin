@@ -9,6 +9,7 @@ ai_summary:
     - "docs/AI_CONTEXT.md"
     - "docs/ARCHITECTURE.md"
     - "docs/ADR-0001-FRONTEND-MODERNIZATION.md"
+    - "docs/ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md"
     - "docs/API_ENDPOINTS.md"
     - "docs/DATABASE_SCHEMA.md"
     - "scripts/validate_docs.py"
@@ -40,6 +41,7 @@ ai_summary:
 - `docs/AI_CONTEXT.md`
 - `docs/ARCHITECTURE.md`
 - `docs/ADR-0001-FRONTEND-MODERNIZATION.md`
+- `docs/ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md`
 - `docs/API_ENDPOINTS.md`
 - `docs/DATABASE_SCHEMA.md`
 - `scripts/validate_docs.py`
@@ -51,6 +53,7 @@ ai_summary:
 - `backend/` 与 `fastapi/` 是同域替代实现，前端通常只连接其中一套。
 - 关键 API 契约由 `scripts/validate_api_contracts.py` 校验，其中包含 `scripts/api_route_coverage_validation.py` 的 `method + path` 路由覆盖守卫。
 - ADR-0001 的七阶段前端现代化路线已完成；当前保留 Vite 8、Vue Router 5、统一壳层与三个代表页成果，并停止批量页面迁移，完整证据在前端 backlog 跟踪。
+- ADR-0002 在 ADR-0001 边界内把前端视觉替换为 Liquid Chrome（玻璃面板、预设色驱动的虹彩、系统光标、无 WebGL）。
 
 ## How to verify
 
@@ -77,6 +80,7 @@ DV-Admin/
 │   ├── AI_CONTEXT.md           # [权威] AI 任务路由短索引
 │   ├── ARCHITECTURE.md         # [权威] 系统架构设计
 │   ├── ADR-0001-FRONTEND-MODERNIZATION.md # [权威-决策] 前端现代化决策
+│   ├── ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md # [权威-决策] 前端视觉系统决策
 │   ├── FRONTEND_OPTIMIZATION_BACKLOG.md # [跟踪] 当前前端优化待办
 │   ├── API_ENDPOINTS.md        # [权威-概览] API 契约核心概览
 │   ├── DATABASE_SCHEMA.md      # [权威-概览] 数据库模型核心概览
@@ -209,7 +213,7 @@ cp .env.example .env
 | 级别 | 含义 | 示例 |
 |------|------|------|
 | **权威** | 规则、导航、架构与风险边界事实入口 | `AGENTS.md`, `docs/README.md`, `docs/AI_CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/KNOWN_PITFALLS.md` |
-| **权威-决策** | 已接受的架构取舍、兼容边界、后果与停止条件 | `docs/ADR-0001-FRONTEND-MODERNIZATION.md` |
+| **权威-决策** | 已接受的架构取舍、兼容边界、后果与停止条件 | `docs/ADR-0001-FRONTEND-MODERNIZATION.md`, `docs/ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md` |
 | **权威-概览** | 经过代码核验的核心概要，非全量清单 | `docs/API_ENDPOINTS.md`, `docs/DATABASE_SCHEMA.md` |
 | **权威-跟踪** | 已确认且持续维护的治理事项 | `docs/TECH_DEBT.md` |
 | **权威-流程** | 提交和交付阶段必须遵循的流程门禁 | `docs/DOC_SYNC_CHECKLIST.md` |
@@ -237,6 +241,7 @@ cp .env.example .env
 1. AGENTS.md                                   # 了解分支和交付门禁
 2. docs/ARCHITECTURE.md                        # 核对当前架构事实
 3. docs/ADR-0001-FRONTEND-MODERNIZATION.md     # 核对已接受决策与停止条件
+   docs/ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md # 改配色、玻璃、字体或动效时核对视觉约束
 4. docs/FRONTEND_OPTIMIZATION_BACKLOG.md       # 核对当前阶段与验收项
 5. frontend/package.json + frontend/vite.config.ts  # 核对实际依赖和配置
 6. frontend/src/router/ + frontend/src/layouts/     # 核对路由与壳层实现
@@ -369,6 +374,25 @@ cp .env.example .env
 - 决策状态或候选方案变化
 - 兼容边界、回滚策略或停止条件变化
 - 新 ADR 取代本决策
+
+---
+
+### ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md
+
+**用途：** 前端 Liquid Chrome 视觉系统的权威决策记录
+
+**内容：**
+- 采用与否决的视觉效果
+- token 分层与预设色推导虹彩的规则
+- 玻璃 mixin 写法约束与性能边界
+
+**何时阅读：**
+- 修改配色、字体、玻璃面板、动效或主题预设色前
+- 准备新增 `backdrop-filter` 或页面级视觉效果前
+
+**何时更新：**
+- tokens、玻璃 mixin、虹彩推导或默认预设色变化
+- 允许与禁止的效果清单变化
 
 ---
 
@@ -547,6 +571,7 @@ cp .env.example .env
 - [AI 上下文索引](./AI_CONTEXT.md)
 - [系统架构](./ARCHITECTURE.md)
 - [前端现代化 ADR](./ADR-0001-FRONTEND-MODERNIZATION.md)
+- [前端视觉系统 ADR](./ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md)
 - [前端优化 backlog](./FRONTEND_OPTIMIZATION_BACKLOG.md)
 - [API 端点](./API_ENDPOINTS.md)
 - [数据库模型](./DATABASE_SCHEMA.md)
@@ -558,5 +583,5 @@ cp .env.example .env
 
 ---
 
-**最后更新：** 2026-09-01
+**最后更新：** 2026-09-25
 **维护者：** DV-Admin Team

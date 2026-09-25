@@ -12,6 +12,17 @@ The frontend style system is organized in this order:
 - `skins`: reusable panel, form, table, dialog, drawer, tag, button, toolbar, menu, tree, and chrome appearances
 - `pages`: page-only exceptions for route views that have already been migrated
 
+## Liquid Chrome visual system
+
+The visual decision record is [ADR-0002](../../../docs/ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md).
+
+- Iridescent stops `--ff-iri-a/b/c` and `--ff-on-iri` are written at runtime by `generateIridescentStops` / `applyIridescence` in `src/utils/theme.ts`, derived from the current preset color. The values in `tokens/_color.scss` are only the default-preset fallback.
+- Glass surfaces use the `ff-glass` mixin from `foundation/_glass.scss`. The blur lives on `::before` and the host gets `isolation: isolate`, so the host never becomes the containing block of `position: fixed` descendants.
+- `backdrop-filter` may appear only in `foundation/_glass.scss` and `skins/_popper.scss`. Custom cursors (`cursor: url(`) and WebGL canvases are not allowed.
+- Files that call the mixin must `@use "../foundation/glass" as *;` explicitly; style tests compile without the Vite `additionalData` injection.
+- Gradient text uses `color: transparent` with `background-clip: text`. Do not rely on `-webkit-text-fill-color`, because the dark shim resets it to `currentColor`.
+- Page styles that must reach Element Plus internals are global files under `pages/`, rooted at the page class (for example `.ff-login-page`), and must not use `:deep(`.
+
 ## Page composition rule
 
 New admin pages should compose:

@@ -1,38 +1,31 @@
 <template>
   <section class="dashboard-hero ff-page-shell__hero--dashboard" aria-labelledby="dashboard-title">
-    <div class="dashboard-hero__grid" aria-hidden="true"></div>
-    <div class="dashboard-hero__beam dashboard-hero__beam--coral" aria-hidden="true"></div>
-    <div class="dashboard-hero__beam dashboard-hero__beam--blue" aria-hidden="true"></div>
-
-    <div class="dashboard-hero__content">
-      <div class="dashboard-hero__meta">
-        <span class="dashboard-hero__signal"></span>
-        <span>Workspace / {{ currentTime }}</span>
-      </div>
-      <h1 id="dashboard-title" class="dashboard-hero__title">
-        你好，
-        <span>{{ name }}</span>
-      </h1>
-    </div>
+    <p class="dashboard-hero__clock" role="timer">
+      <template v-for="(part, index) in clockParts" :key="index">
+        <i v-if="index" class="dashboard-hero__sep">:</i>
+        <span class="dashboard-hero__digits" :style="{ '--i': index }" v-text="part" />
+      </template>
+    </p>
 
     <div class="dashboard-hero__identity">
       <div class="dashboard-hero__avatar">
         <img v-if="avatar" :src="avatar" :alt="`${name} 的头像`" />
-        <AppIcon v-else name="user-round" :size="28" />
       </div>
-      <AppIcon name="arrow-right" :size="18" class="dashboard-hero__arrow" />
+      <h1 id="dashboard-title" class="dashboard-hero__title">
+        <span class="dashboard-hero__greeting">你好，</span>
+        <span class="dashboard-hero__name">{{ name }}</span>
+      </h1>
     </div>
-
-    <div class="dashboard-hero__index" aria-hidden="true">01</div>
   </section>
 </template>
 
 <script setup lang="ts">
-import AppIcon from "@/components/AppIcon/index.vue";
-
-defineProps<{
+const props = defineProps<{
   name: string;
   avatar?: string;
   currentTime: string;
 }>();
+
+// 按冒号拆段，逐段入场；最后一段（分钟）用虹彩渐变字
+const clockParts = computed(() => props.currentTime.split(":"));
 </script>

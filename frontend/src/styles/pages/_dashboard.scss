@@ -1,335 +1,420 @@
+@use "../foundation/glass" as *;
+
+// 首页：极细大号时钟直接落在画布上，右侧是玻璃身份卡；三个指标合成一条玻璃带，
+// 数字用极细大字加渐变；快捷入口是半透明方块。交互只有 hover 变色，动效只有进场。
+// 渐变字用 color: transparent 而不是 text-fill：深色兜底会把 .ff-page-shell 内的 text-fill 回填成 currentColor。
 .dashboard-page {
   position: relative;
   overflow: hidden;
 }
 
 .dashboard-hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px 32px;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 6px 6px 0;
+}
+
+.dashboard-hero__clock {
+  display: flex;
+  align-items: baseline;
+  margin: 0 0 -0.06em -0.04em;
+  font-family: var(--ff-font-sans);
+  font-size: clamp(96px, 12.6vw, 196px);
+  font-weight: 100;
+  font-variant-numeric: tabular-nums;
+  line-height: 0.82;
+  color: var(--ff-color-text-primary);
+  letter-spacing: -0.045em;
+  white-space: nowrap;
+}
+
+.dashboard-hero__digits {
+  animation: ff-dashboard-digits-in 1s var(--ff-ease-out) backwards;
+  animation-delay: calc(var(--i, 0) * 90ms + 40ms);
+}
+
+.dashboard-hero__digits:last-child {
+  color: transparent;
+  background: var(--ff-iri);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+// Geist 的冒号是方点：字符本身透明（留给读屏和复制），两颗圆点用伪元素画
+.dashboard-hero__sep {
   position: relative;
-  min-height: 290px;
-  overflow: hidden;
-  color: #f5f7fb;
-  background: #0b101c;
-  border: 1px solid rgba(139, 156, 187, 0.2);
-  border-radius: 28px;
-  box-shadow: 0 24px 60px -30px rgba(4, 8, 16, 0.8);
-  isolation: isolate;
+  align-self: stretch;
+  width: 0.22em;
+  font-style: normal;
+  color: transparent;
+  animation: ff-dashboard-fade-in 0.8s var(--ff-ease-out) 0.12s backwards;
 }
 
-.dashboard-hero__grid {
+.dashboard-hero__sep::before,
+.dashboard-hero__sep::after {
   position: absolute;
-  inset: 0;
-  z-index: -2;
-  background-image:
-    linear-gradient(rgba(141, 163, 197, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(141, 163, 197, 0.08) 1px, transparent 1px);
-  background-size: 48px 48px;
-  opacity: 0.48;
-  mask-image: linear-gradient(120deg, black 10%, transparent 72%);
-}
-
-.dashboard-hero__beam {
-  position: absolute;
-  z-index: -1;
-  width: 360px;
-  height: 360px;
+  left: 50%;
+  width: 0.055em;
+  height: 0.055em;
+  content: "";
+  background: var(--ff-color-text-dim);
   border-radius: 50%;
-  opacity: 0.52;
-  filter: blur(16px);
-  animation: dashboard-beam 12s var(--ff-ease-standard) infinite alternate;
+  transform: translate(-50%, -50%);
 }
 
-.dashboard-hero__beam--coral {
-  top: -190px;
-  right: 8%;
-  background: rgba(255, 112, 92, 0.2);
+.dashboard-hero__sep::before {
+  top: 36%;
 }
 
-.dashboard-hero__beam--blue {
-  right: 28%;
-  bottom: -230px;
-  background: rgba(115, 216, 255, 0.18);
-  animation-delay: -4s;
-}
-
-.dashboard-hero__content {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-height: 290px;
-  padding: clamp(28px, 6vw, 72px);
-}
-
-.dashboard-hero__meta {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 18px;
-  font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 11px;
-  color: rgba(219, 230, 246, 0.65);
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-}
-
-.dashboard-hero__signal {
-  width: 7px;
-  height: 7px;
-  background: var(--ff-accent);
-  border-radius: 50%;
-  box-shadow: 0 0 16px rgba(255, 112, 92, 0.9);
-}
-
-.dashboard-hero__title {
-  max-width: 720px;
-  margin: 0;
-  font-size: clamp(2.7rem, 7vw, 6.8rem);
-  font-weight: 700;
-  line-height: 0.94;
-  letter-spacing: -0.07em;
-}
-
-.dashboard-hero__title span {
-  color: var(--ff-accent);
+.dashboard-hero__sep::after {
+  top: 76%;
 }
 
 .dashboard-hero__identity {
-  position: absolute;
-  top: 28px;
-  right: 28px;
+  @include ff-glass("panel");
+
   display: flex;
-  gap: 12px;
+  gap: 18px;
   align-items: center;
+  min-width: 0;
+  max-width: min(520px, 100%);
+  padding: 18px 28px 18px 18px;
+  border-radius: var(--ff-radius-panel);
+  box-shadow: var(--ff-shadow-panel);
+  animation: ff-dashboard-rise 0.8s var(--ff-ease-out) 0.24s backwards;
 }
 
+// 没有头像时就是一颗金属球
 .dashboard-hero__avatar {
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
+  flex: none;
+  width: 56px;
+  height: 56px;
   overflow: hidden;
-  color: var(--ff-accent);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--ff-orb);
   border-radius: 50%;
+  box-shadow:
+    inset 0 -3px 6px rgba(11, 11, 16, 0.22),
+    0 6px 16px -6px rgba(11, 11, 16, 0.5);
 }
 
 .dashboard-hero__avatar img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.dashboard-hero__arrow {
-  color: rgba(219, 230, 246, 0.68);
+.dashboard-hero__title {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  font-weight: 400;
 }
 
-.dashboard-hero__index {
-  position: absolute;
-  right: 28px;
-  bottom: 22px;
-  font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 12px;
-  color: rgba(219, 230, 246, 0.45);
-  letter-spacing: 0.12em;
+.dashboard-hero__greeting {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--ff-color-text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.dashboard-hero__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--ff-font-sans);
+  font-size: 46px;
+  font-weight: 200;
+  line-height: 1.05;
+  color: var(--ff-color-text-primary);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .dashboard-metrics {
+  @include ff-glass("panel");
+
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.dashboard-metric {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  min-height: 116px;
-  padding: 20px;
-  background: color-mix(in srgb, var(--ff-shell-surface) 92%, transparent);
-  border: 1px solid var(--ff-shell-border);
-  border-radius: 20px;
+  padding: 24px 6px 22px;
+  border-radius: var(--ff-radius-panel);
   box-shadow: var(--ff-shadow-panel);
-  transition:
-    transform var(--ff-duration-base) var(--ff-ease-out),
-    border-color var(--ff-duration-fast) ease;
+  animation: ff-dashboard-rise 0.8s var(--ff-ease-out) 0.32s backwards;
 }
 
-.dashboard-metric:hover {
-  border-color: color-mix(in srgb, var(--metric-accent) 55%, transparent);
-  transform: translateY(-4px);
+// accent 映射到三个虹彩色标，随预设色一起变
+.dashboard-metric {
+  position: relative;
+  min-width: 0;
+  padding: 0 24px;
+  box-shadow: -1px 0 0 var(--ff-line);
+}
+
+.dashboard-metric:first-child {
+  box-shadow: none;
 }
 
 .dashboard-metric--coral {
-  --metric-accent: var(--ff-accent);
+  --metric-accent: var(--ff-iri-c);
 }
 
 .dashboard-metric--blue {
-  --metric-accent: var(--ff-ice);
+  --metric-accent: var(--ff-iri-a);
 }
 
 .dashboard-metric--neutral {
-  --metric-accent: var(--ff-shell-text-muted);
+  --metric-accent: var(--ff-iri-b);
 }
 
 .dashboard-metric__icon {
-  display: grid;
-  flex: 0 0 42px;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  color: var(--metric-accent);
-  background: color-mix(in srgb, var(--metric-accent) 13%, transparent);
-  border: 1px solid color-mix(in srgb, var(--metric-accent) 22%, transparent);
-  border-radius: 14px;
+  position: absolute;
+  top: 4px;
+  right: 24px;
+  display: flex;
+  color: var(--ff-color-text-dim);
+  transition: color var(--ff-duration-base) var(--ff-ease-standard);
 }
 
+// 模板里标签在前、数字在后，读屏顺序是"角色 3"；视觉上数字在上
 .dashboard-metric__body {
-  display: grid;
-  gap: 6px;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 10px;
+  align-items: flex-start;
 }
 
 .dashboard-metric__label {
-  font-size: 12px;
-  color: var(--ff-shell-text-muted);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--ff-color-text-secondary);
+}
+
+.dashboard-metric__label::before {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  content: "";
+  background: radial-gradient(circle at 35% 30%, #ffffff, var(--metric-accent) 62%);
+  border-radius: 50%;
 }
 
 .dashboard-metric__value {
-  font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 26px;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--ff-shell-text);
+  font-family: var(--ff-font-sans);
+  font-size: clamp(58px, 6.4vw, 98px);
+  font-weight: 100;
+  font-variant-numeric: tabular-nums;
+  line-height: 0.9;
+  color: transparent;
+  letter-spacing: -0.04em;
+  background: linear-gradient(
+    100deg,
+    var(--ff-color-text-primary) 15%,
+    var(--metric-accent) 50%,
+    var(--ff-color-text-primary) 85%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  background-size: 200% 100%;
+  transition: background-position 1.2s var(--ff-ease-out);
+}
+
+.dashboard-metric:hover .dashboard-metric__icon {
+  color: var(--metric-accent);
+}
+
+.dashboard-metric:hover .dashboard-metric__value {
+  background-position: 100% 0;
 }
 
 .dashboard-actions {
-  padding: 28px;
-  background: color-mix(in srgb, var(--ff-shell-surface) 88%, transparent);
-  border: 1px solid var(--ff-shell-border);
-  border-radius: 24px;
+  position: relative;
 }
 
-.dashboard-actions__header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.dashboard-actions__header h2 {
-  margin: 0;
-  font-size: 24px;
-  letter-spacing: -0.04em;
-}
-
-.dashboard-actions__eyebrow {
-  margin: 0 0 8px;
-  font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 10px;
-  color: var(--ff-accent);
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-}
-
-.dashboard-actions__count {
-  font-family: "SFMono-Regular", Consolas, monospace;
-  color: var(--ff-shell-text-muted);
+// 标题只给读屏用，视觉上快捷入口本身就是标题
+.dashboard-actions__title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  white-space: nowrap;
+  border: 0;
+  clip-path: inset(50%);
 }
 
 .dashboard-actions__grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
+// 方块不做逐个模糊：半透明底叠在静态光池上已经够用，也省掉多块 backdrop-filter
 .dashboard-action {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 10px;
-  align-items: center;
-  min-height: 58px;
-  padding: 0 14px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-width: 0;
+  height: 104px;
+  padding: 18px;
   font: inherit;
-  color: var(--ff-shell-text);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ff-color-text-primary);
   text-align: left;
   cursor: pointer;
-  background: var(--ff-shell-surface-muted);
-  border: 1px solid transparent;
-  border-radius: 14px;
-  transition:
-    color var(--ff-duration-fast) ease,
-    background-color var(--ff-duration-fast) ease,
-    border-color var(--ff-duration-fast) ease,
-    transform var(--ff-duration-base) var(--ff-ease-out);
+  background: var(--ff-glass);
+  border: 0;
+  border-radius: 20px;
+  box-shadow:
+    inset 0 0 0 1px var(--ff-glass-edge),
+    inset 0 1px 0 var(--ff-glass-hi),
+    var(--ff-shadow-shell-raised);
+  transition: background-color var(--ff-duration-fast) var(--ff-ease-standard);
+  animation: ff-dashboard-rise 0.7s var(--ff-ease-out) backwards;
+  animation-delay: calc(var(--i, 0) * 45ms + 420ms);
 }
 
-.dashboard-action:hover,
-.dashboard-action:focus-visible {
-  color: var(--ff-accent);
-  outline: none;
-  background: var(--ff-shell-active);
-  border-color: color-mix(in srgb, var(--ff-accent) 32%, transparent);
-  transform: translateY(-2px);
+.dashboard-action > .app-icon:first-child {
+  color: var(--ff-color-text-regular);
+  transition: color var(--ff-duration-base) var(--ff-ease-standard);
+}
+
+.dashboard-action__title {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dashboard-action__arrow {
-  color: var(--ff-shell-text-muted);
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: var(--ff-color-text-dim);
+  transition: color var(--ff-duration-base) var(--ff-ease-standard);
+}
+
+.dashboard-action:hover {
+  background-color: var(--ff-glass-strong);
+}
+
+.dashboard-action:hover > .app-icon:first-child {
+  color: var(--ff-iri-b);
+}
+
+.dashboard-action:hover .dashboard-action__arrow {
+  color: var(--ff-color-text-primary);
+}
+
+.dashboard-action:focus-visible {
+  outline: 2px solid var(--ff-iri-b);
+  outline-offset: 2px;
 }
 
 .dashboard-actions__empty {
-  padding: 28px 0 8px;
-  color: var(--ff-shell-text-muted);
+  padding: 32px 24px;
+  color: var(--ff-color-text-secondary);
+  text-align: center;
+  background: var(--ff-glass);
+  border-radius: 20px;
+  box-shadow: inset 0 0 0 1px var(--ff-glass-edge);
 }
 
-@keyframes dashboard-beam {
+@keyframes ff-dashboard-digits-in {
   from {
-    transform: translate3d(-14px, 8px, 0) scale(0.96);
-  }
-  to {
-    transform: translate3d(18px, -14px, 0) scale(1.06);
-  }
-}
-
-@media (max-width: 900px) {
-  .dashboard-actions__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    opacity: 0;
+    filter: blur(12px);
+    transform: translateY(0.12em);
   }
 }
 
-@media (max-width: 640px) {
-  .dashboard-metrics {
-    grid-template-columns: 1fr;
+@keyframes ff-dashboard-fade-in {
+  from {
+    opacity: 0;
   }
+}
 
+@keyframes ff-dashboard-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+@media (max-width: 767px) {
   .dashboard-hero {
-    min-height: 320px;
+    gap: 18px;
+    padding: 4px 0 0;
   }
 
-  .dashboard-hero__content {
-    min-height: 320px;
-    padding: 28px;
+  .dashboard-hero__clock {
+    font-size: 34vw;
   }
 
   .dashboard-hero__identity {
-    top: 24px;
-    right: 24px;
+    flex: 1 1 100%;
+    padding: 16px 20px 16px 16px;
   }
 
-  .dashboard-actions {
-    padding: 22px;
+  .dashboard-hero__avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .dashboard-hero__name {
+    font-size: 32px;
+  }
+
+  .dashboard-metrics {
+    padding: 20px 0 18px;
+  }
+
+  .dashboard-metric {
+    padding: 0 14px;
+  }
+
+  .dashboard-metric__icon {
+    display: none;
+  }
+
+  .dashboard-metric__value {
+    font-size: clamp(40px, 12vw, 58px);
+  }
+
+  .dashboard-metric__label {
+    font-size: 12px;
   }
 
   .dashboard-actions__grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .dashboard-action {
+    height: 92px;
+    padding: 16px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dashboard-hero__beam {
+  .dashboard-hero__digits,
+  .dashboard-hero__sep,
+  .dashboard-hero__identity,
+  .dashboard-metrics,
+  .dashboard-action {
     animation: none;
   }
 
-  .dashboard-metric,
-  .dashboard-action {
+  .dashboard-metric__value {
     transition: none;
   }
 }

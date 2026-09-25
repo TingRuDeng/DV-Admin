@@ -346,6 +346,75 @@ Vite 的组件自动导入配置问题。
 
 ---
 
+### backdrop-filter / filter / transform 会接管 fixed 后代的定位
+
+**问题描述：**
+给侧栏或顶栏宿主加玻璃模糊或进场位移后，mix 布局移动端的抽屉侧栏、遮罩等 `position: fixed` 后代不再相对视口定位，而是被限制在宿主盒子里。
+
+**原因：**
+`backdrop-filter`、`filter`、`transform`（包括动画结束后残留的 transform）都会让元素成为 fixed 后代的包含块。
+
+**解决方案：**
+1. 玻璃统一用 `foundation/_glass.scss` 的 `ff-glass` mixin，模糊画在 `::before` 上，不放在宿主上
+2. 壳层宿主不写 `filter` / `transform`；进场动画用 `animation-fill-mode: backwards`，结束后不残留 transform
+3. `style-governance.test.ts` 限制 `backdrop-filter` 只能出现在 glass mixin 和 popper skin
+
+**相关代码：**
+- `frontend/src/styles/foundation/_glass.scss`
+- `frontend/src/utils/__tests__/style-governance.test.ts`
+
+---
+
+### ::before 玻璃层需要宿主 isolation: isolate
+
+**问题描述：**
+玻璃面板的模糊底层消失，或整块沉到页面背景后面，面板看起来是透明的。
+
+**原因：**
+`::before` 用 `z-index: -1` 垫在内容下方。宿主如果没有建立层叠上下文，这个 -1 会落到祖先的层叠上下文里，排到页面背景之后。
+
+**解决方案：**
+宿主设 `isolation: isolate`（`ff-glass` mixin 已包含）；自己手写玻璃层时同样要加。不要用给宿主加 `z-index` 或 `transform` 的办法代替，后者会引出上一条的包含块问题。
+
+**相关代码：**
+- `frontend/src/styles/foundation/_glass.scss`
+
+---
+
+### scoped 样式里 @use 的规则改不到 Element Plus 内部元素
+
+**问题描述：**
+页面 `<style scoped>` 里 `@use` 了页面样式文件，其中 `.ff-login-page .el-input__wrapper` 之类针对 Element Plus 内部元素的规则不生效。
+
+**原因：**
+scoped 编译会给每条选择器的最后一段追加 `[data-v-xxx]`。子组件只有根元素带父组件的作用域属性，`.el-input__wrapper` 这类内部元素没有，所以规则匹配不到。
+
+**解决方案：**
+需要改 Element Plus 子元素的页面样式放到全局 `styles/pages/`（在 `pages/index.scss` 引入），以页面根类名收口，例如 `_login.scss` 以 `.ff-login-page` 为根。全局页面样式文件里不允许使用 `:deep(`。
+
+**相关代码：**
+- `frontend/src/styles/pages/_login.scss`
+- `frontend/src/styles/pages/index.scss`
+
+---
+
+### 深色模式下渐变文字变成纯色
+
+**问题描述：**
+用 `-webkit-text-fill-color: transparent` 加 `background-clip: text` 写的渐变文字，在深色模式下显示成普通纯色。
+
+**原因：**
+`_minimal-saas.scss` 的深色兜底对 `.ff-page-shell *` 等布局容器写了 `-webkit-text-fill-color: currentColor !important`，把 text-fill 强制回填。
+
+**解决方案：**
+渐变文字改用 `color: transparent`，再配合 `-webkit-background-clip: text; background-clip: text`，不依赖 text-fill。
+
+**相关代码：**
+- `frontend/src/styles/_minimal-saas.scss`
+- `frontend/src/styles/pages/_dashboard.scss`
+
+---
+
 ## 后端开发陷阱
 
 ### 陷阱 10：Django 和 FastAPI API 不一致
@@ -669,7 +738,7 @@ location /media/ {
 
 ---
 
-**最后更新：** 2026-09-06
+**最后更新：** 2026-09-25
 **维护者：** DV-Admin Team
 
 **贡献指南：** 发现新陷阱时，请及时更新此文档。

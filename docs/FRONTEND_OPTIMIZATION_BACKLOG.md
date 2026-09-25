@@ -6,6 +6,7 @@ ai_summary:
     - "判断旧前端优化方案是否仍有效时"
   source_of_truth:
     - "docs/ADR-0001-FRONTEND-MODERNIZATION.md"
+    - "docs/ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md"
     - "docs/ARCHITECTURE.md"
     - "frontend/src/styles"
     - "frontend/src/components"
@@ -274,6 +275,23 @@ ai_summary:
 - 任一后端真实 Playwright smoke 失败。
 - 现有可访问性或性能预算失败。
 - 构建时间或总 JavaScript 产物三次运行中位数相对阶段 1 基线回退超过 10%。
+
+---
+
+## ADR-0002 Liquid Chrome 视觉系统
+
+> 决策见 [ADR-0002](./ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md)；本节只记录交付拆分和验收证据。三个 PR 串行堆叠，都在 ADR-0001 的兼容边界内。
+
+| PR | 分支 | 范围 |
+|----|------|------|
+| 1. 基础层 | `codex/liquid-chrome-reskin` | tokens、Geist 字体、预设色推导虹彩、旧默认色迁移、玻璃 mixin、静态光池、Element Plus 双模式桥接 |
+| 2. 外壳与组件 | `codex/liquid-chrome-shell` | 组件 skins、侧栏与顶栏悬浮玻璃、菜单、TagsView、`ff-route` 路由过渡、移除 `animate.css` |
+| 3. 页面与文档 | `codex/liquid-chrome-pages` | 登录页字标与玻璃板、首页时钟 hero 与指标带、快捷入口方块、文档同步 |
+
+- PR3 验收：`pnpm run quality` 通过（105 个测试文件、345 项测试），Mock smoke 20/20 通过。
+- 构建：与合并基线交替各跑三次，`pnpm run build` 墙钟中位数 12.78s → 12.85s（+0.5%），Vite 构建中位数 6.49s → 6.48s；总 JavaScript 2,719,979 → 2,720,966 bytes（+0.04%），CSS 736,346 → 728,036 bytes；新增自托管 Geist woff2 共 52,528 bytes。未触发 10% 停止条件。
+- 截图复核：登录、首页、用户管理在深浅两种模式、1440 / 1024 / 390 宽度、left / top 布局和多个预设色下无横向溢出、无 console 报错；reduced-motion 下首页直接呈现终态。临时截图用例未进入提交。
+- 保持现状：注册与重置密码表单当前不可达，没有重做；MenuSearch 聚焦加宽未实施。
 
 ---
 

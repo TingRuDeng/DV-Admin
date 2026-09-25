@@ -9,6 +9,7 @@ ai_summary:
     - "docs/README.md"
     - "docs/ARCHITECTURE.md"
     - "docs/ADR-0001-FRONTEND-MODERNIZATION.md"
+    - "docs/ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md"
     - "docs/API_ENDPOINTS.md"
     - "docs/DATABASE_SCHEMA.md"
     - "frontend/package.json"
@@ -58,6 +59,7 @@ ai_summary:
 - `docs/README.md`：文档导航入口与任务阅读路径。
 - `docs/ARCHITECTURE.md`：系统架构、双后端替代关系、前端路由与缓存约定。
 - `docs/ADR-0001-FRONTEND-MODERNIZATION.md`：前端现代化的已接受决策、兼容边界、后果与停止条件。
+- `docs/ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md`：前端 Liquid Chrome 视觉系统的决策、否决效果、token 分层和玻璃写法约束。
 - `docs/FRONTEND_OPTIMIZATION_BACKLOG.md`：ADR-0001 七个串行阶段、状态和验收证据的唯一跟踪入口。
 - `docs/API_ENDPOINTS.md`：核心 API 契约、认证接口和双后端差异。
 - `docs/DATABASE_SCHEMA.md`：核心模型、表名差异和迁移边界。
@@ -68,6 +70,7 @@ ai_summary:
 
 - 前端页面或交互：`AGENTS.md` -> `docs/README.md` -> `docs/ARCHITECTURE.md` -> `frontend/README.md` -> 目标模块。
 - 前端现代化：`docs/ARCHITECTURE.md` -> `docs/ADR-0001-FRONTEND-MODERNIZATION.md` -> `docs/FRONTEND_OPTIMIZATION_BACKLOG.md` -> 当前实现。
+- 前端视觉（配色、玻璃、字体、动效）：`docs/ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md` -> `frontend/src/styles/README.md` -> `frontend/src/styles/tokens/` -> 目标 skin 或页面样式。
 - Django 后端：`AGENTS.md` -> `docs/README.md` -> `backend/README.md` -> `docs/API_ENDPOINTS.md` 或 `docs/DATABASE_SCHEMA.md` -> 目标代码。
 - FastAPI 后端：`AGENTS.md` -> `docs/README.md` -> `fastapi/README.md` -> `docs/API_ENDPOINTS.md` 或 `docs/DATABASE_SCHEMA.md` -> 目标代码。
 - 文档上下文包：`docs/README.md` -> `docs/AI_CONTEXT.md` -> `scripts/validate_docs.py`。
@@ -84,6 +87,7 @@ ai_summary:
 - 前端 Vite 端口来自 `frontend/.env.development`，Playwright 或脚本端口不能凭默认值推断。
 - 双后端可替换性同时由静态契约、各后端真实 HTTP 测试和无 API Mock 的双后端 Playwright smoke 证明；普通 Mock E2E 不能替代真实栈门禁。
 - 页面层 ProTable、RouteMeta、KeepAlive 缓存键已有治理约束，改动前先读架构文档。
+- 前端 `backdrop-filter` 只能出现在 `foundation/_glass.scss` 的 mixin 和 `skins/_popper.scss`；放在壳层宿主上会让它成为 fixed 后代的包含块。
 - 前端现代化不得顺带修改双后端菜单字段、组件路径、共享 API、JWT/Pinia/字典/WebSocket/Pro 组件协议；触发 ADR 停止条件时重新评审。
 
 ## Validation Commands
