@@ -65,9 +65,9 @@ const Table = defineComponent({
 });
 /* eslint-enable vue/one-component-per-file */
 
-function renderImport() {
+function renderImport(deptId: string | number = "42") {
   return mount(UserImport, {
-    props: { modelValue: true, deptId: "42" },
+    props: { modelValue: true, deptId },
     global: {
       stubs: {
         ProFormDrawer: Drawer,
@@ -206,5 +206,21 @@ describe("用户导入结果反馈", () => {
     expect(wrapper.find('[role="dialog"]').exists()).toBe(false);
     expect(wrapper.text()).not.toContain("错误信息");
     expect(ElMessage.error).toHaveBeenCalledWith("上传失败：网络异常");
+  });
+
+  it("部门树给出数字部门 ID 时不报 prop 类型警告，并原样传给导入接口", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    wrapper.unmount();
+    wrapper = renderImport(42);
+    vi.mocked(UserAPI.import).mockResolvedValue({
+      validCount: 1,
+      skippedCount: 0,
+      invalidCount: 0,
+      messageList: [],
+    });
+    await submit();
+    expect(warn.mock.calls.flat().join("\n")).not.toContain('prop "deptId"');
+    expect(UserAPI.import).toHaveBeenCalledWith(42, file);
+    warn.mockRestore();
   });
 });
