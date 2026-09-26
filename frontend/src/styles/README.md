@@ -49,3 +49,9 @@ Legacy `minimal-*` and `glass-panel` aliases are no longer part of the active st
 ## Override rule
 
 Keep `:deep()` and `!important` inside shared skin overrides unless a page-specific exception is unavoidable.
+
+## 壳层交互约定
+
+- `foundation/_view-transition.scss` 只负责主题切换时 `::view-transition-old/new(root)` 的层级和关闭默认淡化，圆形扩散动画由 `ThemeToggle.vue` 在脚本里驱动。
+- 内容最大化统一用布局根节点上的 `.is-content-maximized`，样式集中在 `skins/_chrome.scss`，布局文件不各自处理。
+- 左侧布局的悬停预览用 `.layout__sidebar--peeking`，投影画在玻璃层 `::before` 上，宿主不加 `filter` 或 `transform`。

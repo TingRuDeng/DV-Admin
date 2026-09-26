@@ -66,6 +66,8 @@ declare global {
     showSettings: boolean;
     /** 是否显示多标签导航 */
     showTagsView: boolean;
+    /** 左侧布局收起时是否悬停预览 */
+    sidebarPeek: boolean;
     /** 是否显示应用Logo */
     showAppLogo: boolean;
     /** 导航栏布局(left|top|mix) */

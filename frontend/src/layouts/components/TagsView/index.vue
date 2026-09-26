@@ -7,7 +7,7 @@
       :view-style="{ height: '100%' }"
       @wheel="handleScroll"
     >
-      <div h-full flex-y-center gap-8px>
+      <div ref="tagListRef" h-full flex-y-center gap-8px>
         <TagItem
           v-for="tag in visitedViews"
           :key="tag.fullPath"
@@ -20,6 +20,8 @@
         />
       </div>
     </el-scrollbar>
+
+    <TagsToolbar @refresh="refreshSelectedTag(currentTag)" />
 
     <TagsContextMenu
       :is-first-view="isFirstView"
@@ -43,6 +45,8 @@ import { useRoute, useRouter } from "vue-router";
 import { useTagsViewStore } from "@/store";
 import TagItem from "./TagItem.vue";
 import TagsContextMenu from "./TagsContextMenu.vue";
+import TagsToolbar from "./TagsToolbar.vue";
+import { useTagsDrag } from "./useTagsDrag";
 import { useTagsContextMenu } from "./useTagsContextMenu";
 import { useTagsRouteSync } from "./useTagsRouteSync";
 
@@ -59,6 +63,13 @@ const { visitedViews } = storeToRefs(tagsViewStore);
 
 // 滚动条引用
 const scrollbarRef = ref();
+const tagListRef = ref<HTMLElement>();
+useTagsDrag(tagListRef);
+
+// 工具栏的刷新按钮总是作用于当前页
+const currentTag = computed(
+  () => visitedViews.value.find((tag) => tagsViewStore.isActive(tag)) ?? null
+);
 
 const {
   closeContextMenu,

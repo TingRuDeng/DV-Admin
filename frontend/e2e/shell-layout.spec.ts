@@ -216,6 +216,7 @@ test.describe("现代化壳层 smoke", () => {
 
     await expect(page.getByRole("combobox", { name: "搜索菜单" })).toBeVisible();
     for (const accessibleName of [
+      "切换主题",
       "进入全屏",
       "布局大小",
       "切换语言",
@@ -338,6 +339,55 @@ test.describe("现代化壳层 smoke", () => {
     await expect(topMenuItem).toBeVisible();
     expect(await topMenuItem.boundingBox()).toEqual(menuItemBox);
     expect(await searchSlot.boundingBox()).toEqual(searchSlotBox);
+  });
+
+  test("顶栏主题切换、页签工具区、内容最大化和收起侧栏悬停预览", async ({ page }) => {
+    await installShellMocks(page);
+    await setPreferences(page, {
+      "vea:ui:layout": "left",
+      "vea:ui:show_tags_view": "true",
+      "vea:ui:theme": "light",
+    });
+    await login(page);
+
+    const html = page.locator("html");
+    const themeToggle = page.getByRole("button", { name: "切换主题" });
+    await themeToggle.click();
+    await expect(html).toHaveClass(/dark/);
+    await themeToggle.click();
+    await expect(html).not.toHaveClass(/dark/);
+
+    const tags = page.locator(".tags-container");
+    await expect(tags.getByRole("button", { name: "刷新当前页" })).toBeVisible();
+    const keywordInput = page.getByPlaceholder("用户名/昵称/手机号");
+    await keywordInput.fill("刷新探针");
+    await tags.getByRole("button", { name: "刷新当前页" }).click();
+    await expect(keywordInput).toHaveValue("");
+
+    const sidebar = page.locator(".layout-left .layout__sidebar");
+    await tags.getByRole("button", { name: "内容最大化" }).click();
+    await expect(sidebar).toBeHidden();
+    await expect(page.locator(".layout-left .navbar")).toBeHidden();
+    await expect(tags.getByRole("button", { name: "退出最大化" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(sidebar).toBeVisible();
+    await expect(tags.getByRole("button", { name: "内容最大化" })).toBeVisible();
+
+    // 收起后悬停侧栏：侧栏浮出展开，主内容不跟着移动
+    await page.locator(".layout-left .navbar").getByRole("button", { name: "收起导航" }).click();
+    const main = page.locator(".layout-left .layout__main");
+    await expect.poll(async () => (await sidebar.boundingBox())?.width ?? 0).toBeLessThan(80);
+    const mainLeft = (await main.boundingBox())?.x ?? 0;
+    await sidebar.hover();
+    await expect.poll(async () => (await sidebar.boundingBox())?.width ?? 0).toBeGreaterThan(200);
+    await expect(sidebar.getByText("用户管理")).toBeVisible();
+    expect((await main.boundingBox())?.x ?? -1).toBe(mainLeft);
+    await page.mouse.move(900, 500);
+    await expect.poll(async () => (await sidebar.boundingBox())?.width ?? 0).toBeLessThan(80);
+    // 悬停预览不改写持久化的收起状态
+    expect(await page.evaluate(() => localStorage.getItem("vea:app:sidebar_status"))).toContain(
+      "closed"
+    );
   });
 
   test("移动端三种布局提供可访问的抽屉导航", async ({ page }) => {

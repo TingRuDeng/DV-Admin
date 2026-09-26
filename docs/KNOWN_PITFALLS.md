@@ -498,6 +498,40 @@ mix 布局在移动端打开导航抽屉，侧栏里没有任何菜单项，也�
 
 ---
 
+### 菜单和按钮图标显示成问号
+
+**问题描述：**
+侧栏菜单、页签或页面按钮上的图标显示成一个圆圈问号。
+
+**原因：**
+`AppIcon` 找不到名称对应的映射时回落到 `CircleHelp`。菜单图标名来自后端种子数据（例如 `system`、`role`、`el-icon-User`），页面里也可能直接写 `<AppIcon name="pencil">`，只要 `icon-map.ts` 没登记就会显示问号。
+
+**解决方案：**
+在 `frontend/src/components/AppIcon/icon-map.ts` 登记映射；后端图标名先经 `normalizeMenuIconName` 去掉 `el-icon-`、`i-svg:` 前缀。`menu-icon-coverage.spec.ts` 会检查 `backend/init_data.json` 的菜单图标和页面里写死的图标名，漏配时单测失败。
+
+**相关代码：**
+- `frontend/src/components/AppIcon/icon-map.ts`
+- `frontend/src/components/__tests__/menu-icon-coverage.spec.ts`
+
+---
+
+### 侧栏悬停预览不能改写展开状态
+
+**问题描述：**
+收起侧栏后鼠标扫过一次，刷新页面发现侧栏变成了展开状态。
+
+**原因：**
+`appStore.sidebar.opened` 通过 `useStorage` 持久化。如果悬停预览直接调用 `openSideBar`/`closeSideBar`，每次悬停都会写入存储，离开时机不对就会被记成展开。
+
+**解决方案：**
+悬停预览只用 `layouts/modes/left/index.vue` 里的组件内状态 `isPeeking`，通过 `BasicMenu` 的 `collapsed` 属性临时按展开渲染；侧栏浮在内容上方，主内容仍按收起宽度留边。
+
+**相关代码：**
+- `frontend/src/layouts/modes/left/index.vue`
+- `frontend/src/layouts/components/Menu/BasicMenu.vue`
+
+---
+
 ### `@mousedown.prevent` 拦不住失焦
 
 **问题描述：**
