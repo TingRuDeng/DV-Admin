@@ -22,6 +22,7 @@ The visual decision record is [ADR-0002](../../../docs/ADR-0002-LIQUID-CHROME-VI
 - Files that call the mixin must `@use "../foundation/glass" as *;` explicitly; style tests compile without the Vite `additionalData` injection.
 - Gradient text uses `color: transparent` with `background-clip: text`. Do not rely on `-webkit-text-fill-color`, because the dark shim resets it to `currentColor`.
 - Page styles that must reach Element Plus internals are global files under `pages/`, rooted at the page class (for example `.ff-login-page`), and must not use `:deep(`.
+- The navbar menu search pill lives in `skins/_chrome.scss`. `.menu-search` keeps a fixed 168px slot in the flow and `.menu-search__field` is absolutely positioned, so it grows leftward to 260px on focus without reflowing the header. Its teleported `.menu-search__panel` joins the popper glass list in `skins/_popper.scss` and the dark popper fallback in `theme/_dark.scss`; other custom teleported popups should do the same instead of writing their own `backdrop-filter`.
 
 ## Page composition rule
 
