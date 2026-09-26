@@ -1,11 +1,12 @@
 /* stylelint-disable no-descending-specificity */
-// 浮层玻璃：下拉、选择器、气泡卡片、日期面板、消息、通知、消息框。
+// 浮层玻璃：下拉、选择器、气泡卡片、日期面板、导航栏菜单搜索面板、消息、通知、消息框。
 // 浮层都挂在 body 下，不会有 position:fixed 后代受包含块影响，所以这里是唯一直接在宿主上写 backdrop-filter 的地方。
 // 深色模式由 theme/_dark.scss 用 !important 兜底同样的 token，这里不去抢。
 html .el-popper.is-light,
 html .el-dropdown__popper.el-popper,
 html .el-popover.el-popper,
-html .el-picker__popper.el-popper {
+html .el-picker__popper.el-popper,
+html .menu-search__panel {
   --el-popover-bg-color: var(--ff-popper-bg);
   --el-popover-border-color: var(--ff-popper-edge);
   --el-popover-border-radius: calc(var(--ff-radius-control) + 4px);

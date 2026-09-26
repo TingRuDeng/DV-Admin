@@ -78,17 +78,21 @@ describe("壳层审计回归约束", () => {
   it("让导航栏动作使用可聚焦且有名称的原生控件", () => {
     const componentSources = [
       NAVBAR_ACTIONS_SOURCE,
-      readProjectFile("src/components/MenuSearch/index.vue"),
       readProjectFile("src/components/Fullscreen/index.vue"),
       readProjectFile("src/components/SizeSelect/index.vue"),
       readProjectFile("src/components/LangSelect/index.vue"),
       readProjectFile("src/components/Notification/index.vue"),
     ];
+    // 菜单搜索是内联输入框：原生 <input> 作 combobox，名称来自 aria-label
+    const menuSearchSource = readProjectFile("src/components/MenuSearch/index.vue");
 
     for (const source of componentSources) {
       expect(source).toContain("aria-label");
       expect(source).toContain("<button");
     }
+    expect(menuSearchSource).toMatch(
+      /<input[^>]*role="combobox"[^>]*:aria-label="t\('navbar\.search'\)"/
+    );
     expect(NAVBAR_ACTIONS_SOURCE).toMatch(
       /<button[\s\S]*navbar-actions__button[\s\S]*aria-label[\s\S]*@click="handleSettingsClick"/
     );

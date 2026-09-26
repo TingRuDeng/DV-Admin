@@ -1,3 +1,4 @@
+import { toRaw } from "vue";
 import type { RouteRecordRaw } from "vue-router";
 import { isExternal } from "@/utils";
 import type { SearchItem } from "./types";
@@ -37,6 +38,8 @@ export function buildMenuSearchItems(
   return routes.flatMap((route) => {
     const path = joinRoutePath(parentPath, route.path);
     if (excludedRoutes.includes(route.path) || isExternal(route.path)) return [];
+    // 隐藏路由（个人中心、我的通知等）连同子路由都不进菜单搜索；带参数的路由没法直接跳转，也跳过
+    if (route.meta?.hidden || path.includes(":")) return [];
 
     if (route.children?.length) {
       return buildMenuSearchItems(route.children, {

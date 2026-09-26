@@ -68,6 +68,24 @@ $ff-navbar-panel-bottom: 4px;
   border-radius: 50%;
 }
 
+// 窄桌面宽度下右侧动作区（含 168px 搜索框）挤占面包屑：中文可逐字折行，不加限制会竖着排成两行。
+// 改成不折行，只让最后一项收缩并显示省略号
+.navbar .el-breadcrumb {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.navbar .el-breadcrumb__item:last-child,
+.navbar .el-breadcrumb__item:last-child .el-breadcrumb__inner {
+  min-width: 0;
+}
+
+.navbar .el-breadcrumb__item:last-child .el-breadcrumb__inner {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .layout__sidebar,
 .layout__sidebar--left,
 .layout__mobile-menu {
@@ -220,6 +238,210 @@ $ff-navbar-panel-bottom: 4px;
     0 0 0 2px color-mix(in srgb, var(--ff-iri-b) 55%, transparent) !important;
 }
 
+// 菜单搜索：外层在文档流里固定占 168px，胶囊绝对定位靠右，聚焦时向左展开到 260px 盖住左侧内容，布局不重排
+$ff-menu-search-width: 168px;
+$ff-menu-search-width-focus: 260px;
+
+.menu-search {
+  position: relative;
+  flex-shrink: 0;
+  width: $ff-menu-search-width;
+  height: 32px;
+}
+
+.menu-search__field {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  box-sizing: border-box;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: $ff-menu-search-width;
+  height: 100%;
+  padding: 0 6px 0 12px;
+  color: var(--ff-shell-text-muted);
+  cursor: text;
+  // 展开时会盖住左侧的面包屑和菜单，字段底色下垫一层不透明底，免得下面的文字透上来
+  background: linear-gradient(var(--ff-field-bg), var(--ff-field-bg)), var(--ff-color-bg-sheet);
+  border-radius: var(--ff-radius-chip);
+  box-shadow: inset 0 0 0 1px var(--ff-line-strong);
+  transition:
+    width var(--ff-duration-fast) var(--ff-ease-standard),
+    box-shadow var(--ff-duration-fast) var(--ff-ease-standard);
+}
+
+.menu-search__field:focus-within {
+  width: $ff-menu-search-width-focus;
+  box-shadow:
+    inset 0 0 0 1px var(--ff-iri-b),
+    0 0 0 4px color-mix(in srgb, var(--ff-iri-b) 18%, transparent);
+}
+
+.menu-search__icon {
+  flex-shrink: 0;
+}
+
+// 焦点环画在胶囊上，输入框本身不再描边
+.menu-search__input {
+  flex: 1;
+  width: 0;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ff-shell-text);
+  outline: none;
+  background: transparent;
+  border: 0;
+}
+
+.menu-search__input::placeholder {
+  color: var(--ff-shell-text-muted);
+  opacity: 1;
+}
+
+.menu-search__kbd {
+  flex-shrink: 0;
+  padding: 0 7px;
+  font-family: var(--ff-font-mono);
+  font-size: 11px;
+  line-height: 20px;
+  color: var(--ff-shell-text-muted);
+  white-space: nowrap;
+  border-radius: var(--ff-radius-chip);
+  box-shadow: inset 0 0 0 1px var(--ff-line-strong);
+}
+
+.menu-search__field:focus-within .menu-search__kbd {
+  display: none;
+}
+
+// 结果面板传送到 body：玻璃底色见 skins/_popper.scss，深色兜底见 theme/_dark.scss
+.menu-search__panel {
+  position: fixed;
+  z-index: var(--el-index-popper, 2000);
+  box-sizing: border-box;
+  width: $ff-menu-search-width-focus;
+  padding: 6px;
+  transform: translateX(-100%);
+}
+
+.menu-search__listbox {
+  max-height: min(360px, 60vh);
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+// 选项：面板 16px 圆角减去 6px 内边距，选项取 10px，与下拉选项同心
+.menu-search__option {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  height: 36px;
+  padding: 0 10px;
+  font-size: 13px;
+  color: var(--ff-color-text-regular);
+  cursor: pointer;
+  border-radius: 10px;
+  transition:
+    color var(--ff-duration-fast) var(--ff-ease-standard),
+    background-color var(--ff-duration-fast) var(--ff-ease-standard);
+}
+
+.menu-search__option:hover {
+  background-color: var(--ff-hover);
+}
+
+.menu-search__option.is-active {
+  color: var(--ff-color-text-primary);
+  background-color: var(--ff-shell-active);
+}
+
+.menu-search__option-icon {
+  flex-shrink: 0;
+  color: var(--ff-color-text-secondary);
+}
+
+.menu-search__option.is-active .menu-search__option-icon {
+  color: var(--ff-accent);
+}
+
+.menu-search__option-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-search__remove {
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: 3px;
+  color: var(--ff-color-text-secondary);
+  border-radius: 6px;
+  opacity: 0;
+  transition:
+    opacity var(--ff-duration-fast) var(--ff-ease-standard),
+    color var(--ff-duration-fast) var(--ff-ease-standard),
+    background-color var(--ff-duration-fast) var(--ff-ease-standard);
+}
+
+.menu-search__option:hover .menu-search__remove,
+.menu-search__option.is-active .menu-search__remove {
+  opacity: 1;
+}
+
+.menu-search__remove:hover {
+  color: var(--ff-danger);
+  background-color: var(--ff-press);
+}
+
+.menu-search__empty {
+  padding: 8px 10px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--ff-color-text-secondary);
+  text-align: center;
+}
+
+.menu-search__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+  margin-top: 4px;
+  border-top: 1px solid var(--ff-line);
+}
+
+.menu-search__clear {
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--ff-color-text-secondary);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  transition:
+    color var(--ff-duration-fast) var(--ff-ease-standard),
+    background-color var(--ff-duration-fast) var(--ff-ease-standard);
+}
+
+.menu-search__clear:hover {
+  color: var(--ff-danger);
+  background-color: var(--ff-hover);
+}
+
+.menu-search__clear:focus-visible {
+  outline: 2px solid var(--el-color-primary-light-5);
+  outline-offset: -2px;
+}
+
 .tags-container {
   background: var(--ff-shell-surface-muted) !important;
   border-bottom-color: var(--ff-shell-border) !important;
@@ -256,6 +478,34 @@ html.sidebar-color-blue {
 
   .layout__header .el-breadcrumb__inner {
     color: var(--menu-text) !important;
+  }
+
+  // 蓝调顶栏上的搜索胶囊：蓝调不透明底上叠一层白，描边和聚焦环也换成白色，虹彩色在蓝底上对比不够
+  .layout__header .menu-search__field {
+    color: var(--menu-text);
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.12)),
+      linear-gradient(var(--ff-sidebar-glass-tint), var(--ff-sidebar-glass-tint)), var(--ff-canvas);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.24);
+  }
+
+  .layout__header .menu-search__field:focus-within {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.72),
+      0 0 0 4px rgba(255, 255, 255, 0.16);
+  }
+
+  .layout__header .menu-search__input {
+    color: #fff;
+  }
+
+  .layout__header .menu-search__input::placeholder,
+  .layout__header .menu-search__kbd {
+    color: var(--menu-text);
+  }
+
+  .layout__header .menu-search__kbd {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
   }
 }
 

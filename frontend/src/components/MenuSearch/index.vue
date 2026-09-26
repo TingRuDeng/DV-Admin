@@ -1,203 +1,254 @@
 <template>
-  <button
-    type="button"
-    class="navbar-icon-button"
-    :aria-label="t('navbar.search')"
-    @click="openSearchModal"
-  >
-    <AppIcon name="search" :size="18" />
-  </button>
+  <div class="menu-search">
+    <!-- 外层在文档流里固定占位，胶囊绝对定位，聚焦时向左展开盖住左侧内容，布局不重排 -->
+    <label ref="fieldRef" class="menu-search__field">
+      <AppIcon name="search" :size="16" class="menu-search__icon" />
+      <input
+        ref="inputRef"
+        v-model="keyword"
+        type="text"
+        class="menu-search__input"
+        role="combobox"
+        autocomplete="off"
+        spellcheck="false"
+        :placeholder="t('navbar.search')"
+        :aria-label="t('navbar.search')"
+        aria-autocomplete="list"
+        :aria-expanded="isListboxVisible ? 'true' : 'false'"
+        :aria-controls="listboxId"
+        :aria-activedescendant="activeOptionId"
+        @focus="openPanel"
+        @blur="closePanel"
+        @click="openPanel"
+        @input="openPanel"
+        @keydown="handleKeydown"
+      />
+      <kbd class="menu-search__kbd" aria-hidden="true">{{ shortcutLabel }}</kbd>
+    </label>
 
-  <ProDialog
-    v-model="isModalVisible"
-    width="30%"
-    :append-to-body="true"
-    :show-close="false"
-    :show-confirm-button="false"
-    cancel-text="关闭"
-    @close="closeSearchModal"
-  >
-    <template #header>
-      <el-input
-        ref="searchInputRef"
-        v-model="searchKeyword"
-        size="large"
-        placeholder="输入菜单名称关键字搜索"
-        clearable
-        @keyup.enter="selectActiveResult"
-        @input="updateSearchResults"
-        @keydown.up.prevent="navigateResults('up')"
-        @keydown.down.prevent="navigateResults('down')"
-        @keydown.esc="closeSearchModal"
+    <Teleport to="body">
+      <!--
+        按下时阻止默认行为，点击选项或按钮不会先让输入框失焦把面板收掉。
+        必须用 pointerdown：main.ts 引入的 default-passive-events 把 mousedown 监听默认设成 passive，preventDefault 无效
+      -->
+      <div
+        v-show="isPanelVisible"
+        class="menu-search__panel"
+        :style="panelStyle"
+        @pointerdown.prevent
       >
-        <template #prepend>
-          <el-button icon="Search" :aria-label="t('navbar.search')" />
-        </template>
-      </el-input>
-    </template>
+        <ul
+          v-show="isListboxVisible"
+          :id="listboxId"
+          role="listbox"
+          class="menu-search__listbox"
+          :aria-label="isHistoryMode ? t('navbar.searchHistory') : t('navbar.searchResults')"
+        >
+          <!-- 收起时不渲染选项，页面里不留一份隐藏的菜单标题 -->
+          <template v-if="isPanelOpen">
+            <MenuSearchHistory
+              v-if="isHistoryMode"
+              :active-index="activeIndex"
+              :id-prefix="optionIdPrefix"
+              :items="searchHistory"
+              @remove="removeHistoryAt"
+              @select="selectItem"
+            />
+            <MenuSearchResultList
+              v-else
+              :active-index="activeIndex"
+              :id-prefix="optionIdPrefix"
+              :items="searchResults"
+              @select="selectItem"
+            />
+          </template>
+        </ul>
 
-    <div class="search-result">
-      <MenuSearchHistory
-        v-if="searchKeyword === '' && searchHistory.length > 0"
-        :items="searchHistory"
-        @clear="clearHistory"
-        @remove="removeHistoryItem"
-        @select="navigateToRoute"
-      />
+        <p v-if="isNoMatch" class="menu-search__empty" role="status">
+          {{ t("navbar.searchNoMatch") }}
+        </p>
 
-      <MenuSearchResultList
-        v-else
-        :active-index="activeIndex"
-        :items="displayResults"
-        @select="navigateToRoute"
-      />
-
-      <!-- 无搜索历史显示 -->
-      <div v-if="searchKeyword === '' && searchHistory.length === 0" class="no-history">
-        <p class="no-history__text">没有搜索历史</p>
+        <div v-if="isHistoryMode && isListboxVisible" class="menu-search__footer">
+          <button type="button" class="menu-search__clear" @click="clearHistory">
+            {{ t("navbar.clearSearchHistory") }}
+          </button>
+        </div>
       </div>
-    </div>
-
-    <template #footer>
-      <MenuSearchFooter />
-    </template>
-  </ProDialog>
+    </Teleport>
+  </div>
 </template>
 
 <script setup lang="ts">
-import ProDialog from "@/components/ProDialog/index.vue";
+import { computed, nextTick, onMounted, ref, useId, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import { useRoute, useRouter } from "vue-router";
+import { useElementBounding, useEventListener } from "@vueuse/core";
 import AppIcon from "@/components/AppIcon/index.vue";
-import router from "@/router";
 import { usePermissionStore } from "@/store";
 import { isExternal } from "@/utils";
-import MenuSearchFooter from "./MenuSearchFooter.vue";
 import MenuSearchHistory from "./MenuSearchHistory.vue";
 import MenuSearchResultList from "./MenuSearchResultList.vue";
 import { buildMenuSearchItems } from "./menu-search-routes";
-import type { SearchDirection, SearchItem } from "./types";
+import type { SearchItem } from "./types";
 import { useMenuSearchHistory } from "./useMenuSearchHistory";
+import { useMenuSearchShortcut } from "./useMenuSearchShortcut";
 
-const permissionStore = usePermissionStore();
 const { t } = useI18n();
-const isModalVisible = ref(false);
-const searchKeyword = ref("");
-const searchInputRef = ref();
-const menuItems = ref<SearchItem[]>([]);
-const searchResults = ref<SearchItem[]>([]);
+const route = useRoute();
+const router = useRouter();
+const permissionStore = usePermissionStore();
+
+const baseId = `menu-search-${useId()}`;
+const listboxId = `${baseId}-listbox`;
+const optionIdPrefix = `${baseId}-option`;
+
+const fieldRef = ref<HTMLElement>();
+const inputRef = ref<HTMLInputElement>();
+const keyword = ref("");
+const isPanelOpen = ref(false);
 const activeIndex = ref(-1);
 
 const { addToHistory, clearHistory, loadSearchHistory, removeHistoryItem, searchHistory } =
   useMenuSearchHistory();
+const { shortcutLabel } = useMenuSearchShortcut(focusInput);
 
-// 注册全局快捷键
-function handleKeyDown(e: KeyboardEvent) {
-  // 判断是否为Ctrl+K组合键
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-    e.preventDefault(); // 阻止默认行为
-    openSearchModal();
-  }
-}
+// 菜单跟随权限路由重新生成，路由晚于组件挂载注入时也能搜到
+const menuItems = computed(() => buildMenuSearchItems(permissionStore.routes));
+const normalizedKeyword = computed(() => keyword.value.trim().toLowerCase());
+const isHistoryMode = computed(() => normalizedKeyword.value === "");
+const searchResults = computed(() =>
+  isHistoryMode.value
+    ? []
+    : menuItems.value.filter((item) => item.title.toLowerCase().includes(normalizedKeyword.value))
+);
+const options = computed(() => (isHistoryMode.value ? searchHistory.value : searchResults.value));
 
-// 添加键盘事件监听
-onMounted(() => {
-  menuItems.value = buildMenuSearchItems(permissionStore.routes);
-  loadSearchHistory();
-  document.addEventListener("keydown", handleKeyDown);
-});
+// listbox 只在有选项时展开；有关键字却没有匹配时，面板只显示空状态
+const isListboxVisible = computed(() => isPanelOpen.value && options.value.length > 0);
+const isNoMatch = computed(
+  () => isPanelOpen.value && !isHistoryMode.value && searchResults.value.length === 0
+);
+const isPanelVisible = computed(() => isListboxVisible.value || isNoMatch.value);
+const activeOptionId = computed(() =>
+  isListboxVisible.value && activeIndex.value >= 0 && activeIndex.value < options.value.length
+    ? `${optionIdPrefix}-${activeIndex.value}`
+    : undefined
+);
 
-// 移除键盘事件监听
-onBeforeUnmount(() => {
-  document.removeEventListener("keydown", handleKeyDown);
-});
+// 面板传送到 body，右边缘对齐胶囊右边缘（胶囊只向左展开，右边缘不动）
+const {
+  bottom: fieldBottom,
+  right: fieldRight,
+  update: updateFieldBounding,
+} = useElementBounding(fieldRef);
+const panelStyle = computed(() => ({
+  top: `${fieldBottom.value + 8}px`,
+  left: `${fieldRight.value}px`,
+}));
 
-// 打开搜索模态框
-function openSearchModal() {
-  searchKeyword.value = "";
+// left 布局的主内容区是内部滚动容器，window 上收不到 scroll，用捕获阶段兜底
+useEventListener(
+  document,
+  "scroll",
+  () => {
+    if (isPanelVisible.value) updateFieldBounding();
+  },
+  { capture: true, passive: true }
+);
+
+onMounted(loadSearchHistory);
+
+watch(normalizedKeyword, () => {
   activeIndex.value = -1;
-  isModalVisible.value = true;
-  setTimeout(() => {
-    searchInputRef.value.focus();
-  }, 100);
+});
+watch(() => route.fullPath, closePanel);
+
+function openPanel() {
+  updateFieldBounding();
+  isPanelOpen.value = true;
 }
 
-// 关闭搜索模态框
-function closeSearchModal() {
-  isModalVisible.value = false;
-}
-
-// 更新搜索结果
-function updateSearchResults() {
+function closePanel() {
+  isPanelOpen.value = false;
   activeIndex.value = -1;
-  if (searchKeyword.value) {
-    const keyword = searchKeyword.value.toLowerCase();
-    searchResults.value = menuItems.value.filter((item) =>
-      item.title.toLowerCase().includes(keyword)
-    );
+}
+
+function focusInput() {
+  inputRef.value?.focus();
+  inputRef.value?.select();
+  openPanel();
+}
+
+// 上下键循环高亮，并把高亮项滚到可见区域
+function moveActive(step: 1 | -1) {
+  const count = options.value.length;
+  if (count === 0) return;
+
+  if (activeIndex.value < 0) {
+    activeIndex.value = step > 0 ? 0 : count - 1;
   } else {
-    searchResults.value = [];
+    activeIndex.value = (activeIndex.value + step + count) % count;
+  }
+
+  const optionId = `${optionIdPrefix}-${activeIndex.value}`;
+  nextTick(() => document.getElementById(optionId)?.scrollIntoView({ block: "nearest" }));
+}
+
+// 删除后高亮留在原位置，指向下一项；删的是最后一项时退回上一项
+function removeHistoryAt(index: number) {
+  removeHistoryItem(index);
+  if (activeIndex.value > index || activeIndex.value >= searchHistory.value.length) {
+    activeIndex.value -= 1;
   }
 }
 
-// 显示搜索结果
-const displayResults = computed(() => searchResults.value);
+function handleKeydown(event: KeyboardEvent) {
+  // 输入法组字时的回车、方向键属于输入法
+  if (event.isComposing) return;
 
-// 执行搜索
-function selectActiveResult() {
-  if (displayResults.value.length > 0 && activeIndex.value >= 0) {
-    navigateToRoute(displayResults.value[activeIndex.value]);
+  switch (event.key) {
+    case "ArrowDown":
+    case "ArrowUp":
+      event.preventDefault();
+      openPanel();
+      moveActive(event.key === "ArrowDown" ? 1 : -1);
+      break;
+    case "Enter": {
+      // 有高亮选高亮项，没有高亮时回车直接选第一个匹配
+      const item = isListboxVisible.value
+        ? (options.value[activeIndex.value] ?? searchResults.value[0])
+        : searchResults.value[0];
+      if (!item) return;
+      event.preventDefault();
+      selectItem(item);
+      break;
+    }
+    case "Escape":
+      if (!isPanelVisible.value) return;
+      event.preventDefault();
+      closePanel();
+      break;
+    case "Tab":
+      closePanel();
+      break;
+    case "Delete":
+      if (!isHistoryMode.value || !activeOptionId.value) return;
+      event.preventDefault();
+      removeHistoryAt(activeIndex.value);
+      break;
   }
 }
 
-// 导航搜索结果
-function navigateResults(direction: SearchDirection) {
-  if (displayResults.value.length === 0) return;
-
-  if (direction === "up") {
-    activeIndex.value =
-      activeIndex.value <= 0 ? displayResults.value.length - 1 : activeIndex.value - 1;
-  } else if (direction === "down") {
-    activeIndex.value =
-      activeIndex.value >= displayResults.value.length - 1 ? 0 : activeIndex.value + 1;
-  }
-}
-
-// 跳转到
-function navigateToRoute(item: SearchItem) {
-  closeSearchModal();
-  // 添加到历史记录
+function selectItem(item: SearchItem) {
   addToHistory(item);
+  keyword.value = "";
+  closePanel();
+  inputRef.value?.blur();
 
   if (isExternal(item.path)) {
-    window.open(item.path, "_blank");
+    window.open(item.path, "_blank", "noopener");
   } else {
     router.push({ path: item.path, query: item.params });
   }
 }
 </script>
-
-<style scoped lang="scss">
-.search-result {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-/* 没有搜索历史时的样式 */
-.no-history {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100px;
-
-  &__text {
-    font-size: 14px;
-    color: var(--el-text-color-secondary);
-  }
-}
-
-// 适配Element Plus对话框
-:deep(.el-dialog__footer) {
-  box-sizing: border-box;
-  padding-top: 10px;
-  text-align: right;
-}
-</style>

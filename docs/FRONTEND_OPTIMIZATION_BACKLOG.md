@@ -291,7 +291,7 @@ ai_summary:
 - PR3 验收：`pnpm run quality` 通过（105 个测试文件、345 项测试），Mock smoke 20/20 通过。
 - 构建：与合并基线交替各跑三次，`pnpm run build` 墙钟中位数 12.78s → 12.85s（+0.5%），Vite 构建中位数 6.49s → 6.48s；总 JavaScript 2,719,979 → 2,720,966 bytes（+0.04%），CSS 736,346 → 728,036 bytes；新增自托管 Geist woff2 共 52,528 bytes。未触发 10% 停止条件。
 - 截图复核：登录、首页、用户管理在深浅两种模式、1440 / 1024 / 390 宽度、left / top 布局和多个预设色下无横向溢出、无 console 报错；reduced-motion 下首页直接呈现终态。临时截图用例未进入提交。
-- 保持现状：注册与重置密码表单当前不可达，没有重做；MenuSearch 聚焦加宽未实施。
+- 保持现状：注册与重置密码表单当前不可达，没有重做；MenuSearch 聚焦加宽在 PR3 未实施，之后已改为导航栏内联 combobox（`codex/navbar-inline-search`，聚焦时胶囊向左展开，不重排顶栏）。
 
 ---
 

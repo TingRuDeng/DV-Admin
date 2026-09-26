@@ -8,5 +8,3 @@ export interface SearchItem {
   redirect?: string;
   params?: LocationQueryRaw;
 }
-
-export type SearchDirection = "up" | "down";
