@@ -19,6 +19,7 @@ import { nextTick, ref, watch } from "vue";
 import { useEventListener, useScrollLock } from "@vueuse/core";
 import { useRoute } from "vue-router";
 import { useLayout, useDeviceDetection } from "@/composables";
+import { useAppStore } from "@/store";
 
 /// Layout-related functionality and state management
 const { layoutClass, isSidebarOpen, closeSidebar } = useLayout();
@@ -26,6 +27,7 @@ const { layoutClass, isSidebarOpen, closeSidebar } = useLayout();
 /// Device detection for responsive layout
 const { isMobile } = useDeviceDetection();
 const route = useRoute();
+const appStore = useAppStore();
 const layoutRef = ref<HTMLElement | null>(null);
 const bodyScrollLock = useScrollLock(typeof document === "undefined" ? null : document.body);
 const restoreFocusTarget = ref<HTMLElement | null>(null);
@@ -89,6 +91,13 @@ watch(
   },
   { immediate: true }
 );
+
+// 内容最大化时 Esc 恢复布局；弹窗等浮层自己处理的 Esc 会先 preventDefault，不会误触发
+useEventListener("keydown", (event) => {
+  if (event.key !== "Escape" || event.defaultPrevented || !appStore.contentMaximized) return;
+  if (document.querySelector(".el-overlay:not([style*='display: none'])")) return;
+  appStore.toggleContentMaximized(false);
+});
 
 useEventListener("keydown", (event) => {
   if (event.key !== "Escape" || event.defaultPrevented) return;

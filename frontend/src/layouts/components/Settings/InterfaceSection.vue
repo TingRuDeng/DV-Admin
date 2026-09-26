@@ -16,6 +16,11 @@
       <el-switch v-model="settingsStore.showTagsView" />
     </div>
 
+    <div v-if="settingsStore.layout === LayoutMode.LEFT" class="config-item flex-x-between">
+      <span class="text-xs">{{ t("settings.sidebarPeek") }}</span>
+      <el-switch v-model="settingsStore.sidebarPeek" />
+    </div>
+
     <div class="config-item flex-x-between">
       <span class="text-xs">{{ t("settings.showAppLogo") }}</span>
       <el-switch v-model="settingsStore.showAppLogo" />
@@ -41,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { SidebarColor, ThemeMode } from "@/enums";
+import { LayoutMode, SidebarColor, ThemeMode } from "@/enums";
 import { themeColorPresets } from "@/settings";
 import { useSettingsStore } from "@/store";
 import type { RadioGroupChangeValue, SidebarColorScheme } from "./types";

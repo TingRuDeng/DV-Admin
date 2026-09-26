@@ -1,0 +1,23 @@
+// 主题切换的圆形扩散（ThemeToggle.vue 驱动）：关掉浏览器默认的交叉淡化，
+// 由脚本在 ::view-transition-new(root) 上做 clip-path 动画，新视图始终叠在旧视图之上。
+::view-transition-old(root),
+::view-transition-new(root) {
+  mix-blend-mode: normal;
+  animation: none;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

@@ -13,7 +13,9 @@ export const defaultSettings: AppSettings = {
   // 是否显示设置
   showSettings: true,
   // 是否显示标签视图
-  showTagsView: false,
+  showTagsView: true,
+  // 左侧布局收起时，鼠标悬停侧栏临时展开预览
+  sidebarPeek: true,
   // 是否显示应用Logo
   showAppLogo: true,
   // 布局方式，默认为左侧布局

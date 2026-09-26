@@ -14,6 +14,7 @@ function createRouteTag(route: ReturnType<typeof useRoute>): TagView | null {
     path: route.path,
     fullPath: route.fullPath,
     cacheKey: getRouteCacheKey(route),
+    icon: typeof route.meta.icon === "string" ? route.meta.icon : undefined,
     affix: route.meta.affix || false,
     keepAlive: route.meta.keepAlive || false,
     query: route.query,
