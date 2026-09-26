@@ -136,6 +136,7 @@ class TokenBlacklistService(TokenBlacklistCompatibilityMixin):
         self,
         token: str,
         user_id: int,
+        reason: str = "refresh_rotation",
     ) -> bool:
         """原子消费刷新令牌，确保同一令牌最多成功使用一次。"""
         try:
@@ -155,7 +156,7 @@ class TokenBlacklistService(TokenBlacklistCompatibilityMixin):
             record = build_token_blacklist_record(
                 token=token,
                 user_id=user_id,
-                reason="refresh_rotation",
+                reason=reason,
                 expires_at=expiration,
                 revoked_at=datetime.now(timezone.utc),
             )

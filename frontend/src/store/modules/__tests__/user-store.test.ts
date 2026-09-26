@@ -107,6 +107,18 @@ describe("useUserStore", () => {
     expect(setTokensSpy).toHaveBeenCalledWith("new-access-token", "new-refresh-token", true);
   });
 
+  it("sends the session refresh token on logout so the server can revoke it", async () => {
+    vi.mocked(AuthAPI.logout).mockResolvedValue({} as Awaited<ReturnType<typeof AuthAPI.logout>>);
+    vi.spyOn(AuthStorage, "getRefreshToken").mockReturnValue("session-refresh-token");
+    const clearAuthSpy = vi.spyOn(AuthStorage, "clearAuth");
+    const userStore = useUserStore();
+
+    await userStore.logout();
+
+    expect(AuthAPI.logout).toHaveBeenCalledWith("session-refresh-token");
+    expect(clearAuthSpy).toHaveBeenCalled();
+  });
+
   it("clears local credentials on explicit logout even when revocation fails", async () => {
     const unavailable = Object.assign(new Error("Service unavailable"), { status: 503 });
     vi.mocked(AuthAPI.logout).mockRejectedValue(unavailable);
