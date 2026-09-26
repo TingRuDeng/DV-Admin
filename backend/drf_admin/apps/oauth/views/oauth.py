@@ -10,6 +10,7 @@ from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
@@ -164,13 +165,16 @@ class LogoutAPIView(APIView):
     """
 
     def post(self, request):
-        try:
-            refresh_token = request.data.get("refreshToken")
-            if refresh_token:
+        # CamelCase 解析器会把请求体里的 refreshToken 转成 refresh_token
+        refresh_token = request.data.get("refresh_token") or request.data.get("refreshToken")
+        if isinstance(refresh_token, str) and refresh_token:
+            try:
                 token = RefreshToken(refresh_token)
-                token.blacklist()
-        except Exception as e:
-            logger.warning(f"Token blacklist failed: {str(e)}")
+                # 只撤销当前用户自己的令牌，拿到别人的令牌也不能借退出接口让对方下线
+                if str(token.get("user_id")) == str(request.user.pk):
+                    token.blacklist()
+            except TokenError as e:
+                logger.warning(f"Token blacklist failed: {str(e)}")
         return Response({"message": "退出成功"}, status=status.HTTP_200_OK)
 
 

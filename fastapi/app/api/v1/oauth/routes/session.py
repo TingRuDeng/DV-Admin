@@ -1,6 +1,6 @@
 """OAuth 会话相关 API 路由。"""
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Body, Request
 
 from app.api.deps import CurrentUser
 from app.core.error_codes import REFRESH_TOKEN_INVALID_CODE
@@ -13,7 +13,7 @@ from app.core.security import (
 )
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
-from app.schemas.oauth import RefreshTokenRequest, Token
+from app.schemas.oauth import LogoutRequest, RefreshTokenRequest, Token
 from app.services.login_tokens import issue_login_tokens
 from app.services.token_blacklist import token_blacklist_service
 
@@ -188,6 +188,7 @@ async def refresh_token(
 async def logout(
     request: Request,
     current_user: Users = CurrentUser,
+    payload: LogoutRequest | None = Body(default=None),
 ) -> ResponseModel[None]:
     # 从请求头获取 Token
     authorization = request.headers.get("Authorization")
@@ -203,5 +204,13 @@ async def logout(
             )
             if not revoked:
                 raise ServiceUnavailable("退出的服务端令牌撤销尚未完成，请稍后重试")
+
+    # 同时消费当前会话的刷新令牌；类型不对或属于其他用户时 consume 会拒绝，这里忽略即可
+    if payload and payload.refresh_token:
+        await token_blacklist_service.consume_refresh_token(
+            payload.refresh_token,
+            current_user.id,
+            reason="logout",
+        )
 
     return ResponseModel.success(message="登出成功")

@@ -37,7 +37,6 @@ BASE_DIR = Path(__file__).resolve().parent
 # 确定当前环境，默认为开发环境
 environment = os.environ.get("ENVIRONMENT", "dev")
 ENVIRONMENT = environment
-TRUSTED_PROXY_IPS = os.environ.get("TRUSTED_PROXY_IPS", "")
 # 根据环境读取对应的 .env 文件
 if environment == "dev":
     env_file = (BASE_DIR.parent / ".env.dev").resolve()
@@ -51,6 +50,9 @@ if Path(env_file).exists():
     env.read_env(env_file)
 else:
     raise FileNotFoundError(f"警告: 未找到环境变量文件: {env_file}")
+
+# 必须在加载 .env 之后读取：read_env 只补齐进程环境里没有的变量，进程环境仍然优先
+TRUSTED_PROXY_IPS = env.str("TRUSTED_PROXY_IPS", default="")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str("SECRET_KEY")
