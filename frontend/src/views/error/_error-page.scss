@@ -1,32 +1,5 @@
-<template>
-  <div class="error-page" role="main">
-    <div class="error-page__visual" aria-hidden="true">
-      <img src="@/assets/images/404.svg" alt="" class="error-page__image" />
-    </div>
-    <div class="error-page__content">
-      <p class="error-page__code">404</p>
-      <h1 class="error-page__title">{{ t("error.notFoundTitle") }}</h1>
-      <p class="error-page__desc">{{ t("error.notFoundDesc") }}</p>
-      <div class="error-page__actions">
-        <el-button type="primary" round class="error-page__btn" @click="back">
-          <AppIcon name="arrow-left" :size="16" />
-          {{ t("error.backHome") }}
-        </el-button>
-      </div>
-    </div>
-  </div>
-</template>
-
-<script setup lang="ts">
-import AppIcon from "@/components/AppIcon/index.vue";
-
-defineOptions({ name: "Page404" });
-const router = useRouter();
-const { t } = useI18n();
-const back = () => router.push("/");
-</script>
-
-<style lang="scss" scoped>
+// 错误页面（401、404、403）公用样式
+// 两侧各一个面板，宽屏左插图右文字，窄屏堆叠
 .error-page {
   display: flex;
   flex-wrap: wrap;
@@ -39,12 +12,12 @@ const back = () => router.push("/");
 
 .error-page__visual {
   flex: 0 1 420px;
+  animation: ff-panel-enter 0.6s var(--ff-ease-out) backwards;
 }
 
 .error-page__image {
   width: 100%;
   max-width: 420px;
-  animation: ff-panel-enter 0.6s var(--ff-ease-out) backwards;
 }
 
 .error-page__content {
@@ -89,10 +62,9 @@ const back = () => router.push("/");
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .error-page__image,
+  .error-page__visual,
   .error-page__content {
     opacity: 1;
     animation: none;
   }
 }
-</style>
