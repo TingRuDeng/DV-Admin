@@ -1,6 +1,6 @@
 import { store } from "@/store";
 
-import AuthAPI, { type LoginFormData, type UserInfo } from "@/api/auth-api";
+import AuthAPI, { type LoginFormData, type OidcLoginData, type UserInfo } from "@/api/auth-api";
 
 import { AuthStorage } from "@/utils/auth";
 import { usePermissionStoreHook } from "@/store/modules/permission-store";
@@ -45,6 +45,14 @@ export const useUserStore = defineStore("user", () => {
           reject(error);
         });
     });
+  }
+
+  /**
+   * 单点登录：用身份提供方回调的授权码换取本地令牌，存储方式沿用当前的记住我设置
+   */
+  async function loginWithOidc(data: OidcLoginData) {
+    const { accessToken, refreshToken } = await AuthAPI.oidcLogin(data);
+    AuthStorage.setTokens(accessToken, refreshToken, rememberMe.value);
   }
 
   /**
@@ -149,6 +157,7 @@ export const useUserStore = defineStore("user", () => {
     isLoggedIn: () => !!AuthStorage.getAccessToken(),
     getUserInfo,
     login,
+    loginWithOidc,
     logout,
     resetAllState,
     resetUserState,

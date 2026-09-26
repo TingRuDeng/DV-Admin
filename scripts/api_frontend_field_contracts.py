@@ -331,7 +331,9 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
     ),
 )
 
-FRONTEND_FIELD_CONTRACT_EXEMPT_ENDPOINTS = frozenset({"auth_login", "files_upload"})
+FRONTEND_FIELD_CONTRACT_EXEMPT_ENDPOINTS = frozenset(
+    {"auth_login", "auth_oidc_authorize", "auth_oidc_login", "files_upload"}
+)
 
 
 def iter_api_frontend_field_contracts() -> tuple[FrontendFieldContract, ...]:

@@ -9,7 +9,7 @@ from tortoise.migrations import operations as ops
 
 from app.core.config import Settings
 from app.db.migration_config import TORTOISE_ORM
-from app.db.models.oauth import Users
+from app.db.models.oauth import OidcIdentity, Users
 from app.db.models.system import (
     Departments,
     DictData,
@@ -28,6 +28,7 @@ RequestIdMigration = import_module(
 AuditContextMigration = import_module(
     "app.db.migrations.0003_operationlog_audit_context"
 ).Migration
+OidcIdentityMigration = import_module("app.db.migrations.0004_oidc_identities").Migration
 
 MODELS = (
     Departments,
@@ -35,6 +36,7 @@ MODELS = (
     DictItems,
     NoticeReads,
     Notices,
+    OidcIdentity,
     OperationLog,
     Permissions,
     Roles,
@@ -122,6 +124,23 @@ def test_audit_context_migration_backfills_without_json_database_default():
     assert run_python[0].code is ops.RunPython.noop
     assert run_python[0].reverse_code is run_python[1].code
     assert run_python[1].reverse_code is ops.RunPython.noop
+
+
+def test_oidc_identity_migration_creates_unique_identity_table():
+    create_model = OidcIdentityMigration.operations[0]
+
+    assert OidcIdentityMigration.dependencies == [
+        ("models", "0003_operationlog_audit_context")
+    ]
+    assert OidcIdentityMigration.initial is False
+    assert len(OidcIdentityMigration.operations) == 1
+    assert isinstance(create_model, ops.CreateModel)
+    assert create_model.options["table"] == "oauth_oidc_identities"
+    assert create_model.options["unique_together"] == (("issuer", "subject"),)
+    fields = dict(create_model.fields)
+    assert fields["user"].on_delete == "CASCADE"
+    assert fields["last_login_at"].null is True
+    assert fields["email"].default == ""
 
 
 def test_audit_context_model_keeps_application_default_only():

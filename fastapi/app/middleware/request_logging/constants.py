@@ -20,6 +20,7 @@ EXCLUDED_BODY_PATHS: frozenset[str] = frozenset(
         "/api/v1/auth/login",
         "/api/v1/auth/password",
         "/api/v1/oauth/login",
+        "/api/v1/oauth/oidc",
         "/api/v1/oauth/refresh-token",
         "/api/v1/information/password",
         "/api/v1/information/change-avatar",

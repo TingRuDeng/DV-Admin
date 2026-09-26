@@ -13,6 +13,8 @@ from app.api.v1.oauth.routes.login import login, login_access_token
 from app.api.v1.oauth.routes.login import router as login_router
 from app.api.v1.oauth.routes.menus import get_user_menus
 from app.api.v1.oauth.routes.menus import router as menus_router
+from app.api.v1.oauth.routes.oidc import oidc_authorize, oidc_login
+from app.api.v1.oauth.routes.oidc import router as oidc_router
 from app.api.v1.oauth.routes.profile import get_current_user_info
 from app.api.v1.oauth.routes.profile import router as profile_router
 from app.api.v1.oauth.routes.session import logout, refresh_token
@@ -24,6 +26,7 @@ router.include_router(session_router)
 router.include_router(profile_router)
 router.include_router(menus_router)
 router.include_router(captcha_router)
+router.include_router(oidc_router)
 
 __all__ = [
     "get_captcha",
@@ -32,6 +35,8 @@ __all__ = [
     "login",
     "login_access_token",
     "logout",
+    "oidc_authorize",
+    "oidc_login",
     "refresh_token",
     "router",
 ]

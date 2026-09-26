@@ -158,7 +158,11 @@ def test_fastapi_model_unique_together_matches_shared_contracts():
     assert hasattr(model_contracts, "iter_fastapi_unique_together_contracts")
     for contract in model_contracts.iter_fastapi_unique_together_contracts():
         model = FIELD_MODEL_MAPPING[contract.fastapi_model]
-        assert tuple(model.Meta.unique_together) == contract.fields
+        raw = tuple(model.Meta.unique_together)
+        # Tortoise 支持两种写法：("a","b") 和 (("a","b"),)
+        # 契约和 AST 提取器都只记录单组字段，与外层包装无关
+        fields = raw[0] if len(raw) == 1 and isinstance(raw[0], (tuple, list)) else raw
+        assert tuple(fields) == contract.fields
 
 
 def find_constraint(model_name: str, field_name: str):

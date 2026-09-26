@@ -14,6 +14,8 @@ ai_summary:
     - "backend/drf_admin/utils/middleware.py"
     - "backend/drf_admin/utils/request_id.py"
     - "backend/drf_admin/apps/system/views/health.py"
+    - "backend/drf_admin/apps/oauth/oidc_policy.py"
+    - "fastapi/app/core/oidc_policy.py"
     - "fastapi/app/main.py"
     - "fastapi/app/db/migration_config.py"
     - "fastapi/app/db/migrations/0001_initial.py"
@@ -385,6 +387,26 @@ Django 与 FastAPI 当前保留历史响应字段差异：Django 输出 `{code,m
 - 登录后可读取 `GET /api/v1/information/password-policy` 的 `minLength/maxLength`，前端按 Unicode 码点计数，策略加载失败时不打开密码修改/重置流程；服务端负责最终常见密码判定。
 - FastAPI 新哈希使用 Django 兼容的 PBKDF2-SHA256、600,000 轮，保留旧 bcrypt/PBKDF2 验证。哈希与验证在线程池执行，不阻塞事件循环；Django 当前生产哈希默认同为 600,000 轮。登录不追溯新强度要求，密码不做自动去空格。
 - 参数错误响应不得包含密码输入值，重置完成不回显明文。共享初始密码的分发与旧弱密码仍是风险，不等价于激活流程或 MFA。
+
+**OIDC 单点登录：**
+
+```
+登录页 ──POST /oauth/oidc/authorize/──▶ 后端生成 state、nonce、PKCE verifier、flowSecret
+                                        Redis 存 {nonce, codeVerifier, sha256(flowSecret)}，600 秒
+   ◀── {authorizationUrl, state, flowSecret}   前端把 state、flowSecret、跳转地址存 sessionStorage
+   ──浏览器跳转身份提供方──▶ 用户登录
+IdP ──302 /oidc/callback?code&state[&iss]──▶ 回调页先清掉地址栏里的 code，再核对 state
+   ──POST /oauth/oidc/login/ {authorizationCode, state, flowSecret, iss?}──▶
+      原子取出并删除 state → 比对 flowSecret 哈希 → 核对 iss → 授权码 + verifier 换 ID Token
+      → 校验签名与 claims → 解析或开通本地账号 → 签发与密码登录相同的本地 JWT
+```
+
+- 协议判断集中在两端逐字节一致的 `oidc_policy.py`（`backend/drf_admin/apps/oauth/`、`fastapi/app/core/`），根目录 `tests/test_oidc_policy_contract.py` 比对字节。HTTP、Redis 和数据库各自实现：Django 用 `requests`，FastAPI 用 `httpx`，均 5 秒超时、不跟随重定向；discovery 与 JWKS 进程内缓存 1 小时，遇到未知 `kid` 强制刷新一次。
+- `flowSecret` 只出现在发起方收到的响应体里：只拿到回调 URL（可能进入代理日志、Referer 或浏览器历史）无法兑换。前端 state 比对防止登录 CSRF，后端 state 一次性消费防止重放。
+- ID Token 只接受 RS256/ES256/PS256 与 discovery 声明的交集，拒绝 `none` 和 HS*；discovery 的 `issuer` 必须与 `OIDC_ISSUER` 逐字符相等；回调带 `iss` 时必须一致，提供方声明支持 RFC 9207 时必须带。只走授权码流程且不使用 IdP 的 access token，因此不校验 `at_hash`/`c_hash`。
+- 外部身份存 `oauth_oidc_identities`（`issuer`+`subject` 唯一），不改 `system_users`。首次登录顺序：已绑定身份 → 按已验证邮箱匹配唯一的非超级管理员（`OIDC_MATCH_EXISTING_BY_EMAIL`，默认关）→ 自动开通（`OIDC_AUTO_PROVISION`，默认开，可用 `OIDC_ALLOWED_EMAIL_DOMAINS` 限定已验证邮箱域名）→ 拒绝。自动开通的账号使用不可用密码并分配默认角色，只在创建时写入姓名和邮箱。
+- 两个接口与密码登录共用按 IP 的限速桶；state 存储与限速都要求 Redis，不可用返回 503。生产环境启用时要求 issuer 与回调地址为 https 且配置完整，否则拒绝启动。
+- 这次不做：身份提供方组到角色的映射、RP-initiated logout（本地退出后 IdP 会话仍在）、管理员绑定和解绑身份的界面。
 
 ---
 

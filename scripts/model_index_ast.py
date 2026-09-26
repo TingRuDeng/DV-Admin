@@ -74,10 +74,17 @@ def extract_indexes_assignment(meta_node: ast.ClassDef) -> tuple[tuple[str, ...]
 
 
 def extract_unique_together_assignment(meta_node: ast.ClassDef) -> tuple[str, ...]:
-    """读取 Meta.unique_together = (...) 形式的唯一组合声明。"""
+    """读取 Meta.unique_together = ("a", "b") 或只含一组的 (("a", "b"),) 声明。"""
     for statement in meta_node.body:
         if isinstance(statement, ast.Assign) and is_unique_together_target(statement.targets):
-            return extract_index_fields(statement.value)
+            value = statement.value
+            if (
+                isinstance(value, (ast.List, ast.Tuple))
+                and len(value.elts) == 1
+                and isinstance(value.elts[0], (ast.List, ast.Tuple))
+            ):
+                value = value.elts[0]
+            return extract_index_fields(value)
     return ()
 
 

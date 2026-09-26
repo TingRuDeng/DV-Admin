@@ -54,6 +54,14 @@ class DjangoFastapiRelationContract:
     fastapi_forward_key: str
 
 
+# 模型契约只覆盖系统模块与认证模块的表，与 AGENTS.md 的表名前缀约定一致。
+MODEL_APP_PREFIXES = ("system", "oauth")
+
+
+def _has_app_prefix(value: str, separator: str) -> bool:
+    return any(value.startswith(f"{prefix}{separator}") for prefix in MODEL_APP_PREFIXES)
+
+
 def merged_aliases(*aliases: Mapping[str, str]) -> Mapping[str, str]:
     """合并字段别名，返回只读映射，避免调用方修改共享契约。"""
     result: dict[str, str] = {}
@@ -128,6 +136,13 @@ DJANGO_FASTAPI_MODEL_CONTRACTS: tuple[DjangoFastapiModelContract, ...] = (
         fastapi_model="NoticeReads",
         django_table="system_notice_reads",
         fastapi_table="system_notice_reads",
+        field_aliases=COMMON_DJANGO_FIELD_ALIASES,
+    ),
+    DjangoFastapiModelContract(
+        django_model="oauth.oidcidentity",
+        fastapi_model="OidcIdentity",
+        django_table="oauth_oidc_identities",
+        fastapi_table="oauth_oidc_identities",
         field_aliases=COMMON_DJANGO_FIELD_ALIASES,
     ),
 )
@@ -213,10 +228,10 @@ def assert_model_contract_catalog() -> None:
     assert_field_contract_catalog()
     assert_model_index_contract_catalog()
     for contract in DJANGO_FASTAPI_MODEL_CONTRACTS:
-        assert contract.django_model.startswith("system.")
+        assert _has_app_prefix(contract.django_model, ".")
         assert contract.fastapi_model
-        assert contract.django_table.startswith("system_")
-        assert contract.fastapi_table.startswith("system_")
+        assert _has_app_prefix(contract.django_table, "_")
+        assert contract.fastapi_table == contract.django_table
     for contract in DJANGO_FASTAPI_RELATION_CONTRACTS:
         assert contract.django_model.startswith("system.")
         assert contract.django_field

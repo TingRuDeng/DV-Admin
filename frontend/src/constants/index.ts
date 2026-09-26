@@ -10,6 +10,7 @@ export const STORAGE_KEYS = {
   ACCESS_TOKEN: `${APP_PREFIX}:auth:access_token`, // JWT访问令牌
   REFRESH_TOKEN: `${APP_PREFIX}:auth:refresh_token`, // JWT刷新令牌
   REMEMBER_ME: `${APP_PREFIX}:auth:remember_me`, // 记住登录状态
+  OIDC_FLOW: `${APP_PREFIX}:auth:oidc_flow`, // 单点登录进行中的 state 与流程密钥（sessionStorage）
 
   // 系统核心相关
   DICT_CACHE: `${APP_PREFIX}:system:dict_cache:v2`, // 仅缓存按 dictCode 取齐的字典项

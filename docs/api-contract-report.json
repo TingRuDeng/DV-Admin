@@ -1,6 +1,6 @@
 {
   "authenticated_count": 56,
-  "endpoint_count": 57,
+  "endpoint_count": 59,
   "endpoints": [
     {
       "auth_required": false,
@@ -18,6 +18,51 @@
       "request_fields": [
         "username",
         "password"
+      ],
+      "response_fields": [
+        "accessToken",
+        "refreshToken",
+        "tokenType",
+        "expiresIn"
+      ]
+    },
+    {
+      "auth_required": false,
+      "evidence_files": [
+        "backend/drf_admin/apps/oauth/urls.py",
+        "fastapi/app/api/v1/oauth/routes/oidc.py",
+        "frontend/src/api/auth-api.ts"
+      ],
+      "key": "auth_oidc_authorize",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/oauth/oidc/authorize/",
+      "permissions": [],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "authorizationUrl",
+        "state",
+        "flowSecret"
+      ]
+    },
+    {
+      "auth_required": false,
+      "evidence_files": [
+        "backend/drf_admin/apps/oauth/urls.py",
+        "fastapi/app/api/v1/oauth/routes/oidc.py",
+        "frontend/src/api/auth-api.ts"
+      ],
+      "key": "auth_oidc_login",
+      "method": "POST",
+      "paginated": false,
+      "path": "/api/v1/oauth/oidc/login/",
+      "permissions": [],
+      "query_params": [],
+      "request_fields": [
+        "authorizationCode",
+        "state",
+        "flowSecret"
       ],
       "response_fields": [
         "accessToken",

@@ -2,11 +2,13 @@ import importlib
 import sys
 from pathlib import Path
 
+from drf_admin.apps.oauth.models import OidcIdentity
 from drf_admin.apps.system import models as system_models
 from drf_admin.apps.system.models_notice import NoticeReads, Notices
 
 ROOT = Path(__file__).resolve().parents[3]
 DJANGO_MODEL_MAPPING = {
+    "oauth.oidcidentity": OidcIdentity,
     "system.departments": system_models.Departments,
     "system.permissions": system_models.Permissions,
     "system.roles": system_models.Roles,

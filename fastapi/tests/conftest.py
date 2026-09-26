@@ -23,6 +23,8 @@ pytest_plugins = [
     "fixtures.client",
     "runtime_api_contracts.pagination_fixtures",
 ]
+# 测试模块会直接导入其中的断言辅助函数，需在首次导入前登记断言重写。
+pytest.register_assert_rewrite("oidc_fixtures")
 
 
 @pytest.fixture(scope="session")
