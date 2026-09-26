@@ -120,5 +120,15 @@
     "refreshCurrent": "刷新当前页",
     "maximize": "内容最大化",
     "restore": "退出最大化"
+  },
+  "error": {
+    "unauthorizedTitle": "你没有权限访问该页面",
+    "unauthorizedDesc": "如有需要，请联系管理员申请权限。",
+    "notFoundTitle": "抱歉，您访问的页面不存在",
+    "notFoundDesc": "请确认您输入的网址是否正确，或者点击下方按钮返回首页。",
+    "backHome": "返回首页",
+    "goBack": "返回上一页",
+    "forbiddenTitle": "你没有权限访问该页面",
+    "forbiddenDesc": "如需开通权限，请联系管理员。"
   }
 }
