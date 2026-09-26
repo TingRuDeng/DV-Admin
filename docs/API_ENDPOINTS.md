@@ -207,7 +207,7 @@ ai_summary:
 POST /api/v1/oauth/login/
 ```
 
-账号 5 分钟内失败 5 次后冷却 5 分钟，单 IP 每分钟最多 60 次尝试。第 5 次失败及被限速请求返回 429 和 `Retry-After`，被拒请求不延长冷却；成功只清空账号失败计数。FastAPI `/api/v1/oauth/token/` 表单入口执行同一规则。登录保护 Redis 不可用返回 503，开发环境也需要 Redis。
+`username` 也可以填 11 位手机号（`^1[3-9]\d{9}$`），两端规则一致；FastAPI 先按用户名查找，找不到再按手机号查找。账号 5 分钟内失败 5 次后冷却 5 分钟，单 IP 每分钟最多 60 次尝试。第 5 次失败及被限速请求返回 429 和 `Retry-After`，被拒请求不延长冷却；成功只清空账号失败计数。FastAPI `/api/v1/oauth/token/` 表单入口执行同一规则。登录保护 Redis 不可用返回 503，开发环境也需要 Redis。
 
 部署须通过 `TRUSTED_PROXY_IPS` 明确代理 IP/CIDR；未配置时仅采用连接对端 IP。FastAPI Uvicorn 应禁用框架代理头解析，由应用统一校验受信代理链。
 
@@ -290,6 +290,15 @@ POST /api/v1/oauth/oidc/login/
 POST /api/v1/oauth/logout/
 ```
 
+**请求体（可选）：**
+```json
+{
+  "refreshToken": "当前会话的刷新令牌"
+}
+```
+
+带上 `refreshToken` 时，两端都会让它立即失效，之后用它刷新返回 40002；令牌不属于当前用户或格式不对时忽略，退出仍然成功。不带请求体时保持旧行为：FastAPI 只撤销当前访问令牌，Django 不撤销任何令牌。前端 `userStore.logout` 会自动带上当前会话的刷新令牌。
+
 ---
 
 ### 刷新 Token
@@ -371,6 +380,8 @@ GET /api/v1/oauth/captcha/
 ```
 GET /api/v1/oauth/home/
 ```
+
+需要 `system:users:query` 权限；`users` 按当前用户的数据范围统计，和用户列表一致。
 
 **FastAPI 后端无此端点。**
 

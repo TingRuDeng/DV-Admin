@@ -1,5 +1,6 @@
 """OAuth 登录相关 API 路由。"""
 
+import re
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Request
@@ -34,8 +35,19 @@ async def _begin_login(request: Request, username: str) -> str:
     return client_ip
 
 
-async def _authenticate(username: str, password: str, client_ip: str) -> Users:
+# 与 Django 的 UsernameMobileAuthBackend 一致：用户名字段也接受 11 位手机号
+_MOBILE_PATTERN = re.compile(r"^1[3-9]\d{9}$")
+
+
+async def _find_login_user(username: str) -> Users | None:
     user = await Users.get_or_none(username=username)
+    if user is None and _MOBILE_PATTERN.match(username):
+        user = await Users.get_or_none(mobile=username)
+    return user
+
+
+async def _authenticate(username: str, password: str, client_ip: str) -> Users:
+    user = await _find_login_user(username)
     try:
         if not user or not await verify_password_async(password, user.password):
             raise AuthenticationError("用户名或密码错误", code=ERROR_CODE)
