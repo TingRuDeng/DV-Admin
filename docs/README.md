@@ -10,6 +10,7 @@ ai_summary:
     - "docs/ARCHITECTURE.md"
     - "docs/ADR-0001-FRONTEND-MODERNIZATION.md"
     - "docs/ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md"
+    - "docs/ADR-0003-DOUBLE-COLUMN-LAYOUT.md"
     - "docs/API_ENDPOINTS.md"
     - "docs/DATABASE_SCHEMA.md"
     - "scripts/validate_docs.py"
@@ -42,6 +43,7 @@ ai_summary:
 - `docs/ARCHITECTURE.md`
 - `docs/ADR-0001-FRONTEND-MODERNIZATION.md`
 - `docs/ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md`
+- `docs/ADR-0003-DOUBLE-COLUMN-LAYOUT.md`
 - `docs/API_ENDPOINTS.md`
 - `docs/DATABASE_SCHEMA.md`
 - `scripts/validate_docs.py`
@@ -54,6 +56,7 @@ ai_summary:
 - 关键 API 契约由 `scripts/validate_api_contracts.py` 校验，其中包含 `scripts/api_route_coverage_validation.py` 的 `method + path` 路由覆盖守卫。
 - ADR-0001 的七阶段前端现代化路线已完成；当前保留 Vite 8、Vue Router 5、统一壳层与三个代表页成果，并停止批量页面迁移，完整证据在前端 backlog 跟踪。
 - ADR-0002 在 ADR-0001 边界内把前端视觉替换为 Liquid Chrome（玻璃面板、预设色驱动的虹彩、系统光标、无 WebGL）。
+- ADR-0003 在 left/top/mix 之外新增可选的双列布局，移动端退化为左侧布局。
 
 ## How to verify
 
@@ -81,6 +84,7 @@ DV-Admin/
 │   ├── ARCHITECTURE.md         # [权威] 系统架构设计
 │   ├── ADR-0001-FRONTEND-MODERNIZATION.md # [权威-决策] 前端现代化决策
 │   ├── ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md # [权威-决策] 前端视觉系统决策
+│   ├── ADR-0003-DOUBLE-COLUMN-LAYOUT.md # [权威-决策] 双列布局决策
 │   ├── FRONTEND_OPTIMIZATION_BACKLOG.md # [跟踪] 当前前端优化待办
 │   ├── API_ENDPOINTS.md        # [权威-概览] API 契约核心概览
 │   ├── DATABASE_SCHEMA.md      # [权威-概览] 数据库模型核心概览
@@ -213,7 +217,7 @@ cp .env.example .env
 | 级别 | 含义 | 示例 |
 |------|------|------|
 | **权威** | 规则、导航、架构与风险边界事实入口 | `AGENTS.md`, `docs/README.md`, `docs/AI_CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/KNOWN_PITFALLS.md` |
-| **权威-决策** | 已接受的架构取舍、兼容边界、后果与停止条件 | `docs/ADR-0001-FRONTEND-MODERNIZATION.md`, `docs/ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md` |
+| **权威-决策** | 已接受的架构取舍、兼容边界、后果与停止条件 | `docs/ADR-0001-FRONTEND-MODERNIZATION.md`, `docs/ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md`, `docs/ADR-0003-DOUBLE-COLUMN-LAYOUT.md` |
 | **权威-概览** | 经过代码核验的核心概要，非全量清单 | `docs/API_ENDPOINTS.md`, `docs/DATABASE_SCHEMA.md` |
 | **权威-跟踪** | 已确认且持续维护的治理事项 | `docs/TECH_DEBT.md` |
 | **权威-流程** | 提交和交付阶段必须遵循的流程门禁 | `docs/DOC_SYNC_CHECKLIST.md` |
@@ -389,6 +393,19 @@ cp .env.example .env
 **何时阅读：**
 - 修改配色、字体、玻璃面板、动效或主题预设色前
 - 准备新增 `backdrop-filter` 或页面级视觉效果前
+
+---
+
+### ADR-0003-DOUBLE-COLUMN-LAYOUT.md
+
+**用途：** 双列布局的权威决策记录
+
+**内容：**
+- 新增 `double` 布局的结构、交互和移动端退化规则
+- mix 顶部菜单与双列图标栏共用的一级菜单逻辑
+
+**何时阅读：**
+- 修改布局模式、`LayoutMode` 或设置面板的布局选项前
 
 **何时更新：**
 - tokens、玻璃 mixin、虹彩推导或默认预设色变化
@@ -572,6 +589,7 @@ cp .env.example .env
 - [系统架构](./ARCHITECTURE.md)
 - [前端现代化 ADR](./ADR-0001-FRONTEND-MODERNIZATION.md)
 - [前端视觉系统 ADR](./ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md)
+- [双列布局 ADR](./ADR-0003-DOUBLE-COLUMN-LAYOUT.md)
 - [前端优化 backlog](./FRONTEND_OPTIMIZATION_BACKLOG.md)
 - [API 端点](./API_ENDPOINTS.md)
 - [数据库模型](./DATABASE_SCHEMA.md)

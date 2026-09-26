@@ -138,6 +138,7 @@ html.sidebar-color-blue {
   .layout__sidebar,
   .layout__sidebar--left,
   .layout__mobile-menu,
+  .layout-double__panel,
   .layout__header {
     .el-menu-item,
     .el-sub-menu__title {
@@ -166,4 +167,21 @@ html.sidebar-color-blue {
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
     }
   }
+}
+
+// 双列布局的图标栏在经典蓝下同样用白字
+html.sidebar-color-blue .layout-double__rail {
+  .double-rail__item {
+    color: var(--menu-text);
+  }
+
+  .double-rail__item:hover,
+  .double-rail__item.is-active {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.14);
+  }
+}
+
+html.sidebar-color-blue .layout-double__panel-title {
+  color: #ffffff;
 }

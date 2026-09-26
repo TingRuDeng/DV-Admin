@@ -10,6 +10,7 @@ ai_summary:
     - "docs/ARCHITECTURE.md"
     - "docs/ADR-0001-FRONTEND-MODERNIZATION.md"
     - "docs/ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md"
+    - "docs/ADR-0003-DOUBLE-COLUMN-LAYOUT.md"
     - "docs/API_ENDPOINTS.md"
     - "docs/DATABASE_SCHEMA.md"
     - "frontend/package.json"
@@ -60,6 +61,7 @@ ai_summary:
 - `docs/ARCHITECTURE.md`：系统架构、双后端替代关系、前端路由与缓存约定。
 - `docs/ADR-0001-FRONTEND-MODERNIZATION.md`：前端现代化的已接受决策、兼容边界、后果与停止条件。
 - `docs/ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md`：前端 Liquid Chrome 视觉系统的决策、否决效果、token 分层和玻璃写法约束。
+- `docs/ADR-0003-DOUBLE-COLUMN-LAYOUT.md`：新增双列布局的结构、移动端退化和一级菜单复用规则。
 - `docs/FRONTEND_OPTIMIZATION_BACKLOG.md`：ADR-0001 七个串行阶段、状态和验收证据的唯一跟踪入口。
 - `docs/API_ENDPOINTS.md`：核心 API 契约、认证接口和双后端差异。
 - `docs/DATABASE_SCHEMA.md`：核心模型、表名差异和迁移边界。
