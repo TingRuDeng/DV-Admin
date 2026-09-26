@@ -21,6 +21,7 @@ export function extractAffixTags(routes: RouteRecordRaw[], basePath = "/"): TagV
             fullPath,
             meta: route.meta,
           }),
+          icon: typeof route.meta.icon === "string" ? route.meta.icon : undefined,
           affix: true,
           keepAlive: route.meta.keepAlive || false,
         });

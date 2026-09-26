@@ -11,16 +11,14 @@
 <script setup lang="ts">
 import { translateRouteTitle } from "@/utils/i18n";
 import AppIcon from "@/components/AppIcon/index.vue";
+import { normalizeMenuIconName } from "@/components/AppIcon/icon-map";
 
 const props = defineProps<{
   icon?: string;
   title?: string;
 }>();
 
-const iconName = computed(() => {
-  const value = props.icon ?? "menu";
-  return value.replace(/^el-icon-/, "").replace(/^i-svg:/, "");
-});
+const iconName = computed(() => normalizeMenuIconName(props.icon));
 </script>
 
 <style lang="scss" scoped>

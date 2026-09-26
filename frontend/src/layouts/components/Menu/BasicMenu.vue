@@ -3,7 +3,7 @@
   <el-menu
     ref="menuRef"
     :default-active="activeMenuPath"
-    :collapse="!appStore.sidebar.opened"
+    :collapse="collapsed ?? !appStore.sidebar.opened"
     :background-color="menuThemeProps.backgroundColor"
     :text-color="menuThemeProps.textColor"
     :active-text-color="menuThemeProps.activeTextColor"
@@ -47,6 +47,11 @@ const props = defineProps({
     type: String,
     required: true,
     example: "/system",
+  },
+  // 不传时跟随侧栏展开状态；左侧布局悬停预览时临时按展开渲染
+  collapsed: {
+    type: Boolean,
+    default: undefined,
   },
   menuMode: {
     type: String as PropType<"vertical" | "horizontal">,

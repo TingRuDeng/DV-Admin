@@ -30,8 +30,16 @@ body,
 }
 
 // 进度条颜色
+// 路由进度条：2px 虹彩细线，右端 peg 带同色光晕
 #nprogress .bar {
-  background-color: var(--el-color-primary);
+  height: 2px;
+  background: var(--ff-iri);
+}
+
+#nprogress .peg {
+  box-shadow:
+    0 0 10px var(--ff-iri-b),
+    0 0 5px var(--ff-iri-b);
 }
 
 // 窄屏时隐藏菜单文字，只显示图标

@@ -65,7 +65,9 @@
     "notifications": "Notifications",
     "notificationsUnread": "Notifications, {count} unread",
     "userMenu": "User menu",
-    "settings": "System settings"
+    "settings": "System settings",
+    "themeToggle": "Toggle theme",
+    "userCard": "Current user"
   },
   "sizeSelect": {
     "tooltip": "Layout Size",
@@ -107,6 +109,12 @@
     "mixLayout": "Mix Mode",
     "configManagement": "Config Management",
     "copyConfigDescription": "Generate current settings code and copy to clipboard, then overwrite src/settings.ts file",
-    "resetConfigDescription": "Restore all settings to system default values"
+    "resetConfigDescription": "Restore all settings to system default values",
+    "sidebarPeek": "Expand on hover when collapsed"
+  },
+  "tagsView": {
+    "refreshCurrent": "Refresh page",
+    "maximize": "Maximize content",
+    "restore": "Exit maximize"
   }
 }

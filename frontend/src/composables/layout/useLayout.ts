@@ -32,6 +32,7 @@ export function useLayout() {
     openSidebar: appStore.sidebar.opened,
     mobile: appStore.device === "mobile",
     [`layout-${settingsStore.layout}`]: true,
+    "is-content-maximized": appStore.contentMaximized,
   }));
 
   /**

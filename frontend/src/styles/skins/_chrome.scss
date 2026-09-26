@@ -5,6 +5,8 @@
 
 // 顶栏面板高 44px：上留 --ff-shell-gap，下留 4px；宿主加 4px 上内边距，让内容与面板垂直居中
 $ff-navbar-panel-bottom: 4px;
+// 与 variables.scss 的 $tags-view-height 保持一致；这里不引入 variables.scss，它依赖 Element Plus 的样式路径
+$ff-tags-view-height: 40px;
 
 .navbar,
 .layout__header {
@@ -530,4 +532,107 @@ html.sidebar-color-blue {
     padding-right: 8px !important;
     padding-left: 8px !important;
   }
+}
+
+// 用户下拉：顶部用户卡片 + 带图标的菜单项；下拉挂在 body 下，所以写在全局皮肤里
+.user-menu.el-dropdown-menu {
+  min-width: 220px;
+}
+
+.user-menu__card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px 12px;
+}
+
+.user-menu__avatar {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  background: var(--ff-orb);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 1px var(--ff-glass-edge),
+    0 4px 12px -6px rgba(11, 11, 16, 0.4);
+}
+
+.user-menu__identity {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.user-menu__name,
+.user-menu__account {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-menu__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ff-color-text-primary);
+}
+
+.user-menu__account {
+  font-family: var(--ff-font-mono);
+  font-size: 12px;
+  color: var(--ff-color-text-secondary);
+}
+
+.user-menu .el-dropdown-menu__item {
+  gap: 10px;
+}
+
+.user-menu__icon {
+  color: var(--ff-color-text-secondary);
+}
+
+// 内容最大化（页签栏工具区触发，Esc 退出）：隐藏侧栏与顶栏，只保留页签栏和内容。
+// 三种布局都在根节点加 .is-content-maximized，结构不变，只在这里收起壳层。
+html .layout.is-content-maximized {
+  .layout__sidebar,
+  .layout__sidebar--left,
+  .layout__header,
+  .navbar {
+    display: none !important;
+  }
+
+  .layout__main {
+    margin-left: 0 !important;
+  }
+
+  .layout__container {
+    height: 100vh;
+  }
+
+  .layout__main .app-main {
+    height: 100vh !important;
+  }
+
+  .layout__main.hasTagsView .app-main {
+    height: calc(100vh - #{$ff-tags-view-height}) !important;
+  }
+}
+
+// 左侧布局收起时的悬停预览：侧栏临时展开并浮在内容上方，投影画在玻璃层 ::before 上
+.layout__sidebar--peeking .layout-sidebar::before {
+  box-shadow:
+    inset 0 0 0 1px var(--ff-glass-edge),
+    inset 0 1px 0 var(--ff-glass-hi),
+    0 24px 48px -20px rgba(11, 11, 16, 0.5);
+}
+
+// 顶栏铃铛的未读数：紧凑的虹彩小圆标，数字等宽
+.navbar-actions .el-badge__content.is-fixed {
+  --el-badge-size: 16px;
+  --el-badge-padding: 4px;
+
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  border-width: 2px;
 }

@@ -21,6 +21,7 @@ interface SettingsState {
   // 界面显示设置
   settingsVisible: boolean;
   showTagsView: boolean;
+  sidebarPeek: boolean;
   showAppLogo: boolean;
   showWatermark: boolean;
 
@@ -35,6 +36,7 @@ interface SettingsState {
 
 interface SettingsRefMap {
   showTagsView: Ref<SettingsState["showTagsView"]>;
+  sidebarPeek: Ref<SettingsState["sidebarPeek"]>;
   showAppLogo: Ref<SettingsState["showAppLogo"]>;
   showWatermark: Ref<SettingsState["showWatermark"]>;
   sidebarColorScheme: Ref<SettingsState["sidebarColorScheme"]>;
@@ -54,6 +56,9 @@ export const useSettingsStore = defineStore("setting", () => {
     STORAGE_KEYS.SHOW_TAGS_VIEW,
     defaultSettings.showTagsView
   );
+
+  // 左侧布局收起时悬停预览；只影响交互，不改写 app-store 的侧栏展开状态
+  const sidebarPeek = useStorage<boolean>(STORAGE_KEYS.SIDEBAR_PEEK, defaultSettings.sidebarPeek);
 
   // 是否显示应用Logo
   const showAppLogo = useStorage<boolean>(STORAGE_KEYS.SHOW_APP_LOGO, defaultSettings.showAppLogo);
@@ -91,6 +96,7 @@ export const useSettingsStore = defineStore("setting", () => {
   // 设置项映射，用于统一管理
   const settingsMap: SettingsRefMap = {
     showTagsView,
+    sidebarPeek,
     showAppLogo,
     showWatermark,
     sidebarColorScheme,
@@ -157,6 +163,7 @@ export const useSettingsStore = defineStore("setting", () => {
   // 重置所有设置
   function resetSettings(): void {
     showTagsView.value = defaultSettings.showTagsView;
+    sidebarPeek.value = defaultSettings.sidebarPeek;
     showAppLogo.value = defaultSettings.showAppLogo;
     showWatermark.value = defaultSettings.showWatermark;
     sidebarColorScheme.value = defaultSettings.sidebarColorScheme;
@@ -169,6 +176,7 @@ export const useSettingsStore = defineStore("setting", () => {
     // 状态
     settingsVisible,
     showTagsView,
+    sidebarPeek,
     showAppLogo,
     showWatermark,
     sidebarColorScheme,

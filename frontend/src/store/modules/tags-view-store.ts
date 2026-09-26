@@ -85,6 +85,26 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     cachedViews.value = syncUpdatedCachedTagView(cachedViews.value, previousView, targetView);
   }
 
+  /**
+   * 拖拽排序后移动页签：固定页签始终排在最前面，非固定页签不能移到固定页签之前
+   */
+  function moveVisitedView(fromIndex: number, toIndex: number) {
+    const views = visitedViews.value;
+    if (fromIndex === toIndex || !views[fromIndex] || toIndex < 0 || toIndex >= views.length) {
+      return false;
+    }
+    const moving = views[fromIndex];
+    const affixCount = views.filter((view) => view.affix).length;
+    if (moving.affix || toIndex < affixCount) {
+      return false;
+    }
+    const next = [...views];
+    next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moving);
+    visitedViews.value = next;
+    return true;
+  }
+
   function updateTagName(fullPath: string, title: string) {
     const tag = visitedViews.value.find((tag: TagView) => tag.fullPath === fullPath);
 
@@ -235,5 +255,6 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     isActive,
     toLastView,
     updateTagName,
+    moveVisitedView,
   };
 });
