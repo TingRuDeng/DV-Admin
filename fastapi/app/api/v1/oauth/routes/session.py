@@ -1,16 +1,11 @@
 """OAuth 会话相关 API 路由。"""
 
-from datetime import timedelta
-
 from fastapi import APIRouter, Request
 
 from app.api.deps import CurrentUser
-from app.core.config import settings
 from app.core.error_codes import REFRESH_TOKEN_INVALID_CODE
 from app.core.exceptions import AuthenticationError, ServiceUnavailable
 from app.core.security import (
-    create_access_token,
-    create_refresh_token,
     decode_token,
     get_token_session_started_at,
     get_token_subject,
@@ -19,6 +14,7 @@ from app.core.security import (
 from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
 from app.schemas.oauth import RefreshTokenRequest, Token
+from app.services.login_tokens import issue_login_tokens
 from app.services.token_blacklist import token_blacklist_service
 
 router = APIRouter()
@@ -134,34 +130,8 @@ async def refresh_token(
             code=REFRESH_TOKEN_INVALID_CODE,
         )
 
-    # 生成新的令牌
-    access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
-    refresh_token_expires = timedelta(days=settings.refresh_token_expire_days)
-
-    new_access_token = create_access_token(
-        subject=str(user.id),
-        expires_delta=access_token_expires,
-        extra_claims={
-            "username": user.username,
-            "name": user.name,
-            "session_iat": session_started_at.timestamp(),
-        },
-    )
-    new_refresh_token = create_refresh_token(
-        subject=str(user.id),
-        expires_delta=refresh_token_expires,
-        session_started_at=session_started_at,
-    )
-
-    return ResponseModel.success(
-        data=Token(
-            access_token=new_access_token,
-            refresh_token=new_refresh_token,
-            token_type="bearer",
-            expires_in=settings.access_token_expire_minutes * 60,
-            refresh_expires_in=settings.refresh_token_expire_days * 24 * 60 * 60,
-        )
-    )
+    # 生成新的令牌，保留原会话时间
+    return ResponseModel.success(data=issue_login_tokens(user, session_started_at))
 
 
 @router.post(

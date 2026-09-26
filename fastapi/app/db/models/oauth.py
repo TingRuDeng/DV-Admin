@@ -3,6 +3,7 @@
 
 包含用户认证相关的数据库模型：
 - 用户 (Users)
+- 单点登录身份 (OidcIdentity)
 """
 
 from __future__ import annotations
@@ -168,3 +169,32 @@ class Users(BaseModel):
             if role.code == role_code:
                 return True
         return False
+
+
+class OidcIdentity(BaseModel):
+    """
+    单点登录身份模型
+
+    记录身份提供方 (issuer, subject) 与本地用户的绑定，一个外部身份只对应一个本地用户。
+    """
+
+    issuer = fields.CharField(max_length=255, description="身份提供方 issuer")
+    subject = fields.CharField(max_length=255, description="身份提供方用户标识 sub")
+    user: fields.ForeignKeyRelation[Users] = fields.ForeignKeyField(
+        "models.Users",
+        related_name="oidc_identities",
+        on_delete=fields.CASCADE,
+        description="绑定的本地用户",
+    )
+    user_id: int
+    email = fields.CharField(max_length=254, default="", description="绑定时的邮箱")
+    last_login_at = fields.DatetimeField(null=True, description="最后单点登录时间")
+
+    class Meta:
+        table = "oauth_oidc_identities"
+        ordering = ["id"]
+        unique_together = (("issuer", "subject"),)
+        indexes = (Index(fields=("user_id",)),)
+
+    def __str__(self) -> str:
+        return f"{self.issuer}|{self.subject}"

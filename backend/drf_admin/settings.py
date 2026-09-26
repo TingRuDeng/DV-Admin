@@ -25,6 +25,7 @@ from drf_admin.settings_helpers import (
     build_rest_framework_config,
     build_simple_jwt_config,
     build_white_list,
+    validate_oidc_startup,
 )
 
 # 初始化 django-environ
@@ -219,6 +220,20 @@ SIMPLE_JWT = build_simple_jwt_config(
 AUTHENTICATION_BACKENDS = [
     "drf_admin.apps.oauth.utils.UsernameMobileAuthBackend",  # 自定义用户认证方法
 ]
+
+# 单点登录（OIDC 授权码 + PKCE），默认关闭；变量名与 FastAPI 实现一致
+OIDC_ENABLED = env.bool("OIDC_ENABLED", default=False)
+OIDC_ISSUER = env.str("OIDC_ISSUER", default="")
+OIDC_CLIENT_ID = env.str("OIDC_CLIENT_ID", default="")
+OIDC_CLIENT_SECRET = env.str("OIDC_CLIENT_SECRET", default="")  # 留空表示公共客户端
+OIDC_REDIRECT_URI = env.str("OIDC_REDIRECT_URI", default="")
+OIDC_SCOPES = env.str("OIDC_SCOPES", default="openid profile email")
+OIDC_AUTO_PROVISION = env.bool("OIDC_AUTO_PROVISION", default=True)
+OIDC_MATCH_EXISTING_BY_EMAIL = env.bool("OIDC_MATCH_EXISTING_BY_EMAIL", default=False)
+OIDC_ALLOWED_EMAIL_DOMAINS = env.str("OIDC_ALLOWED_EMAIL_DOMAINS", default="")
+validate_oidc_startup(
+    OIDC_ENABLED, OIDC_ISSUER, OIDC_CLIENT_ID, OIDC_REDIRECT_URI, ENVIRONMENT
+)
 
 # 新增用户默认密码
 DEFAULT_PWD = env.str("DEFAULT_PWD")

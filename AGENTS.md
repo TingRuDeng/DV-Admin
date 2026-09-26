@@ -237,6 +237,7 @@ make quality           # 聚合质量检查 (ruff + mypy + migration-check + pyt
    - FastAPI 默认 Access Token 30 分钟、Refresh Token 7 天过期（均可配置）
    - Django 默认 Access Token 30 分钟、Refresh Token 1 天过期（均可配置）
    - Token 存储在前端 `AuthStorage` 中
+   - OIDC 单点登录（默认关闭）签发同一套本地 token；协议判断在两端逐字节一致的 `oidc_policy.py`（`backend/drf_admin/apps/oauth/` ↔ `fastapi/app/core/`），修改时两份同改，`tests/test_oidc_policy_contract.py` 比对字节
 
 3. **RBAC 权限模型**
    - 用户 → 角色 → 权限 三层关系

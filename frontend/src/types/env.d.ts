@@ -18,6 +18,10 @@ interface ImportMetaEnv {
   VITE_LOGIN_DEFAULT_USERNAME?: string;
   /** 登录页默认密码，仅开发演示环境可配置 */
   VITE_LOGIN_DEFAULT_PASSWORD?: string;
+  /** 是否在登录页显示单点登录入口（"true" 开启），需要后端同时启用 OIDC */
+  VITE_OIDC_ENABLED?: string;
+  /** 单点登录按钮文字，不能包含“登录”或 login */
+  VITE_OIDC_PROVIDER_NAME?: string;
 }
 
 interface ImportMeta {
