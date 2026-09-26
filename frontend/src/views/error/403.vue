@@ -1,24 +1,35 @@
 <template>
-  <div class="p-5 pb-0 sm:p-10 lg:p-20 w-full">
-    <el-button icon="arrow-left" @click="router.back()">返回</el-button>
-    <el-row>
-      <el-col :xs="24" :span="12">
-        <h1 class="text-6xl font-bold text-[#484848]">Oops!</h1>
-        <h2>你没有权限访问该页面</h2>
-        <h6>如需开通权限，请联系管理员</h6>
-        <div class="flex flex-col items-start gap-1.5 text-sm">
-          <span>或者你可以去:</span>
-          <el-link type="primary" @click="router.push('/dashboard')">回首页</el-link>
-        </div>
-      </el-col>
-      <el-col :xs="24" :span="12">
-        <img src="@/assets/images/401.svg" class="w-full" alt="403" />
-      </el-col>
-    </el-row>
+  <div class="error-page" role="main">
+    <div class="error-page__visual" aria-hidden="true">
+      <img src="@/assets/images/401.svg" alt="" class="error-page__image" />
+    </div>
+    <div class="error-page__content">
+      <p class="error-page__code">403</p>
+      <h1 class="error-page__title">{{ t("error.forbiddenTitle") }}</h1>
+      <p class="error-page__desc">{{ t("error.forbiddenDesc") }}</p>
+      <div class="error-page__actions">
+        <el-button type="primary" round class="error-page__btn" @click="router.push('/dashboard')">
+          <AppIcon name="homepage" :size="16" />
+          {{ t("error.backHome") }}
+        </el-button>
+        <el-button round class="error-page__btn" @click="router.back()">
+          <AppIcon name="arrow-left" :size="16" />
+          {{ t("error.goBack") }}
+        </el-button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import AppIcon from "@/components/AppIcon/index.vue";
+
 defineOptions({ name: "Page403" });
 const router = useRouter();
+const { t } = useI18n();
 </script>
+
+<style lang="scss" scoped>
+@use "@/styles/variables.scss" as vars;
+@import "./error-page";
+</style>
