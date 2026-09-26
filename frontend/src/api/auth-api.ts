@@ -46,11 +46,12 @@ const AuthAPI = {
     });
   },
 
-  /** 退出登录接口 */
-  logout() {
+  /** 退出登录接口：带上当前会话的刷新令牌，退出后服务端不再用它签发新令牌 */
+  logout(refreshToken?: string) {
     return request({
       url: `${AUTH_BASE_URL}/logout/`,
       method: "post",
+      data: refreshToken ? { refreshToken } : undefined,
     });
   },
 

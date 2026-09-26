@@ -87,7 +87,7 @@ export const useUserStore = defineStore("user", () => {
    */
   async function logout() {
     try {
-      await AuthAPI.logout();
+      await AuthAPI.logout(AuthStorage.getRefreshToken() || undefined);
     } finally {
       await resetAllState();
     }

@@ -62,6 +62,14 @@ class RefreshTokenRequest(BaseSchema):
     refresh_token: str = Field(description="刷新令牌")
 
 
+class LogoutRequest(BaseSchema):
+    """
+    退出登录请求模型：带上当前会话的刷新令牌，退出后它不能再换新令牌
+    """
+
+    refresh_token: str | None = Field(default=None, description="当前会话的刷新令牌")
+
+
 class UserInfo(TimestampSchema):
     """
     用户信息模型

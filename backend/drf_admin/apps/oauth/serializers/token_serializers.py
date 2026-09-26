@@ -33,15 +33,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         username = attrs.get('username')
         password = attrs.get('password')
 
-        # 验证密码
-        if not authenticate(username=username, password=password):
-            # 密码错误
-            raise serializers.ValidationError('用户名或密码错误')
-
-        # 先检查用户是否存在
-        try:
-            user = Users.objects.get(username=username)
-        except Users.DoesNotExist:
+        # 认证后端同时支持用户名和 11 位手机号，直接使用它返回的用户；
+        # 再按 username 查一次会让手机号登录永远查不到人
+        user = authenticate(username=username, password=password)
+        if user is None:
             raise serializers.ValidationError('用户名或密码错误')
 
         # 检查用户是否活跃

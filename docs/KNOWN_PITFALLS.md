@@ -532,6 +532,40 @@ mix 布局在移动端打开导航抽屉，侧栏里没有任何菜单项，也�
 
 ---
 
+### Django 视图里按 camelCase 读请求体永远读不到
+
+**问题描述：**
+前端请求体发的是 `refreshToken`，Django 视图里 `request.data.get("refreshToken")` 始终是 `None`。退出登录接口曾因此从来没有撤销过刷新令牌。
+
+**原因：**
+`DEFAULT_PARSER_CLASSES` 使用 `CamelCaseJSONParser`，解析时已经把请求体的键转成 snake_case，视图拿到的是 `refresh_token`。
+
+**解决方案：**
+视图里按 snake_case 读取（`request.data.get("refresh_token")`），并用测试从 HTTP 层发 camelCase 请求验证，不要只在单元层直接构造 `request.data`。
+
+**相关代码：**
+- `backend/drf_admin/settings_helpers.py`
+- `backend/drf_admin/apps/oauth/views/oauth.py`
+
+---
+
+### Django 视图没声明权限码时，超级管理员也会被拒绝
+
+**问题描述：**
+新增的 `APIView` 在本地测试一切正常，部署后所有人（包括超级管理员）都返回 403。`/oauth/home/` 曾因此对所有用户不可用。
+
+**原因：**
+`RBACPermission` 在检查超级管理员之前，就对没有 `required_permissions` 的操作直接拒绝；而测试设置 `settings_test.py` 用的是 `AllowAny`，测试里完全看不出来。
+
+**解决方案：**
+每个非白名单视图都声明 `required_permissions`，公开接口显式设置 `permission_classes = []`。权限相关的测试直接调用 `RBACPermission().has_permission(...)`，参考 `utils/test_rbac_permission_contract.py`。
+
+**相关代码：**
+- `backend/drf_admin/utils/permissions.py`
+- `backend/drf_admin/apps/oauth/test_home.py`
+
+---
+
 ### `@mousedown.prevent` 拦不住失焦
 
 **问题描述：**
