@@ -75,6 +75,13 @@ export const useAppStore = defineStore("app", () => {
   function changeLanguage(val: string) {
     language.value = val;
   }
+  // 内容最大化：只在当前会话生效，不持久化；刷新页面后恢复正常布局
+  const contentMaximized = ref(false);
+
+  function toggleContentMaximized(value = !contentMaximized.value) {
+    contentMaximized.value = value;
+  }
+
   /**
    * 混合模式顶部切换
    */
@@ -95,6 +102,8 @@ export const useAppStore = defineStore("app", () => {
     closeSideBar,
     openSideBar,
     activeTopMenuPath,
+    contentMaximized,
+    toggleContentMaximized,
   };
 });
 

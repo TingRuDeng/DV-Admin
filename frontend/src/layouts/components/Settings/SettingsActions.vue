@@ -1,20 +1,13 @@
 <template>
   <div class="action-buttons">
-    <el-tooltip
-      content="复制配置将生成当前设置的代码，覆盖 src/settings.ts 下的 defaultSettings 变量"
-      placement="top"
-    >
-      <el-button type="primary" size="default" :loading="copyLoading" @click="emit('copy')">
-        <AppIcon name="document" :size="16" />
-        {{ copyLoading ? "复制中..." : t("settings.copyConfig") }}
-      </el-button>
-    </el-tooltip>
-    <el-tooltip content="重置将恢复所有设置为默认值" placement="top">
-      <el-button type="warning" size="default" :loading="resetLoading" @click="emit('reset')">
-        <AppIcon name="refresh" :size="16" />
-        {{ resetLoading ? "重置中..." : t("settings.resetConfig") }}
-      </el-button>
-    </el-tooltip>
+    <el-button class="action-buttons__button" :loading="copyLoading" @click="emit('copy')">
+      <AppIcon name="copy" :size="16" />
+      {{ t("settings.copyConfig") }}
+    </el-button>
+    <el-button class="action-buttons__button" :loading="resetLoading" @click="emit('reset')">
+      <AppIcon name="refresh" :size="16" />
+      {{ t("settings.resetConfig") }}
+    </el-button>
   </div>
 </template>
 
@@ -35,19 +28,35 @@ const { t } = useI18n();
 </script>
 
 <style lang="scss" scoped>
+// 两个操作同级，用同一种次级样式，只靠图标区分；悬停只变底色，不做位移
 .action-buttons {
   display: flex;
+  gap: 10px;
+}
 
-  & > .el-button {
-    flex: 1;
-    font-size: 14px;
-    border-radius: 8px;
-    transition: all 0.3s ease;
+.action-buttons__button.el-button {
+  flex: 1;
+  height: 40px;
+  margin: 0;
+  font-size: 14px;
+  color: var(--ff-color-text-primary);
+  background: var(--ff-field-bg);
+  border: 0;
+  border-radius: var(--ff-radius-control);
+  box-shadow: inset 0 0 0 1px var(--ff-line-strong);
+  transition:
+    background-color var(--ff-duration-fast) ease,
+    box-shadow var(--ff-duration-fast) ease;
 
-    &:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      transform: translateY(-2px);
-    }
+  :deep(.app-icon) {
+    margin-right: 6px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: var(--ff-color-text-primary);
+    background: var(--ff-hover);
+    box-shadow: inset 0 0 0 1px var(--ff-iri-b);
   }
 }
 </style>

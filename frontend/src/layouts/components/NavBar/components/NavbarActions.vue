@@ -7,6 +7,11 @@
         <MenuSearch />
       </div>
 
+      <!-- 主题切换 -->
+      <div class="navbar-actions__item">
+        <ThemeToggle />
+      </div>
+
       <!-- 全屏 -->
       <div class="navbar-actions__item">
         <Fullscreen />
@@ -45,11 +50,31 @@
           <span class="user-profile__name">{{ userStore.userInfo.username }}</span>
         </button>
         <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item @click="handleProfileClick">
+          <el-dropdown-menu class="user-menu">
+            <!-- 用户卡片只做展示，不是菜单项，不会被键盘选中 -->
+            <div class="user-menu__card" :aria-label="t('navbar.userCard')" role="group">
+              <img
+                v-if="avatarUrl && !avatarLoadFailed"
+                class="user-menu__avatar"
+                :src="avatarUrl"
+                alt=""
+                aria-hidden="true"
+                @error="avatarLoadFailed = true"
+              />
+              <span v-else class="user-menu__avatar" aria-hidden="true" />
+              <span class="user-menu__identity">
+                <span v-if="displayName" class="user-menu__name">{{ displayName }}</span>
+                <span v-if="userStore.userInfo.username" class="user-menu__account">
+                  {{ userStore.userInfo.username }}
+                </span>
+              </span>
+            </div>
+            <el-dropdown-item divided @click="handleProfileClick">
+              <AppIcon name="user" :size="16" class="user-menu__icon" />
               {{ t("navbar.profile") }}
             </el-dropdown-item>
-            <el-dropdown-item divided @click="logout">
+            <el-dropdown-item @click="logout">
+              <AppIcon name="logout" :size="16" class="user-menu__icon" />
               {{ t("navbar.logout") }}
             </el-dropdown-item>
           </el-dropdown-menu>
@@ -80,6 +105,7 @@ import { useAppStore, useSettingsStore, useUserStore } from "@/store";
 // 导入子组件
 import MenuSearch from "@/components/MenuSearch/index.vue";
 import Fullscreen from "@/components/Fullscreen/index.vue";
+import ThemeToggle from "./ThemeToggle.vue";
 import SizeSelect from "@/components/SizeSelect/index.vue";
 import LangSelect from "@/components/LangSelect/index.vue";
 import Notification from "@/components/Notification/index.vue";
@@ -98,6 +124,7 @@ const router = useRouter();
 const isDesktop = computed(() => appStore.device === DeviceEnum.DESKTOP);
 
 const avatarUrl = computed(() => userStore.userInfo.avatar);
+const displayName = computed(() => userStore.userInfo.name || userStore.userInfo.username);
 const avatarLoadFailed = ref(false);
 
 // 更换头像后重新尝试加载

@@ -7,16 +7,21 @@
       role="navigation"
       aria-label="主导航"
       tabindex="-1"
-      :class="{ 'layout__sidebar--collapsed': !isSidebarOpen }"
+      :class="{
+        'layout__sidebar--collapsed': isCollapsedView,
+        'layout__sidebar--peeking': isPeeking,
+      }"
       :aria-hidden="isMobile && !isSidebarOpen ? 'true' : undefined"
       :inert="isMobile && !isSidebarOpen"
+      @mouseenter="startPeek"
+      @mouseleave="endPeek"
     >
       <div :class="{ 'has-logo': isShowLogo }" class="layout-sidebar">
         <!-- Logo -->
-        <AppLogo v-if="isShowLogo" :collapse="!isSidebarOpen" />
+        <AppLogo v-if="isShowLogo" :collapse="isCollapsedView" />
         <!-- 主菜单内容 -->
         <el-scrollbar>
-          <BasicMenu :data="routes" base-path="" />
+          <BasicMenu :data="routes" base-path="" :collapsed="isCollapsedView" />
         </el-scrollbar>
       </div>
     </div>
@@ -45,9 +50,39 @@ import NavBar from "../../components/NavBar/index.vue";
 import TagsView from "../../components/TagsView/index.vue";
 import AppMain from "../../components/AppMain/index.vue";
 import BasicMenu from "../../components/Menu/BasicMenu.vue";
+import { useSettingsStore } from "@/store";
 
 // 布局相关参数
 const { isShowTagsView, isShowLogo, isSidebarOpen, isMobile } = useLayout();
+const settingsStore = useSettingsStore();
+
+// 收起时悬停预览：只是组件内的临时状态，不改写持久化的侧栏展开状态；
+// 预览时侧栏浮在内容上方，主内容仍按收起宽度留边，页面不重排
+const PEEK_DELAY = 150;
+const isPeeking = ref(false);
+let peekTimer: ReturnType<typeof setTimeout> | undefined;
+const canPeek = computed(
+  () => !isSidebarOpen.value && !isMobile.value && settingsStore.sidebarPeek
+);
+const isCollapsedView = computed(() => !isSidebarOpen.value && !isPeeking.value);
+
+function startPeek() {
+  if (!canPeek.value) return;
+  clearTimeout(peekTimer);
+  peekTimer = setTimeout(() => {
+    isPeeking.value = true;
+  }, PEEK_DELAY);
+}
+
+function endPeek() {
+  clearTimeout(peekTimer);
+  isPeeking.value = false;
+}
+
+watch(canPeek, (enabled) => {
+  if (!enabled) endPeek();
+});
+onBeforeUnmount(endPeek);
 
 // 菜单相关
 const { routes } = useLayoutMenu();

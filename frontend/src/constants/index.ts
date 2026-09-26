@@ -17,6 +17,7 @@ export const STORAGE_KEYS = {
 
   // UI设置相关
   SHOW_TAGS_VIEW: `${APP_PREFIX}:ui:show_tags_view`, // 显示标签页视图
+  SIDEBAR_PEEK: `${APP_PREFIX}:ui:sidebar_peek`, // 收起侧栏时悬停预览
   SHOW_APP_LOGO: `${APP_PREFIX}:ui:show_app_logo`, // 显示应用Logo
   SHOW_WATERMARK: `${APP_PREFIX}:ui:show_watermark`, // 显示水印
   LAYOUT: `${APP_PREFIX}:ui:layout`, // 布局模式

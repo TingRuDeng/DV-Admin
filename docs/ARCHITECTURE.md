@@ -172,6 +172,9 @@ frontend/src/
 - 视觉系统按 [ADR-0002](./ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md) 采用 Liquid Chrome：深浅两种模式的玻璃面板、静态虹彩光池、自托管 Geist 极细展示字和金属球控件。虹彩色标 `--ff-iri-a/b/c` 由 `utils/theme.ts` 的 `generateIridescentStops` 按当前预设色推导，在 settings-store 的主题监听里紧跟 `applyTheme` 写入；设置面板和 store 字段不变。
 - 玻璃统一用 `foundation/_glass.scss` 的 `ff-glass` mixin，模糊画在 `::before` 上，避免宿主成为 fixed 后代的包含块；`backdrop-filter` 只允许出现在该 mixin 与 `skins/_popper.scss`，自定义光标和 WebGL 由 style-governance 测试禁止。
 - 路由切换用 `AppMain` 的 `ff-route` 过渡（淡入加 8px 位移，离场只淡出），`prefers-reduced-motion` 下关闭；项目不再依赖 `animate.css`。
+- 顶栏交互：`ThemeToggle` 用 View Transitions 从点击位置圆形扩散切换主题（不支持或减少动效时直接切）；用户下拉顶部是只读的用户卡片。页签栏右侧的工具区提供"刷新当前页"和"内容最大化"，最大化是 `appStore.contentMaximized`（不持久化），三种布局都只在根节点加 `is-content-maximized`，由 `skins/_chrome.scss` 收起侧栏和顶栏，Esc 退出。页签可拖拽排序（`vue-draggable-plus`，仅桌面端），固定页签不参与排序。
+- 左侧布局收起时悬停侧栏会临时展开预览（`settingsStore.sidebarPeek`，默认开），预览状态只在组件内，侧栏浮在内容上方，主内容不重排，也不改写 `app-store` 持久化的展开状态。
+- 菜单、页签和面包屑的图标都经 `AppIcon/icon-map.ts` 的 `normalizeMenuIconName` 和映射表解析；`menu-icon-coverage.spec.ts` 要求种子菜单图标和页面里写死的图标名都有专属映射，避免回落成问号。
 - 登录页、全局壳层和首页仪表盘的图标通过 `components/AppIcon` 统一映射到 Lucide，页面层不直接新增手绘 SVG 或表情符号。登录页样式是以 `.ff-login-page` 为根的全局 `styles/pages/_login.scss`，这样才能改到 Element Plus 内部元素。
 - 首页仪表盘由 `views/dashboard/components` 下的 Hero（极细大号时钟与玻璃身份卡）、指标带和快捷入口组成，只从用户信息与权限路由派生数据，不新增首页专用 API。
 - `_minimal-saas.scss` 仅作为未迁移页面的兼容层，不再作为新增样式的主入口

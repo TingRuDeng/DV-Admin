@@ -3,11 +3,23 @@
     <el-breadcrumb-item v-for="(item, index) in breadcrumbs" :key="item.path">
       <span
         v-if="item.redirect === 'noredirect' || index === breadcrumbs.length - 1"
-        class="color-gray-400"
+        class="breadcrumb-item__label color-gray-400"
       >
+        <AppIcon
+          v-if="breadcrumbIcon(item)"
+          :name="breadcrumbIcon(item)"
+          :size="14"
+          class="breadcrumb-item__icon"
+        />
         {{ translateRouteTitle(item.meta.title) }}
       </span>
-      <a v-else @click.prevent="handleLink(item)">
+      <a v-else class="breadcrumb-item__label" @click.prevent="handleLink(item)">
+        <AppIcon
+          v-if="breadcrumbIcon(item)"
+          :name="breadcrumbIcon(item)"
+          :size="14"
+          class="breadcrumb-item__icon"
+        />
         {{ translateRouteTitle(item.meta.title) }}
       </a>
     </el-breadcrumb-item>
@@ -20,17 +32,27 @@ import { compile } from "path-to-regexp";
 import router from "@/router";
 import { translateRouteTitle } from "@/utils/i18n";
 import { createLogger } from "@/utils/logger";
+import AppIcon from "@/components/AppIcon/index.vue";
+import { hasAppIcon, normalizeMenuIconName } from "@/components/AppIcon/icon-map";
 
 type BreadcrumbRoute = Pick<RouteLocationMatched, "path" | "name" | "meta" | "redirect">;
 
 const DASHBOARD_BREADCRUMB: BreadcrumbRoute = {
   path: "/dashboard",
   name: "Dashboard",
-  meta: { title: "dashboard" },
+  meta: { title: "dashboard", icon: "homepage" },
   redirect: undefined,
 };
 
 const breadcrumbLogger = createLogger("Breadcrumb");
+
+// 只显示有专属映射的图标，避免面包屑里出现问号
+function breadcrumbIcon(item: BreadcrumbRoute) {
+  const icon = item.meta?.icon;
+  if (typeof icon !== "string" || !icon) return "";
+  const name = normalizeMenuIconName(icon);
+  return hasAppIcon(name) ? name : "";
+}
 const currentRoute = useRoute();
 const pathCompile = (path: string) => {
   const { params } = currentRoute;
@@ -97,6 +119,16 @@ onBeforeMount(() => {
 </script>
 
 <style lang="scss" scoped>
+.breadcrumb-item__label {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.breadcrumb-item__icon {
+  flex: none;
+  opacity: 0.75;
+}
 // 覆盖 element-plus 的样式
 .el-breadcrumb__inner,
 .el-breadcrumb__inner a {

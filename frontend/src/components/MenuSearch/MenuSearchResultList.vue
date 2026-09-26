@@ -9,11 +9,7 @@
     :class="['menu-search__option', { 'is-active': index === activeIndex }]"
     @click="emit('select', item)"
   >
-    <AppIcon
-      :name="item.icon?.replace('el-icon-', '') || 'menu'"
-      :size="16"
-      class="menu-search__option-icon"
-    />
+    <AppIcon :name="normalizeMenuIconName(item.icon)" :size="16" class="menu-search__option-icon" />
     <span class="menu-search__option-label">{{ item.title }}</span>
   </li>
 </template>
@@ -21,6 +17,7 @@
 <script setup lang="ts">
 import type { SearchItem } from "./types";
 import AppIcon from "@/components/AppIcon/index.vue";
+import { normalizeMenuIconName } from "@/components/AppIcon/icon-map";
 
 defineProps<{
   activeIndex: number;

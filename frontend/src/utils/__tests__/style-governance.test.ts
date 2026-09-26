@@ -188,4 +188,16 @@ describe("liquid chrome visual system governance", () => {
       expect(source, file).not.toContain("translateY(-");
     }
   });
+
+  // ADR-0002：壳层只做悬停变色，不做悬停上浮
+  it("keeps shell components free of hover lifts", () => {
+    const offenders = sourceFiles()
+      .filter(
+        ({ file }) => file.split("\\").join("/").startsWith("layouts/") && file.endsWith(".vue")
+      )
+      .filter(({ source }) => source.includes("translateY(-"))
+      .map(({ file }) => file);
+
+    expect(offenders).toEqual([]);
+  });
 });

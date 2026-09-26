@@ -169,4 +169,27 @@ describe("useTagsViewStore", () => {
     expect(result).not.toBe(unresolved);
     expect(result).toEqual({ visitedViews: [dashboard], cachedViews: ["Dashboard"] });
   });
+
+  it("moves tags by drag order while keeping affix tags pinned in front", () => {
+    const tagsViewStore = useTagsViewStore();
+    const tag = (name: string, affix = false) => ({
+      name,
+      title: name,
+      path: `/${name}`,
+      fullPath: `/${name}`,
+      affix,
+    });
+    tagsViewStore.visitedViews = [tag("home", true), tag("a"), tag("b"), tag("c")];
+    const order = () => tagsViewStore.visitedViews.map((view) => view.name);
+
+    expect(tagsViewStore.moveVisitedView(3, 1)).toBe(true);
+    expect(order()).toEqual(["home", "c", "a", "b"]);
+
+    // 固定页签不能被拖动，其他页签也不能被放到固定页签前面
+    expect(tagsViewStore.moveVisitedView(0, 2)).toBe(false);
+    expect(tagsViewStore.moveVisitedView(2, 0)).toBe(false);
+    expect(tagsViewStore.moveVisitedView(1, 9)).toBe(false);
+    expect(tagsViewStore.moveVisitedView(1, 1)).toBe(false);
+    expect(order()).toEqual(["home", "c", "a", "b"]);
+  });
 });
