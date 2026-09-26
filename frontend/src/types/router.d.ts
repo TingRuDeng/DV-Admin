@@ -1,7 +1,7 @@
 import "vue-router";
 
 declare module "vue-router" {
-  type RouteLayout = "left" | "top" | "mix";
+  type RouteLayout = "left" | "top" | "mix" | "double";
 
   // https://router.vuejs.org/zh/guide/advanced/meta.html#typescript
   // 可以通过扩展 RouteMeta 接口来输入 meta 字段

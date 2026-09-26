@@ -1,5 +1,6 @@
 import { useAppStore, useSettingsStore } from "@/store";
 import { defaultSettings } from "@/settings";
+import { LayoutMode } from "@/enums/settings/layout-enum";
 
 /**
  * 布局相关的通用逻辑
@@ -8,8 +9,15 @@ export function useLayout() {
   const appStore = useAppStore();
   const settingsStore = useSettingsStore();
 
-  // 计算当前布局模式
-  const currentLayout = computed(() => settingsStore.layout);
+  // 是否移动设备
+  const isMobile = computed(() => appStore.device === "mobile");
+
+  // 实际渲染的布局：双列布局在移动端退化为左侧布局，直接复用它的抽屉导航
+  const currentLayout = computed(() =>
+    isMobile.value && settingsStore.layout === LayoutMode.DOUBLE
+      ? LayoutMode.LEFT
+      : settingsStore.layout
+  );
 
   // 侧边栏展开状态
   const isSidebarOpen = computed(() => appStore.sidebar.opened);
@@ -23,15 +31,12 @@ export function useLayout() {
   // 是否显示Logo
   const isShowLogo = computed(() => settingsStore.showAppLogo);
 
-  // 是否移动设备
-  const isMobile = computed(() => appStore.device === "mobile");
-
   // 布局CSS类
   const layoutClass = computed(() => ({
     hideSidebar: !appStore.sidebar.opened,
     openSidebar: appStore.sidebar.opened,
     mobile: appStore.device === "mobile",
-    [`layout-${settingsStore.layout}`]: true,
+    [`layout-${currentLayout.value}`]: true,
     "is-content-maximized": appStore.contentMaximized,
   }));
 

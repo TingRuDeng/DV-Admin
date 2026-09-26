@@ -15,6 +15,11 @@ export const enum LayoutMode {
    * 混合菜单布局
    */
   MIX = "mix",
+
+  /**
+   * 双列布局：左侧一级菜单图标栏 + 第二列子菜单（移动端退化为左侧布局）
+   */
+  DOUBLE = "double",
 }
 
 /**

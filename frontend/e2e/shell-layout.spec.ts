@@ -155,7 +155,7 @@ async function login(page: Page) {
   await expect(page.getByText("用户数据")).toBeVisible();
 }
 
-async function switchLayout(page: Page, layout: "left" | "top" | "mix") {
+async function switchLayout(page: Page, layout: "left" | "top" | "mix" | "double") {
   await page.evaluate((value) => localStorage.setItem("vea:ui:layout", value), layout);
   await page.reload();
   await expect(page.locator(`.layout-${layout}`)).toBeVisible();
@@ -387,6 +387,53 @@ test.describe("现代化壳层 smoke", () => {
     // 悬停预览不改写持久化的收起状态
     expect(await page.evaluate(() => localStorage.getItem("vea:app:sidebar_status"))).toContain(
       "closed"
+    );
+  });
+
+  test("双列布局：图标栏切换一级菜单，第二列显示子菜单并可收起，移动端退化为左侧布局", async ({
+    page,
+  }) => {
+    await installShellMocks(page);
+    await setPreferences(page, {
+      "vea:ui:layout": "left",
+      "vea:ui:show_tags_view": "true",
+      "vea:ui:theme": "light",
+    });
+    await login(page);
+    await switchLayout(page, "double");
+
+    const rail = page.locator(".layout-double .layout-double__rail");
+    const panel = page.locator(".layout-double #layout-sidebar");
+    const main = page.locator(".layout-double .layout__main");
+    await expect(rail.getByRole("button", { name: "首页" })).toBeVisible();
+    await expect(rail.getByRole("button", { name: "系统管理" })).toHaveAttribute(
+      "aria-current",
+      "true"
+    );
+    await expect(panel.getByText("角色管理")).toBeVisible();
+
+    await panel.getByText("角色管理").click();
+    await expect(page).toHaveURL(/\/system\/roles/);
+
+    // 首页只有一个可见子菜单，直接跳转并收起第二列
+    await rail.getByRole("button", { name: "首页" }).click();
+    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(panel).toHaveAttribute("aria-hidden", "true");
+
+    await rail.getByRole("button", { name: "系统管理" }).click();
+    await expect(page).toHaveURL(/\/system\/users/);
+    await expect(panel).not.toHaveAttribute("aria-hidden");
+    const withPanel = (await main.boundingBox())?.x ?? 0;
+
+    await page.locator(".layout-double .navbar").getByRole("button", { name: "收起导航" }).click();
+    await expect(panel).toHaveAttribute("aria-hidden", "true");
+    await expect.poll(async () => (await main.boundingBox())?.x ?? 0).toBeLessThan(withPanel);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.locator(".layout.layout-left")).toBeVisible();
+    await expect(page.locator(".layout-left .layout__sidebar")).toHaveAttribute(
+      "aria-hidden",
+      "true"
     );
   });
 
