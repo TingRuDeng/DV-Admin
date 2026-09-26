@@ -110,7 +110,8 @@
     "configManagement": "Config Management",
     "copyConfigDescription": "Generate current settings code and copy to clipboard, then overwrite src/settings.ts file",
     "resetConfigDescription": "Restore all settings to system default values",
-    "sidebarPeek": "Expand on hover when collapsed"
+    "sidebarPeek": "Expand on hover when collapsed",
+    "doubleLayout": "Double column"
   },
   "tagsView": {
     "refreshCurrent": "Refresh page",

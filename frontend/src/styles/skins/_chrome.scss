@@ -125,6 +125,22 @@ $ff-tags-view-height: 40px;
   }
 }
 
+// 双列布局：图标栏和第二列都是内层玻璃面板，外层 fixed 容器只管尺寸
+.layout-double__rail-inner,
+.layout-double__panel-inner {
+  @include ff-glass("panel", null);
+
+  overflow: hidden;
+  border-radius: var(--ff-radius-panel);
+}
+
+.layout-double__panel .el-menu,
+.layout-double__panel .el-scrollbar,
+.layout-double__panel .el-scrollbar__wrap,
+.layout-double__rail .el-scrollbar__wrap {
+  background: transparent !important;
+}
+
 // 窄栏里菜单宽度跟随面板，否则 el-menu--collapse 固定的 64px 会溢出面板
 .layout__sidebar--collapsed .el-menu--collapse {
   width: 100%;
@@ -461,6 +477,8 @@ html.sidebar-color-blue {
   .layout__sidebar,
   .layout__sidebar--left,
   .layout__mobile-menu,
+  .layout-double__rail,
+  .layout-double__panel,
   .layout__header {
     --ff-glass: rgba(255, 255, 255, 0.04);
     --ff-glass-strong: rgba(255, 255, 255, 0.12);
@@ -596,6 +614,8 @@ html.sidebar-color-blue {
 html .layout.is-content-maximized {
   .layout__sidebar,
   .layout__sidebar--left,
+  .layout-double__rail,
+  .layout-double__panel,
   .layout__header,
   .navbar {
     display: none !important;

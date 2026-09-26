@@ -71,7 +71,7 @@ declare global {
     /** 是否显示应用Logo */
     showAppLogo: boolean;
     /** 导航栏布局(left|top|mix) */
-    layout: "left" | "top" | "mix";
+    layout: "left" | "top" | "mix" | "double";
     /** 主题颜色 */
     themeColor: string;
     /** 主题模式(dark|light) */

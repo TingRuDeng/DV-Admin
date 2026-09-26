@@ -1,6 +1,6 @@
 import type { RouteMeta } from "vue-router";
 
-type RouteLayout = "left" | "top" | "mix";
+type RouteLayout = "left" | "top" | "mix" | "double";
 type BooleanLike = boolean | number | string | undefined;
 type StringArrayLike = string[] | string | undefined;
 
@@ -29,7 +29,7 @@ interface NormalizeRouteMetaOptions {
 
 const truthyValues = new Set(["1", "true", "yes", "on"]);
 const falsyValues = new Set(["0", "false", "no", "off"]);
-const routeLayouts = new Set<RouteLayout>(["left", "top", "mix"]);
+const routeLayouts = new Set<RouteLayout>(["left", "top", "mix", "double"]);
 
 function normalizeBoolean(value: unknown, fallback: boolean) {
   if (value === undefined || value === null || value === "") {
