@@ -117,5 +117,15 @@
     "refreshCurrent": "Refresh page",
     "maximize": "Maximize content",
     "restore": "Exit maximize"
+  },
+  "error": {
+    "unauthorizedTitle": "You don't have access to this page",
+    "unauthorizedDesc": "Contact your administrator to request permission.",
+    "notFoundTitle": "Page not found",
+    "notFoundDesc": "Please double-check the URL, or click below to go home.",
+    "backHome": "Back to home",
+    "goBack": "Go back",
+    "forbiddenTitle": "Access denied",
+    "forbiddenDesc": "Contact your administrator if you think this is a mistake."
   }
 }
