@@ -7,6 +7,7 @@ ai_summary:
   source_of_truth:
     - "docs/ADR-0001-FRONTEND-MODERNIZATION.md"
     - "docs/ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md"
+    - "docs/ADR-0003-DOUBLE-COLUMN-LAYOUT.md"
     - "frontend/src/utils/route-meta.ts"
     - "frontend/src/utils/view-cache.ts"
     - "frontend/src/store/modules/tags-view-store.ts"
@@ -163,7 +164,7 @@ frontend/src/
 `dictCode/pageNum/pageSize` 取齐结果后才缓存数组，保留 `label/value/tagType`。字典缓存键升级为
 `vea:system:dict_cache:v2`，不复用旧版本可能未筛选或把分页对象当数组写入的持久化数据；有效空数组
 仍可缓存，格式异常的缓存条目会重新请求。真实浏览器门禁同时断言通知字典标签、颜色及无 `pageerror`。
-- **布局模块**：`layouts/` (支持 left/top/mix 三种布局模式)
+- **布局模块**：`layouts/` (支持 left/top/mix 三种布局模式，以及 [ADR-0003](./ADR-0003-DOUBLE-COLUMN-LAYOUT.md) 新增的双列布局 double；双列布局在移动端退化为左侧布局，一级菜单逻辑与 mix 共用 `useTopMenuNavigation`)
 
 **前端样式治理：**
 - `frontend/src/styles` 采用分层结构：`tokens -> theme -> foundation -> skins -> pages`

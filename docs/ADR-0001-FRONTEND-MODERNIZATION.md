@@ -52,6 +52,7 @@ ai_summary:
 - `frontend/package.json`、`frontend/pnpm-lock.yaml` 与 `frontend/vite.config.ts` 当前未使用 `unplugin-vue-router`，本次不引入文件路由。
 - 具体阶段、状态和验收证据只在 `docs/FRONTEND_OPTIMIZATION_BACKLOG.md` 跟踪，不另建重复 roadmap。
 - 视觉系统的后续替换由 [ADR-0002](./ADR-0002-LIQUID-CHROME-VISUAL-SYSTEM.md) 记录；它只换 tokens、skins 和少量页面样式，仍受本 ADR 的兼容边界约束。
+- [ADR-0003](./ADR-0003-DOUBLE-COLUMN-LAYOUT.md) 在保留 left/top/mix 的前提下新增可选的双列布局，移动端退化为左侧布局。
 
 ## How to verify
 

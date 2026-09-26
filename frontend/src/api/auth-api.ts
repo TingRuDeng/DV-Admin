@@ -210,7 +210,7 @@ export interface Meta {
   /** 【菜单】是否开启页面缓存 */
   keepAlive?: boolean;
   /** 布局覆盖 */
-  layout?: "left" | "top" | "mix";
+  layout?: "left" | "top" | "mix" | "double";
   /** 附加参数 */
   params?: Record<string, unknown>;
   /** 路由级权限（页面访问语义） */

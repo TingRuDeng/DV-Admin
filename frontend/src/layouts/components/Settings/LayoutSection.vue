@@ -24,8 +24,12 @@
             @keydown.enter.space="handleLayoutChange(item.value)"
           >
             <div class="layout-preview">
-              <div v-if="item.value !== LayoutMode.LEFT" class="layout-header"></div>
+              <div
+                v-if="item.value === LayoutMode.TOP || item.value === LayoutMode.MIX"
+                class="layout-header"
+              ></div>
               <div v-if="item.value !== LayoutMode.TOP" class="layout-sidebar"></div>
+              <div v-if="item.value === LayoutMode.DOUBLE" class="layout-panel"></div>
               <div class="layout-main"></div>
             </div>
             <div class="layout-name">{{ item.label }}</div>
@@ -52,6 +56,7 @@ const layoutOptions: LayoutOption[] = [
   { value: LayoutMode.LEFT, label: t("settings.leftLayout"), className: "left" },
   { value: LayoutMode.TOP, label: t("settings.topLayout"), className: "top" },
   { value: LayoutMode.MIX, label: t("settings.mixLayout"), className: "mix" },
+  { value: LayoutMode.DOUBLE, label: t("settings.doubleLayout"), className: "double" },
 ];
 
 function handleLayoutChange(layout: LayoutMode) {
@@ -71,15 +76,16 @@ function handleLayoutChange(layout: LayoutMode) {
 
   .layout-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    justify-items: center;
+    // 四种布局放一行：抽屉内容区约 290px 宽，每个预览 62px、间距 8px
+    grid-template-columns: repeat(4, 62px);
+    gap: 8px;
+    justify-content: center;
   }
 }
 
 .layout-item {
   position: relative;
-  width: 70px;
+  width: 62px;
   height: 80px;
   overflow: hidden;
   cursor: pointer;
@@ -117,6 +123,14 @@ function handleLayoutChange(layout: LayoutMode) {
     left: 4px;
     width: 12px;
     background: linear-gradient(180deg, var(--ff-iri-a) 0%, var(--ff-iri-b) 100%);
+    border-radius: 2px;
+  }
+
+  .layout-panel {
+    position: absolute;
+    left: 14px;
+    width: 12px;
+    background: color-mix(in srgb, var(--ff-iri-b) 35%, transparent);
     border-radius: 2px;
   }
 
@@ -178,6 +192,26 @@ function handleLayoutChange(layout: LayoutMode) {
       right: 4px;
       bottom: 4px;
       left: 4px;
+    }
+  }
+
+  &.double {
+    .layout-sidebar {
+      top: 4px;
+      bottom: 4px;
+      width: 8px;
+    }
+
+    .layout-panel {
+      top: 4px;
+      bottom: 4px;
+    }
+
+    .layout-main {
+      top: 4px;
+      right: 4px;
+      bottom: 4px;
+      left: 30px;
     }
   }
 
