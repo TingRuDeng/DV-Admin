@@ -19,7 +19,7 @@ export const defaultSettings: AppSettings = {
   // 是否显示应用Logo
   showAppLogo: true,
   // 布局方式，默认为左侧布局
-  layout: LayoutMode.LEFT,
+  layout: LayoutMode.DOUBLE,
   // 主题，根据操作系统的色彩方案自动选择
   theme: mediaQueryList.matches ? ThemeMode.DARK : ThemeMode.LIGHT,
   // 组件大小 default | medium | small | large

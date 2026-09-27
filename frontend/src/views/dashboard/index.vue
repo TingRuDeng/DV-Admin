@@ -28,6 +28,8 @@
     </section>
 
     <DashboardQuickActions :items="quickActions" @navigate="handleNavigate" />
+
+    <DashboardRecentPages :recent-pages="recentPages" @navigate="handleNavigate" />
   </PageShell>
 </template>
 
@@ -37,12 +39,15 @@ import { useRouter } from "vue-router";
 import PageShell from "@/components/PageShell/index.vue";
 import { useLayoutMenu } from "@/composables/layout/useLayoutMenu";
 import { useUserStore } from "@/store/modules/user-store";
+import { useTagsViewStore } from "@/store/modules/tags-view-store";
 import { translateRouteTitle } from "@/utils/i18n";
+import { hasAppIcon, normalizeMenuIconName } from "@/components/AppIcon/icon-map";
 import DashboardHero from "./components/DashboardHero.vue";
 import DashboardMetricCard from "./components/DashboardMetricCard.vue";
 import DashboardQuickActions, {
   type DashboardQuickAction,
 } from "./components/DashboardQuickActions.vue";
+import DashboardRecentPages from "./components/DashboardRecentPages.vue";
 
 defineOptions({
   name: "Dashboard",
@@ -89,6 +94,24 @@ function collectQuickActions(routeRecords: RouteRecordRaw[], parentPath = "") {
 }
 
 const quickActions = computed(() => collectQuickActions(routes.value));
+
+// 最近访问：从页签历史里取，排除首页，最多 6 条，最近的在前
+const tagsViewStore = useTagsViewStore();
+const recentPages = computed<DashboardQuickAction[]>(() =>
+  [...tagsViewStore.visitedViews]
+    .filter((tag) => tag.path !== "/dashboard" && !tag.affix)
+    .reverse()
+    .slice(0, 6)
+    .map((tag) => {
+      const rawIcon = typeof tag.icon === "string" ? tag.icon : "";
+      const icon = rawIcon ? normalizeMenuIconName(rawIcon) : "clock";
+      return {
+        title: translateRouteTitle(tag.title ?? "") || tag.title || "",
+        path: tag.path,
+        icon: hasAppIcon(icon) ? icon : "clock",
+      };
+    })
+);
 
 function handleNavigate(path: string) {
   void router.push(path);

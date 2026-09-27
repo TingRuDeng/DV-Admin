@@ -1,13 +1,22 @@
 <template>
-  <div v-if="enabled" class="login-form__sso">
+  <div class="login-form__sso">
     <span class="login-form__divider" aria-hidden="true" />
-    <el-button :loading="loading" class="login-form__sso-button" @click="startOidcLogin">
+    <el-tooltip v-if="!enabled" :content="t('login.oidcDisabledTip')" placement="top">
+      <span class="login-form__sso-button--wrap">
+        <el-button disabled class="login-form__sso-button">
+          <AppIcon name="lock" :size="15" class="login-form__sso-button-icon" />
+          {{ providerName }}
+        </el-button>
+      </span>
+    </el-tooltip>
+    <el-button v-else :loading="loading" class="login-form__sso-button" @click="startOidcLogin">
       {{ providerName }}
     </el-button>
   </div>
 </template>
 
 <script setup lang="ts">
+import AppIcon from "@/components/AppIcon/index.vue";
 import AuthAPI from "@/api/auth-api";
 import { createLogger } from "@/utils/logger";
 import { resolveSafeRedirect } from "@/utils/safe-redirect";
@@ -28,7 +37,6 @@ async function startOidcLogin() {
     saveOidcFlow({ state, flowSecret, redirect: resolveSafeRedirect(route.query.redirect) });
     navigateToProvider(authorizationUrl);
   } catch (error) {
-    // 接口错误已由请求拦截器提示，这里只恢复按钮
     oidcLogger.error("发起单点登录失败:", error);
     loading.value = false;
   }
