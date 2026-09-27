@@ -1,10 +1,10 @@
 import pytest
 from fastapi import FastAPI
-from scripts.api_runtime_route_contracts import assert_runtime_routes
 from starlette.routing import Mount
 from starlette.staticfiles import StaticFiles
 
 from app.main import create_app
+from scripts.api_runtime_route_contracts import assert_runtime_routes
 
 
 def registered_routes(app, prefix=""):

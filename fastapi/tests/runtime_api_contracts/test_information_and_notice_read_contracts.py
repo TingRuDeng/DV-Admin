@@ -8,13 +8,13 @@ from pathlib import Path
 
 import pytest_asyncio
 from fixtures.images import PNG_BYTES
-
-from app.db.models.system import Notices
 from runtime_api_contracts.helpers import (
     assert_response_fields,
     assert_success_payload,
     contracts_by_key,
 )
+
+from app.db.models.system import Notices
 
 
 @pytest_asyncio.fixture

@@ -3,6 +3,7 @@
 import uuid
 
 import pytest_asyncio
+
 from scripts.api_error_codes import ERROR_CODE, SUCCESS_CODE
 
 MOBILE = "13900139000"
