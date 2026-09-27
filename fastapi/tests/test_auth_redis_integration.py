@@ -9,7 +9,6 @@ import httpx
 import pytest
 from fastapi import FastAPI
 from redis.asyncio import Redis
-from scripts.redis_test_server import RedisTestServer
 
 from app.api.v1.oauth.routes import session
 from app.core.config import settings
@@ -21,6 +20,7 @@ from app.core.security import (
     get_token_session_started_at,
 )
 from app.services.token_blacklist import TokenBlacklistService
+from scripts.redis_test_server import RedisTestServer
 
 
 @pytest.mark.asyncio

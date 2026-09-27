@@ -2,7 +2,6 @@
 
 import pytest_asyncio
 from openpyxl import Workbook
-from scripts.query_performance_probe import QueryProbe
 from tortoise import Tortoise
 
 from app.db.models.oauth import Users
@@ -13,6 +12,7 @@ from app.services.system.data_scope import (
     apply_user_data_scope,
 )
 from app.services.system.user_service import user_service
+from scripts.query_performance_probe import QueryProbe
 
 
 @pytest_asyncio.fixture

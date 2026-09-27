@@ -4,12 +4,6 @@ import asyncio
 import json
 from unittest.mock import patch
 
-from scripts.mysql_grant_testing import (
-    WriteFaultBlocker,
-    deadlock_count,
-    mysql_errno,
-    wait_for_lock,
-)
 from tortoise import connections
 from tortoise.fields.relational import ManyToManyRelation
 
@@ -19,6 +13,12 @@ from app.schemas.system import RoleUpdate, UserUpdate
 from app.services.system.grant_boundary import GrantBoundary
 from app.services.system.role_service import role_service
 from app.services.system.user_service import user_service
+from scripts.mysql_grant_testing import (
+    WriteFaultBlocker,
+    deadlock_count,
+    mysql_errno,
+    wait_for_lock,
+)
 
 
 async def ordered_delete(kind, seed):

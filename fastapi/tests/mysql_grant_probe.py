@@ -6,7 +6,6 @@ import asyncio
 import json
 from unittest.mock import patch
 
-from scripts.mysql_grant_testing import credentials, isolation, schema_name, wait_for_lock
 from tortoise import Tortoise
 from tortoise.fields.relational import ManyToManyRelation
 from tortoise.transactions import in_transaction
@@ -17,6 +16,7 @@ from app.db.models.system import Departments, Permissions, Roles
 from app.schemas.system import RoleUpdate, UserUpdate
 from app.services.system.role_service import role_service
 from app.services.system.user_service import user_service
+from scripts.mysql_grant_testing import credentials, isolation, schema_name, wait_for_lock
 
 
 async def seed(suffix):
