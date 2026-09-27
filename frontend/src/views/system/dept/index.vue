@@ -241,7 +241,7 @@ function handleDelete(deptId?: string | number) {
     return;
   }
 
-  ElMessageBox.confirm("确认删除已选中的数据项?", "警告", {
+  ElMessageBox.confirm("确认删除该部门? 请确保部门下无子部门。", "警告", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning",
