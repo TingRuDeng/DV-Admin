@@ -107,7 +107,7 @@
                   icon="RefreshLeft"
                   size="small"
                   link
-                  @click="hancleResetPassword(scope.row)"
+                  @click="handleResetPassword(scope.row)"
                 >
                   重置密码
                 </el-button>
@@ -238,7 +238,7 @@ function handleSelectionChange(selection: unknown[]) {
 }
 
 // 重置密码
-async function hancleResetPassword(row: UserPageVO) {
+async function handleResetPassword(row: UserPageVO) {
   let policy;
   try {
     policy = await InformationAPI.getPasswordPolicy();
