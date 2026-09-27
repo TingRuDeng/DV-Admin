@@ -62,3 +62,31 @@
     margin-left: 0;
   }
 }
+
+// 我的通知 — 空态
+.ff-notice-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.ff-notice-empty__icon {
+  color: var(--ff-color-text-secondary);
+  opacity: 0.45;
+}
+
+.ff-notice-empty__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ff-color-text-secondary);
+}
+
+.ff-notice-empty__desc {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ff-color-text-dim);
+}

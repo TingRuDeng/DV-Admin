@@ -130,5 +130,9 @@
     "goBack": "返回上一页",
     "forbiddenTitle": "你没有权限访问该页面",
     "forbiddenDesc": "如需开通权限，请联系管理员。"
+  },
+  "notice": {
+    "emptyTitle": "暂无通知",
+    "emptyDesc": "当前没有发送给你的通知公告"
   }
 }
