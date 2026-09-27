@@ -47,7 +47,8 @@
     "haveAccount": "Already have an account?",
     "noAccount": "Don't have an account?",
     "quickFill": "Quick fill",
-    "reg": "Register"
+    "reg": "Register",
+    "oidcDisabledTip": "Enterprise login is not enabled — contact your administrator to configure OIDC"
   },
   "navbar": {
     "dashboard": "Dashboard",
