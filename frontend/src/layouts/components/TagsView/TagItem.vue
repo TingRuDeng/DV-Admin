@@ -73,15 +73,24 @@ const emit = defineEmits<{
     }
   }
 
-  // 当前页：面板底色 + 虹彩描边（padding-box / border-box 双层背景），边框保持 solid 以便键盘与测试识别
+  // 当前页：面板底色 + 虹彩描边，底边透明并下移 1px 与内容面板融合
   &.el-tag--primary {
+    position: relative;
+    bottom: -1px;
+    z-index: 1;
     font-weight: 600;
     color: var(--ff-shell-text);
     background:
       linear-gradient(var(--ff-color-bg-panel-strong), var(--ff-color-bg-panel-strong)) padding-box,
       var(--ff-iri) border-box;
-    border-color: transparent;
-    box-shadow: 0 6px 16px -10px color-mix(in srgb, var(--ff-iri-b) 70%, transparent);
+    border-bottom-color: var(--ff-color-bg-panel-strong);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    box-shadow:
+      0 -2px 8px -4px color-mix(in srgb, var(--ff-iri-b) 40%, transparent),
+      0 6px 0 0 var(--ff-color-bg-panel-strong);
   }
 
   &:focus-visible {
