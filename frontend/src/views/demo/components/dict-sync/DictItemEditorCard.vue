@@ -44,7 +44,7 @@
           </el-form-item>
         </el-form>
       </div>
-      <el-empty v-else description="暂无字典数据" />
+      <el-empty v-else description="请从左侧选择一个字典项" />
     </div>
   </el-card>
 </template>
