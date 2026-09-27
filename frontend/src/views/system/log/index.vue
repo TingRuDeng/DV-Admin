@@ -112,7 +112,7 @@
       <template #empty>
         <div class="ff-table-empty">
           <AppIcon name="scroll-text" :size="36" class="ff-table-empty__icon" />
-          <p class="ff-table-empty__text">暂无操作日志</p>
+          <p class="ff-table-empty__text">当前没有操作日志记录</p>
         </div>
       </template>
     </ProTable>

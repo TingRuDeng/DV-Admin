@@ -114,7 +114,7 @@
       <template #empty>
         <div class="ff-table-empty">
           <AppIcon name="menu" :size="36" class="ff-table-empty__icon" />
-          <p class="ff-table-empty__text">暂无菜单数据</p>
+          <p class="ff-table-empty__text">当前没有菜单记录</p>
         </div>
       </template>
     </ProTable>
