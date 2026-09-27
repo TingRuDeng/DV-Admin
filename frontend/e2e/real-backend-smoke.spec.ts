@@ -106,6 +106,10 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     const errors: string[] = [];
     pageErrors.set(page, errors);
     page.on("pageerror", (error) => errors.push(error.message));
+    // 强制左侧布局，确保 .layout__sidebar 选择器在任何默认设置下都能找到
+    page.addInitScript(() => {
+      localStorage.setItem("vea:ui:layout", "left");
+    });
   });
   test.afterEach(({ page }) => {
     expect(pageErrors.get(page), "页面不应包含未处理的脚本错误").toEqual([]);
