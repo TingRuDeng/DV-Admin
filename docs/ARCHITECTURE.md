@@ -410,7 +410,8 @@ IdP ──302 /oidc/callback?code&state[&iss]──▶ 回调页先清掉地址�
 - ID Token 只接受 RS256/ES256/PS256 与 discovery 声明的交集，拒绝 `none` 和 HS*；discovery 的 `issuer` 必须与 `OIDC_ISSUER` 逐字符相等；回调带 `iss` 时必须一致，提供方声明支持 RFC 9207 时必须带。只走授权码流程且不使用 IdP 的 access token，因此不校验 `at_hash`/`c_hash`。
 - 外部身份存 `oauth_oidc_identities`（`issuer`+`subject` 唯一），不改 `system_users`。首次登录顺序：已绑定身份 → 按已验证邮箱匹配唯一的非超级管理员（`OIDC_MATCH_EXISTING_BY_EMAIL`，默认关）→ 自动开通（`OIDC_AUTO_PROVISION`，默认开，可用 `OIDC_ALLOWED_EMAIL_DOMAINS` 限定已验证邮箱域名）→ 拒绝。自动开通的账号使用不可用密码并分配默认角色，只在创建时写入姓名和邮箱。
 - 两个接口与密码登录共用按 IP 的限速桶；state 存储与限速都要求 Redis，不可用返回 503。生产环境启用时要求 issuer 与回调地址为 https 且配置完整，否则拒绝启动。
-- 这次不做：身份提供方组到角色的映射、RP-initiated logout（本地退出后 IdP 会话仍在）、管理员绑定和解绑身份的界面。
+- 退出登录：身份提供方声明 `end_session_endpoint` 时，前端先通过 `GET /oauth/oidc/end-session/` 取到退出地址，完成本地退出后跳转过去结束 IdP 会话；不声明时只做本地退出。
+- 这次不做：身份提供方组到角色的映射、管理员绑定和解绑身份的界面。
 
 ---
 

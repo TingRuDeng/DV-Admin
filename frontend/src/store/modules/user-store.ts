@@ -9,6 +9,7 @@ import { useTagsViewStore } from "@/store";
 import { cleanupWebSocket } from "@/plugins/websocket";
 import { createLogger } from "@/utils/logger";
 import { resolveStaticAssetUrl } from "@/utils/static-asset-url";
+import { isOidcEnabled } from "@/views/login/oidc-flow";
 
 const userStoreLogger = createLogger("userStore");
 
@@ -85,12 +86,23 @@ export const useUserStore = defineStore("user", () => {
   /**
    * 登出
    */
-  async function logout() {
+  /**
+   * 退出登录；单点登录用户在本地退出后跳转到身份提供方的退出地址，结束 IdP 会话
+   * @returns 需要跳转的 IdP 退出地址，没有时为 null
+   */
+  async function logout(): Promise<string | null> {
+    // 先拿退出地址：本地令牌清掉之后就无法再调用需要认证的接口
+    const endSessionUrl = isOidcEnabled()
+      ? await AuthAPI.oidcEndSession()
+          .then((data) => data.endSessionUrl)
+          .catch(() => null)
+      : null;
     try {
       await AuthAPI.logout(AuthStorage.getRefreshToken() || undefined);
     } finally {
       await resetAllState();
     }
+    return endSessionUrl;
   }
 
   /**
