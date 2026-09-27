@@ -107,7 +107,7 @@
                   icon="RefreshLeft"
                   size="small"
                   link
-                  @click="hancleResetPassword(scope.row)"
+                  @click="handleResetPassword(scope.row)"
                 >
                   重置密码
                 </el-button>
@@ -238,7 +238,7 @@ function handleSelectionChange(selection: unknown[]) {
 }
 
 // 重置密码
-async function hancleResetPassword(row: UserPageVO) {
+async function handleResetPassword(row: UserPageVO) {
   let policy;
   try {
     policy = await InformationAPI.getPasswordPolicy();
@@ -343,7 +343,7 @@ function handleDelete(id?: string) {
 
   void runExclusive(loading, async () => {
     try {
-      await ElMessageBox.confirm("确认删除用户?", "警告", {
+      await ElMessageBox.confirm("确认删除已选中的用户? 该操作不可撤销。", "警告", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning",

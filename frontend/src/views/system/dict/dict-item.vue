@@ -167,7 +167,7 @@ function handleDelete(id?: number) {
     ElMessage.warning("请勾选删除项");
     return;
   }
-  ElMessageBox.confirm("确认删除已选中的数据项?", "警告", {
+  ElMessageBox.confirm("确认删除已选中的字典项? 该操作不可撤销。", "警告", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning",
