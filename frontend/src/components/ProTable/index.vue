@@ -15,6 +15,9 @@
         @selection-change="handleSelectionChange"
       >
         <slot />
+        <template v-if="$slots.empty" #empty>
+          <slot name="empty" />
+        </template>
       </el-table>
     </div>
 

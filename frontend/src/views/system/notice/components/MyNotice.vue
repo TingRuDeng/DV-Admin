@@ -52,6 +52,14 @@
           </el-button>
         </template>
       </el-table-column>
+
+      <template #empty>
+        <div class="ff-notice-empty">
+          <AppIcon name="bell" :size="40" class="ff-notice-empty__icon" />
+          <p class="ff-notice-empty__title">{{ t("notice.emptyTitle") }}</p>
+          <p class="ff-notice-empty__desc">{{ t("notice.emptyDesc") }}</p>
+        </div>
+      </template>
     </ProTable>
 
     <ProDialog
@@ -99,6 +107,7 @@ import NoticeAPI, {
   NoticePageVO,
 } from "@/api/system/notice-api";
 
+const { t } = useI18n();
 const queryFormRef = ref<{ resetFields: () => void } | null>(null);
 const tableRef = ref<ProTableExpose | null>(null);
 
