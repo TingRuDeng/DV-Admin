@@ -108,6 +108,13 @@
           </el-button>
         </template>
       </el-table-column>
+
+      <template #empty>
+        <div class="ff-table-empty">
+          <AppIcon name="scroll-text" :size="36" class="ff-table-empty__icon" />
+          <p class="ff-table-empty__text">暂无操作日志</p>
+        </div>
+      </template>
     </ProTable>
 
     <LogDetailDialog ref="logDetailDialogRef" />
