@@ -127,5 +127,9 @@
     "goBack": "Go back",
     "forbiddenTitle": "Access denied",
     "forbiddenDesc": "Contact your administrator if you think this is a mistake."
+  },
+  "notice": {
+    "emptyTitle": "No notifications",
+    "emptyDesc": "You have no notifications at this time"
   }
 }
