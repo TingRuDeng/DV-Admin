@@ -116,7 +116,7 @@
       <template #empty>
         <div class="ff-table-empty">
           <AppIcon name="building-2" :size="36" class="ff-table-empty__icon" />
-          <p class="ff-table-empty__text">暂无部门数据</p>
+          <p class="ff-table-empty__text">当前没有部门记录</p>
         </div>
       </template>
     </ProTable>

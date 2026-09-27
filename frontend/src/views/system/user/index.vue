@@ -140,7 +140,7 @@
           <template #empty>
             <div class="ff-table-empty">
               <AppIcon name="users-round" :size="36" class="ff-table-empty__icon" />
-              <p class="ff-table-empty__text">暂无用户数据</p>
+              <p class="ff-table-empty__text">当前没有用户记录</p>
             </div>
           </template>
         </ProTable>

@@ -153,7 +153,7 @@
       <template #empty>
         <div class="ff-table-empty">
           <AppIcon name="megaphone" :size="36" class="ff-table-empty__icon" />
-          <p class="ff-table-empty__text">暂无通知公告</p>
+          <p class="ff-table-empty__text">当前没有通知公告记录</p>
         </div>
       </template>
     </ProTable>
