@@ -85,16 +85,52 @@
                 批量删除
               </el-button>
             </div>
+            <ColumnSelector
+              :all-columns="USER_COLUMNS"
+              :visible-columns="visibleColumns"
+              @update:visible-columns="(v) => (visibleColumns = v)"
+              @reset="resetColumns"
+            />
           </template>
 
           <template #default>
             <el-table-column type="selection" width="50" align="center" />
-            <el-table-column label="用户名" prop="username" />
-            <el-table-column label="昵称" width="150" align="center" prop="name" />
-            <el-table-column label="部门" width="120" align="center" prop="deptName" />
-            <el-table-column label="手机号码" align="center" prop="mobile" width="120" />
-            <el-table-column label="邮箱" align="center" prop="email" min-width="160" />
-            <el-table-column label="状态" align="center" prop="isActive" width="80">
+            <el-table-column v-if="isVisible('username')" label="用户名" prop="username" />
+            <el-table-column
+              v-if="isVisible('name')"
+              label="昵称"
+              width="150"
+              align="center"
+              prop="name"
+            />
+            <el-table-column
+              v-if="isVisible('deptName')"
+              label="部门"
+              width="120"
+              align="center"
+              prop="deptName"
+            />
+            <el-table-column
+              v-if="isVisible('mobile')"
+              label="手机号码"
+              align="center"
+              prop="mobile"
+              width="120"
+            />
+            <el-table-column
+              v-if="isVisible('email')"
+              label="邮箱"
+              align="center"
+              prop="email"
+              min-width="160"
+            />
+            <el-table-column
+              v-if="isVisible('isActive')"
+              label="状态"
+              align="center"
+              prop="isActive"
+              width="80"
+            >
               <template #default="scope">
                 <UserStatusTag :value="scope.row.isActive" />
               </template>
@@ -165,6 +201,8 @@
 
 <script setup lang="ts">
 import BatchDeleteResultDialog from "@/components/BatchDeleteResultDialog/index.vue";
+import ColumnSelector from "@/components/ColumnSelector/index.vue";
+import type { ColumnDef } from "@/components/ColumnSelector/index.vue";
 import PageShell from "@/components/PageShell/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
@@ -174,6 +212,7 @@ import { runExclusive } from "@/utils/exclusive-action";
 import { downloadEncodedFile } from "@/utils/file-download";
 import { createLogger } from "@/utils/logger";
 import { passwordLengthError } from "@/utils/password-policy";
+import { useColumnVisibility } from "@/composables/useColumnVisibility";
 import InformationAPI from "@/api/information-api";
 
 import type { UserInfo } from "@/api/auth-api";
@@ -185,12 +224,31 @@ import UserImport from "./components/UserImport.vue";
 import UserFormDrawer from "./components/UserFormDrawer.vue";
 import UserStatusTag from "./components/UserStatusTag.vue";
 import { useUserStore } from "@/store";
+
 const userBatchDeleteLogger = createLogger("UserBatchDelete");
 const userStore = useUserStore();
 defineOptions({
   name: "User",
   inheritAttrs: false,
 });
+
+// 列显示/隐藏
+const USER_COLUMNS: ColumnDef[] = [
+  { key: "username", label: "用户名", required: true },
+  { key: "name", label: "昵称" },
+  { key: "deptName", label: "部门" },
+  { key: "mobile", label: "手机号码" },
+  { key: "email", label: "邮箱" },
+  { key: "isActive", label: "状态" },
+];
+const {
+  visibleColumns,
+  isVisible,
+  reset: resetColumns,
+} = useColumnVisibility(
+  "sys-user:columns",
+  USER_COLUMNS.map((c) => c.key)
+);
 
 const queryFormRef = ref<InstanceType<typeof ProSearch> | null>(null);
 const userFormDrawerRef = ref<InstanceType<typeof UserFormDrawer> | null>(null);

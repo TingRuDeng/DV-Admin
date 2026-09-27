@@ -6,6 +6,7 @@
 
     <div class="ff-table-wrap">
       <el-table
+        ref="elTableRef"
         v-loading="loadingProxy"
         :data="dataProxy"
         :row-key="rowKey"
@@ -38,6 +39,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import type { TableInstance } from "element-plus";
 import DataPanel from "@/components/DataPanel/index.vue";
 import Pagination from "@/components/Pagination/index.vue";
 import type { ProTableExpose, ProTablePaginationPayload, ProTableRequestResult } from "./types";
@@ -85,6 +87,8 @@ const innerData = ref<unknown[]>([]);
 const innerTotal = ref(0);
 const innerPage = ref(props.page);
 const innerLimit = ref(props.limit);
+
+const elTableRef = ref<TableInstance | null>(null);
 
 const isRequestMode = computed(() => typeof props.request === "function");
 const loadingProxy = computed(() => (isRequestMode.value ? innerLoading.value : props.loading));
@@ -178,5 +182,6 @@ watch(
 
 defineExpose<ProTableExpose>({
   reload,
+  getTableRef: () => elTableRef.value,
 });
 </script>
