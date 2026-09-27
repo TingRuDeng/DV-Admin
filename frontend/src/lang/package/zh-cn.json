@@ -47,7 +47,8 @@
     "haveAccount": "已有账号？",
     "noAccount": "您没有账号？",
     "quickFill": "快速填写",
-    "reg": "注 册"
+    "reg": "注 册",
+    "oidcDisabledTip": "企业账号登录未启用，请联系管理员配置 OIDC 集成"
   },
   "navbar": {
     "dashboard": "首页",
