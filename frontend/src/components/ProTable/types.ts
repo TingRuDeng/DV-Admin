@@ -21,4 +21,5 @@ export interface ProTablePaginationPayload {
 
 export interface ProTableExpose {
   reload: (resetPage?: boolean) => Promise<void>;
+  getTableRef: () => import("element-plus").TableInstance | null;
 }

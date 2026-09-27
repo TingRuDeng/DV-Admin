@@ -22,6 +22,7 @@
       :request="requestTableData"
       :params="queryParams"
       :show-pagination="false"
+      default-expand-all
       :tree-props="{
         children: 'children',
         hasChildren: 'hasChildren',

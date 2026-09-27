@@ -139,5 +139,11 @@
     "good": "Good",
     "strong": "Strong",
     "aria": "Password strength: {label}"
+  },
+  "table": {
+    "columnSettings": "Column Settings"
+  },
+  "common": {
+    "reset": "Reset"
   }
 }
