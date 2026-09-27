@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from django.conf import settings
+from rest_framework import status
 from rest_framework.exceptions import ParseError, UnsupportedMediaType, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from drf_admin.apps.oauth.oidc_policy import OidcError
+from drf_admin.apps.oauth.oidc_policy import OidcError, end_session_url
 from drf_admin.apps.oauth.services import oidc as oidc_service
+from drf_admin.apps.oauth.services.oidc import get_discovery, load_config
 from drf_admin.apps.oauth.utils import get_request_ip
 
 
@@ -29,6 +31,26 @@ class OidcAuthorizeView(APIView):
         except OidcError as error:
             raise ValidationError(error.message) from None
         return Response(data)
+
+
+class OidcEndSessionView(APIView):
+    """
+    get:
+    获取单点登录的退出地址
+
+    如果身份提供方支持 end_session_endpoint，返回可跳转的退出 URL；否则返回 null。
+    前端用此地址结束 IdP 会话，避免"退出后直接登回来"。
+    """
+
+    def get(self, request):
+        try:
+            config = load_config()
+            discovery = get_discovery(config)
+            post_logout = getattr(settings, "OIDC_POST_LOGOUT_URI", config.redirect_uri.rsplit("/oidc/", 1)[0] + "/dashboard")
+            url = end_session_url(discovery, post_logout)
+        except Exception:
+            url = None
+        return Response({"endSessionUrl": url}, status=status.HTTP_200_OK)
 
 
 class OidcLoginView(APIView):

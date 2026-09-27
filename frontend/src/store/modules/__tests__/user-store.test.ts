@@ -11,6 +11,7 @@ vi.mock("@/api/auth-api", () => ({
     getRoutes: vi.fn(),
     login: vi.fn(),
     logout: vi.fn(),
+    oidcEndSession: vi.fn(),
     refreshToken: vi.fn(),
   },
 }));
@@ -117,6 +118,37 @@ describe("useUserStore", () => {
 
     expect(AuthAPI.logout).toHaveBeenCalledWith("session-refresh-token");
     expect(clearAuthSpy).toHaveBeenCalled();
+  });
+
+  it("returns the IdP end-session URL for single sign-on users when OIDC is enabled", async () => {
+    vi.stubEnv("VITE_OIDC_ENABLED", "true");
+    vi.mocked(AuthAPI.oidcEndSession).mockResolvedValue({
+      endSessionUrl: "https://idp.example/logout?post_logout_redirect_uri=x",
+    });
+    vi.mocked(AuthAPI.logout).mockResolvedValue({} as Awaited<ReturnType<typeof AuthAPI.logout>>);
+    const userStore = useUserStore();
+
+    await expect(userStore.logout()).resolves.toBe(
+      "https://idp.example/logout?post_logout_redirect_uri=x"
+    );
+    // 退出地址必须在本地令牌清除之前取到
+    expect(vi.mocked(AuthAPI.oidcEndSession).mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(AuthAPI.logout).mock.invocationCallOrder[0]
+    );
+    vi.unstubAllEnvs();
+  });
+
+  it("skips the end-session lookup when OIDC is disabled or the lookup fails", async () => {
+    vi.mocked(AuthAPI.logout).mockResolvedValue({} as Awaited<ReturnType<typeof AuthAPI.logout>>);
+    vi.stubEnv("VITE_OIDC_ENABLED", "false");
+    await expect(useUserStore().logout()).resolves.toBeNull();
+    expect(AuthAPI.oidcEndSession).not.toHaveBeenCalled();
+
+    vi.stubEnv("VITE_OIDC_ENABLED", "true");
+    vi.mocked(AuthAPI.oidcEndSession).mockRejectedValue(new Error("offline"));
+    await expect(useUserStore().logout()).resolves.toBeNull();
+    expect(AuthAPI.logout).toHaveBeenCalledTimes(2);
+    vi.unstubAllEnvs();
   });
 
   it("clears local credentials on explicit logout even when revocation fails", async () => {
