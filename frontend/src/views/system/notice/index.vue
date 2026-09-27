@@ -271,7 +271,7 @@ function handleDelete(id?: string) {
 
   void runExclusive(loading, async () => {
     try {
-      await ElMessageBox.confirm("确认删除已选中的数据项?", "警告", {
+      await ElMessageBox.confirm("确认删除已选中的通知公告? 该操作不可撤销。", "警告", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning",

@@ -190,7 +190,7 @@ function handleDelete(menuId: string) {
     return false;
   }
 
-  ElMessageBox.confirm("确认删除已选中的数据项?", "警告", {
+  ElMessageBox.confirm("确认删除该菜单? 请确保菜单下无子项。", "警告", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning",
