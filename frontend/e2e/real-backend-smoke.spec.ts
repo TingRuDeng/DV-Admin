@@ -348,6 +348,9 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     const frontendBaseUrl = new URL(page.url()).origin;
     const lifecycleContext = await browser.newContext({ baseURL: frontendBaseUrl });
     const lifecyclePage = await lifecycleContext.newPage();
+    await lifecyclePage.addInitScript(() => {
+      localStorage.setItem("vea:ui:layout", "left");
+    });
     const lifecycleFailures = collectFailedApiResponses(lifecyclePage);
     await loginWithRoutes(
       lifecyclePage,
@@ -454,6 +457,9 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
 
     const revokedContext = await browser.newContext({ baseURL: frontendBaseUrl });
     const revokedPage = await revokedContext.newPage();
+    await revokedPage.addInitScript(() => {
+      localStorage.setItem("vea:ui:layout", "left");
+    });
     const revokedFailedApiResponses = collectFailedApiResponses(revokedPage);
     await loginWithRoutes(revokedPage, rbacUsername, rbacPassword, "/dashboard");
     await expect(
@@ -731,6 +737,9 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     const frontendBaseUrl = new URL(page.url()).origin;
     const initialUserContext = await browser.newContext({ baseURL: frontendBaseUrl });
     const initialUserPage = await initialUserContext.newPage();
+    await initialUserPage.addInitScript(() => {
+      localStorage.setItem("vea:ui:layout", "left");
+    });
     const initialUserFailures = collectFailedApiResponses(initialUserPage);
     await loginWithRoutes(
       initialUserPage,
@@ -762,6 +771,9 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
 
     const updatedUserContext = await browser.newContext({ baseURL: frontendBaseUrl });
     const updatedUserPage = await updatedUserContext.newPage();
+    await updatedUserPage.addInitScript(() => {
+      localStorage.setItem("vea:ui:layout", "left");
+    });
     const updatedUserFailures = collectFailedApiResponses(updatedUserPage);
     await loginWithRoutes(updatedUserPage, rbacUsername, rbacPassword, "/dashboard");
     await expect(sidebarMenuItem(updatedUserPage, menuWriteUpdatedName)).toBeVisible();
@@ -796,6 +808,9 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
 
     const deletedUserContext = await browser.newContext({ baseURL: frontendBaseUrl });
     const deletedUserPage = await deletedUserContext.newPage();
+    await deletedUserPage.addInitScript(() => {
+      localStorage.setItem("vea:ui:layout", "left");
+    });
     const deletedUserFailures = collectFailedApiResponses(deletedUserPage);
     await loginWithRoutes(deletedUserPage, rbacUsername, rbacPassword, "/dashboard");
     await expect(sidebarMenuItem(deletedUserPage, menuWriteUpdatedName)).toHaveCount(0);
