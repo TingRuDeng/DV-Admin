@@ -9,3 +9,24 @@
 @use "system-notice";
 @use "system-role";
 @use "system-user";
+
+// 所有系统管理页面表格共用空态样式
+.ff-table-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 2.5rem 1rem;
+  text-align: center;
+
+  &__icon {
+    color: var(--ff-color-text-secondary);
+    opacity: 0.4;
+  }
+
+  &__text {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--ff-color-text-secondary);
+  }
+}

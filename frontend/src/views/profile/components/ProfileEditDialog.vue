@@ -32,6 +32,7 @@
       </el-form-item>
       <el-form-item label="新密码" prop="newPassword">
         <el-input v-model="passwordForm.newPassword" type="password" show-password />
+        <PasswordStrengthBar :password="passwordForm.newPassword || ''" />
       </el-form-item>
       <el-form-item label="确认密码" prop="confirmPassword">
         <el-input v-model="passwordForm.confirmPassword" type="password" show-password />
@@ -42,6 +43,7 @@
 
 <script setup lang="ts">
 import ProDialog from "@/components/ProDialog/index.vue";
+import PasswordStrengthBar from "@/components/PasswordStrengthBar/index.vue";
 import type { PasswordForm, PasswordPolicy, ProfileForm } from "@/api/information-api";
 import { passwordLengthError } from "@/utils/password-policy";
 import type { FormInstance } from "element-plus";

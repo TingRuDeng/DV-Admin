@@ -99,6 +99,13 @@
           </template>
         </el-table-column>
       </template>
+
+      <template #empty>
+        <div class="ff-table-empty">
+          <AppIcon name="book-open" :size="36" class="ff-table-empty__icon" />
+          <p class="ff-table-empty__text">当前没有字典记录</p>
+        </div>
+      </template>
     </ProTable>
 
     <DictFormDrawer ref="dictFormDrawerRef" @success="handleQuery" />

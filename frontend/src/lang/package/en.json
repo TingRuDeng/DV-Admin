@@ -47,7 +47,8 @@
     "haveAccount": "Already have an account?",
     "noAccount": "Don't have an account?",
     "quickFill": "Quick fill",
-    "reg": "Register"
+    "reg": "Register",
+    "oidcDisabledTip": "Enterprise login is not enabled — contact your administrator to configure OIDC"
   },
   "navbar": {
     "dashboard": "Dashboard",
@@ -131,5 +132,12 @@
   "notice": {
     "emptyTitle": "No notifications",
     "emptyDesc": "You have no notifications at this time"
+  },
+  "passwordStrength": {
+    "weak": "Weak",
+    "fair": "Fair",
+    "good": "Good",
+    "strong": "Strong",
+    "aria": "Password strength: {label}"
   }
 }

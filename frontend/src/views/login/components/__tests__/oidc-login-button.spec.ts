@@ -51,9 +51,12 @@ describe("单点登录入口", () => {
     expect(isOidcEnabled({})).toBe(false);
   });
 
-  it("未开启时不渲染任何内容", () => {
+  it("未开启时显示置灰按钮（不可点击）", () => {
     vi.stubEnv("VITE_OIDC_ENABLED", "false");
-    expect(renderButton().find("button").exists()).toBe(false);
+    const wrapper = renderButton();
+    // 按钮仍然渲染，但处于 disabled 状态
+    expect(wrapper.find("button").exists()).toBe(true);
+    expect(wrapper.find("button").attributes("disabled")).toBeDefined();
   });
 
   it("按钮文字优先使用环境变量，默认使用 i18n 文案", () => {
