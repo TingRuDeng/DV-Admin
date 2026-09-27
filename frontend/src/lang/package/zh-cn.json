@@ -142,5 +142,11 @@
     "good": "良好",
     "strong": "强",
     "aria": "密码强度：{label}"
+  },
+  "table": {
+    "columnSettings": "列设置"
+  },
+  "common": {
+    "reset": "重置"
   }
 }
