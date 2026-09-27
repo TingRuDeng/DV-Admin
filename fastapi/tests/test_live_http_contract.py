@@ -15,7 +15,6 @@ from typing import Iterator
 import httpx
 import pytest
 from fixtures.images import PNG_BYTES
-
 from scripts.real_backend_playwright import run_real_backend_playwright
 from scripts.redis_test_server import RedisTestServer
 

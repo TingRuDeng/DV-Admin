@@ -5,6 +5,8 @@ from __future__ import annotations
 import uuid
 
 import pytest_asyncio
+
+from app.db.models.system import Permissions, Roles
 from runtime_api_contracts.helpers import (
     DEPT_WRITE_SAMPLE_KEYS,
     MENU_WRITE_SAMPLE_KEYS,
@@ -16,8 +18,6 @@ from runtime_api_contracts.helpers import (
     assert_success_payload,
     contracts_by_key,
 )
-
-from app.db.models.system import Permissions, Roles
 
 
 @pytest_asyncio.fixture

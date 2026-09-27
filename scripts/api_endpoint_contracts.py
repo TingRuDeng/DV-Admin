@@ -17,6 +17,7 @@ HTTP_METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE"}
 REQUIRED_ENDPOINT_KEYS = {
     "auth_login",
     "auth_oidc_authorize",
+    "auth_oidc_end_session",
     "auth_oidc_login",
     "auth_info",
     "auth_routes",
@@ -114,6 +115,19 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
             ContractEvidence("backend/drf_admin/apps/oauth/urls.py", ("oidc/login/",)),
             ContractEvidence("fastapi/app/api/v1/oauth/routes/oidc.py", ("/oidc/login/", "OidcLogin")),
             ContractEvidence("frontend/src/api/auth-api.ts", ("oidcLogin", "/oidc/login/")),
+        ),
+    ),
+    EndpointContract(
+        key="auth_oidc_end_session",
+        method="GET",
+        path="/api/v1/oauth/oidc/end-session/",
+        auth_required=True,
+        request_fields=(),
+        response_fields=("endSessionUrl",),
+        evidence=(
+            ContractEvidence("backend/drf_admin/apps/oauth/urls.py", ("oidc/end-session/",)),
+            ContractEvidence("fastapi/app/api/v1/oauth/routes/oidc.py", ("/oidc/end-session/",)),
+            ContractEvidence("frontend/src/api/auth-api.ts", ("oidcEndSession", "/oidc/end-session/")),
         ),
     ),
     EndpointContract(

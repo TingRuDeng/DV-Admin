@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Request
 
+from app.api.deps import CurrentUser
 from app.api.v1.oauth.routes.login import login_client_ip
 from app.core.config import settings
 from app.core.error_codes import ERROR_CODE
@@ -15,10 +16,12 @@ from app.core.oidc_policy import (
     OidcError,
     authorization_url,
     check_response_issuer,
+    end_session_url,
     profile_from_claims,
     read_flow_record,
     start_flow,
 )
+from app.db.models.oauth import Users
 from app.schemas.base import ResponseModel
 from app.schemas.oauth import OidcAuthorization, OidcLogin, Token
 from app.services.login_throttle import enforce_ip_limit
@@ -153,3 +156,21 @@ async def oidc_login(request: Request) -> ResponseModel[Token]:
         raise _failure(error) from None
     await record_oidc_login(user, discovery["issuer"], profile["subject"])
     return ResponseModel.success(data=issue_login_tokens(user, session_started_at))
+
+@router.get(
+    "/oidc/end-session/",
+    summary="获取单点登录退出地址",
+    description="如果身份提供方支持 end_session_endpoint，返回可跳转的退出 URL；否则返回 null。",
+)
+async def oidc_end_session(current_user: Users = CurrentUser) -> ResponseModel[dict]:
+    if not settings.oidc_enabled:
+        return ResponseModel.success(data={"endSessionUrl": None})
+    try:
+        discovery = await get_discovery()
+        # post_logout_redirect_uri 指向前端首页；IdP 退出后跳回那里触发本地登出
+        base = settings.oidc_redirect_uri.rsplit("/oidc/", 1)[0]
+        post_logout = base + "/dashboard"
+        url = end_session_url(discovery, post_logout)
+    except Exception:
+        url = None
+    return ResponseModel.success(data={"endSessionUrl": url})

@@ -9,14 +9,13 @@ from contextlib import ExitStack, contextmanager
 import httpx
 import pytest
 from redis import Redis
+from scripts.redis_test_server import RedisTestServer
 from test_live_http_contract import (
     build_server_env,
     reserve_tcp_port,
     seed_http_database,
     wait_for_server,
 )
-
-from scripts.redis_test_server import RedisTestServer
 
 
 @contextmanager

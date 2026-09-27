@@ -279,6 +279,12 @@ POST /api/v1/oauth/oidc/login/
 
 失败统一返回 40000，文案包括「登录状态无效或已过期，请重新发起单点登录」「身份提供方校验失败」「该账号未开通，请联系管理员」「该邮箱对应多个本地账号，请联系管理员」「用户已被禁用，请联系管理员」。Django 的具体文案在 `errors` 字段，FastAPI 在 `message` 字段。
 
+```
+GET /api/v1/oauth/oidc/end-session/
+```
+
+需要登录。身份提供方的 discovery 声明了 `end_session_endpoint` 时返回 `{"endSessionUrl": "<退出地址>?post_logout_redirect_uri=<前端 /dashboard>"}`，否则或未启用 OIDC 时返回 `{"endSessionUrl": null}`。前端在本地退出前先取这个地址，退出后跳转过去结束 IdP 会话（RP-initiated logout）。Django 可用 `OIDC_POST_LOGOUT_URI` 覆盖回跳地址。
+
 `redirect_uri` 只由服务端 `OIDC_REDIRECT_URI` 决定，必须与身份提供方登记值完全一致；前端回调路由为 `/oidc/callback`。请求体字段名 `authorizationCode`、`flowSecret` 命中两端现有的脱敏关键词，操作日志不会保存明文。
 
 ---

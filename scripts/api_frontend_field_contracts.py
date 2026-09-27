@@ -332,7 +332,7 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
 )
 
 FRONTEND_FIELD_CONTRACT_EXEMPT_ENDPOINTS = frozenset(
-    {"auth_login", "auth_oidc_authorize", "auth_oidc_login", "files_upload"}
+    {"auth_login", "auth_oidc_authorize", "auth_oidc_end_session", "auth_oidc_login", "files_upload"}
 )
 
 

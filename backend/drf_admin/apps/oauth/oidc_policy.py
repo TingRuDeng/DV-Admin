@@ -358,6 +358,18 @@ def username_candidates(profile: dict, issuer: str) -> list[str]:
     return list(dict.fromkeys(bases + suffixed + fallbacks))
 
 
+def end_session_url(discovery: dict, post_logout_redirect_uri: str) -> str | None:
+    """IdP 的 end_session_endpoint URL（含 post_logout_redirect_uri 参数）；若 IdP 不支持则返回 None。
+
+    RFC 8414 §2 允许 IdP 省略 end_session_endpoint，调用方须处理 None。
+    """
+    endpoint = discovery.get("end_session_endpoint")
+    if not endpoint or not isinstance(endpoint, str):
+        return None
+    separator = "&" if "?" in endpoint else "?"
+    return endpoint + separator + "post_logout_redirect_uri=" + quote_plus(post_logout_redirect_uri)
+
+
 def email_domain_allowed(profile: dict, allowed_domains: list[str]) -> bool:
     """未配置域名白名单时不限制；配置后只接受已验证且域名在列表内的邮箱。"""
     if not allowed_domains:

@@ -34,6 +34,14 @@ const AuthAPI = {
     });
   },
 
+  /** 获取身份提供方的退出地址（RP-initiated logout）；IdP 不支持时 endSessionUrl 为 null */
+  oidcEndSession() {
+    return request<unknown, { endSessionUrl: string | null }>({
+      url: `${AUTH_BASE_URL}/oidc/end-session/`,
+      method: "get",
+    });
+  },
+
   /** 刷新 token 接口*/
   refreshToken(refreshToken: string) {
     return request<unknown, LoginResult>({

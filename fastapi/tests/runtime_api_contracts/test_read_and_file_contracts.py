@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Any, Mapping
 
 import pytest_asyncio
+
+from app.db.models.system import Departments, OperationLog, Roles
 from runtime_api_contracts.helpers import (
     PAGE_SIZE_SAMPLE,
     READ_SAMPLE_KEYS,
@@ -16,8 +18,6 @@ from runtime_api_contracts.helpers import (
     contracts_by_key,
     sample_query_params,
 )
-
-from app.db.models.system import Departments, OperationLog, Roles
 
 
 def test_user_options_paths_do_not_redirect(auth_client):

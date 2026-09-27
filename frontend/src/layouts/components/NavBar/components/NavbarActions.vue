@@ -157,13 +157,18 @@ function logout() {
     lockScroll: false,
   })
     .then(async () => {
+      let endSessionUrl: string | null = null;
       try {
-        await userStore.logout();
+        endSessionUrl = await userStore.logout();
       } catch {
         ElMessage.warning("当前设备已退出，服务端令牌撤销未确认");
-      } finally {
-        await router.push({ path: "/login", query: { redirect: route.fullPath } });
       }
+      // 单点登录用户：跳到身份提供方结束 IdP 会话，否则下次点"企业账号"会直接登录回来
+      if (endSessionUrl) {
+        window.location.assign(endSessionUrl);
+        return;
+      }
+      await router.push({ path: "/login", query: { redirect: route.fullPath } });
     })
     .catch((reason) => {
       if (reason !== "cancel" && reason !== "close") {

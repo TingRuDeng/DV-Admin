@@ -329,13 +329,14 @@ WHITE_LIST = [
 用户退出后在登录页点"企业账号"，没有输入密码就又登录进来了。
 
 **原因：**
-本地退出只撤销本系统的令牌，没有实现 RP-initiated logout，身份提供方的会话仍然有效，所以授权请求会被直接批准。
+身份提供方的会话仍然有效。现在的退出流程会先调用 `GET /api/v1/oauth/oidc/end-session/`，拿到 IdP 的 `end_session_endpoint` 后跳过去结束会话；但如果 IdP 的 discovery 没有声明 `end_session_endpoint`，就只能做本地退出，问题仍会出现。
 
 **解决方案：**
-这是当前设计的已知行为。需要彻底退出时，到身份提供方退出；如果以后要支持，需要在 discovery 里读取 `end_session_endpoint` 并在前端退出后跳转。
+确认 IdP 的 discovery 文档包含 `end_session_endpoint`，并在 IdP 里把 `<前端地址>/dashboard`（或 Django 的 `OIDC_POST_LOGOUT_URI`）登记为允许的退出回跳地址。不支持 RP 退出的 IdP 只能让用户自行到 IdP 退出。
 
 **相关代码：**
 - `frontend/src/store/modules/user-store.ts`
+- `backend/drf_admin/apps/oauth/oidc_policy.py`、`fastapi/app/core/oidc_policy.py` 的 `end_session_url`
 
 ---
 
