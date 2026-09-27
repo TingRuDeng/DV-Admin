@@ -1,11 +1,12 @@
 import ast
 
+from scripts.model_contracts import iter_django_fastapi_model_contracts
+from scripts.model_index_ast import extract_module_indexes
+
 from app.db.import_django_data import MODEL_MAPPING, map_field_name
 from app.db.models.base import BaseModel
 from app.db.models.system import NoticeReads
 from scripts import model_contracts
-from scripts.model_contracts import iter_django_fastapi_model_contracts
-from scripts.model_index_ast import extract_module_indexes
 
 FIELD_MODEL_MAPPING = {
     model.__name__: model for model in MODEL_MAPPING.values()

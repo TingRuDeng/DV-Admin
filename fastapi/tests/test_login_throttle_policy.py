@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 from redis import Redis
+from scripts.redis_test_server import RedisTestServer
 
 from app.core import login_throttle_policy
 from app.core.login_throttle_policy import (
@@ -15,7 +16,6 @@ from app.core.login_throttle_policy import (
     script_arguments,
     trusted_client_ip,
 )
-from scripts.redis_test_server import RedisTestServer
 
 
 def test_backends_ship_identical_login_policy():

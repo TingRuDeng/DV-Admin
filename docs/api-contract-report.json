@@ -1,6 +1,6 @@
 {
-  "authenticated_count": 56,
-  "endpoint_count": 59,
+  "authenticated_count": 57,
+  "endpoint_count": 60,
   "endpoints": [
     {
       "auth_required": false,
@@ -69,6 +69,24 @@
         "refreshToken",
         "tokenType",
         "expiresIn"
+      ]
+    },
+    {
+      "auth_required": true,
+      "evidence_files": [
+        "backend/drf_admin/apps/oauth/urls.py",
+        "fastapi/app/api/v1/oauth/routes/oidc.py",
+        "frontend/src/api/auth-api.ts"
+      ],
+      "key": "auth_oidc_end_session",
+      "method": "GET",
+      "paginated": false,
+      "path": "/api/v1/oauth/oidc/end-session/",
+      "permissions": [],
+      "query_params": [],
+      "request_fields": [],
+      "response_fields": [
+        "endSessionUrl"
       ]
     },
     {

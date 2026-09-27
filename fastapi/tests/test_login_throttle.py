@@ -7,13 +7,13 @@ import pytest
 from fastapi import FastAPI
 from redis.asyncio import Redis
 from redis.exceptions import ConnectionError
+from scripts.redis_test_server import RedisTestServer
 
 from app.api.v1.oauth.routes import login
 from app.core.exceptions import APIException, api_exception_handler
 from app.core.login_throttle_policy import rate_limit_keys
 from app.core.redis import redis_manager
 from app.services import login_throttle
-from scripts.redis_test_server import RedisTestServer
 
 
 @pytest.mark.asyncio

@@ -2,7 +2,6 @@
 OAuth 登录接口测试。
 """
 from fastapi.testclient import TestClient
-
 from scripts.api_error_codes import ACCESS_TOKEN_INVALID_CODE, ERROR_CODE
 
 
