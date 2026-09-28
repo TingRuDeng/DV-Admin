@@ -80,8 +80,9 @@ onMounted(async () => {
   // 并行加载统计数据和未读通知数
   statsLoading.value = true;
   noticeLoading.value = true;
+  const hasLogPerm = userStore.userInfo.perms.includes("system:logs:query");
   const [statsResult, noticeResult] = await Promise.allSettled([
-    LogAPI.getVisitStats(),
+    hasLogPerm ? LogAPI.getVisitStats() : Promise.reject(new Error("no perm")),
     NoticeAPI.getMyNoticePage({ pageNum: 1, pageSize: 1, isRead: 0 }),
   ]);
   if (statsResult.status === "fulfilled") {
