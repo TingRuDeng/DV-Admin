@@ -60,33 +60,56 @@
             批量删除
           </el-button>
         </div>
+        <ColumnSelector
+          :all-columns="NOTICE_COLUMNS"
+          :visible-columns="visibleColumns"
+          @update:visible-columns="(v) => (visibleColumns = v)"
+          @reset="resetColumns"
+        />
       </template>
       <template #default>
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column type="index" label="序号" width="60" align="center" />
-        <el-table-column label="通知标题" prop="title" min-width="200" />
-        <el-table-column align="center" label="通知类型" width="150">
+        <el-table-column v-if="isVisible('title')" label="通知标题" prop="title" min-width="200" />
+        <el-table-column v-if="isVisible('type')" align="center" label="通知类型" width="150">
           <template #default="scope">
             <NoticeOptionTag kind="type" :value="scope.row.type" />
           </template>
         </el-table-column>
-        <el-table-column align="center" label="发布人" prop="publisherName" width="150" />
-        <el-table-column align="center" label="通知等级" width="100">
+        <el-table-column
+          v-if="isVisible('publisherName')"
+          align="center"
+          label="发布人"
+          prop="publisherName"
+          width="150"
+        />
+        <el-table-column v-if="isVisible('level')" align="center" label="通知等级" width="100">
           <template #default="scope">
             <NoticeOptionTag kind="level" :value="scope.row.level" />
           </template>
         </el-table-column>
-        <el-table-column align="center" label="通告目标类型" prop="targetType" width="120">
+        <el-table-column
+          v-if="isVisible('targetType')"
+          align="center"
+          label="通告目标类型"
+          prop="targetType"
+          width="120"
+        >
           <template #default="scope">
             <NoticeStatusTag kind="target" :value="scope.row.targetType" />
           </template>
         </el-table-column>
-        <el-table-column align="center" label="发布状态" width="100">
+        <el-table-column
+          v-if="isVisible('publishStatus')"
+          align="center"
+          label="发布状态"
+          width="100"
+        >
           <template #default="scope">
             <NoticeStatusTag kind="publish" :value="scope.row.publishStatus" />
           </template>
         </el-table-column>
-        <el-table-column label="操作时间" width="250">
+        <el-table-column v-if="isVisible('time')" label="操作时间" width="250">
           <template #default="scope">
             <div class="flex items-center gap-1 text-sm">
               <span class="text-slate-400">创建：</span>
@@ -177,6 +200,9 @@ defineOptions({
 });
 
 import BatchDeleteResultDialog from "@/components/BatchDeleteResultDialog/index.vue";
+import ColumnSelector from "@/components/ColumnSelector/index.vue";
+import type { ColumnDef } from "@/components/ColumnSelector/index.vue";
+import { useColumnVisibility } from "@/composables/useColumnVisibility";
 import NoticeOptionTag from "./components/NoticeOptionTag.vue";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
@@ -187,6 +213,25 @@ import NoticeAPI, { NoticePageQuery, NoticePageVO } from "@/api/system/notice-ap
 import NoticeDetailDialog from "./components/NoticeDetailDialog.vue";
 import NoticeFormDrawer from "./components/NoticeFormDrawer.vue";
 import NoticeStatusTag from "./components/NoticeStatusTag.vue";
+
+// 列显示/隐藏
+const NOTICE_COLUMNS: ColumnDef[] = [
+  { key: "title", label: "通知标题", required: true },
+  { key: "type", label: "通知类型" },
+  { key: "publisherName", label: "发布人" },
+  { key: "level", label: "通知等级" },
+  { key: "targetType", label: "通告目标类型" },
+  { key: "publishStatus", label: "发布状态" },
+  { key: "time", label: "操作时间" },
+];
+const {
+  visibleColumns,
+  isVisible,
+  reset: resetColumns,
+} = useColumnVisibility(
+  "sys-notice:columns",
+  NOTICE_COLUMNS.map((c) => c.key)
+);
 
 const noticeBatchDeleteLogger = createLogger("NoticeBatchDelete");
 const queryFormRef = ref<{ resetFields: () => void } | null>(null);
