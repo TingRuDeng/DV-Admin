@@ -61,7 +61,7 @@
     <ProDialog
       v-model="resultVisible"
       title="导入结果"
-      width="600px"
+      width="min(600px, calc(100vw - 32px))"
       :show-confirm-button="false"
       cancel-text="关闭"
     >
