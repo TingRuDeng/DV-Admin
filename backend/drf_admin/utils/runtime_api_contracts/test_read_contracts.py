@@ -12,7 +12,6 @@ from drf_admin.utils.runtime_api_contracts.helpers import (
     assert_success_payload,
     contracts_by_key,
     create_runtime_contract_departments,
-    create_runtime_contract_dicts,
     create_runtime_contract_user,
     sample_query_params,
 )
@@ -24,7 +23,6 @@ class DjangoRuntimeReadApiContractTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = create_runtime_contract_user()
-        create_runtime_contract_dicts()
         self.department = create_runtime_contract_departments()
         self.client.force_authenticate(user=self.user)
 
@@ -61,15 +59,3 @@ class DjangoRuntimeReadApiContractTestCase(TestCase):
         assert len(depts_data) == 1
         assert depts_data[0]["name"] == self.department.name
         assert depts_data[0]["status"] == self.department.status
-
-    def test_django_dict_items_runtime_sample_filters_by_frontend_dict_code(self):
-        """字典项列表必须按前端 `dictCode` 参数过滤，避免跨后端查询语义漂移。"""
-        contract = contracts_by_key()["dict_items_page"]
-        data = assert_success_payload(
-            self.client.get(contract.path, {"pageNum": 1, "pageSize": 10, "dictCode": "runtime_contract"}),
-            contract,
-        )
-
-        values = {item["value"] for item in data["list"]}
-        assert data["total"] == 2
-        assert values == {"enabled", "disabled"}

@@ -158,11 +158,8 @@ frontend/src/
 **核心模块：**
 - **认证模块**：`store/modules/user-store.ts`, `api/auth-api.ts`
 - **权限模块**：`store/modules/permission-store.ts`, `directives/permission/`
-- **字典模块**：`store/modules/dict-store.ts`, `components/Dict/`
 
-字典标签和选择器通过 `dict-items-api.ts:getDictItems` 消费两端共享的分页接口：使用
 `dictCode/pageNum/pageSize` 取齐结果后才缓存数组，保留 `label/value/tagType`。字典缓存键升级为
-`vea:system:dict_cache:v2`，不复用旧版本可能未筛选或把分页对象当数组写入的持久化数据；有效空数组
 仍可缓存，格式异常的缓存条目会重新请求。真实浏览器门禁同时断言通知字典标签、颜色及无 `pageerror`。
 - **布局模块**：`layouts/` (支持 left/top/mix 三种布局模式，以及 [ADR-0003](./ADR-0003-DOUBLE-COLUMN-LAYOUT.md) 新增的双列布局 double；双列布局在移动端退化为左侧布局，一级菜单逻辑与 mix 共用 `useTopMenuNavigation`)
 
@@ -590,7 +587,6 @@ CHANNEL_LAYERS = {
 // 使用 STOMP 协议连接 WebSocket
 
 // 功能：
-// - 字典实时同步
 // - 在线用户统计
 // - 系统通知推送
 ```
@@ -606,7 +602,6 @@ CHANNEL_LAYERS = {
 | Session | 用户会话 | 浏览器关闭 | 登出时 |
 | User Info | 用户信息 | 30 分钟 | 用户信息变更 |
 | User Access | Django 用户权限；FastAPI 用户权限与动态菜单 | 10 分钟 | 角色/用户关系或已授权菜单权限变更 |
-| Dict Data | 字典数据 | 10 分钟 | 字典变更 |
 | Token Blacklist | Token 黑名单 | Token 过期时间 | 自动过期 |
 
 ### 降级策略

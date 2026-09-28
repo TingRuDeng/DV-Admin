@@ -107,12 +107,12 @@ class OperationLogPersistenceTestCase(TestCase):
         """POST 写操作必须落库，并持久化响应头对应的 request id。"""
         before = OperationLog.objects.count()
         response = self.client.post(
-            "/api/v1/system/dicts/",
-            {"name": "测试字典", "dictCode": "test_log_dict", "status": 1},
+            "/api/v1/system/users/",
+            {"username": "audit-log-user", "name": "审计用户", "password": "admin123"},
             format="json",
             HTTP_X_REQUEST_ID="django-audit-request-id",
         )
-        logs = OperationLog.objects.filter(method="POST", path__contains="/system/dicts")
+        logs = OperationLog.objects.filter(method="POST", path__contains="/system/users")
         self.assertTrue(logs.exists())
         self.assertGreater(OperationLog.objects.count(), before)
         log = logs.first()
@@ -125,14 +125,14 @@ class OperationLogPersistenceTestCase(TestCase):
     def test_failed_post_persists_error_summary_and_response_body(self):
         """失败写操作必须记录可定位且已脱敏的错误摘要。"""
         response = self.client.post(
-            "/api/v1/system/dicts/",
-            {"name": "", "dictCode": "", "password": "must-not-leak"},
+            "/api/v1/system/users/",
+            {"username": "", "name": "", "password": "must-not-leak"},
             format="json",
             HTTP_X_REQUEST_ID="django-audit-failure-id",
         )
 
         self.assertGreaterEqual(response.status_code, 400)
-        log = OperationLog.objects.filter(method="POST", path__contains="/system/dicts").latest(
+        log = OperationLog.objects.filter(method="POST", path__contains="/system/users").latest(
             "created_at"
         )
         self.assertEqual(log.request_id, "django-audit-failure-id")
@@ -145,11 +145,11 @@ class OperationLogPersistenceTestCase(TestCase):
         """旧查询参数字段也必须脱敏，不能绕过结构化上下文的安全规则。"""
         request_id = f"django-query-params-{uuid.uuid4().hex[:8]}"
         response = self.client.post(
-            "/api/v1/system/dicts/?token=django-query-secret&search=visible-term",
+            "/api/v1/system/users/?token=django-query-secret&search=visible-term",
             {
-                "name": f"查询参数字典{uuid.uuid4().hex[:8]}",
-                "dictCode": f"query_params_{uuid.uuid4().hex[:8]}",
-                "status": 1,
+                "username": f"query_user_{uuid.uuid4().hex[:8]}",
+                "name": "查询用户",
+                "password": "admin123",
             },
             format="json",
             HTTP_X_REQUEST_ID=request_id,
@@ -163,7 +163,7 @@ class OperationLogPersistenceTestCase(TestCase):
 
     def test_get_request_is_not_persisted(self):
         """GET 读请求不落库，避免审计表被轮询淹没。"""
-        self.client.get("/api/v1/system/dicts/")
+        self.client.get("/api/v1/system/users/")
         self.assertFalse(OperationLog.objects.filter(method="GET").exists())
 
 

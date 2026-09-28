@@ -9,8 +9,6 @@ declare module "vue" {
     AppLink: (typeof import("./../components/AppLink/index.vue"))["default"];
     Breadcrumb: (typeof import("./../components/Breadcrumb/index.vue"))["default"];
     CopyButton: (typeof import("./../components/CopyButton/index.vue"))["default"];
-    Dict: (typeof import("./../components/Dict/index.vue"))["default"];
-    DictLabel: (typeof import("./../components/Dict/DictLabel.vue"))["default"];
     ECharts: (typeof import("./../components/ECharts/index.vue"))["default"];
     ElBacktop: (typeof import("element-plus/es"))["ElBacktop"];
     ElBreadcrumb: (typeof import("element-plus/es"))["ElBreadcrumb"];

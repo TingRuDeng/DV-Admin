@@ -13,8 +13,6 @@ DJANGO_MODEL_MAPPING = {
     "system.permissions": system_models.Permissions,
     "system.roles": system_models.Roles,
     "system.users": system_models.Users,
-    "system.dicts": system_models.Dicts,
-    "system.dictitems": system_models.DictItems,
     "system.notices": Notices,
     "system.noticereads": NoticeReads,
 }

@@ -7,8 +7,6 @@
 from app.db.models.oauth import OidcIdentity, Users
 from app.db.models.system import (
     Departments,
-    DictData,
-    DictItems,
     Permissions,
     Roles,
 )
@@ -19,6 +17,4 @@ __all__ = [
     "Roles",
     "Permissions",
     "Departments",
-    "DictData",
-    "DictItems",
 ]

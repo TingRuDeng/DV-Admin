@@ -229,18 +229,8 @@ API_FIELD_CONTRACTS: tuple[FieldContract, ...] = (
         django_source="drf_admin.apps.system.serializers.permissions.MenusTreeSerializer",
         fastapi_source="app.schemas.system_menu.MenuTree",
     ),
-    FieldContract(
-        key="dicts_out",
-        canonical=frozenset({"createTime", "dictCode", "id", "name", "remark", "status", "updateTime"}),
-        django_source="drf_admin.apps.system.serializers.dicts.DictsSerializer",
-        fastapi_source="app.schemas.system_dict.DictDataOut",
-    ),
-    FieldContract(
-        key="dict_items_out",
-        canonical=frozenset({"createTime", "dict", "dictName", "id", "label", "status", "tagType", "updateTime", "value"}),
-        django_source="drf_admin.apps.system.serializers.dicts.DictItemsSerializer",
-        fastapi_source="app.schemas.system_dict.DictItemOut",
-    ),
+
+
     FieldContract(
         key="depts_out",
         canonical=frozenset({"createTime", "id", "name", "parentId", "sort", "status", "updateTime"}),
@@ -424,12 +414,6 @@ ENDPOINT_FIELD_CONTRACTS: dict[str, str] = {
     "depts_tree": "depts_tree",
     "depts_create": "depts_out",
     "depts_update": "depts_out",
-    "dicts_page": "dicts_out",
-    "dicts_create": "dicts_out",
-    "dicts_update": "dicts_out",
-    "dict_items_page": "dict_items_out",
-    "dict_items_create": "dict_items_out",
-    "dict_items_update": "dict_items_out",
     "notices_page": "notices_page",
     "notices_create": "notices_page",
     "notices_update": "notices_page",

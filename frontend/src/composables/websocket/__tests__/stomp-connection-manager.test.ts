@@ -93,11 +93,11 @@ describe("createStompConnectionManager", () => {
     clients[0].connected = true;
     clients[0].onConnect?.();
 
-    const subscriptionId = manager.subscribe("/topic/dict", vi.fn());
+    const subscriptionId = manager.subscribe("/topic/test", vi.fn());
     manager.disconnect();
 
-    expect(subscriptionId).toBe("/topic/dict");
-    expect(clients[0].subscriptions.get("/topic/dict")?.unsubscribe).toHaveBeenCalled();
+    expect(subscriptionId).toBe("/topic/test");
+    expect(clients[0].subscriptions.get("/topic/test")?.unsubscribe).toHaveBeenCalled();
     expect(clients[0].deactivate).toHaveBeenCalled();
     expect(manager.getSnapshot()).toMatchObject({ isConnected: false, reconnectCount: 0 });
   });

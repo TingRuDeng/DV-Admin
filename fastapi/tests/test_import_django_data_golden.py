@@ -4,7 +4,7 @@ import pytest
 
 from app.db import import_django_data
 from app.db.models.oauth import Users
-from app.db.models.system import Departments, DictData, DictItems, Permissions, Roles
+from app.db.models.system import Departments, Permissions, Roles
 
 GOLDEN_FIXTURE_ROWS = [
     {
@@ -46,16 +46,6 @@ GOLDEN_FIXTURE_ROWS = [
             "parent": 10,
             "perm": "system:users:query",
         },
-    },
-    {
-        "model": "system.dicts",
-        "pk": 30,
-        "fields": {"name": "状态", "dict_code": "status", "status": 1, "remark": "状态字典"},
-    },
-    {
-        "model": "system.dictitems",
-        "pk": 31,
-        "fields": {"label": "启用", "value": "1", "status": 1, "tag_type": "success", "dict": 30},
     },
     {
         "model": "system.roles",
@@ -111,14 +101,6 @@ async def assert_permission_records() -> None:
     assert menu.component == "system/user/index"
 
 
-async def assert_dict_records() -> None:
-    """校验字典字段映射和字典项外键导入结果。"""
-    dict_data = await DictData.get(id=30)
-    dict_item = await DictItems.get(id=31)
-    assert dict_data.dict_code == "status"
-    assert dict_data.remark == "状态字典"
-    assert dict_item.dict_data_id == dict_data.id
-    assert dict_item.tag_type == "success"
 
 
 async def assert_role_and_user_records() -> None:
@@ -143,5 +125,4 @@ async def test_import_data_matches_golden_fixture_contract(db, tmp_path, monkeyp
 
     await assert_department_records()
     await assert_permission_records()
-    await assert_dict_records()
     await assert_role_and_user_records()

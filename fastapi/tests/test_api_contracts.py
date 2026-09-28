@@ -45,12 +45,11 @@ def test_shared_resource_timestamps_use_django_compatible_aliases():
     """共享业务资源对外时间字段统一使用 createTime/updateTime。"""
     from datetime import datetime, timezone
 
-    from app.schemas.system import DeptOut, DictDataOut, MenuOut, RoleOut
+    from app.schemas.system import DeptOut, MenuOut, RoleOut
 
     now = datetime(2026, 1, 1, tzinfo=timezone.utc)
     samples = [
         DeptOut(id=1, name="部门", status=1, sort=1, parent_id=None, created_at=now, updated_at=now),
-        DictDataOut(id=1, name="字典", dict_code="demo", status=1, remark="", created_at=now, updated_at=now),
         MenuOut(id=1, name="菜单", type="MENU", created_at=now, updated_at=now),
         RoleOut(id=1, name="角色", code="role", status=1, sort=1, created_at=now, updated_at=now),
     ]
@@ -95,13 +94,6 @@ def test_fastapi_critical_endpoint_contract_catalog_matches_route_contracts():
     assert contracts["menus_create"].permissions == ("system:permissions:add",)
     assert contracts["menus_update"].permissions == ("system:permissions:edit",)
     assert contracts["menus_delete"].method == "DELETE"
-    assert contracts["dicts_create"].request_fields == ("name", "dictCode")
-    assert contracts["dicts_update"].permissions == ("system:dicts:edit",)
-    assert contracts["dicts_delete"].request_fields == ("ids",)
-    assert contracts["dict_items_page"].permissions == ("system:dictitems:query",)
-    assert contracts["dict_items_create"].request_fields == ("dict", "label", "value")
-    assert contracts["dict_items_update"].permissions == ("system:dictitems:edit",)
-    assert contracts["dict_items_delete"].request_fields == ("ids",)
     assert contracts["notices_page"].path == "/api/v1/system/notices/page"
     assert contracts["notices_page"].permissions == ("system:notices:query",)
     assert contracts["notices_create"].permissions == ("system:notices:add",)

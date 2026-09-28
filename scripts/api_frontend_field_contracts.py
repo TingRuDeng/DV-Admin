@@ -180,36 +180,11 @@ API_FRONTEND_FIELD_CONTRACTS: tuple[FrontendFieldContract, ...] = (
         required_fields=frozenset({"id", "name", "parentId", "sort", "status"}),
         tracked_backend_contract="depts_out",
     ),
-    FrontendFieldContract(
-        key="dicts_page_type",
-        frontend_source="frontend/src/api/system/dict-api.ts",
-        required_fields=frozenset({"dictCode", "id", "name", "status"}),
-        tracked_backend_contract="dicts_out",
-    ),
-    FrontendFieldContract(
-        key="dicts_form_type",
-        frontend_source="frontend/src/api/system/dict-api.ts",
-        required_fields=frozenset({"dictCode", "id", "name", "remark", "status"}),
-        tracked_backend_contract="dicts_out",
-    ),
-    FrontendFieldContract(
-        key="dict_items_option_type",
-        frontend_source="frontend/src/api/system/dict-items-api.ts",
-        required_fields=frozenset({"label", "tagType", "value"}),
-        tracked_backend_contract="dict_items_out",
-    ),
-    FrontendFieldContract(
-        key="dict_items_page_type",
-        frontend_source="frontend/src/api/system/dict-items-api.ts",
-        required_fields=frozenset({"dictCode", "dictName", "id", "label", "status", "value"}),
-        tracked_backend_contract="dict_items_out",
-    ),
-    FrontendFieldContract(
-        key="dict_items_form_type",
-        frontend_source="frontend/src/api/system/dict-items-api.ts",
-        required_fields=frozenset({"dict", "dictCode", "id", "label", "status", "tagType", "value"}),
-        tracked_backend_contract="dict_items_out",
-    ),
+
+
+
+
+
     FrontendFieldContract(
         key="notices_page_type",
         frontend_source="frontend/src/api/system/notice-api.ts",

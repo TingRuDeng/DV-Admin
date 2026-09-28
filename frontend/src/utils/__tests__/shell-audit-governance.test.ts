@@ -60,8 +60,6 @@ describe("壳层审计回归约束", () => {
       ["src/views/system/role/index.vue", "ff-role-page"],
       ["src/views/system/menu/index.vue", "ff-menu-page"],
       ["src/views/system/dept/index.vue", "ff-dept-page"],
-      ["src/views/system/dict/index.vue", "ff-dict-page"],
-      ["src/views/system/dict/dict-item.vue", "ff-dict-item-page"],
       ["src/views/system/log/index.vue", "ff-log-page"],
       ["src/views/system/notice/index.vue", "ff-notice-page"],
       ["src/views/system/notice/components/MyNotice.vue", "ff-my-notice-page"],

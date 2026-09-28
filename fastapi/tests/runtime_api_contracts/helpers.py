@@ -20,8 +20,6 @@ READ_SAMPLE_KEYS = (
     "roles_page",
     "depts_tree",
     "menus_tree",
-    "dicts_page",
-    "dict_items_page",
     "notices_page",
     "logs_page",
 )
@@ -35,8 +33,6 @@ ROLE_WRITE_SAMPLE_KEYS = (
 )
 DEPT_WRITE_SAMPLE_KEYS = ("depts_create", "depts_update", "depts_delete")
 MENU_WRITE_SAMPLE_KEYS = ("menus_create", "menus_update", "menus_delete")
-DICT_WRITE_SAMPLE_KEYS = ("dicts_create", "dicts_update", "dicts_delete")
-DICT_ITEM_WRITE_SAMPLE_KEYS = ("dict_items_create", "dict_items_update", "dict_items_delete")
 NOTICE_WRITE_SAMPLE_KEYS = (
     "notices_create",
     "notices_update",

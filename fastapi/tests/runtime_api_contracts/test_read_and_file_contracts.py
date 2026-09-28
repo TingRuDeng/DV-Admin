@@ -122,26 +122,6 @@ def test_fastapi_page_num_reaches_second_page(
     assert_second_page_item(
         auth_client,
         contracts,
-        "dicts_page",
-        {"pageNum": 2, "pageSize": 1, "search": runtime_contract_page_samples["dict_suffix"]},
-        "dictCode",
-        runtime_contract_page_samples["dicts"][0].dict_code,
-    )
-    assert_second_page_item(
-        auth_client,
-        contracts,
-        "dict_items_page",
-        {
-            "pageNum": 2,
-            "pageSize": 1,
-            "dictCode": runtime_contract_page_samples["item_dict_code"],
-        },
-        "value",
-        runtime_contract_page_samples["dict_items"][1].value,
-    )
-    assert_second_page_item(
-        auth_client,
-        contracts,
         "notices_page",
         {"pageNum": 2, "pageSize": 1, "title": runtime_contract_page_samples["notice_suffix"]},
         "id",

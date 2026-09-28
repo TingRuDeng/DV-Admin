@@ -163,8 +163,6 @@ class AdminViewSet(AutoPermissionModelViewSet, MultipleDestroyMixin):
         "roles": "system.roles",
         "permissions": "system.menus",
         "departments": "system.departments",
-        "dicts": "system.dicts",
-        "dictitems": "system.dict_items",
         "notices": "system.notices",
     }
 

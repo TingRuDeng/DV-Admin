@@ -13,8 +13,6 @@ from django.test import LiveServerTestCase, override_settings
 from scripts.real_backend_playwright import run_real_backend_playwright
 
 from drf_admin.apps.system.models import (
-    DictItems,
-    Dicts,
     NoticeReads,
     Notices,
     Permissions,
@@ -69,7 +67,6 @@ class DjangoLiveHttpContractTestCase(LiveServerTestCase):
         self.rbac_user.roles.add(self.rbac_role)
         self.rbac_base_permission_ids = [
             Permissions.objects.get(type="BUTTON", perm="system:departments:query").id,
-            Permissions.objects.get(type="BUTTON", perm="system:dictitems:query").id,
             Permissions.objects.get(type="BUTTON", perm="system:notices:query").id,
         ]
         self.rbac_granted_permission_ids = [
@@ -78,18 +75,11 @@ class DjangoLiveHttpContractTestCase(LiveServerTestCase):
             Permissions.objects.get(route_name="RuntimeContractUser").id,
             Permissions.objects.get(perm="system:users:query").id,
         ]
-        for code, label, tag_type in (
-            ("unrelated", "不应显示", "danger"),
-            ("notice_type", "浏览器测试类型", "success"),
-            ("notice_level", "浏览器测试级别", "warning"),
-        ):
-            dictionary = Dicts.objects.create(dict_code=code, name=code)
-            DictItems.objects.create(dict=dictionary, value="1", label=label, tag_type=tag_type)
         self.notice = Notices.objects.create(
             title="Django 真实 HTTP 通知",
             content="Django 真实 HTTP 正文",
             type=1,
-            level=1,
+            level="M",
             target_type=1,
             publish_status=1,
             publisher_id=self.user.id,

@@ -7,7 +7,7 @@ Django 数据导入映射测试
 import pytest
 
 from app.db.models.oauth import Users
-from app.db.models.system import Departments, DictData, DictItems, Permissions, Roles
+from app.db.models.system import Departments, Permissions, Roles
 
 
 @pytest.mark.asyncio
@@ -19,15 +19,11 @@ async def test_model_mapping_exists(db):
     assert "system.permissions" in MODEL_MAPPING
     assert "system.roles" in MODEL_MAPPING
     assert "system.users" in MODEL_MAPPING
-    assert "system.dicts" in MODEL_MAPPING
-    assert "system.dictitems" in MODEL_MAPPING
 
     assert MODEL_MAPPING["system.departments"] == Departments
     assert MODEL_MAPPING["system.permissions"] == Permissions
     assert MODEL_MAPPING["system.roles"] == Roles
     assert MODEL_MAPPING["system.users"] == Users
-    assert MODEL_MAPPING["system.dicts"] == DictData
-    assert MODEL_MAPPING["system.dictitems"] == DictItems
 
 
 @pytest.mark.asyncio
@@ -39,8 +35,6 @@ async def test_field_mapping_exists(db):
     assert FIELD_MAPPING["update_time"] == "updated_at"
     assert FIELD_MAPPING["dict"] == "dict_data"
     assert "dict_code" not in FIELD_MAPPING
-    assert map_field_name("system.dicts", "dict_code") == "dict_code"
-    assert map_field_name("system.dicts", "remark") == "remark"
 
 
 @pytest.mark.asyncio
@@ -51,8 +45,6 @@ async def test_import_order(db):
     import_order = [
         "system.departments",
         "system.permissions",
-        "system.dicts",
-        "system.dictitems",
         "system.roles",
         "system.users",
     ]

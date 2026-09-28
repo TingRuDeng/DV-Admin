@@ -87,8 +87,12 @@ class OperationLogObjectContextTestCase(TestCase):
     def test_create_write_request_associates_created_object(self):
         """通用 Django CRUD 写入后，审计日志关联新建对象。"""
         response = self.client.post(
-            "/api/v1/system/dicts/",
-            {"name": "对象关联字典", "dictCode": "audit_object_dict", "status": 1},
+            "/api/v1/system/users/",
+            {
+                "username": "audit-object-user",
+                "name": "对象关联用户",
+                "is_active": 1,
+            },
             format="json",
             HTTP_X_REQUEST_ID="django-object-context",
         )
@@ -98,7 +102,7 @@ class OperationLogObjectContextTestCase(TestCase):
             request_id="django-object-context",
             method="POST",
         ).latest("created_at")
-        self.assertEqual(log.object_type, "system.dicts")
+        self.assertEqual(log.object_type, "system.users")
         self.assertTrue(log.object_id)
         self.assertEqual(log.request_context.get("objectId"), log.object_id)
 

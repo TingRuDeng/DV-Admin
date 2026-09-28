@@ -32,11 +32,11 @@ describe("logger", () => {
 
   it("emits debug logs when debug is enabled", () => {
     const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => undefined);
-    const logger = createLogger("DictSync", { debugEnabled: true });
+    const logger = createLogger("WebSocket", { debugEnabled: true });
 
-    logger.debug("订阅成功");
+    logger.debug("连接成功");
 
-    expect(debugSpy).toHaveBeenCalledWith("[DictSync]", "订阅成功");
+    expect(debugSpy).toHaveBeenCalledWith("[WebSocket]", "连接成功");
   });
 
   it("uses the shared emission policy", () => {

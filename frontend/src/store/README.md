@@ -18,7 +18,6 @@
 |-------|------|------|
 | User | `modules/user-store.ts` | 用户认证和信息 |
 | Permission | `modules/permission-store.ts` | 权限和动态路由 |
-| Dict | `modules/dict-store.ts` | 字典数据缓存 |
 | Settings | `modules/settings-store.ts` | 系统设置 |
 | App | `modules/app-store.ts` | 应用状态 |
 | TagsView | `modules/tags-view-store.ts` | 标签视图 |
@@ -91,29 +90,20 @@ usePermissionStoreHook().resetRouter()
 
 ## Dict Store
 
-**文件：** `modules/dict-store.ts`
 
 **状态：**
-- `dictCache`: 字典缓存对象
 
 **方法：**
-- `getDictItems(dictCode)`: 获取字典项
-- `getDictLabel(dictCode, value)`: 获取字典标签
 - `clearDictCache()`: 清除缓存
 
 **使用示例：**
 ```typescript
-import { useDictStoreHook } from '@/store/modules/dict-store'
 
-// 获取字典项
-const items = await useDictStoreHook().getDictItems('status')
 
 // 获取标签
-const label = useDictStoreHook().getDictLabel('status', '1')
 ```
 
 **注意事项：**
-- 字典数据会缓存
 - 支持 WebSocket 实时同步
 
 ---

@@ -367,26 +367,6 @@ def test_changed_fields_use_public_camel_case_names():
     assert request.state.audit_context["changedFields"] == ["roleIds", "parentId"]
 
 
-def test_write_request_persists_object_context(auth_client):
-    suffix = uuid.uuid4().hex[:8]
-    response = auth_client.post(
-        "/api/v1/system/dicts/",
-        json={"name": f"对象关联字典{suffix}", "dictCode": f"audit_object_{suffix}", "status": 1},
-        headers={"X-Request-ID": f"object-context-{suffix}"},
-    )
-    assert response.status_code in (200, 201)
-
-    page = auth_client.get(
-        "/api/v1/system/logs/page",
-        params={"requestId": f"object-context-{suffix}"},
-    )
-    assert page.status_code == 200
-    rows = page.json()["data"]["list"]
-    assert len(rows) == 1
-    row = rows[0]
-    assert row["objectType"] == "system.dicts"
-    assert row["objectId"]
-    assert row["requestContext"]["objectId"] == row["objectId"]
 
 
 def test_request_logging_middleware_exposes_structured_context_method():

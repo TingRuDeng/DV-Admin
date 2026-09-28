@@ -1,149 +1,83 @@
-import { useDictSync } from "@/composables/websocket/useDictSync";
 import { AuthStorage } from "@/utils/auth";
 import { createLogger } from "@/utils/logger";
-// 不直接导入 store 或 userStore
 
-// 注册表只依赖清理生命周期能力，不绑定具体 WebSocket 实现。
 interface WebSocketRegistryInstance {
   disconnect?: () => void;
   closeWebSocket?: () => void;
 }
 
-// 全局 WebSocket 实例管理
 const websocketInstances = new Map<string, WebSocketRegistryInstance>();
-
-// 用于防止重复初始化的状态标记
 let isInitialized = false;
-let dictWebSocketInstance: ReturnType<typeof useDictSync> | null = null;
 const logger = createLogger("WebSocketPlugin");
 
-/**
- * 注册 WebSocket 实例
- */
 export function registerWebSocketInstance(key: string, instance: WebSocketRegistryInstance) {
   websocketInstances.set(key, instance);
   logger.debug(`Registered WebSocket instance: ${key}`);
 }
 
-/**
- * 获取 WebSocket 实例
- */
 export function getWebSocketInstance(key: string) {
   return websocketInstances.get(key);
 }
 
-/**
- * 初始化WebSocket服务
- */
 export function setupWebSocket() {
   logger.info("开始初始化WebSocket服务...");
-
-  // 检查是否已经初始化
   if (isInitialized) {
     logger.debug("WebSocket服务已经初始化，跳过重复初始化");
     return;
   }
 
-  // 检查环境变量是否配置
   const wsEndpoint = import.meta.env.VITE_APP_WS_ENDPOINT;
   if (!wsEndpoint) {
     logger.debug("未配置WebSocket端点，跳过WebSocket初始化");
     return;
   }
-
-  // 检查是否已登录（基于是否存在访问令牌）
   if (!AuthStorage.getAccessToken()) {
     logger.warn("未找到访问令牌，WebSocket初始化已跳过。用户登录后将自动重新连接。");
     return;
   }
 
   try {
-    // 延迟初始化，确保应用完全启动
     setTimeout(() => {
-      // 保存实例引用
-      dictWebSocketInstance = useDictSync();
-      registerWebSocketInstance("dictSync", dictWebSocketInstance);
-
-      // 初始化字典WebSocket服务
-      dictWebSocketInstance.initWebSocket();
-      logger.info("字典WebSocket初始化完成");
-
-      // 初始化在线用户计数WebSocket
-      // 直接加载具体模块，避免通过 composables 汇总入口形成 WebSocket 循环分块。
       import("@/composables/websocket/useOnlineCount").then(({ useOnlineCount }) => {
         const onlineCountInstance = useOnlineCount({ autoInit: false });
+        registerWebSocketInstance("onlineCount", onlineCountInstance);
         onlineCountInstance.initWebSocket();
         logger.info("在线用户计数WebSocket初始化完成");
       });
 
-      // 在窗口关闭前断开WebSocket连接
       window.addEventListener("beforeunload", handleWindowClose);
-
       logger.info("WebSocket服务初始化完成");
       isInitialized = true;
-    }, 1000); // 延迟1秒初始化
+    }, 1000);
   } catch (error) {
     logger.error("初始化WebSocket服务失败:", error);
   }
 }
 
-/**
- * 处理窗口关闭
- */
 function handleWindowClose() {
   logger.info("窗口即将关闭，断开WebSocket连接");
   cleanupWebSocket();
 }
 
-/**
- * 清理WebSocket连接
- */
 export function cleanupWebSocket() {
-  // 清理字典 WebSocket
-  if (dictWebSocketInstance) {
-    try {
-      dictWebSocketInstance.closeWebSocket();
-      logger.info("字典WebSocket连接已断开");
-    } catch (error) {
-      logger.error("断开字典WebSocket连接失败:", error);
-    }
-  }
-
-  // 清理所有注册的 WebSocket 实例
   websocketInstances.forEach((instance, key) => {
     try {
       if (typeof instance.disconnect === "function") {
         instance.disconnect();
-        logger.info(`${key} WebSocket连接已断开`);
       } else if (typeof instance.closeWebSocket === "function") {
         instance.closeWebSocket();
-        logger.info(`${key} WebSocket连接已断开`);
       }
+      logger.info(`${key} WebSocket连接已断开`);
     } catch (error) {
       logger.error(`断开 ${key} WebSocket连接失败:`, error);
     }
   });
-
-  // 清空实例映射
   websocketInstances.clear();
-
-  // 移除事件监听器
   window.removeEventListener("beforeunload", handleWindowClose);
-
-  // 重置状态
-  dictWebSocketInstance = null;
   isInitialized = false;
 }
 
-/**
- * 重新初始化WebSocket（用于登录后重连）
- */
 export function reinitializeWebSocket() {
-  // 先清理现有连接
   cleanupWebSocket();
-
-  // 延迟后重新初始化
-  setTimeout(() => {
-    setupWebSocket();
-  }, 500);
+  setTimeout(() => setupWebSocket(), 500);
 }

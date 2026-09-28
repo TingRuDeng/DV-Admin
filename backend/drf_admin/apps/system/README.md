@@ -13,7 +13,6 @@
 - 角色管理
 - 权限/菜单管理
 - 部门管理
-- 字典管理
 - 通知公告
 
 ---
@@ -28,14 +27,12 @@ system/
 │   ├── roles.py      # 角色管理
 │   ├── menus.py      # 菜单/权限管理
 │   ├── departments.py # 部门管理
-│   ├── dicts.py      # 字典管理
 │   └── notices.py    # 通知公告
 ├── serializers/      # 序列化器
 │   ├── users.py
 │   ├── roles.py
 │   ├── permissions.py
 │   ├── departments.py
-│   └── dicts.py
 ├── filters/          # 过滤器
 │   └── users.py
 ├── urls.py           # 路由配置
@@ -109,8 +106,6 @@ system/
 | `/api/v1/system/roles/{id}/menus/` | PUT | 分配角色菜单权限 |
 | `/api/v1/system/menus/` | GET, POST | 菜单列表/创建 |
 | `/api/v1/system/departments/` | GET, POST | 部门树/创建 |
-| `/api/v1/system/dicts/` | GET, POST | 字典类型列表/创建 |
-| `/api/v1/system/dict-items/` | GET, POST | 字典项列表/创建 |
 | `/api/v1/system/notices/page` | GET | 通知公告分页 |
 | `/api/v1/system/notices` | POST | 创建通知公告 |
 | `/api/v1/system/notices/{id}` | PUT | 更新通知公告 |
@@ -148,7 +143,6 @@ WHITE_LIST = [
     '/api/v1/oauth/menus/routes/',
     '/api/v1/system/users/profile/',
     '/api/v1/system/notices/my-page/',
-    '/api/v1/system/dict-items/',
 ]
 ```
 

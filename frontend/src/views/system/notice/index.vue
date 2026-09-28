@@ -67,13 +67,13 @@
         <el-table-column label="通知标题" prop="title" min-width="200" />
         <el-table-column align="center" label="通知类型" width="150">
           <template #default="scope">
-            <DictLabel v-model="scope.row.type" :code="'notice_type'" />
+            <NoticeOptionTag kind="type" :value="scope.row.type" />
           </template>
         </el-table-column>
         <el-table-column align="center" label="发布人" prop="publisherName" width="150" />
         <el-table-column align="center" label="通知等级" width="100">
           <template #default="scope">
-            <DictLabel v-model="scope.row.level" code="notice_level" />
+            <NoticeOptionTag kind="level" :value="scope.row.level" />
           </template>
         </el-table-column>
         <el-table-column align="center" label="通告目标类型" prop="targetType" width="120">
@@ -177,6 +177,7 @@ defineOptions({
 });
 
 import BatchDeleteResultDialog from "@/components/BatchDeleteResultDialog/index.vue";
+import NoticeOptionTag from "./components/NoticeOptionTag.vue";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
 import { runExclusive } from "@/utils/exclusive-action";

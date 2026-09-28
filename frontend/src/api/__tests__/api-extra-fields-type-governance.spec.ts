@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const API_EXTRA_FIELD_FILES = ["src/api/system/dict-items-api.ts"];
+const API_EXTRA_FIELD_FILES: string[] = [];
 
 const ANY_INDEX_SIGNATURE_PATTERN = /\[key:\s*string\]:\s*any\b/;
 

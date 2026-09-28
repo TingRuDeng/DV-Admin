@@ -4,7 +4,6 @@ import AuthAPI, { type LoginFormData, type OidcLoginData, type UserInfo } from "
 
 import { AuthStorage } from "@/utils/auth";
 import { usePermissionStoreHook } from "@/store/modules/permission-store";
-import { useDictStoreHook } from "@/store/modules/dict-store";
 import { useTagsViewStore } from "@/store";
 import { cleanupWebSocket } from "@/plugins/websocket";
 import { createLogger } from "@/utils/logger";
@@ -116,8 +115,6 @@ export const useUserStore = defineStore("user", () => {
     // 2. 重置其他模块状态
     // 重置路由
     usePermissionStoreHook().resetRouter();
-    // 清除字典缓存
-    useDictStoreHook().clearDictCache();
     // 清除标签视图
     useTagsViewStore().delAllViews();
 

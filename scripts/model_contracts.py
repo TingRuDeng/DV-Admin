@@ -105,25 +105,8 @@ DJANGO_FASTAPI_MODEL_CONTRACTS: tuple[DjangoFastapiModelContract, ...] = (
         fastapi_table="system_users",
         field_aliases=COMMON_DJANGO_FIELD_ALIASES,
     ),
-    DjangoFastapiModelContract(
-        django_model="system.dicts",
-        fastapi_model="DictData",
-        django_table="system_dicts",
-        fastapi_table="system_dicts",
-        field_aliases=COMMON_DJANGO_FIELD_ALIASES,
-    ),
-    DjangoFastapiModelContract(
-        django_model="system.dictitems",
-        fastapi_model="DictItems",
-        django_table="system_dict_items",
-        fastapi_table="system_dict_items",
-        field_aliases=merged_aliases(
-            COMMON_DJANGO_FIELD_ALIASES,
-            {
-                "dict": "dict_data",
-            },
-        ),
-    ),
+
+
     DjangoFastapiModelContract(
         django_model="system.notices",
         fastapi_model="Notices",
@@ -218,8 +201,6 @@ def assert_model_contract_catalog() -> None:
     """校验模型契约目录自身完整，避免无效契约进入验证门禁。"""
     django_models = {contract.django_model for contract in DJANGO_FASTAPI_MODEL_CONTRACTS}
     assert len(django_models) == len(DJANGO_FASTAPI_MODEL_CONTRACTS)
-    assert "system.dicts" in django_models
-    assert "system.dictitems" in django_models
     relation_keys = {
         (contract.django_model, contract.django_field)
         for contract in DJANGO_FASTAPI_RELATION_CONTRACTS

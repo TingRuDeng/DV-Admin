@@ -13,8 +13,6 @@ from app.core.security import get_password_hash
 from app.db.models.oauth import Users
 from app.db.models.system import (
     Departments,
-    DictData,
-    DictItems,
     Notices,
     OperationLog,
     Permissions,
@@ -48,7 +46,6 @@ async def seed() -> dict[str, int | str | list[int]]:
             "system:users:password:reset",
             "system:users:import",
             "system:users:export",
-            "system:dictitems:query",
             "system:notices:query",
             "system:notices:add",
             "system:notices:edit",
@@ -216,18 +213,11 @@ async def seed() -> dict[str, int | str | list[int]]:
         is_active=1,
     )
     await rbac_user.roles.add(rbac_role)
-    for code, label, tag_type in (
-        ("unrelated", "不应显示", "danger"),
-        ("notice_type", "浏览器测试类型", "success"),
-        ("notice_level", "浏览器测试级别", "warning"),
-    ):
-        dictionary = await DictData.create(dict_code=code, name=code)
-        await DictItems.create(dict_data=dictionary, value="1", label=label, tag_type=tag_type)
     notice = await Notices.create(
         title="FastAPI 真实 HTTP 通知",
         content="FastAPI 真实 HTTP 正文",
         type=1,
-        level=1,
+        level="M",
         target_type=1,
         publish_status=1,
         publisher_id=user.id,
@@ -247,8 +237,7 @@ async def seed() -> dict[str, int | str | list[int]]:
             if permission.perm
             in {
                 "system:departments:query",
-                "system:dictitems:query",
-                "system:notices:query",
+                    "system:notices:query",
             }
         ],
     }

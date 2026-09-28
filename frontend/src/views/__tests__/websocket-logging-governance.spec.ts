@@ -5,7 +5,6 @@ import { describe, expect, it } from "vitest";
 const WEBSOCKET_FILES = [
   "src/composables/websocket/useStomp.ts",
   "src/composables/websocket/useOnlineCount.ts",
-  "src/composables/websocket/useDictSync.ts",
   "src/plugins/websocket.ts",
 ];
 
