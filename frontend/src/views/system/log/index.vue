@@ -103,7 +103,8 @@
       <el-table-column label="执行时间(ms)" prop="executionTime" width="150" align="center" />
       <el-table-column label="操作" fixed="right" width="100" align="center">
         <template #default="{ row }">
-          <el-button type="primary" link :icon="View" @click="openDetailDialog(row.id)">
+          <el-button type="primary" link size="small" @click="openDetailDialog(row.id)">
+            <template #icon><AppIcon name="eye" :size="14" /></template>
             查看
           </el-button>
         </template>
@@ -130,7 +131,6 @@ defineOptions({
 import LogAPI, { LogPageQuery, LogPageVO } from "@/api/system/log-api";
 import type { ProTableExpose } from "@/components/ProTable/types";
 import { createPageRequest } from "@/utils/pro-table-request";
-import { View } from "@element-plus/icons-vue";
 import LogDetailDialog from "./components/LogDetailDialog.vue";
 
 const HTTP_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
