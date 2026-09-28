@@ -8,22 +8,25 @@
 
     <section class="dashboard-metrics" aria-label="工作空间概览">
       <DashboardMetricCard
-        label="可访问模块"
-        :value="quickActions.length"
-        icon="layout-dashboard"
+        label="今日操作"
+        :value="stats?.todayCount ?? '-'"
+        icon="scroll-text"
         accent="coral"
+        :loading="statsLoading"
       />
       <DashboardMetricCard
-        label="角色"
-        :value="userStore.userInfo.roles.length"
-        icon="users-round"
+        label="本周操作"
+        :value="stats?.weekCount ?? '-'"
+        icon="layout-dashboard"
         accent="blue"
+        :loading="statsLoading"
       />
       <DashboardMetricCard
-        label="权限"
-        :value="userStore.userInfo.perms.length"
-        icon="shield-check"
+        label="未读通知"
+        :value="unreadCount"
+        icon="notification"
         accent="neutral"
+        :loading="noticeLoading"
       />
     </section>
 
@@ -42,6 +45,8 @@ import { useUserStore } from "@/store/modules/user-store";
 import { useTagsViewStore } from "@/store/modules/tags-view-store";
 import { translateRouteTitle } from "@/utils/i18n";
 import { hasAppIcon, normalizeMenuIconName } from "@/components/AppIcon/icon-map";
+import LogAPI from "@/api/system/log-api";
+import NoticeAPI from "@/api/system/notice-api";
 import DashboardHero from "./components/DashboardHero.vue";
 import DashboardMetricCard from "./components/DashboardMetricCard.vue";
 import DashboardQuickActions, {
@@ -62,6 +67,32 @@ const currentTime = useDateFormat(useNow(), "HH:mm");
 const displayName = computed(
   () => userStore.userInfo.name || userStore.userInfo.username || "Admin"
 );
+
+// 访问统计
+const stats = ref<import("@/api/system/log-api").LogVisitStats | null>(null);
+const statsLoading = ref(false);
+
+// 未读通知数
+const unreadCount = ref<number | string>("-");
+const noticeLoading = ref(false);
+
+onMounted(async () => {
+  // 并行加载统计数据和未读通知数
+  statsLoading.value = true;
+  noticeLoading.value = true;
+  const [statsResult, noticeResult] = await Promise.allSettled([
+    LogAPI.getVisitStats(),
+    NoticeAPI.getMyNoticePage({ pageNum: 1, pageSize: 1, isRead: 0 }),
+  ]);
+  if (statsResult.status === "fulfilled") {
+    stats.value = statsResult.value;
+  }
+  statsLoading.value = false;
+  if (noticeResult.status === "fulfilled") {
+    unreadCount.value = noticeResult.value.total;
+  }
+  noticeLoading.value = false;
+});
 
 function joinRoutePath(parentPath: string, path: string) {
   const joined = `${parentPath}/${path}`.replace(/\/+/g, "/");
