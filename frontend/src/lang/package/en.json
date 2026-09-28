@@ -139,7 +139,8 @@
     "aria": "Password strength: {label}"
   },
   "table": {
-    "columnSettings": "Column Settings"
+    "columnSettings": "Column Settings",
+    "density": "Row Density"
   },
   "common": {
     "reset": "Reset"

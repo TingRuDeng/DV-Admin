@@ -142,7 +142,8 @@
     "aria": "密码强度：{label}"
   },
   "table": {
-    "columnSettings": "列设置"
+    "columnSettings": "列设置",
+    "density": "行高密度"
   },
   "common": {
     "reset": "重置"

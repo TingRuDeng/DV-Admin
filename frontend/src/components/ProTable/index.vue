@@ -1,7 +1,17 @@
 <template>
   <DataPanel :title="title">
-    <template v-if="$slots.actions" #actions>
+    <template #actions>
       <slot name="actions" />
+      <el-tooltip content="行高密度" placement="top">
+        <button
+          type="button"
+          class="ff-table-density-btn"
+          aria-label="行高密度"
+          @click="cycleDensity"
+        >
+          <AppIcon :name="densityIcon" :size="15" />
+        </button>
+      </el-tooltip>
     </template>
 
     <div class="ff-table-wrap">
@@ -10,6 +20,7 @@
         v-loading="loadingProxy"
         :data="dataProxy"
         :row-key="rowKey"
+        :size="density"
         highlight-current-row
         class="ff-table"
         v-bind="$attrs"
@@ -40,6 +51,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import type { TableInstance } from "element-plus";
+import { useStorage } from "@vueuse/core";
+import AppIcon from "@/components/AppIcon/index.vue";
 import DataPanel from "@/components/DataPanel/index.vue";
 import Pagination from "@/components/Pagination/index.vue";
 import type { ProTableExpose, ProTablePaginationPayload, ProTableRequestResult } from "./types";
@@ -89,6 +102,14 @@ const innerPage = ref(props.page);
 const innerLimit = ref(props.limit);
 
 const elTableRef = ref<TableInstance | null>(null);
+
+// 行高密度切换
+type Density = "default" | "small";
+const density = useStorage<Density>("pro-table:density", "default", sessionStorage);
+const densityIcon = computed(() => (density.value === "small" ? "align-justify" : "align-center"));
+function cycleDensity() {
+  density.value = density.value === "default" ? "small" : "default";
+}
 
 const isRequestMode = computed(() => typeof props.request === "function");
 const loadingProxy = computed(() => (isRequestMode.value ? innerLoading.value : props.loading));
@@ -185,3 +206,27 @@ defineExpose<ProTableExpose>({
   getTableRef: () => elTableRef.value,
 });
 </script>
+
+<style lang="scss" scoped>
+.ff-table-density-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--ff-shell-text-muted);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--ff-shell-border);
+  border-radius: var(--ff-radius-chip);
+  transition:
+    color var(--ff-duration-fast) ease,
+    background-color var(--ff-duration-fast) ease;
+
+  &:hover {
+    color: var(--ff-shell-text);
+    background: var(--ff-shell-hover);
+  }
+}
+</style>
