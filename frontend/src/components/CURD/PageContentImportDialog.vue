@@ -2,7 +2,7 @@
   <ProDialog
     v-model="visible"
     title="导入数据"
-    width="600px"
+    width="min(600px, calc(100vw - 32px))"
     :dialog-attrs="{ alignCenter: true }"
     @close="close"
   >

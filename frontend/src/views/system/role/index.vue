@@ -47,19 +47,31 @@
             批量删除
           </el-button>
         </div>
+        <ColumnSelector
+          :all-columns="ROLE_COLUMNS"
+          :visible-columns="visibleColumns"
+          @update:visible-columns="(v) => (visibleColumns = v)"
+          @reset="resetColumns"
+        />
       </template>
 
       <template #default>
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="排序" align="center" width="80" prop="sort">
+        <el-table-column
+          v-if="isVisible('sort')"
+          label="排序"
+          align="center"
+          width="80"
+          prop="sort"
+        >
           <template #default="{ row }">
             <span class="text-slate-400 font-mono bg-slate-50 px-2 py-0.5 rounded-md">
               {{ row.sort }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="角色名称" prop="name" min-width="100" />
-        <el-table-column label="状态" align="center" width="100">
+        <el-table-column v-if="isVisible('name')" label="角色名称" prop="name" min-width="100" />
+        <el-table-column v-if="isVisible('status')" label="状态" align="center" width="100">
           <template #default="scope">
             <el-tag
               :type="scope.row.status === 1 ? 'success' : 'info'"
@@ -70,7 +82,12 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="是否默认角色" align="center" width="120">
+        <el-table-column
+          v-if="isVisible('isDefault')"
+          label="是否默认角色"
+          align="center"
+          width="120"
+        >
           <template #default="scope">
             <el-tag
               :type="scope.row.isDefault ? 'success' : 'info'"
@@ -81,7 +98,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="备注" prop="desc" min-width="200" />
+        <el-table-column v-if="isVisible('desc')" label="备注" prop="desc" min-width="200" />
         <el-table-column fixed="right" label="操作" width="280">
           <template #default="scope">
             <el-button
@@ -142,6 +159,9 @@
 
 <script setup lang="ts">
 import BatchDeleteResultDialog from "@/components/BatchDeleteResultDialog/index.vue";
+import ColumnSelector from "@/components/ColumnSelector/index.vue";
+import type { ColumnDef } from "@/components/ColumnSelector/index.vue";
+import { useColumnVisibility } from "@/composables/useColumnVisibility";
 import PageShell from "@/components/PageShell/index.vue";
 import ProSearch from "@/components/ProSearch/index.vue";
 import ProTable from "@/components/ProTable/index.vue";
@@ -156,6 +176,24 @@ import RoleFormDrawer from "./components/RoleFormDrawer.vue";
 import RolePermissionDrawer from "./components/RolePermissionDrawer.vue";
 
 const roleBatchDeleteLogger = createLogger("RoleBatchDelete");
+
+// 列显示/隐藏
+const ROLE_COLUMNS: ColumnDef[] = [
+  { key: "sort", label: "排序" },
+  { key: "name", label: "角色名称", required: true },
+  { key: "status", label: "状态" },
+  { key: "isDefault", label: "是否默认" },
+  { key: "desc", label: "备注" },
+];
+const {
+  visibleColumns,
+  isVisible,
+  reset: resetColumns,
+} = useColumnVisibility(
+  "sys-role:columns",
+  ROLE_COLUMNS.map((c) => c.key)
+);
+
 defineOptions({
   name: "Role",
   inheritAttrs: false,

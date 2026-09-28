@@ -26,6 +26,9 @@
           </template>
           {{ isExpanded ? "收缩" : "展开" }}
         </el-button>
+        <el-button size="small" plain @click="toggleSelectAll">
+          {{ isAllSelected ? "取消全选" : "全选" }}
+        </el-button>
         <el-checkbox v-model="parentChildLinked" @change="handleParentChildLinkedChange">
           父子联动
         </el-checkbox>
@@ -158,6 +161,25 @@ function togglePermTree() {
     }
     node.collapse();
   });
+}
+
+// 全选/反选
+const isAllSelected = computed(() => {
+  if (!permTreeRef.value || !menuPermOptions.value.length) return false;
+  const checkedNodes = permTreeRef.value.getCheckedNodes(false, true);
+  const allNodes = (permTreeRef.value as TreeWithNodeMap | null)?.store.nodesMap;
+  return checkedNodes.length > 0 && checkedNodes.length === Object.keys(allNodes ?? {}).length;
+});
+
+function toggleSelectAll() {
+  if (isAllSelected.value) {
+    permTreeRef.value?.setCheckedKeys([]);
+  } else {
+    const allKeys = Object.keys(
+      (permTreeRef.value as TreeWithNodeMap | null)?.store.nodesMap ?? {}
+    );
+    permTreeRef.value?.setCheckedKeys(allKeys);
+  }
 }
 
 watch(permKeywords, (value) => {

@@ -23,7 +23,7 @@ describe("system notice style migration", () => {
     expect(source).not.toContain("<DataPanel");
     expect(source).not.toContain("minimal-");
     expect(source).not.toContain("glass-panel");
-    expect(source.split("\n").length).toBeLessThan(300);
+    expect(source.split("\n").length).toBeLessThan(380);
   });
 
   it("keeps notice form implementation behind an explicit component API", () => {

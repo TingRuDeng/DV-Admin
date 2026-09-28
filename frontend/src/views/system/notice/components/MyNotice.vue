@@ -65,7 +65,7 @@
     <ProDialog
       v-model="noticeDialogVisible"
       :title="noticeDetail?.title ?? '通知详情'"
-      width="800px"
+      width="min(800px, calc(100vw - 32px))"
       class="ff-my-notice-detail-dialog"
       :show-footer="false"
       @close="handleCloseNoticeDialog"

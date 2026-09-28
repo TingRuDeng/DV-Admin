@@ -19,6 +19,14 @@ const LogAPI = {
       method: "get",
     });
   },
+
+  /** 获取访问统计（今日/本周/本月日志数、成功率等） */
+  getVisitStats() {
+    return request<unknown, LogVisitStats>({
+      url: `${LOG_BASE_URL}/visit-stats`,
+      method: "get",
+    });
+  },
 };
 
 export default LogAPI;
@@ -121,4 +129,17 @@ export interface LogFileMeta {
   contentType?: string;
   size?: number;
   sha256?: string;
+}
+
+/** 访问统计（来自 /api/system/logs/visit-stats） */
+export interface LogVisitStats {
+  totalCount: number;
+  todayCount: number;
+  weekCount: number;
+  monthCount: number;
+  successCount: number;
+  failCount: number;
+  avgExecutionTime: number;
+  topUsers: Array<{ username: string; count: number }>;
+  topPaths: Array<{ path: string; count: number }>;
 }

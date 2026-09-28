@@ -2,7 +2,7 @@
   <ProDialog
     v-model="dialogVisible"
     :title="dialog.title"
-    :width="500"
+    :width="'min(500px, calc(100vw - 32px))'"
     @submit="emit('submit')"
     @cancel="emit('cancel')"
     @close="emit('cancel')"
