@@ -6,7 +6,7 @@ from inspect import signature
 from fastapi.params import Depends
 
 from app.api.deps import PermissionChecker
-from app.api.v1.system import dict_items, menus, users
+from app.api.v1.system import menus, users
 
 
 def _required_perms(endpoint: Callable) -> set[str]:
@@ -29,13 +29,6 @@ def test_menu_endpoints_use_permissions_resource_perms():
     assert _required_perms(menus.delete_menu) == {"system:permissions:delete"}
 
 
-def test_dict_item_endpoints_use_dictitems_resource_perms():
-    """字典项接口必须使用独立的 dictitems 权限码。"""
-    assert _required_perms(dict_items.get_dict_item_page) == {"system:dictitems:query"}
-    assert _required_perms(dict_items.create_dict_item) == {"system:dictitems:add"}
-    assert _required_perms(dict_items.update_dict_item) == {"system:dictitems:edit"}
-    assert _required_perms(dict_items.delete_dict_item) == {"system:dictitems:delete"}
-    assert _required_perms(dict_items.batch_delete_dict_items) == {"system:dictitems:delete"}
 
 
 def test_user_special_actions_use_dedicated_perms():

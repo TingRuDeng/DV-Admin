@@ -5,9 +5,7 @@
     "department": "Department",
     "user": "User",
     "role": "Role",
-    "menu": "Menu",
-    "dict": "Dictionary",
-    "dictData": "Dictionary Data"
+    "menu": "Menu"
   },
   "login": {
     "themeToggle": "Theme Switch",

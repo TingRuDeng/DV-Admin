@@ -6,7 +6,7 @@ from pathlib import Path
 
 from scripts.api_endpoint_contract_types import EndpointContract
 
-DJANGO_ROUTER_RESOURCES = {"users", "roles", "menus", "dicts", "dict-items", "departments"}
+DJANGO_ROUTER_RESOURCES = {"users", "roles", "menus", "departments"}
 FASTAPI_ROUTE_BASES = {
     "fastapi/app/api/v1/files/upload.py": "files",
     "fastapi/app/api/v1/information/profile.py": "information",
@@ -16,8 +16,6 @@ FASTAPI_ROUTE_BASES = {
     "fastapi/app/api/v1/oauth/routes/profile.py": "oauth",
     "fastapi/app/api/v1/oauth/routes/session.py": "oauth",
     "fastapi/app/api/v1/system/depts.py": "system/departments",
-    "fastapi/app/api/v1/system/dict_items.py": "system/dict-items",
-    "fastapi/app/api/v1/system/dicts.py": "system/dicts",
     "fastapi/app/api/v1/system/log_routes/analytics.py": "system/logs",
     "fastapi/app/api/v1/system/log_routes/mutation.py": "system/logs",
     "fastapi/app/api/v1/system/log_routes/query.py": "system/logs",
@@ -34,8 +32,6 @@ FASTAPI_SYSTEM_PREFIXES = {
     "roles": 'prefix="/roles"',
     "menus": 'prefix="/menus"',
     "departments": 'prefix="/departments"',
-    "dicts": 'prefix="/dicts"',
-    "dict-items": 'prefix="/dict-items"',
     "notices": 'prefix="/notices"',
     "logs": 'prefix="/logs"',
 }

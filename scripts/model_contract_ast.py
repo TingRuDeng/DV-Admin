@@ -11,7 +11,6 @@ FASTAPI_MODEL_FILES = (
     "fastapi/app/db/models/system_permission.py",
     "fastapi/app/db/models/system_dept.py",
     "fastapi/app/db/models/system_notice.py",
-    "fastapi/app/db/models/system_dict.py",
     "fastapi/app/db/models/system_log.py",
     "fastapi/app/db/models/oauth.py",
 )

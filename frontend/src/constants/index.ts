@@ -12,9 +12,6 @@ export const STORAGE_KEYS = {
   REMEMBER_ME: `${APP_PREFIX}:auth:remember_me`, // 记住登录状态
   OIDC_FLOW: `${APP_PREFIX}:auth:oidc_flow`, // 单点登录进行中的 state 与流程密钥（sessionStorage）
 
-  // 系统核心相关
-  DICT_CACHE: `${APP_PREFIX}:system:dict_cache:v2`, // 仅缓存按 dictCode 取齐的字典项
-
   // UI设置相关
   SHOW_TAGS_VIEW: `${APP_PREFIX}:ui:show_tags_view`, // 显示标签页视图
   SIDEBAR_PEEK: `${APP_PREFIX}:ui:sidebar_peek`, // 收起侧栏时悬停预览
@@ -43,10 +40,6 @@ export const AUTH_KEYS = {
   REMEMBER_ME: STORAGE_KEYS.REMEMBER_ME,
 } as const;
 
-export const SYSTEM_KEYS = {
-  DICT_CACHE: STORAGE_KEYS.DICT_CACHE,
-} as const;
-
 export const SETTINGS_KEYS = {
   SHOW_TAGS_VIEW: STORAGE_KEYS.SHOW_TAGS_VIEW,
   SHOW_APP_LOGO: STORAGE_KEYS.SHOW_APP_LOGO,
@@ -68,7 +61,6 @@ export const APP_KEYS = {
 
 export const ALL_STORAGE_KEYS = {
   ...AUTH_KEYS,
-  ...SYSTEM_KEYS,
   ...SETTINGS_KEYS,
   ...APP_KEYS,
 } as const;

@@ -15,7 +15,6 @@ from drf_admin.utils.runtime_api_contracts.helpers import (
     assert_success_payload,
     contracts_by_key,
     create_runtime_contract_departments,
-    create_runtime_contract_dicts,
     create_runtime_contract_user,
 )
 
@@ -26,7 +25,6 @@ class DjangoRuntimeWriteApiContractTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = create_runtime_contract_user()
-        create_runtime_contract_dicts()
         create_runtime_contract_departments()
         self.client.force_authenticate(user=self.user)
 

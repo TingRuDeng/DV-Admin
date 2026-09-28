@@ -20,15 +20,13 @@ MIGRATIONS_DIR = PROJECT_ROOT / "app" / "db" / "migrations"
 MIGRATION_CONFIG = "app.db.migration_config.TORTOISE_ORM"
 TEST_SECRET_KEY = "migration-validation-key-at-least-sixty-four-characters-long-123456"
 BASELINE_MIGRATION = "0001_initial"
-LATEST_MIGRATION = "0004_oidc_identities"
+LATEST_MIGRATION = "0005_remove_dictionary_module"
 OPERATION_LOG_TABLE = "system_operation_log"
 MIGRATION_ROW_USERNAME = "__migration_validation_0001__"
 MIGRATION_REQUEST_ID = "migration-validation-request-id"
 REQUIRED_TABLES = {
     "oauth_oidc_identities",
     "system_departments",
-    "system_dict_items",
-    "system_dicts",
     "system_notice_reads",
     "system_notices",
     "system_operation_log",

@@ -18,7 +18,7 @@
         <template v-if="noticeList.length > 0">
           <div v-for="(item, index) in noticeList" :key="index" class="w-500px py-3">
             <div class="flex-y-center">
-              <DictLabel v-model="item.type" code="notice_type" size="small" />
+              <NoticeOptionTag kind="type" :value="item.type" size="small" />
               <el-text
                 size="small"
                 class="w-200px cursor-pointer !ml-2 !flex-1"
@@ -93,6 +93,7 @@ import NoticeAPI, { NoticePageVO, NoticeDetailVO } from "@/api/system/notice-api
 import router from "@/router";
 import { useStomp } from "@/composables/websocket/useStomp";
 import AppIcon from "@/components/AppIcon/index.vue";
+import NoticeOptionTag from "@/views/system/notice/components/NoticeOptionTag.vue";
 
 interface NotificationMessagePayload {
   id: string;

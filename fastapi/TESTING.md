@@ -29,8 +29,6 @@ fastapi/
 │   ├── test_roles.py            # 角色管理测试
 │   ├── test_menus.py            # 菜单管理测试
 │   ├── test_depts.py            # 部门管理测试
-│   ├── test_dicts.py            # 字典管理测试
-│   ├── test_dict_items.py       # 字典项测试
 │   ├── test_notices.py          # 通知公告测试
 │   ├── test_profile.py          # 个人中心测试
 │   ├── test_files.py            # 文件上传测试
@@ -45,7 +43,6 @@ fastapi/
 │   ├── test_exceptions.py       # 异常测试
 │   ├── test_user_service.py     # 用户服务测试
 │   ├── test_role_service.py     # 角色服务测试
-│   ├── test_dict_service.py     # 字典服务测试
 │   ├── test_log_service.py      # 日志服务测试
 │   └── test_notice_service.py   # 通知服务测试
 ```
@@ -75,7 +72,6 @@ fastapi/
 - system:roles:query, add, edit, delete
 - system:menus:query, add, edit, delete
 - system:departments:query, add, edit, delete
-- system:dicts:query, add, edit, delete
 - system:notices:query, add, edit, delete, publish, revoke
 - system:logs:query, delete
 ```
@@ -154,8 +150,6 @@ open htmlcov/index.html
 | 角色管理 | 列表、创建、更新、删除、权限分配 |
 | 菜单管理 | 列表、详情、创建、更新、删除、权限标识、下拉选项 |
 | 部门管理 | 列表、创建、更新、删除 |
-| 字典管理 | 列表、详情、创建、更新 |
-| 字典项 | 列表、创建、更新、删除 |
 | 通知公告 | 列表、创建、更新、发布、撤销、我的公告、表单 |
 | 个人中心 | 获取信息、更新信息、修改密码、修改头像 |
 | 文件管理 | 上传文件、删除文件 |

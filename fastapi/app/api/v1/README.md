@@ -29,8 +29,6 @@ v1/
 │   ├── roles.py      # 角色管理
 │   ├── menus.py      # 菜单/权限管理
 │   ├── depts.py      # 部门管理
-│   ├── dicts.py      # 字典类型管理
-│   ├── dict_items.py # 字典项管理
 │   ├── notices.py    # 通知公告
 │   └── logs.py       # 操作日志
 ├── information/      # 个人中心模块
@@ -141,8 +139,6 @@ OIDC 由 `OIDC_*` 环境变量控制，未启用时两个端点仍注册但返�
 - `PUT /api/v1/system/roles/{id}/menus/` - 分配角色菜单权限
 - `/api/v1/system/menus/` - 菜单管理
 - `/api/v1/system/departments/` - 部门管理
-- `/api/v1/system/dicts/` - 字典类型管理
-- `/api/v1/system/dict-items/` - 字典项管理
 - `/api/v1/system/notices/` - 通知公告
 - `GET /api/v1/system/notices/page` - 通知公告分页
 - `PUT /api/v1/system/notices/{id}/publish` - 发布通知

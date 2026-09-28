@@ -33,11 +33,6 @@ def test_fastapi_model_tables_match_shared_contracts():
         assert model.Meta.table == contract.fastapi_table
 
 
-def test_dict_data_table_name_matches_django_contract():
-    """字典主表应使用 Django 表名，避免双后端继续登记表名差异。"""
-    contract = find_model_contract("system.dicts")
-
-    assert contract.fastapi_table == contract.django_table
 
 
 def test_fastapi_model_alias_targets_match_shared_contracts():
@@ -103,30 +98,10 @@ def test_fastapi_field_constraints_match_shared_contracts():
             assert field.index == contract.index
 
 
-def test_dict_code_length_matches_django_field_contract():
-    """FastAPI 字典编码长度必须与 Django 字典编码约束一致。"""
-    django_contract = find_constraint("system.dicts", "dict_code")
-    fastapi_contract = find_constraint("DictData", "dict_code")
-
-    assert fastapi_contract.max_length == django_contract.max_length
 
 
-def test_dict_data_field_names_do_not_need_business_aliases():
-    """字典主表字段名应与 Django 语义一致，不再登记业务字段别名。"""
-    contract = find_model_contract("system.dicts")
-
-    assert "dict_code" not in contract.field_aliases
-    assert "remark" not in contract.field_aliases
 
 
-def test_dict_item_model_does_not_keep_fastapi_only_fields():
-    """字典项模型不应继续保留 Django 没有的 FastAPI-only 字段。"""
-    contract = find_model_contract("system.dictitems")
-    model = MODEL_MAPPING[contract.django_model]
-
-    assert "is_default" not in model._meta.fields_map
-    assert "remark" not in model._meta.fields_map
-    assert "sort" not in model._meta.fields_map
 
 
 def test_fastapi_model_indexes_match_shared_contracts():

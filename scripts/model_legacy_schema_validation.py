@@ -15,11 +15,6 @@ class LegacySchemaMarker:
 
 LEGACY_SCHEMA_MARKERS: tuple[LegacySchemaMarker, ...] = (
     LegacySchemaMarker(
-        "fastapi/app/db/models/system_dict.py",
-        'table = "system_dict_data"',
-        "字典主表已统一为 Django 表名 system_dicts",
-    ),
-    LegacySchemaMarker(
         "fastapi/app/db/models/system_permission.py",
         'through="system_roles_permissions"',
         "角色权限关联表已统一为 Django 表名 system_roles_to_system_permissions",
@@ -48,11 +43,6 @@ LEGACY_SCHEMA_MARKERS: tuple[LegacySchemaMarker, ...] = (
         "fastapi/app/db/models/oauth.py",
         'forward_key="role_id"',
         "用户角色关联字段已统一为 roles_id",
-    ),
-    LegacySchemaMarker(
-        "fastapi/app/db/models/system_dict.py",
-        "is_default =",
-        "字典项 FastAPI-only 字段 is_default 已移除",
     ),
 )
 

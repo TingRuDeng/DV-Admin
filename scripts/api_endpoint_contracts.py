@@ -6,7 +6,6 @@ from scripts.api_endpoint_contract_types import (
     EndpointContract,
 )
 from scripts.api_endpoint_dept_contracts import DEPT_ENDPOINT_CONTRACTS
-from scripts.api_endpoint_dict_contracts import DICT_ENDPOINT_CONTRACTS
 from scripts.api_endpoint_information_contracts import INFORMATION_ENDPOINT_CONTRACTS
 from scripts.api_endpoint_menu_contracts import MENU_ENDPOINT_CONTRACTS
 from scripts.api_endpoint_notice_contracts import NOTICE_ENDPOINT_CONTRACTS
@@ -52,14 +51,6 @@ REQUIRED_ENDPOINT_KEYS = {
     "menus_create",
     "menus_update",
     "menus_delete",
-    "dicts_page",
-    "dicts_create",
-    "dicts_update",
-    "dicts_delete",
-    "dict_items_page",
-    "dict_items_create",
-    "dict_items_update",
-    "dict_items_delete",
     "notices_page",
     "notices_create",
     "notices_update",
@@ -363,7 +354,6 @@ CRITICAL_ENDPOINT_CONTRACTS: tuple[EndpointContract, ...] = (
     *ROLE_ENDPOINT_CONTRACTS,
     *DEPT_ENDPOINT_CONTRACTS,
     *MENU_ENDPOINT_CONTRACTS,
-    *DICT_ENDPOINT_CONTRACTS,
     *NOTICE_ENDPOINT_CONTRACTS,
     EndpointContract(
         key="logs_page",

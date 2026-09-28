@@ -160,8 +160,8 @@ test.describe(`前端连接真实 ${backendName} 后端`, () => {
     await page.goto("/my-notice");
     const noticeRow = page.locator(".el-table__row", { hasText: noticeTitle });
     await expect(noticeRow).toBeVisible();
-    await expect(noticeRow.locator(".el-tag--success")).toHaveText("浏览器测试类型");
-    await expect(noticeRow.locator(".el-tag--warning")).toHaveText("浏览器测试级别");
+    await expect(noticeRow.locator(".el-tag--success")).toHaveText("系统升级");
+    await expect(noticeRow.locator(".el-tag--warning")).toHaveText("中");
     await expect(noticeRow).not.toContainText("不应显示");
     await noticeRow.getByRole("button", { name: "查看" }).click();
     const noticeDialog = page.getByRole("dialog", { name: noticeTitle });

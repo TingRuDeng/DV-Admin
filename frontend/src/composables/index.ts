@@ -1,6 +1,4 @@
 export { useStomp } from "./websocket/useStomp";
-export { useDictSync } from "./websocket/useDictSync";
-export type { DictMessage } from "./websocket/useDictSync";
 export { useOnlineCount } from "./websocket/useOnlineCount";
 export { useTokenRefresh } from "./auth/useTokenRefresh";
 

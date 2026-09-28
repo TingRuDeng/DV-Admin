@@ -13,20 +13,6 @@ interface NoticeRow {
   content?: string;
 }
 
-interface DictItemOption {
-  value: string | number;
-  label: string;
-  tagType?: string;
-}
-
-interface MockState {
-  notices: NoticeRow[];
-  dictItemsByCode: Record<string, DictItemOption[]>;
-  writePayloads: unknown[];
-  pageQueries: Array<Record<string, string>>;
-  detailRequests: string[];
-}
-
 interface AuthMockOptions {
   username?: string;
   name?: string;
@@ -46,7 +32,6 @@ interface MockRouteContext {
 
 const API_PREFIX = "/dev-api";
 const NOTICES_PATH = "/api/v1/system/notices";
-const DICT_ITEMS_PATH = "/api/v1/system/dict-items/";
 const DEFAULT_NOTICE_PERMS = [
   "system:notices:query",
   "system:notices:add",
@@ -83,16 +68,6 @@ function createMockState(): MockState {
         content: "<p>安全提醒正文</p>",
       },
     ],
-    dictItemsByCode: {
-      notice_type: [
-        { value: 2, label: "系统维护", tagType: "warning" },
-        { value: 3, label: "安全警告", tagType: "danger" },
-      ],
-      notice_level: [
-        { value: "M", label: "中", tagType: "warning" },
-        { value: "H", label: "高", tagType: "danger" },
-      ],
-    },
     writePayloads: [],
     pageQueries: [],
     detailRequests: [],
@@ -131,7 +106,6 @@ async function installNoticeManagementMocks(
 
     if (await handleAuthRequest(context)) return;
     if (await handleNoticeRequest(context)) return;
-    if (await handleDictRequest(context)) return;
 
     await fulfillJson(
       route,
@@ -243,20 +217,6 @@ async function handleNoticeRequest(context: MockRouteContext) {
   return false;
 }
 
-async function handleDictRequest(context: MockRouteContext) {
-  if (context.method !== "GET" || context.path !== DICT_ITEMS_PATH) return false;
-  const dictCode = context.query.get("dictCode") ?? "";
-  const items = context.state.dictItemsByCode[dictCode] ?? [];
-  const pageNum = Number(context.query.get("pageNum") ?? 1);
-  const pageSize = Number(context.query.get("pageSize") ?? 10);
-  const start = (pageNum - 1) * pageSize;
-  await fulfillJson(
-    context.route,
-    success({ list: items.slice(start, start + pageSize), total: items.length })
-  );
-  return true;
-}
-
 async function login(page: Page) {
   await page.goto("/login?redirect=%2Fsystem%2Fnotices");
   await page.getByLabel("用户名").fill("admin");
@@ -291,6 +251,8 @@ test.describe("通知公告权限链路 smoke", () => {
 
     await login(page);
     await expect(page.locator("tbody").getByText("系统维护计划")).toBeVisible();
+    await expect(page.locator("tbody").getByText("系统维护", { exact: true })).toBeVisible();
+    await expect(page.locator("tbody").getByText("中")).toBeVisible();
     await expect(page.getByRole("button", { name: "新增通知" })).toBeVisible();
     await expect(page.getByRole("button", { name: "批量删除" })).toBeVisible();
     await expect(page.getByRole("button", { name: "发布" })).toBeVisible();

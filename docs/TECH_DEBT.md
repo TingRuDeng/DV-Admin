@@ -81,7 +81,6 @@ Django 当前镜像为 WSGI，Channels/WebSocket 的 ASGI 部署需要独立验�
 Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据迁移和同步困难。
 
 **具体问题：**
-- 当前治理范围内暂无未处理的字典模型差异；后续发现新差异时单独登记
 
 **影响范围：**
 - 数据迁移工具仍需要处理历史旧 FastAPI 结构
@@ -98,13 +97,9 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 - 已覆盖缺少 fixture、单条导入失败和 M2M 目标缺失三类失败测试
 - 已新增 `scripts/model_contracts.py` 作为 Django → FastAPI 共享模型契约目录，并用 `scripts/validate_model_contracts.py` 校验导入脚本、测试和文档同步
 - 权限菜单 `keepAlive/alwaysShow` 已显式映射到 FastAPI 的 `keep_alive/always_show`
-- 字典主表表名已统一为 `system_dicts`，内部字段已统一为 `dict_code/remark`
-- 已有 FastAPI 数据库如果仍存在旧表 `system_dict_data`，需要通过显式迁移切换到 `system_dicts`，不在业务代码中增加双表 fallback
 - 角色-权限和用户-角色关联表名已统一到 Django 命名；已有 FastAPI 数据库如果仍存在旧表 `system_roles_permissions` 或 `system_users_roles`，需要通过显式迁移切换到目标表
 - 角色-权限和用户-角色关联字段已统一到 Django 命名；已有 FastAPI 数据库如果仍存在旧字段 `user_id/role_id/permission_id`，需要通过显式迁移切换到目标字段
-- FastAPI 字典项 `is_default/remark` 扩展字段已移除；已有 FastAPI 数据库如果仍存在旧列，需要通过显式迁移删除或忽略
 - 字典项 `label/value` 长度约束已统一为 32；已有 FastAPI 数据库如果存在 33-50 字符旧值，需要在部署迁移前显式清理
-- FastAPI 字典项 `sort` 扩展字段已移除；已有 FastAPI 数据库如果仍存在旧列，需要通过显式迁移删除或忽略
 
 **预计工作量：** 2-3 天
 
@@ -362,7 +357,6 @@ Django 和 FastAPI 后端在数据库模型定义上存在差异，导致数据�
 - `components/CURD` 兼容层外已无业务调用点，新增调用已由 ESLint 和 Vitest 守卫阻断
 - `frontend/src/types/components.d.ts` 已移除 CURD 全局组件声明，避免模板自动补全继续暴露旧抽象
 - `PageContent.vue` 仍保留为历史兼容层文件；当前更适合冻结边界而不是立即删除
-- `TableSelect`、TagsView、MenuSearch、TextScroll、Settings、Profile、Dashboard、字典同步 demo 和系统管理页表单抽屉拆分已合入主线
 
 **影响范围：**
 - 删除 `components/CURD` 前仍需确认是否存在外部二开引用

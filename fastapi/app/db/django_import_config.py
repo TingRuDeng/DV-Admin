@@ -2,8 +2,6 @@ from app.db.models.base import BaseModel
 from app.db.models.oauth import OidcIdentity, Users
 from app.db.models.system import (
     Departments,
-    DictData,
-    DictItems,
     NoticeReads,
     Notices,
     Permissions,
@@ -16,8 +14,6 @@ MODEL_MAPPING: dict[str, type[BaseModel]] = {
     "system.permissions": Permissions,
     "system.roles": Roles,
     "system.users": Users,
-    "system.dicts": DictData,
-    "system.dictitems": DictItems,
     "system.notices": Notices,
     "system.noticereads": NoticeReads,
     "oauth.oidcidentity": OidcIdentity,
@@ -35,8 +31,6 @@ FIELD_MAPPING = {
 IMPORT_ORDER = (
     "system.departments",
     "system.permissions",
-    "system.dicts",
-    "system.dictitems",
     "system.notices",
     "system.noticereads",
     "system.roles",

@@ -50,9 +50,7 @@ SUPPLEMENTAL_ROUTES = (
         )
         for resource in (
             "departments",
-            "dict-items",
-            "dicts",
-            "logs",
+                                    "logs",
             "notices",
             "roles",
             "users",
@@ -69,7 +67,7 @@ SUPPLEMENTAL_ROUTES = (
             "shared",
             "resource detail",
         )
-        for resource in ("departments", "dicts", "menus")
+        for resource in ("departments", "menus")
     ),
     *(
         RouteRegistration(
@@ -104,13 +102,6 @@ SUPPLEMENTAL_ROUTES = (
     ),
     RouteRegistration(
         "GET",
-        "/api/v1/system/dict-items/{id}",
-        DJANGO,
-        "backend_only",
-        "DRF item detail",
-    ),
-    RouteRegistration(
-        "GET",
         "/api/v1/system/users/{id}/permissions",
         DJANGO,
         "backend_only",
@@ -124,7 +115,7 @@ SUPPLEMENTAL_ROUTES = (
             "compat",
             "DRF partial update",
         )
-        for resource in ("departments", "dict-items", "dicts", "menus", "roles")
+        for resource in ("departments", "menus", "roles")
     ),
     RouteRegistration(
         "PATCH",
@@ -162,13 +153,6 @@ SUPPLEMENTAL_ROUTES = (
     ),
     RouteRegistration(
         "GET",
-        "/api/v1/system/dicts/code/{code}",
-        FASTAPI,
-        "backend_only",
-        "dictionary code lookup",
-    ),
-    RouteRegistration(
-        "GET",
         "/api/v1/system/roles/{id}/menus",
         FASTAPI,
         "compat",
@@ -183,21 +167,6 @@ SUPPLEMENTAL_ROUTES = (
         FASTAPI,
         "compat",
         "legacy reset method",
-    ),
-    *(
-        RouteRegistration(
-            method,
-            f"/api/v1/system/dicts/{{id}}/items{suffix}",
-            FASTAPI,
-            "compat",
-            "legacy nested dictionary item route",
-        )
-        for method, suffix in (
-            ("GET", ""),
-            ("POST", ""),
-            ("PUT", "/{item_id}"),
-            ("DELETE", "/{item_id}"),
-        )
     ),
 )
 

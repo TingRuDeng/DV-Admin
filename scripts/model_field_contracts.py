@@ -61,20 +61,8 @@ FASTAPI_FIELD_METADATA_CONTRACTS: tuple[FastapiFieldMetadataContract, ...] = (
         null=True,
         default=None,
     ),
-    FastapiFieldMetadataContract(
-        fastapi_model="DictData",
-        field_name="dict_code",
-        field_type="CharField",
-        null=False,
-        default=None,
-    ),
-    FastapiFieldMetadataContract(
-        fastapi_model="DictData",
-        field_name="remark",
-        field_type="CharField",
-        null=False,
-        default="",
-    ),
+
+
 )
 
 DJANGO_FIELD_METADATA_CONTRACTS: tuple[DjangoFieldMetadataContract, ...] = (
@@ -90,19 +78,8 @@ DJANGO_FIELD_METADATA_CONTRACTS: tuple[DjangoFieldMetadataContract, ...] = (
         field_type="BooleanField",
         null=True,
     ),
-    DjangoFieldMetadataContract(
-        django_model="system.dicts",
-        field_name="dict_code",
-        field_type="CharField",
-        null=False,
-    ),
-    DjangoFieldMetadataContract(
-        django_model="system.dicts",
-        field_name="remark",
-        field_type="CharField",
-        null=False,
-        default="",
-    ),
+
+
 )
 
 def iter_fastapi_field_metadata_contracts() -> tuple[FastapiFieldMetadataContract, ...]:

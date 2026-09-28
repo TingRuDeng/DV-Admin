@@ -14,7 +14,7 @@ from scripts.api_contracts import (
     iter_critical_endpoint_contracts,
 )
 
-from drf_admin.apps.system.models import Departments, DictItems, Dicts, Permissions, Roles, Users
+from drf_admin.apps.system.models import Departments, Permissions, Roles, Users
 
 HTTP_OK = status.HTTP_200_OK
 PAGE_SIZE_SAMPLE = 1
@@ -24,8 +24,6 @@ READ_SAMPLE_KEYS = (
     "users_page",
     "depts_tree",
     "menus_tree",
-    "dicts_page",
-    "dict_items_page",
 )
 USER_WRITE_SAMPLE_KEYS = ("users_create", "users_update", "users_delete", "users_delete_retry")
 ROLE_WRITE_SAMPLE_KEYS = (
@@ -37,8 +35,6 @@ ROLE_WRITE_SAMPLE_KEYS = (
 )
 DEPT_WRITE_SAMPLE_KEYS = ("depts_create", "depts_update", "depts_delete")
 MENU_WRITE_SAMPLE_KEYS = ("menus_create", "menus_update", "menus_delete")
-DICT_WRITE_SAMPLE_KEYS = ("dicts_create", "dicts_update", "dicts_delete")
-DICT_ITEM_WRITE_SAMPLE_KEYS = ("dict_items_create", "dict_items_update", "dict_items_delete")
 NOTICE_WRITE_SAMPLE_KEYS = (
     "notices_create",
     "notices_update",
@@ -86,8 +82,6 @@ def sample_query_params(contract) -> dict[str, Any]:
         params["pageNum"] = 1
     if "pageSize" in contract.query_params:
         params["pageSize"] = PAGE_SIZE_SAMPLE
-    if "dictCode" in contract.query_params:
-        params["dictCode"] = "runtime_contract"
     return params
 
 
@@ -134,14 +128,6 @@ def create_runtime_contract_permissions() -> list[Permissions]:
         "system:permissions:add",
         "system:permissions:edit",
         "system:permissions:delete",
-        "system:dicts:query",
-        "system:dicts:add",
-        "system:dicts:edit",
-        "system:dicts:delete",
-        "system:dictitems:query",
-        "system:dictitems:add",
-        "system:dictitems:edit",
-        "system:dictitems:delete",
         "system:notices:query",
         "system:notices:add",
         "system:notices:edit",
@@ -215,15 +201,6 @@ def create_runtime_contract_permissions() -> list[Permissions]:
         sort=6,
     )
     return [catalog, user_menu, notice_menu, log_menu, menu_management, upload_menu, *buttons]
-
-
-def create_runtime_contract_dicts() -> None:
-    """创建字典和字典项列表数据，覆盖分页与 dictCode 查询参数契约。"""
-    dict_data = Dicts.objects.create(dict_code="runtime_contract", name="运行时契约字典")
-    extra_dict = Dicts.objects.create(dict_code="runtime_contract_extra", name="运行时契约分页字典")
-    DictItems.objects.create(dict=dict_data, label="启用", value="enabled", status=1)
-    DictItems.objects.create(dict=dict_data, label="禁用", value="disabled", status=1)
-    DictItems.objects.create(dict=extra_dict, label="其他", value="other", status=1)
 
 
 def create_runtime_contract_departments() -> Departments:

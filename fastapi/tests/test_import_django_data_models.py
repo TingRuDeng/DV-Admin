@@ -10,7 +10,7 @@ import pytest
 from passlib.context import CryptContext
 
 from app.db.models.oauth import Users
-from app.db.models.system import Departments, DictData, DictItems, Roles
+from app.db.models.system import Departments, Roles
 
 
 @pytest.mark.asyncio
@@ -45,38 +45,9 @@ async def test_import_roles(db):
 
 
 @pytest.mark.asyncio
-async def test_import_dicts(db):
-    """字典模型应保留 Django 同名业务字段。"""
-    dict_data = await DictData.create(
-        name=f"测试字典_{uuid.uuid4().hex[:6]}",
-        dict_code=f"test_dict_{uuid.uuid4().hex[:6]}",
-        status=1,
-        remark="测试字典描述",
-    )
-
-    assert dict_data.id is not None
-    assert "测试字典" in dict_data.name
 
 
 @pytest.mark.asyncio
-async def test_import_dict_items(db):
-    """字典项模型应可关联字典主表。"""
-    dict_data = await DictData.create(
-        name=f"状态字典_{uuid.uuid4().hex[:6]}",
-        dict_code=f"status_dict_{uuid.uuid4().hex[:6]}",
-        status=1,
-    )
-
-    item = await DictItems.create(
-        label=f"启用_{uuid.uuid4().hex[:6]}",
-        value="1",
-        status=1,
-        dict_data_id=dict_data.id,
-    )
-
-    assert item.id is not None
-    assert "启用" in item.label
-    assert item.dict_data_id == dict_data.id
 
 
 @pytest.mark.asyncio

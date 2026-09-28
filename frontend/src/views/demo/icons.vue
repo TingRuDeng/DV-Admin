@@ -51,7 +51,6 @@ const svg_icons = [
   "close_left",
   "close_other",
   "close_right",
-  "dict",
   "document",
   "download",
   "drag",

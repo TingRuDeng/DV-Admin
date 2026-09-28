@@ -16,10 +16,24 @@
     </el-form-item>
 
     <el-form-item label="通知类型" prop="type">
-      <Dict v-model="formData.type" code="notice_type" />
+      <el-select v-model="formData.type" placeholder="请选择通知类型" clearable>
+        <el-option
+          v-for="option in NOTICE_TYPE_OPTIONS"
+          :key="option.value"
+          :label="option.label"
+          :value="option.value"
+        />
+      </el-select>
     </el-form-item>
     <el-form-item label="通知等级" prop="level">
-      <Dict v-model="formData.level" code="notice_level" />
+      <el-select v-model="formData.level" placeholder="请选择通知等级" clearable>
+        <el-option
+          v-for="option in NOTICE_LEVEL_OPTIONS"
+          :key="option.value"
+          :label="option.label"
+          :value="option.value"
+        />
+      </el-select>
     </el-form-item>
     <el-form-item label="目标类型" prop="targetType">
       <el-radio-group v-model="formData.targetType">
@@ -54,6 +68,7 @@ import type { FormRules } from "element-plus";
 import ProFormDrawer from "@/components/ProFormDrawer/index.vue";
 import NoticeAPI, { type NoticeForm } from "@/api/system/notice-api";
 import UserAPI from "@/api/system/user-api";
+import { NOTICE_LEVEL_OPTIONS, NOTICE_TYPE_OPTIONS } from "@/constants/notice-options";
 
 const emit = defineEmits<{
   success: [];

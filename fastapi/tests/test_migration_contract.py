@@ -12,8 +12,6 @@ from app.db.migration_config import TORTOISE_ORM
 from app.db.models.oauth import OidcIdentity, Users
 from app.db.models.system import (
     Departments,
-    DictData,
-    DictItems,
     NoticeReads,
     Notices,
     OperationLog,
@@ -29,11 +27,10 @@ AuditContextMigration = import_module(
     "app.db.migrations.0003_operationlog_audit_context"
 ).Migration
 OidcIdentityMigration = import_module("app.db.migrations.0004_oidc_identities").Migration
+RemoveDictionaryMigration = import_module("app.db.migrations.0005_remove_dictionary_module").Migration
 
 MODELS = (
     Departments,
-    DictData,
-    DictItems,
     NoticeReads,
     Notices,
     OidcIdentity,
@@ -71,6 +68,12 @@ def test_mysql_url_is_expanded_for_tortoise_client(monkeypatch):
 def test_initial_migration_is_declared_as_baseline():
     assert Migration.initial is True
     assert Migration.dependencies == []
+
+
+def test_dictionary_removal_migration_drops_child_before_parent():
+    assert RemoveDictionaryMigration.dependencies == [("models", "0004_oidc_identities")]
+    deleted = [operation.name for operation in RemoveDictionaryMigration.operations if isinstance(operation, ops.DeleteModel)]
+    assert deleted == ["DictItems", "DictData"]
 
 
 def test_request_id_migration_keeps_database_default_for_existing_rows():

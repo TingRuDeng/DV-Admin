@@ -5,9 +5,7 @@ MENU_SPECS = (
     ("role_menu", "角色管理", "RoleManagement", "/system/roles", "system/role/index", 2, "system:roles:query"),
     ("menu_menu", "菜单管理", "MenuManagement", "/system/menus", "system/menu/index", 3, "system:permissions:query"),
     ("dept_menu", "部门管理", "DeptManagement", "/system/departments", "system/dept/index", 4, "system:departments:query"),
-    ("dict_menu", "字典管理", "DictManagement", "/system/dicts", "system/dict/index", 5, "system:dicts:query"),
     ("notice_menu", "通知公告", "NoticeManagement", "/system/notices", "system/notice/index", 6, "system:notices:query"),
-    ("dict_item_menu", "字典项", "DictData", "/system/dict-item", "system/dict/dict-item", 7, "system:dictitems:query"),
     ("log_menu", "日志管理", "LogManagement", "/system/logs", "system/log/index", 8, "system:logs:query"),
 )
 
@@ -29,12 +27,6 @@ BUTTON_SPECS = (
     ("dept_add", "部门新增", "dept_menu", "system:departments:add"),
     ("dept_edit", "部门编辑", "dept_menu", "system:departments:edit"),
     ("dept_delete", "部门删除", "dept_menu", "system:departments:delete"),
-    ("dict_add", "字典新增", "dict_menu", "system:dicts:add"),
-    ("dict_edit", "字典编辑", "dict_menu", "system:dicts:edit"),
-    ("dict_delete", "字典删除", "dict_menu", "system:dicts:delete"),
-    ("dict_item_add", "字典项新增", "dict_item_menu", "system:dictitems:add"),
-    ("dict_item_edit", "字典项编辑", "dict_item_menu", "system:dictitems:edit"),
-    ("dict_item_delete", "字典项删除", "dict_item_menu", "system:dictitems:delete"),
     ("notice_add", "公告新增", "notice_menu", "system:notices:add"),
     ("notice_edit", "公告编辑", "notice_menu", "system:notices:edit"),
     ("notice_delete", "公告删除", "notice_menu", "system:notices:delete"),

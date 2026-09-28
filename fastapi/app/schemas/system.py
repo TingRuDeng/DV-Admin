@@ -12,15 +12,6 @@ from app.schemas.system_common import (
     UserImportResult,
 )
 from app.schemas.system_dept import DeptCreate, DeptOut, DeptTree, DeptUpdate
-from app.schemas.system_dict import (
-    DictDataCreate,
-    DictDataOut,
-    DictDataUpdate,
-    DictItemCreate,
-    DictItemOut,
-    DictItemUpdate,
-    DictWithItems,
-)
 from app.schemas.system_log import (
     OperationLogOut,
     OperationLogPageQuery,
@@ -59,13 +50,6 @@ __all__ = [
     "DeptOut",
     "DeptTree",
     "DeptUpdate",
-    "DictDataCreate",
-    "DictDataOut",
-    "DictDataUpdate",
-    "DictItemCreate",
-    "DictItemOut",
-    "DictItemUpdate",
-    "DictWithItems",
     "EncodedFile",
     "MenuCreate",
     "MenuOut",

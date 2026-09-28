@@ -42,7 +42,7 @@ ai_summary:
 ## Key facts
 
 - 开发环境默认可使用 SQLite，生产推荐 MySQL，二者行为不能直接等同。
-- Django 与 FastAPI 模型存在字典表等局部命名差异。
+- Django 与 FastAPI 模型在历史迁移中可能存在局部命名差异。
 - 模型事实以 ORM 源码和迁移历史为准；FastAPI 使用 Tortoise ORM 1.1.7 内置迁移能力。
 
 ## How to verify
@@ -205,53 +205,6 @@ ai_summary:
 
 ---
 
-### 字典类型模型 (Dicts / DictData)
-
-**Django 表名：** `system_dicts`
-**FastAPI 表名：** `system_dicts`
-
-| 字段 | 类型 | 说明 | 约束 |
-|------|------|------|------|
-| id | int | 主键 | PK, Auto |
-| name | varchar(32/50) | 字典名称 | Unique |
-| dict_code | varchar(32) | 字典编码 | Unique |
-| status | int | 状态 | 0:禁用, 1:启用 |
-| remark | varchar(50/100) | 备注/描述 | |
-| create_time / created_at | datetime | 创建时间 | Django / FastAPI |
-| update_time / updated_at | datetime | 更新时间 | Django / FastAPI |
-
-**索引：**
-- `name` (Unique)
-- `dict_code` (Unique)
-- `status`
-
----
-
-### 字典项模型 (DictItems)
-
-**表名：** `system_dict_items`
-
-| 字段 | 类型 | 说明 | 约束 |
-|------|------|------|------|
-| id | int | 主键 | PK, Auto |
-| label | varchar(32) | 标签 | Not Null |
-| value | varchar(32) | 值 | Not Null |
-| status | int | 状态 | 0:禁用, 1:启用 |
-| tag_type | varchar(32) | 标签类型 | Django / FastAPI |
-| dict_id / dict_data_id | int | 字典ID | FK → Dicts/DictData |
-| create_time / created_at | datetime | 创建时间 | Django / FastAPI |
-| update_time / updated_at | datetime | 更新时间 | Django / FastAPI |
-
-**排序与索引：**
-- Django 默认排序：`dict, value`
-- FastAPI 默认排序：`dict_data_id, value`
-- FastAPI 显式索引：
-- `status`
-- `(dict_data_id, value)`
-- `(dict_data_id, status)`
-
----
-
 ### 通知公告模型 (Notices)
 
 **表名：** `system_notices`
@@ -404,18 +357,13 @@ ai_summary:
 
 ## 模型差异说明
 
-Django 和 FastAPI 后端在模型定义上曾存在一些差异，目前字典主表、字典项字段和关联表命名已按共享契约收敛。
+Django 和 FastAPI 后端在历史迁移上曾存在差异；字典表已由 0009/0005 删除迁移清理，生产升级前需先备份数据库。
 
-**注意：** 迁移数据时需要处理历史差异。已有 FastAPI 数据库如果仍使用旧表 `system_dict_data`、`system_roles_permissions`、`system_users_roles`，仍使用旧关联字段 `user_id/role_id/permission_id`，或仍保留旧字典项扩展字段 `is_default/remark`、`sort`，需要通过显式数据库迁移重命名、复制或删除旧结构，代码不会提供双表、双字段或扩展字段静默兼容。
-
-字典主表表名已统一为 `system_dicts`。字典主表内部字段已统一为 `dict_code/remark`；用户-角色和角色-权限关联表名、关联字段已统一到 Django 命名；FastAPI 字典项 `is_default/remark/sort` 扩展字段已移除，字典项 `label/value` 长度约束已统一为 32。
 
 ### Django Fixture 导入约束
 
 FastAPI 的 Django fixture 导入入口为 `fastapi/app/db/import_django_data.py`。共享模型契约目录为 `scripts/model_contracts.py`，根目录校验入口为 `scripts/validate_model_contracts.py`。导入脚本负责把 Django fixture 中的模型名、字段名和关系映射到 Tortoise ORM 模型：
 
-- `system.dicts` → `DictData`
-- `system.dictitems` → `DictItems`
 - `create_time/update_time` → `created_at/updated_at`
 - `keepAlive/alwaysShow` → `keep_alive/always_show`
 - `dict` → `dict_data`

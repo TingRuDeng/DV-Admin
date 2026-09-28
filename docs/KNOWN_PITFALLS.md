@@ -9,7 +9,6 @@ ai_summary:
     - "backend/drf_admin/utils/middleware.py"
     - "backend/drf_admin/utils/permissions.py"
     - "frontend/src/store/modules/permission-store.ts"
-    - "frontend/src/store/modules/dict-store.ts"
     - "frontend/vite.config.ts"
   verify_with:
     - "python3 scripts/validate_docs.py . --profile generic"
@@ -33,7 +32,6 @@ ai_summary:
 - `backend/drf_admin/utils/middleware.py`
 - `backend/drf_admin/utils/permissions.py`
 - `frontend/src/store/modules/permission-store.ts`
-- `frontend/src/store/modules/dict-store.ts`
 - `frontend/vite.config.ts`
 
 ## Key facts
@@ -376,24 +374,6 @@ WHITE_LIST = [
 
 ---
 
-### 陷阱 8：字典缓存不同步
-
-**问题描述：**
-修改字典数据后，前端显示的字典标签没有更新。
-
-**原因：**
-前端字典缓存未清除。
-
-**解决方案：**
-1. 手动刷新页面
-2. 使用 WebSocket 实时同步（已实现）
-3. 调用 `useDictStoreHook().clearDictCache()`
-
-**相关代码：**
-- `frontend/src/store/modules/dict-store.ts`
-- `frontend/src/composables/websocket/useDictSync.ts`
-
----
 
 ### 陷阱 9：组件自动导入
 
